@@ -1,0 +1,1 @@
+# Teradata MCP UI Server
