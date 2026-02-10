@@ -2,7 +2,7 @@
 ## Teradata-First, Database-Agnostic Design
 
 **Project:** Semantic Database Viewer Component Library + MCP Server Integration
-**Timeline:** 12-16 weeks
+**Timeline:** 14-17 weeks (includes Phase 5: Post-Launch Stabilization)
 **Quality Policy:** P0/P1 bugs BLOCK phase completion (non-negotiable)
 **Architecture:** Teradata-optimized with database abstraction layer
 
@@ -303,9 +303,9 @@ If no issues: **"APPROVED - NO SIGNIFICANT FINDINGS"**
 
 # PHASE 0 — REQUIREMENTS & ARCHITECTURE VALIDATION (2 days)
 
-**Goal:** Validate technical feasibility, define MVP scope, establish database compatibility matrix
+**Goal:** Validate technical feasibility, define MVP scope, establish database compatibility matrix, analyze cost/ROI
 
-Run 5 agents in PARALLEL.
+Run 6 agents in PARALLEL.
 
 ---
 
@@ -439,17 +439,50 @@ You are a product manager who defines MVP scope ruthlessly.
 * P0 features clearly defined
 * Success metrics defined (qualitative OK for MVP)
 * Timeline fits 12 weeks with buffer
+* Pivot protocol defined if user research invalidates MVP
 
 **BLOCKERS:**
 * Scope creep into execution engine
 * Unclear MVP success criteria
 * No user validation of MVP scope
 
+**PIVOT PROTOCOL:**
+
+If user research (AGENT 0D) reveals misalignment between MVP scope and user needs:
+
+**Trigger Conditions:**
+- >50% of interviewed users prioritize post-MVP features over MVP features
+- Critical pain point discovered that MVP doesn't address
+- Users don't understand or value core MVP features
+
+**Pivot Process:**
+1. **PAUSE execution** - Do not proceed to Phase 1
+2. **Convene stakeholders** - Product, Engineering, UX leads
+3. **Analyze findings:**
+   - Which MVP features have low user interest? (candidate for removal)
+   - Which post-MVP features have high user urgency? (candidate for promotion)
+   - Can timeline accommodate scope changes? (estimate effort)
+4. **Revise MVP scope** - Rewrite docs/requirements/MVP_SCOPE.md
+5. **Re-validate with users** - Interview 3-5 users with revised scope
+6. **Update timeline** - Add 1-2 weeks for pivot (total: 13-15 weeks)
+7. **Get stakeholder sign-off** - Revised scope + timeline approval
+
+**Decision Matrix:**
+| User Research Finding | Action |
+|----------------------|--------|
+| MVP scope validated (>70% positive) | PROCEED to Phase 1 |
+| Minor adjustments needed (<30% scope change) | REVISE scope, no re-validation needed |
+| Major misalignment (>30% scope change) | PIVOT (follow protocol above) |
+| No validated pain points | BLOCK (revisit project viability) |
+
+**Cost of Pivot:** 1-2 weeks delay + revised cost estimate from AGENT 0F
+
 **DELIVERABLES:**
 - docs/requirements/MVP_SCOPE.md
 - docs/requirements/USER_STORIES.md (prioritized)
 - docs/requirements/POST_MVP_ROADMAP.md
 - docs/requirements/SUCCESS_METRICS.md
+- docs/requirements/PIVOT_PROTOCOL.md (if triggered)
 
 ---
 
@@ -545,6 +578,71 @@ You are a WCAG auditor who prevents accessibility regressions.
 
 ---
 
+## AGENT 0F — COST & ROI ANALYST
+
+You are a financial analyst who ensures projects deliver value.
+
+**Your ONLY job:** Calculate development costs and estimate ROI before committing resources.
+
+**Tasks:**
+- Estimate development hours (1-2 engineers × 12-13 weeks)
+- Calculate infrastructure costs (Teradata query overhead, storage, compute)
+- Estimate ongoing operational costs (monitoring, maintenance, on-call)
+- Quantify user time savings (minutes saved per day × users × 260 work days)
+- Calculate payback period and 3-year ROI
+
+**Cost Categories:**
+
+1. **Development Costs:**
+   - Engineer hours: [1-2 engineers] × [480 hours over 12 weeks] × [hourly rate]
+   - Teradata test instance: [cost per month] × 3 months
+   - Third-party services (if any): Monitoring, CI/CD, etc.
+
+2. **Infrastructure Costs (Annual):**
+   - Teradata query costs: DBQL overhead ([X queries/day] × [cost per query])
+   - Observation storage: SQLite → PostgreSQL at scale ([X GB] × [storage cost])
+   - vantage-mcp subprocess overhead: [CPU/memory costs]
+   - HTML app serving: CDN or hosting costs
+
+3. **Operational Costs (Annual):**
+   - Maintenance: [Y hours/month] × 12 × [hourly rate]
+   - On-call rotation: [Z hours/month] × 12 × [on-call rate]
+   - Incident response: [estimated hours/year]
+
+4. **User Value (Annual):**
+   - Time saved per user: [N minutes/day] × [M users] × 260 work days
+   - Cost of manual optimization tasks eliminated: [hours saved] × [user hourly rate]
+   - Reduced database costs from optimizations: [estimated savings from recommendations]
+
+**ROI Calculation:**
+```
+Annual Value = User time saved + Manual task elimination + DB cost reduction
+Annual Cost = Infrastructure + Operations + Maintenance
+ROI = (Annual Value - Annual Cost) / Development Cost
+Payback Period = Development Cost / (Annual Value - Annual Cost)
+```
+
+**SUCCESS CRITERIA:**
+* Development cost estimate within ±20% accuracy
+* Infrastructure cost estimate documented (even if "unknown, needs monitoring")
+* User value quantified (even if estimated ranges)
+* ROI positive within 18 months OR strategic value documented
+* Stakeholder sign-off on cost/value trade-off
+
+**BLOCKERS:**
+* Unknown Teradata query costs (DBQL overhead)
+* Unclear user time savings (need user research data)
+* No historical data for similar projects
+* Stakeholders unwilling to commit without ROI clarity
+
+**DELIVERABLES:**
+- docs/cost-roi/COST_ESTIMATE.md
+- docs/cost-roi/ROI_ANALYSIS.md
+- docs/cost-roi/ASSUMPTIONS.md (document all assumptions for future validation)
+- Stakeholder approval memo (signed off)
+
+---
+
 ## PHASE 0 GATE
 
 **PROCEED only if:**
@@ -554,6 +652,7 @@ You are a WCAG auditor who prevents accessibility regressions.
 ✅ Requirements Prioritizer: MVP scope ≤20 stories
 ✅ UX Research Lead: 9-15 interviews, validated pain points
 ✅ Accessibility Lead: WCAG 2.1 AA requirements defined
+✅ Cost & ROI Analyst: ROI positive OR strategic value documented
 ✅ 0 BLOCKERS across all agents
 ```
 
@@ -2144,6 +2243,352 @@ USER_SENTIMENT: POSITIVE | NEUTRAL | NEGATIVE
 
 ---
 
+# PHASE 5 — POST-LAUNCH STABILIZATION (2 weeks)
+
+**Goal:** Ensure production stability, create operational runbooks, establish incident response
+
+Run 4 operational agents in PARALLEL.
+
+---
+
+## AGENT 5A — PRODUCTION MONITORING LEAD
+
+You are a Site Reliability Engineer (SRE) who prevents outages.
+
+**Your ONLY job:** Establish monitoring, alerting, and observability for semantic viewer in production.
+
+**Tasks:**
+- Set up monitoring dashboards (error rates, latency, resource usage)
+- Configure alerting rules (error rate >1%, p95 latency >500ms, uptime <99%)
+- Establish log aggregation (Python server, vantage-mcp subprocess, Teradata)
+- Create SLIs/SLOs for semantic viewer
+- Set up on-call rotation schedule
+
+**Monitoring Metrics:**
+
+| Metric | Target | Alert Threshold | Action |
+|--------|--------|-----------------|--------|
+| Error Rate | <1% | >2% | Page on-call engineer |
+| MCP Call p95 Latency | <500ms | >1000ms | Investigate performance |
+| vantage-mcp Subprocess Uptime | 99.9% | Crash detected | Auto-restart + alert |
+| Component Render Time | <100ms | >200ms | Investigate client perf |
+| Uptime | ≥99% | <98% | Escalate to team lead |
+| User Task Completion | ≥80% | <70% | UX review needed |
+
+**Dashboards to Create:**
+1. **Health Dashboard** - Uptime, error rates, latency percentiles
+2. **User Metrics Dashboard** - Task completion, SUS scores, active users
+3. **Resource Dashboard** - vantage-mcp CPU/memory, database connection pool, query costs
+4. **MCP Bridge Dashboard** - Tool call volume, success rates, timeout frequency
+
+**SUCCESS CRITERIA:**
+* Monitoring dashboards operational
+* Alert rules configured and tested
+* Log aggregation working (searchable logs)
+* On-call rotation established (24/7 coverage)
+* SLI/SLO documented
+
+**BLOCKERS:**
+* No access to monitoring tools (Datadog, Grafana, CloudWatch, etc.)
+* Unclear who owns on-call rotation
+* Missing log aggregation infrastructure
+
+**DELIVERABLES:**
+- docs/operations/MONITORING_SETUP.md
+- docs/operations/ALERT_RULES.md
+- docs/operations/DASHBOARD_SCREENSHOTS.md
+- docs/operations/SLI_SLO.md
+- docs/operations/ON_CALL_ROTATION.md
+
+---
+
+## AGENT 5B — INCIDENT RESPONSE COORDINATOR
+
+You are a DevOps engineer who handles production incidents efficiently.
+
+**Your ONLY job:** Create runbooks for common failure scenarios and establish incident response protocol.
+
+**Tasks:**
+- Document common failure modes (vantage-mcp crash, Teradata timeout, MCP bridge disconnect)
+- Write runbooks for each failure mode (diagnosis steps, mitigation, resolution)
+- Establish incident severity levels (SEV1-SEV4)
+- Define escalation paths
+- Create incident communication templates
+
+**Common Failure Scenarios:**
+
+### 1. vantage-mcp Subprocess Crashed
+**Symptoms:** MCP tools return "connection error", semantic viewer shows "Unable to connect"
+**Diagnosis:**
+```bash
+# Check if vantage-mcp process is running
+ps aux | grep vantage-mcp
+
+# Check Python server logs
+tail -f logs/teradata-mcp-ui.log | grep vantage-mcp
+```
+**Mitigation:** Auto-restart vantage-mcp subprocess (circuit breaker with 3 retry limit)
+**Resolution:** Investigate crash logs, fix root cause, deploy patch
+**Escalation:** If crashes >3 times in 10 minutes → Page on-call engineer
+
+### 2. Teradata Connection Timeout
+**Symptoms:** Queries hang, users report "Request timed out"
+**Diagnosis:**
+```bash
+# Check Teradata connectivity
+nc -zv $TD_DEFAULT_HOST 1025
+
+# Check connection pool status
+curl http://localhost:8000/health/connection-pool
+```
+**Mitigation:** Increase timeout from 30s to 60s temporarily
+**Resolution:** Investigate Teradata load, optimize queries, add connection pooling
+**Escalation:** If persists >30 minutes → Page DBA team
+
+### 3. MCP Bridge Disconnect (Claude Desktop)
+**Symptoms:** Users report "Cannot load semantic viewer"
+**Diagnosis:** Check MCP Apps logs, verify HTML app bundles served
+**Mitigation:** Refresh Claude Desktop, re-add MCP server
+**Resolution:** Verify resource URIs correct, check HTML app build
+**Escalation:** If affects >10% of users → Page frontend team
+
+### 4. Observation Storage Full (SQLite → PostgreSQL migration needed)
+**Symptoms:** Semantic tools return "database error", observation data missing
+**Diagnosis:** Check SQLite file size, disk space
+**Mitigation:** Purge old observations (>90 days), migrate to PostgreSQL
+**Resolution:** Implement data retention policy, set up PostgreSQL
+**Escalation:** If data loss risk → Page team lead immediately
+
+### 5. Recommendation Engine Returns Bad SQL
+**Symptoms:** Users report "Recommendation says to create materialized view, but SQL is invalid"
+**Diagnosis:** Check recommendation rule logic, test SQL generation
+**Mitigation:** Disable bad recommendation rule temporarily
+**Resolution:** Fix SQL generation logic, add validation tests
+**Escalation:** If user runs bad SQL → SEV2 incident (data integrity risk)
+
+**Incident Severity Levels:**
+
+| Severity | Definition | Response Time | Example |
+|----------|-----------|---------------|---------|
+| SEV1 | Complete outage, data loss risk | 15 minutes | All semantic tools down, vantage-mcp crashed |
+| SEV2 | Major feature broken, security issue | 1 hour | Recommendations return invalid SQL, XSS vulnerability |
+| SEV3 | Minor feature degraded, performance issue | 4 hours | Schema explorer slow, query patterns not loading |
+| SEV4 | Cosmetic issue, documentation error | Next business day | Button color wrong, typo in help text |
+
+**SUCCESS CRITERIA:**
+* Runbooks created for 5+ common failure scenarios
+* Incident severity levels defined
+* Escalation paths documented
+* Communication templates ready
+* Incident response drill completed (simulate SEV1)
+
+**BLOCKERS:**
+* No incident management tool (PagerDuty, Opsgenie, etc.)
+* Unclear escalation contacts (who to page?)
+* No post-mortem template
+
+**DELIVERABLES:**
+- docs/operations/RUNBOOK_VANTAGE_MCP_CRASH.md
+- docs/operations/RUNBOOK_TERADATA_TIMEOUT.md
+- docs/operations/RUNBOOK_MCP_BRIDGE_DISCONNECT.md
+- docs/operations/RUNBOOK_STORAGE_FULL.md
+- docs/operations/RUNBOOK_BAD_RECOMMENDATION.md
+- docs/operations/INCIDENT_RESPONSE_PROTOCOL.md
+- docs/operations/INCIDENT_SEVERITY_LEVELS.md
+- docs/operations/POST_MORTEM_TEMPLATE.md
+
+---
+
+## AGENT 5C — PERFORMANCE TUNING ENGINEER
+
+You are a performance engineer who optimizes based on real usage data.
+
+**Your ONLY job:** Analyze production performance data and optimize bottlenecks.
+
+**Tasks:**
+- Collect production performance data (1 week minimum)
+- Identify slow queries, slow components, high-cost operations
+- Optimize hot paths (schema inspection, recommendation generation)
+- Tune database queries (add indexes, optimize JOIN conditions)
+- Reduce bundle sizes if >500KB
+- Profile vantage-mcp subprocess overhead
+
+**Performance Targets (Validate in Production):**
+
+| Metric | Target | Actual | Status | Action if Missing |
+|--------|--------|--------|--------|-------------------|
+| Schema Inspection | <500ms p95 | [X ms] | ✅/❌ | Add caching, optimize DBC queries |
+| Recommendation List | <300ms p95 | [X ms] | ✅/❌ | Add pagination, reduce rule complexity |
+| Query Pattern List | <400ms p95 | [X ms] | ✅/❌ | Add indexes on query_patterns table |
+| Component First Render | <100ms | [X ms] | ✅/❌ | Lazy load heavy components |
+| HTML App Bundle Size | <500KB gzipped | [X KB] | ✅/❌ | Code split, tree shake, remove unused deps |
+| vantage-mcp Subprocess Startup | <3s | [X s] | ✅/❌ | Keep subprocess warm (don't kill on idle) |
+
+**Optimization Priorities (Based on Real Data):**
+
+1. **If schema inspection >1s p95:**
+   - Cache DBC.TablesV, DBC.ColumnsV results for 5 minutes
+   - Add database/table filters to reduce result set
+   - Use lazy loading for column details
+
+2. **If recommendation generation >5s:**
+   - Run rule evaluation in background (async)
+   - Cache recommendations for 1 hour
+   - Reduce observation lookback window (7 days → 3 days)
+
+3. **If HTML app load >2s on 3G:**
+   - Code split by route (schema-explorer, recommendations, query-patterns)
+   - Lazy load ECharts library (only when visualizations needed)
+   - Remove unused Tailwind classes (PurgeCSS)
+
+4. **If vantage-mcp subprocess crashes frequently:**
+   - Investigate memory leaks in Go code
+   - Add connection pool limits (prevent resource exhaustion)
+   - Implement graceful degradation (serve cached data if subprocess down)
+
+**SUCCESS CRITERIA:**
+* Production performance data collected (≥1 week)
+* Bottlenecks identified and prioritized
+* Top 3 bottlenecks optimized
+* Performance targets met OR optimization plan documented
+* Before/after benchmarks captured
+
+**BLOCKERS:**
+* Insufficient production usage (need ≥50 users to get meaningful data)
+* No performance profiling tools (Lighthouse, React Profiler, Go pprof)
+* Optimizations require architectural changes (need team lead approval)
+
+**DELIVERABLES:**
+- docs/operations/PERFORMANCE_ANALYSIS.md (with graphs/charts)
+- docs/operations/OPTIMIZATION_PLAN.md (prioritized list)
+- docs/operations/BENCHMARK_RESULTS.md (before/after)
+- Code changes (if optimizations implemented)
+
+---
+
+## AGENT 5D — KNOWLEDGE TRANSFER LEAD
+
+You are a technical writer who ensures continuity after project handoff.
+
+**Your ONLY job:** Document institutional knowledge and train ongoing maintainers.
+
+**Tasks:**
+- Create architecture decision records (ADRs) for key decisions
+- Document "why we did it this way" for non-obvious choices
+- Train handoff team (if different from dev team)
+- Create video walkthroughs (15-20 minutes each)
+- Establish maintenance schedule (weekly, monthly tasks)
+
+**Architecture Decision Records (ADRs):**
+
+Document these key decisions with context and rationale:
+
+1. **ADR-001: Why semantic viewer tools in Python, not vantage-mcp Go?**
+   - Decision: Implement all semantic tools in teradata-mcp-ui Python server
+   - Context: vantage-mcp exposes only 2 tools, minimal by design
+   - Rationale: Avoid modifying stable vantage-mcp codebase, faster iteration
+   - Trade-offs: Extra layer of indirection (Python → vantage-mcp stdio)
+
+2. **ADR-002: Why SQLite for observations, not PostgreSQL initially?**
+   - Decision: Use SQLite for MVP, plan PostgreSQL migration at scale
+   - Context: Observation data <100MB for first 6 months estimated
+   - Rationale: Simpler deployment, fewer dependencies, sufficient for MVP
+   - Trade-offs: Manual migration needed when data grows >1GB
+
+3. **ADR-003: Why database abstraction layer, not Teradata-only?**
+   - Decision: Abstract base class with Teradata/PostgreSQL/MySQL adapters
+   - Context: Users may want semantic viewer on non-Teradata databases
+   - Rationale: Future-proofing, wider market applicability
+   - Trade-offs: More code complexity, testing burden
+
+4. **ADR-004: Why no execution engine in MVP?**
+   - Decision: Recommendations show SQL only, no auto-execution
+   - Context: User research showed trust issues with auto-execution
+   - Rationale: Safer MVP, avoid data corruption risks, easier to test
+   - Trade-offs: Less automation value, manual copy-paste workflow
+
+5. **ADR-005: Why MCP bridge, not direct REST APIs?**
+   - Decision: All components use useMcpTool hook, zero direct API calls
+   - Context: MCP-UI Apps protocol enables Claude Desktop integration
+   - Rationale: Protocol compliance, unified interface, portability
+   - Trade-offs: Learning curve for MCP protocol, debugging complexity
+
+**Video Walkthroughs:**
+
+1. **Architecture Overview** (15 min)
+   - Data flow: React → Python → vantage-mcp → Teradata
+   - MCP protocol basics
+   - Database abstraction layer
+
+2. **Adding a New Recommendation Rule** (15 min)
+   - Rule interface implementation
+   - Scoring algorithm
+   - SQL generation
+   - Testing strategy
+
+3. **Debugging Common Issues** (20 min)
+   - vantage-mcp subprocess debugging
+   - MCP bridge disconnect troubleshooting
+   - Performance profiling
+   - Reading logs across stack (React, Python, vantage-mcp, Teradata)
+
+4. **Deployment Process** (10 min)
+   - Building components and HTML apps
+   - vantage-mcp build and configuration
+   - Environment variable setup
+   - Health check verification
+
+**Maintenance Schedule:**
+
+| Task | Frequency | Owner | Effort |
+|------|-----------|-------|--------|
+| Review production errors | Daily | On-call engineer | 15 min |
+| Clear old observations (>90 days) | Weekly | DevOps | 5 min (automated) |
+| Update Teradata driver (teradatacli) | Monthly | Backend engineer | 1-2 hours |
+| Review recommendation accuracy | Monthly | Product team | 2 hours |
+| Rebuild HTML app bundles (dependency updates) | Monthly | Frontend engineer | 1 hour |
+| Full system test (E2E) | Quarterly | QA team | 4 hours |
+| Security audit (dependencies, vulnerabilities) | Quarterly | Security team | 8 hours |
+
+**SUCCESS CRITERIA:**
+* 5+ ADRs documented
+* 4 video walkthroughs recorded (with captions)
+* Maintenance schedule established
+* Handoff training completed (if applicable)
+* Knowledge base searchable (wiki or docs site)
+
+**BLOCKERS:**
+* No video recording tool (Loom, OBS)
+* Unclear who maintains after launch (handoff team not identified)
+* No wiki or docs hosting platform
+
+**DELIVERABLES:**
+- docs/architecture/ADR-001-semantic-tools-in-python.md
+- docs/architecture/ADR-002-sqlite-for-observations.md
+- docs/architecture/ADR-003-database-abstraction-layer.md
+- docs/architecture/ADR-004-no-execution-engine-mvp.md
+- docs/architecture/ADR-005-mcp-bridge-not-rest.md
+- docs/operations/VIDEO_WALKTHROUGHS.md (links to recordings)
+- docs/operations/MAINTENANCE_SCHEDULE.md
+- docs/operations/HANDOFF_CHECKLIST.md
+
+---
+
+## PHASE 5 GATE
+
+**PROCEED to GA only if:**
+```
+✅ Monitoring & alerting operational
+✅ Incident runbooks complete (5+ scenarios)
+✅ Performance targets met OR optimization plan approved
+✅ Knowledge transfer complete (ADRs + videos + training)
+✅ Maintenance schedule established
+✅ P0 bugs = 0 (still)
+✅ Production stable (>1 week with <1% error rate)
+```
+
+---
+
 # FINAL VALIDATION
 
 ## AGENT FINAL — PROJECT AUDITOR
@@ -2455,22 +2900,28 @@ Teradata Vantage (database)
 
 | Phase | Duration | Critical Path |
 |-------|----------|---------------|
-| **Phase 0:** Requirements & Validation | 2 days | User interviews, database compatibility |
+| **Phase 0:** Requirements & Validation | 2 days | User interviews, database compatibility, cost/ROI analysis |
 | **Phase 1:** MCP Tools & Data Model | 3 weeks | Observation layer, MCP tools, abstraction layer |
 | **Phase 2:** React Components & Integration | 4 weeks | All 5 component groups + MCP Apps |
 | **Phase 3:** Production Hardening | 2 weeks | Security, performance, A11y audits |
 | **Phase 4:** MVP Launch | 1-2 weeks | Deployment, beta testing |
-| **TOTAL** | **12-13 weeks** | |
+| **Phase 5:** Post-Launch Stabilization | 2 weeks | Monitoring, runbooks, performance tuning |
+| **TOTAL** | **14-15 weeks** | |
+
+**Notes:**
+- Add 1-2 weeks if pivot triggered in Phase 0 (scope misalignment)
+- Phase 5 ensures production stability before handoff to maintenance team
 
 ---
 
 **STATUS:** AWAITING APPROVAL
 
 **Next Steps:**
-1. Review plan with stakeholders
+1. Review plan with stakeholders (including cost/ROI analysis)
 2. Secure resources (1-2 engineers, access to Teradata instance)
-3. Begin Phase 0 with 5 parallel agents
-4. Iterate based on Phase 0 findings
+3. Begin Phase 0 with 6 parallel agents (added Cost & ROI Analyst)
+4. Execute pivot protocol if user research invalidates MVP scope
+5. Iterate based on Phase 0 findings
 
 ---
 
@@ -2567,10 +3018,11 @@ Teradata Vantage (database)
 
 ---
 
-**Plan Version:** 1.0
+**Plan Version:** 1.1
 **Created:** 2026-02-09
-**Updated:** 2026-02-09 (Added vantage-mcp Go integration details)
+**Updated:** 2026-02-09 (Added Phase 5, Cost/ROI analysis, Pivot protocol)
 **Template:** AGENT-EXECUTION-TEMPLATE-FOR-AGENTS v1.0
 **Optimized For:** Teradata-first, database-agnostic design
 **Quality Policy:** P0/P1 bugs BLOCK all gates
 **Integration:** vantage-mcp (Go) + teradata-mcp-ui (Python/React)
+**Timeline:** 14-17 weeks (MVP + Post-Launch Stabilization)
