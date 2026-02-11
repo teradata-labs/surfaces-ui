@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 _stdio_client: Optional["StdioMcpClient"] = None
 
 
-def get_sql_tool_definition() -> dict:
+def get_sql_tool_definition() -> Tool:
     """Get the SQL tool definition for MCP with UI metadata."""
-    return {
-        "name": "execute_sql",
-        "description": "Execute SQL queries against Teradata Vantage. Returns results as JSON with columns and data arrays. Opens an interactive SQL editor UI.",
-        "inputSchema": {
+    return Tool(
+        name="execute_sql",
+        description="Execute SQL queries against Teradata Vantage. Returns results as JSON with columns and data arrays. Opens an interactive SQL editor UI.",
+        inputSchema={
             "type": "object",
             "properties": {
                 "query": {
@@ -35,12 +35,7 @@ def get_sql_tool_definition() -> dict:
             },
             "required": ["query"],
         },
-        "_meta": {
-            "ui": {
-                "resourceUri": "ui://sql-editor",
-            }
-        },
-    }
+    )
 
 
 class StdioMcpClient:
