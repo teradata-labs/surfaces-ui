@@ -76,8 +76,9 @@ export function SQLEditor({
   });
 
   // Fetch last result on mount in MCP Apps context
+  // ONLY if no initialCode was provided (avoid overwriting params-based SQL)
   React.useEffect(() => {
-    if (context === 'mcp-apps' && !hasFetchedLastResult) {
+    if (context === 'mcp-apps' && !hasFetchedLastResult && !initialCode) {
       setHasFetchedLastResult(true);
       // Small delay to ensure bridge is connected
       const timer = setTimeout(() => {
@@ -85,7 +86,7 @@ export function SQLEditor({
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [context, hasFetchedLastResult, fetchLastResult]);
+  }, [context, hasFetchedLastResult, fetchLastResult, initialCode]);
 
   // Process last result when received
   React.useEffect(() => {
