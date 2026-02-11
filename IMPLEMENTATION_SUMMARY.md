@@ -163,11 +163,11 @@ go build -o bin/vantage-mcp ./cmd/vantage-mcp
 ### Test Auto-Start Locally
 ```bash
 export UI_SERVER_MODE=auto
-export UI_SERVER_PATH=$HOME/repos/surfaces-ui/server
+export UI_SERVER_PATH=$HOME/repos/surfacesui/server
 export UI_SERVER_PORT=3000
-export TD_USER=REDACTED_USER
-export TD_PASSWORD=REDACTED_PASSWORD
-export TD_DEFAULT_HOST=REDACTED_HOST.clearscape.teradata.com
+export TD_USER=your_username
+export TD_PASSWORD=your_password
+export TD_DEFAULT_HOST=your-host.clearscape.teradata.com
 
 ./bin/vantage-mcp
 ```

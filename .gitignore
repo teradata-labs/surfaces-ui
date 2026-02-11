@@ -89,3 +89,57 @@ tmp/
 .pnpm-store/
 .yarn/
 .yarnrc.yml
+
+# Credentials and secrets (extra protection)
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+secrets.json
+secrets.yaml
+secrets.yml
+credentials.json
+credentials.yaml
+credentials.yml
+.env.*
+!.env.example
+!.env.template
+*_rsa
+*_rsa.pub
+*_dsa
+*_ecdsa
+*_ed25519
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+
+# Backup files
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# Python distribution
+dist-info/
+wheels/
+.installed.cfg
+*.manifest
+*.spec
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Claude / AI artifacts
+.claude/
+.cursor/

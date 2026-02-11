@@ -129,7 +129,7 @@ These need to be extracted from canvas-ai-compute-studio:
 
 ## How to Resume
 
-1. Open a new Claude Code session in `$HOME/repos/surfaces-ui`
+1. Open a new Claude Code session in `$HOME/repos/surfacesui`
 2. The CLAUDE.md in that repo has all project conventions
 3. The full plan is at `$HOME/.claude/plans/pure-stirring-whisper.md`
 4. Start with the incomplete tasks listed above (agent configs, server, component extractions)
@@ -141,7 +141,7 @@ These need to be extracted from canvas-ai-compute-studio:
 | What | Where |
 |------|-------|
 | Full plan | `$HOME/.claude/plans/pure-stirring-whisper.md` |
-| New repo CLAUDE.md | `$HOME/repos/surfaces-ui/CLAUDE.md` |
+| New repo CLAUDE.md | `$HOME/repos/surfacesui/CLAUDE.md` |
 | Source components | `$HOME/repos/canvas-ai-compute-studio/frontend/src/components/` |
 | Source services | `$HOME/repos/canvas-ai-compute-studio/frontend/src/services/` |
 | Source CSS tokens | `$HOME/repos/canvas-ai-compute-studio/frontend/src/index.css` |

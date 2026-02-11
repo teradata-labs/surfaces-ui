@@ -109,11 +109,12 @@ go build ./cmd/vantage-mcp    # Builds to ./vantage-mcp
 
 **Run vantage-mcp (stdio mode):**
 ```bash
-export TD_USER="dbc"
-export TD_PASSWORD="dbc"
-export TD_DEFAULT_HOST="localhost"
+# EXAMPLE ONLY - Replace with your actual Teradata credentials
+export TD_USER="your_username"
+export TD_PASSWORD="your_password"
+export TD_DEFAULT_HOST="your-host.teradata.com"  # or "localhost" for local Teradata Express
 export LOG_LEVEL="info"
-export MCP_APPS_DIR="$HOME/repos/surfaces-ui/packages/components/dist/apps"
+export MCP_APPS_DIR="$HOME/repos/surfacesui/packages/components/dist/apps"
 
 ~/repos/vantage-mcp/bin/vantage-mcp
 # Server listens on stdin, writes responses to stdout, logs to stderr

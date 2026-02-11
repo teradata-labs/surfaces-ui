@@ -8,8 +8,8 @@
 ## ✅ FULL INTEGRATION CONFIRMED WORKING
 
 ### Test Configuration
-- **Host:** REDACTED_HOST.clearscape.teradata.com
-- **User:** REDACTED_USER
+- **Host:** your-host.clearscape.teradata.com (example: ClearScape Analytics Experience)
+- **User:** your_username
 - **Backend:** vantage-mcp (stdio mode)
 - **HTTP Server:** localhost:3020
 
@@ -65,8 +65,8 @@ SELECT DATABASE, USER, CURRENT_TIMESTAMP as query_time
   "success": true,
   "data": [
     {
-      "Database": "REDACTED_USER",
-      "User": "REDACTED_USER",
+      "Database": "YOUR_DATABASE",
+      "User": "YOUR_USERNAME",
       "query_time": "2026-02-11 11:53:42.990000+00:00"
     }
   ],
