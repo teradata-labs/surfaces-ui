@@ -16,6 +16,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist/apps',
+    emptyOutDir: true,
     rollupOptions: {
       input: resolve(__dirname, 'src/apps/sql-editor.html'),
       output: {
@@ -24,12 +25,6 @@ export default defineConfig({
         chunkFileNames: '[name].js',
         assetFileNames: '[name].[ext]',
       },
-    },
-  },
-  // Ensure HTML files are output at root of outDir
-  experimental: {
-    renderBuiltUrl(filename) {
-      return filename.replace(/^src\/apps\//, '');
     },
   },
 });
