@@ -173,7 +173,7 @@ In HTTP mode, teradata-mcp-ui proxies requests to an HTTP endpoint. This require
       "env": {
         "MOCK_MODE": "false",
         "VANTAGE_MCP_MODE": "http",
-        "VANTAGE_MCP_ADDR": "http://localhost:8080"
+        "VANTAGE_MCP_ADDR": "http://localhost:3000"
       }
     }
   }
