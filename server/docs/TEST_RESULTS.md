@@ -87,7 +87,7 @@ Results:
 ```
 Claude Desktop
     ↓ stdio (JSON-RPC)
-teradata-mcp-ui (main.py)
+surfaces-ui (main.py)
     ├─ HTTP Server (port 3000)
     │   └─ Serves UI apps
     └─ stdio (JSON-RPC)
@@ -152,9 +152,9 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "teradata-ui": {
-      "command": "/path/to/teradata-mcp-ui/server/venv/bin/python",
+      "command": "/path/to/surfaces-ui/server/venv/bin/python",
       "args": ["-m", "src.main"],
-      "cwd": "/path/to/teradata-mcp-ui/server",
+      "cwd": "/path/to/surfaces-ui/server",
       "env": {
         "MOCK_MODE": "false",
         "VANTAGE_MCP_MODE": "stdio",

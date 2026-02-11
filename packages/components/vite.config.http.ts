@@ -3,9 +3,13 @@ import react from '@vitejs/plugin-react-swc';
 import { resolve } from 'path';
 
 /**
- * Builds the SQL Editor as a regular Vite app for HTTP serving.
- * Produces separate JS/CSS files with proper code splitting and asset handling.
- * This enables Monaco Editor web workers and other features that don't work in single-file bundles.
+ * HTTP build configuration - DEPRECATED
+ *
+ * This config was used for HTTP server builds with Monaco Editor.
+ * Now replaced by vite.config.apps.ts which builds single-file HTML bundles
+ * with CodeMirror for Claude Desktop MCP Apps.
+ *
+ * Kept for reference but no longer actively used.
  */
 export default defineConfig({
   plugins: [react()],
@@ -19,19 +23,16 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        'sql-editor': resolve(__dirname, 'src/apps/sql-editor.html'),
+        // No input files - this config is deprecated
       },
       output: {
-        // Organize output files in a clean structure
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    // Enable code splitting for better performance
     chunkSizeWarningLimit: 1000,
   },
-  // Development server configuration
   server: {
     port: 5173,
     open: false,

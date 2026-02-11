@@ -27,7 +27,7 @@ export class McpAppsBridge {
 
   constructor(config?: McpBridgeConfig) {
     // Config is ignored for MCP Apps - the App class handles connection details
-    this.app = new App({ name: 'Teradata UI', version: '1.0.0' });
+    this.app = new App({ name: 'SurfacesUI', version: '1.0.0' });
     this.listeners = new Set();
     this.streamListeners = new Map();
     this.connected = false;

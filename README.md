@@ -1,4 +1,4 @@
-# Teradata MCP UI
+# SurfacesUI
 
 **Version:** 0.1.0
 
@@ -26,7 +26,7 @@ Components communicate through the MCP Bridge pattern, not direct REST calls. Th
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd teradata-mcp-ui
+cd surfacesui
 
 # Install JavaScript dependencies
 pnpm install
@@ -44,7 +44,7 @@ cd ..
 pnpm build
 
 # Build HTML app bundles for MCP serving
-pnpm --filter @teradata-mcp-ui/components build:apps
+pnpm --filter @surfacesui/components build:apps
 ```
 
 ### Development
@@ -57,20 +57,20 @@ pnpm dev
 pnpm test
 
 # Run tests with coverage
-pnpm --filter @teradata-mcp-ui/components test:coverage
+pnpm --filter @surfacesui/components test:coverage
 ```
 
 ## Using with Claude Desktop
 
-Claude Desktop supports MCP servers. Configure the teradata-mcp-ui server in your Claude Desktop settings.
+Claude Desktop supports MCP servers. Configure the surfacesui server in your Claude Desktop settings.
 
 ### 1. Build the components
 
 ```bash
-cd teradata-mcp-ui
+cd surfacesui
 pnpm install
 pnpm build
-pnpm --filter @teradata-mcp-ui/components build:apps
+pnpm --filter @surfacesui/components build:apps
 ```
 
 ### 2. Configure Claude Desktop
@@ -86,7 +86,7 @@ Edit your Claude Desktop configuration file:
     "teradata-ui": {
       "command": "python",
       "args": ["-m", "src.main"],
-      "cwd": "/path/to/teradata-mcp-ui/server",
+      "cwd": "/path/to/surfacesui/server",
       "env": {
         "MOCK_MODE": "true"
       }
@@ -116,11 +116,11 @@ After updating the configuration, restart Claude Desktop. The MCP server will be
 
 ## Connecting to vantage-mcp
 
-The teradata-mcp-ui server can connect to vantage-mcp (the Go-based MCP tools server) in two modes:
+The surfacesui server can connect to vantage-mcp (the Go-based MCP tools server) in two modes:
 
 ### Mode 1: stdio (Recommended)
 
-In stdio mode, teradata-mcp-ui spawns vantage-mcp as a subprocess and communicates via JSON-RPC over stdin/stdout. This is the native MCP communication method and requires no HTTP wrapper.
+In stdio mode, surfacesui spawns vantage-mcp as a subprocess and communicates via JSON-RPC over stdin/stdout. This is the native MCP communication method and requires no HTTP wrapper.
 
 **Claude Desktop Configuration:**
 
@@ -130,7 +130,7 @@ In stdio mode, teradata-mcp-ui spawns vantage-mcp as a subprocess and communicat
     "teradata-ui": {
       "command": "python",
       "args": ["-m", "src.main"],
-      "cwd": "/path/to/teradata-mcp-ui/server",
+      "cwd": "/path/to/surfacesui/server",
       "env": {
         "MOCK_MODE": "false",
         "VANTAGE_MCP_MODE": "stdio",
@@ -145,7 +145,7 @@ In stdio mode, teradata-mcp-ui spawns vantage-mcp as a subprocess and communicat
 ```
 
 **How it works:**
-1. teradata-mcp-ui receives a `tools/call` request for `execute_sql`
+1. surfacesui receives a `tools/call` request for `execute_sql`
 2. It spawns vantage-mcp as a subprocess (if not already running)
 3. Sends MCP `initialize` request to establish the session
 4. Forwards the tool call via JSON-RPC: `{"method": "tools/call", "params": {"name": "teradata_execute_sql", ...}}`
@@ -159,7 +159,7 @@ In stdio mode, teradata-mcp-ui spawns vantage-mcp as a subprocess and communicat
 
 ### Mode 2: HTTP
 
-In HTTP mode, teradata-mcp-ui proxies requests to an HTTP endpoint. This requires running vantage-mcp with an HTTP wrapper or gateway.
+In HTTP mode, surfacesui proxies requests to an HTTP endpoint. This requires running vantage-mcp with an HTTP wrapper or gateway.
 
 **Claude Desktop Configuration:**
 
@@ -169,7 +169,7 @@ In HTTP mode, teradata-mcp-ui proxies requests to an HTTP endpoint. This require
     "teradata-ui": {
       "command": "python",
       "args": ["-m", "src.main"],
-      "cwd": "/path/to/teradata-mcp-ui/server",
+      "cwd": "/path/to/surfacesui/server",
       "env": {
         "MOCK_MODE": "false",
         "VANTAGE_MCP_MODE": "http",
@@ -181,7 +181,7 @@ In HTTP mode, teradata-mcp-ui proxies requests to an HTTP endpoint. This require
 ```
 
 **How it works:**
-1. teradata-mcp-ui receives a `tools/call` request for `execute_sql`
+1. surfacesui receives a `tools/call` request for `execute_sql`
 2. Makes an HTTP POST to `{VANTAGE_MCP_ADDR}/execute`
 3. Returns the response to the MCP client
 
@@ -202,11 +202,11 @@ In HTTP mode, teradata-mcp-ui proxies requests to an HTTP endpoint. This require
 
 ## Using with Loom
 
-[Loom](https://github.com/teradata-labs/loom) is an LLM agent framework. The teradata-mcp-ui components can be used with loom agents by configuring vantage-mcp as an MCP tool provider.
+[Loom](https://github.com/teradata-labs/loom) is an LLM agent framework. The surfacesui components can be used with loom agents by configuring vantage-mcp as an MCP tool provider.
 
-### Option 1: teradata-mcp-ui with stdio mode (UI + Tools)
+### Option 1: surfacesui with stdio mode (UI + Tools)
 
-Use teradata-mcp-ui as the main server, which spawns vantage-mcp internally for tool execution:
+Use surfacesui as the main server, which spawns vantage-mcp internally for tool execution:
 
 ```yaml
 # looms.yaml or agent.yaml
@@ -216,7 +216,7 @@ tools:
     config:
       command: python
       args: ["-m", "src.main"]
-      cwd: /path/to/teradata-mcp-ui/server
+      cwd: /path/to/surfacesui/server
       env:
         MOCK_MODE: "false"
         VANTAGE_MCP_MODE: "stdio"
@@ -260,7 +260,7 @@ tools:
     config:
       command: python
       args: ["-m", "src.main"]
-      cwd: /path/to/teradata-mcp-ui/server
+      cwd: /path/to/surfacesui/server
       env:
         MOCK_MODE: "true"  # UI server doesn't need backend access
 
@@ -286,10 +286,10 @@ The component library builds to standalone HTML files that can be served as MCP 
 First, build the HTML app bundles:
 
 ```bash
-cd teradata-mcp-ui
+cd surfacesui
 pnpm install
 pnpm build
-pnpm --filter @teradata-mcp-ui/components build:apps
+pnpm --filter @surfacesui/components build:apps
 ```
 
 This creates HTML files in `packages/components/dist/apps/`:
@@ -313,7 +313,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 // Path to built HTML apps
-const APPS_DIR = "/path/to/teradata-mcp-ui/packages/components/dist/apps";
+const APPS_DIR = "/path/to/surfacesui/packages/components/dist/apps";
 
 // UI app registry
 const UI_APPS = {
@@ -388,7 +388,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, TextContent
 
 # Path to built HTML apps
-APPS_DIR = Path("/path/to/teradata-mcp-ui/packages/components/dist/apps")
+APPS_DIR = Path("/path/to/surfacesui/packages/components/dist/apps")
 
 # UI app registry
 UI_APPS = {
@@ -561,7 +561,7 @@ To embed the HTML files in your Go binary, copy them to an `apps/` directory in 
 ```bash
 # Copy built apps to your Go project
 mkdir -p /path/to/your-mcp-server/apps
-cp /path/to/teradata-mcp-ui/packages/components/dist/apps/*.html \
+cp /path/to/surfacesui/packages/components/dist/apps/*.html \
    /path/to/your-mcp-server/apps/
 ```
 
@@ -574,12 +574,12 @@ For any server implementation, you can copy the built HTML files:
 mkdir -p /path/to/your-server/assets/ui
 
 # Copy all HTML app bundles
-cp teradata-mcp-ui/packages/components/dist/apps/*.html \
+cp surfacesui/packages/components/dist/apps/*.html \
    /path/to/your-server/assets/ui/
 
 # Or use npm/pnpm to install as a dependency (if published)
-# npm install @teradata-mcp-ui/components
-# Then reference: node_modules/@teradata-mcp-ui/components/dist/apps/
+# npm install @surfacesui/components
+# Then reference: node_modules/@surfacesui/components/dist/apps/
 ```
 
 ## Components
@@ -589,7 +589,7 @@ cp teradata-mcp-ui/packages/components/dist/apps/*.html \
 Interactive SQL editor with query execution and result visualization.
 
 ```tsx
-import { SQLEditor, McpBridgeProvider } from '@teradata-mcp-ui/components';
+import { SQLEditor, McpBridgeProvider } from '@surfacesui/components';
 
 function App() {
   return (
@@ -617,7 +617,7 @@ function App() {
 All components use MCP Bridge hooks for data fetching:
 
 ```tsx
-import { useMcpTool } from '@teradata-mcp-ui/components';
+import { useMcpTool } from '@surfacesui/components';
 
 function QueryComponent() {
   const { data, loading, error, refetch } = useMcpTool(
@@ -637,7 +637,7 @@ function QueryComponent() {
 ## Project Structure
 
 ```
-teradata-mcp-ui/
+surfacesui/
 ├── packages/
 │   └── components/           # React component library
 │       ├── src/
@@ -681,7 +681,7 @@ Run the quality checks:
 pnpm test
 
 # Run with coverage
-pnpm --filter @teradata-mcp-ui/components test:coverage
+pnpm --filter @surfacesui/components test:coverage
 ```
 
 ## License

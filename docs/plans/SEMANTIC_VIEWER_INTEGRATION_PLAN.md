@@ -34,7 +34,7 @@ An intelligent database automation platform delivered as MCP-UI components that:
 └──────────────────────────────────────────────────────────────┘
                          ↕ MCP Bridge (useMcpTool)
 ┌──────────────────────────────────────────────────────────────┐
-│     teradata-mcp-ui Server (Python FastMCP)                   │
+│     surfaces-ui Server (Python FastMCP)                   │
 │  • Tool Definitions  • UI Resources  • Request Routing        │
 └──────────────────────────────────────────────────────────────┘
                          ↕ stdio JSON-RPC
@@ -73,7 +73,7 @@ PARALLEL PATH (Future):
 | `teradata_execute_sql` | Execute SQL/BTEQ scripts | `sql` (string) | JSON results or success message |
 | `get_last_result` | Retrieve last query result | None | Last query output from result store |
 
-**Critical Constraint:** vantage-mcp exposes ONLY these 2 tools. Semantic viewer tools must be implemented in teradata-mcp-ui Python server as a proxy layer.
+**Critical Constraint:** vantage-mcp exposes ONLY these 2 tools. Semantic viewer tools must be implemented in surfaces-ui Python server as a proxy layer.
 
 ### Connection Configuration (Environment Variables)
 
@@ -113,13 +113,13 @@ export TD_USER="dbc"
 export TD_PASSWORD="dbc"
 export TD_DEFAULT_HOST="localhost"
 export LOG_LEVEL="info"
-export MCP_APPS_DIR="$HOME/repos/teradata-mcp-ui/packages/components/dist/apps"
+export MCP_APPS_DIR="$HOME/repos/surfaces-ui/packages/components/dist/apps"
 
 ~/repos/vantage-mcp/bin/vantage-mcp
 # Server listens on stdin, writes responses to stdout, logs to stderr
 ```
 
-**Integration with teradata-mcp-ui Python server:**
+**Integration with surfaces-ui Python server:**
 ```python
 # In server/src/tools/semantic_observation.py
 import subprocess
@@ -153,11 +153,11 @@ response = json.loads(response_line)
 
 ### Resource Serving (HTML App Bundles)
 
-vantage-mcp serves teradata-mcp-ui HTML apps as MCP resources:
+vantage-mcp serves surfaces-ui HTML apps as MCP resources:
 
 1. **Auto-Discovery:** Looks for HTML files in:
    - `$MCP_APPS_DIR` (if set)
-   - `../teradata-mcp-ui/packages/components/dist/apps` (sibling repo)
+   - `../surfaces-ui/packages/components/dist/apps` (sibling repo)
    - `./apps` (local directory)
 
 2. **Resource URI Format:** `ui://{filename}` (e.g., `ui://sql-editor`)
@@ -234,7 +234,7 @@ Before implementing semantic viewer tools, verify:
 - [ ] vantage-mcp builds successfully (`just build`)
 - [ ] vantage-mcp connects to Teradata (set TD_USER, TD_PASSWORD, TD_DEFAULT_HOST)
 - [ ] `teradata_execute_sql` tool works (test with simple SELECT)
-- [ ] Resource serving works (build teradata-mcp-ui, check `MCP_APPS_DIR`)
+- [ ] Resource serving works (build surfaces-ui, check `MCP_APPS_DIR`)
 - [ ] Error handling returns structured errors (test with invalid SQL)
 - [ ] Lazy connection initializes on first call (observe ~2s delay)
 - [ ] Go dependencies resolve (`go mod tidy`, `go mod download`)
@@ -350,7 +350,7 @@ You are a database engineer who ensures portability.
 
 You are an MCP expert who ensures protocol compliance.
 
-**Your ONLY job:** Design MCP tools that integrate seamlessly with vantage-mcp and teradata-mcp-ui patterns.
+**Your ONLY job:** Design MCP tools that integrate seamlessly with vantage-mcp and surfaces-ui patterns.
 
 **Tasks:**
 - Review existing vantage-mcp tool contracts (teradata_execute_sql, get_last_result)
@@ -358,10 +358,10 @@ You are an MCP expert who ensures protocol compliance.
 - Define tool naming conventions (prefix with `semantic_*`)
 - Map tool inputs/outputs to React component props
 - Ensure compatibility with MCP Apps (Claude Desktop) and web contexts
-- Design proxy layer in teradata-mcp-ui Python server
+- Design proxy layer in surfaces-ui Python server
 
 **Critical Design Decisions:**
-1. **Tool Location:** Implement in teradata-mcp-ui Python server (NOT vantage-mcp)
+1. **Tool Location:** Implement in surfaces-ui Python server (NOT vantage-mcp)
    - Rationale: vantage-mcp exposes only 2 tools (teradata_execute_sql, get_last_result)
    - Semantic viewer tools will call vantage-mcp's teradata_execute_sql via stdio subprocess
 2. **Tool Namespace:** Use `semantic_*` prefix (e.g., `semantic_schema_inspect`)
@@ -375,7 +375,7 @@ You are an MCP expert who ensures protocol compliance.
 - Only exposes 2 tools: `teradata_execute_sql`, `get_last_result`
 - Runs as stdio subprocess (JSON-RPC 2.0)
 - Lazy connection initialization (2-3s delay on first call)
-- All new semantic viewer tools MUST be implemented in **teradata-mcp-ui Python server** and proxy to vantage-mcp
+- All new semantic viewer tools MUST be implemented in **surfaces-ui Python server** and proxy to vantage-mcp
 
 **SUCCESS CRITERIA:**
 * 12-15 MCP tool definitions complete (JSON schemas)
@@ -414,7 +414,7 @@ You are a product manager who defines MVP scope ruthlessly.
 **MVP Scope Constraints:**
 - Timeline: 12 weeks max
 - Team: 1-2 engineers
-- Must integrate with existing teradata-mcp-ui
+- Must integrate with existing surfaces-ui
 - Must work with vantage-mcp (no vantage-mcp modifications)
 
 **Tasks:**
@@ -2126,7 +2126,7 @@ You deploy with confidence.
 **Your ONLY job:** Release semantic viewer to production environments.
 
 **Deployment Steps:**
-1. Update teradata-mcp-ui package version
+1. Update surfaces-ui package version
 2. Publish to npm (if public) or internal registry
 3. Update Python server with new UI resources
 4. Deploy MCP server to staging
@@ -2325,7 +2325,7 @@ You are a DevOps engineer who handles production incidents efficiently.
 ps aux | grep vantage-mcp
 
 # Check Python server logs
-tail -f logs/teradata-mcp-ui.log | grep vantage-mcp
+tail -f logs/surfaces-ui.log | grep vantage-mcp
 ```
 **Mitigation:** Auto-restart vantage-mcp subprocess (circuit breaker with 3 retry limit)
 **Resolution:** Investigate crash logs, fix root cause, deploy patch
@@ -2484,7 +2484,7 @@ You are a technical writer who ensures continuity after project handoff.
 Document these key decisions with context and rationale:
 
 1. **ADR-001: Why semantic viewer tools in Python, not vantage-mcp Go?**
-   - Decision: Implement all semantic tools in teradata-mcp-ui Python server
+   - Decision: Implement all semantic tools in surfaces-ui Python server
    - Context: vantage-mcp exposes only 2 tools, minimal by design
    - Rationale: Avoid modifying stable vantage-mcp codebase, faster iteration
    - Trade-offs: Extra layer of indirection (Python → vantage-mcp stdio)
@@ -2840,7 +2840,7 @@ just test-coverage            # Run with coverage
 export TD_USER="dbc"
 export TD_PASSWORD="dbc"
 export TD_DEFAULT_HOST="localhost"
-export MCP_APPS_DIR="$HOME/repos/teradata-mcp-ui/packages/components/dist/apps"
+export MCP_APPS_DIR="$HOME/repos/surfaces-ui/packages/components/dist/apps"
 
 ~/repos/vantage-mcp/bin/vantage-mcp
 # Should start without errors
@@ -2883,7 +2883,7 @@ export MCP_APPS_DIR="$HOME/repos/teradata-mcp-ui/packages/components/dist/apps"
 ### Repository Dependencies
 
 ```
-teradata-mcp-ui (this repo)
+surfaces-ui (this repo)
     ↓ (runtime: spawns as subprocess)
 vantage-mcp (~/repos/vantage-mcp)
     ↓ (build-time: Go module replace)
@@ -2892,7 +2892,7 @@ teradatacli (~/repos/teradatacli or ../teradatacli)
 Teradata Vantage (database)
 ```
 
-**Critical:** All three repositories (teradata-mcp-ui, vantage-mcp, teradatacli) must be cloned as sibling directories for Go module resolution to work.
+**Critical:** All three repositories (surfaces-ui, vantage-mcp, teradatacli) must be cloned as sibling directories for Go module resolution to work.
 
 ---
 
@@ -2953,18 +2953,18 @@ Teradata Vantage (database)
 - [ ] Verify lazy connection initializes on first tool call
 - [ ] Observe ~2-3s delay on first query (expected)
 
-### teradata-mcp-ui Setup
+### surfaces-ui Setup
 - [ ] Build React components: `pnpm build`
-- [ ] Build HTML app bundles: `pnpm --filter @teradata-mcp-ui/components build:apps`
+- [ ] Build HTML app bundles: `pnpm --filter @surfaces-ui/components build:apps`
 - [ ] Verify bundles exist: `packages/components/dist/apps/*.html`
-- [ ] Set `MCP_APPS_DIR`: `export MCP_APPS_DIR="$HOME/repos/teradata-mcp-ui/packages/components/dist/apps"`
+- [ ] Set `MCP_APPS_DIR`: `export MCP_APPS_DIR="$HOME/repos/surfaces-ui/packages/components/dist/apps"`
 - [ ] Verify vantage-mcp discovers apps (check resource list)
 
 ### Repository Structure
 - [ ] Verify sibling directory layout:
   ```
   ~/repos/
-  ├── teradata-mcp-ui/
+  ├── surfaces-ui/
   ├── vantage-mcp/
   └── teradatacli/        # (if using local override)
   ```
@@ -3024,5 +3024,5 @@ Teradata Vantage (database)
 **Template:** AGENT-EXECUTION-TEMPLATE-FOR-AGENTS v1.0
 **Optimized For:** Teradata-first, database-agnostic design
 **Quality Policy:** P0/P1 bugs BLOCK all gates
-**Integration:** vantage-mcp (Go) + teradata-mcp-ui (Python/React)
+**Integration:** vantage-mcp (Go) + surfaces-ui (Python/React)
 **Timeline:** 14-17 weeks (MVP + Post-Launch Stabilization)

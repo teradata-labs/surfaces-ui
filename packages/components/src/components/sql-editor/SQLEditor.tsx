@@ -2,9 +2,10 @@
  * SQLEditor - Main SQL Editor component using MCP Bridge.
  *
  * Features:
- * - SQL input with syntax highlighting (Monaco Editor)
+ * - SQL input with syntax highlighting (CodeMirror)
  * - Result display with charts, tables, and filtering
  * - MCP bridge integration for executing queries
+ * - State persistence (SQL query, results, UI state)
  *
  * ## MCP Apps Timing Behavior
  *
@@ -16,15 +17,24 @@
  * Once the SQL executes (typically within 1 second), the next poll retrieves
  * the result and populates the editor with the executed SQL and results.
  *
- * This polling approach handles the async nature of tool execution in MCP Apps.
+ * ## State Persistence
+ *
+ * State priority (highest to lowest):
+ * 1. Fresh data from thread context (via get_last_result polling)
+ * 2. Persisted state from localStorage (for reopening threads)
+ *
+ * When fresh data arrives from the thread, it replaces persisted state.
+ * State is kept in localStorage for 24 hours. When you reopen the conversation,
+ * the editor restores your last query and results until fresh data arrives.
  */
 
 import * as React from 'react';
 import { Card, CardContent } from '../../primitives/card';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../primitives/collapsible';
 import { useMcpTool } from '../../bridge/hooks';
 import { cn } from '../../lib/utils';
 
-import { MonacoSQLInput } from './MonacoSQLInput';
+import { CodeMirrorSQLInput } from './CodeMirrorSQLInput';
 import { SQLToolbar } from './SQLToolbar';
 import { SQLResultsDisplay } from '../sql-results/SQLResultsDisplay';
 import type { SQLResultsConfig, SQLResultsAction } from '../sql-results/types';
@@ -50,6 +60,19 @@ interface LastResultResponse {
   timestamp?: string;
 }
 
+// Type for persisted state in localStorage
+interface PersistedState {
+  code: string;
+  result: SQLResult | null;
+  error: string | null;
+  editorOpen: boolean;
+  resultsOpen: boolean;
+  timestamp: number;
+}
+
+const STORAGE_KEY = 'teradata-sql-editor-state';
+const STATE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 export function SQLEditor({
   initialCode = '',
   title = 'SQL Editor',
@@ -64,10 +87,38 @@ export function SQLEditor({
   context = 'web',
   customActions,
 }: SQLEditorExtendedProps) {
-  const [code, setCode] = React.useState(initialCode);
-  const [result, setResult] = React.useState<SQLResult | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+  // Load persisted state on mount
+  const loadPersistedState = React.useCallback((): Partial<PersistedState> | null => {
+    if (context !== 'mcp-apps' || typeof window === 'undefined') return null;
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return null;
+
+      const state: PersistedState = JSON.parse(stored);
+      const age = Date.now() - state.timestamp;
+
+      // Ignore stale state (older than 24 hours)
+      if (age > STATE_TTL_MS) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+
+      return state;
+    } catch (err) {
+      console.warn('Failed to load persisted SQL editor state:', err);
+      return null;
+    }
+  }, [context]);
+
+  const persistedState = loadPersistedState();
+
+  const [code, setCode] = React.useState(persistedState?.code || initialCode);
+  const [result, setResult] = React.useState<SQLResult | null>(persistedState?.result || null);
+  const [error, setError] = React.useState<string | null>(persistedState?.error || null);
   const [resultsConfig, setResultsConfig] = React.useState<SQLResultsConfig | undefined>(undefined);
+  const [editorOpen, setEditorOpen] = React.useState(persistedState?.editorOpen ?? true);
+  const [resultsOpen, setResultsOpen] = React.useState(persistedState?.resultsOpen ?? false);
 
   const {
     data: mcpResult,
@@ -123,9 +174,10 @@ export function SQLEditor({
   }, [context, fetchLastResult]);
 
   // Process last result when received
+  // This takes precedence over persisted state - fresh data from the thread
   React.useEffect(() => {
     if (lastResultData && lastResultData.query && lastResultData.output) {
-      // Update code with the last executed query
+      // Update code with the last executed query from thread context
       setCode(lastResultData.query);
       onCodeChange?.(lastResultData.query);
 
@@ -149,9 +201,15 @@ export function SQLEditor({
             data,
             row_count: data.length,
           });
+          // Auto-collapse editor and expand results when results arrive
+          setEditorOpen(false);
+          setResultsOpen(true);
         } else if (parsed.success !== undefined) {
           // Already in SQLResult format
           setResult(parsed);
+          // Auto-collapse editor and expand results when results arrive
+          setEditorOpen(false);
+          setResultsOpen(true);
         }
       } catch {
         // If output is not JSON, show as success message
@@ -163,14 +221,26 @@ export function SQLEditor({
             row_count: 0,
             message: lastResultData.output,
           });
+          // Auto-collapse editor and expand results when results arrive
+          setEditorOpen(false);
+          setResultsOpen(true);
         }
       }
 
       if (!lastResultData.success && lastResultData.error) {
         setError(lastResultData.error);
       }
+
+      // Clear persisted state since we have fresh data from the thread
+      if (context === 'mcp-apps' && typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (err) {
+          console.warn('Failed to clear persisted state:', err);
+        }
+      }
     }
-  }, [lastResultData, onCodeChange]);
+  }, [lastResultData, onCodeChange, context]);
 
   React.useEffect(() => {
     setCode(initialCode);
@@ -197,6 +267,25 @@ export function SQLEditor({
       return () => clearTimeout(timer);
     }
   }, [autoExecute]);
+
+  // Persist state to localStorage whenever it changes
+  React.useEffect(() => {
+    if (context !== 'mcp-apps' || typeof window === 'undefined') return;
+
+    try {
+      const state: PersistedState = {
+        code,
+        result,
+        error,
+        editorOpen,
+        resultsOpen,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (err) {
+      console.warn('Failed to persist SQL editor state:', err);
+    }
+  }, [context, code, result, error, editorOpen, resultsOpen]);
 
   const handleCodeChange = React.useCallback((newCode: string) => {
     setCode(newCode);
@@ -245,27 +334,60 @@ export function SQLEditor({
       />
 
       <CardContent className="p-4 space-y-4">
-        <MonacoSQLInput
-          value={code}
-          onChange={handleCodeChange}
-          onExecute={handleExecute}
-          disabled={isExecuting}
-          readOnly={readOnly}
-        />
-
-        {resultData && (
-          <div className="border-t border-border pt-4 min-h-[200px] max-h-[500px] overflow-auto">
-            <SQLResultsDisplay
-              data={resultData}
-              sql={code}
-              savedConfig={resultsConfig}
-              onConfigChange={handleConfigChange}
-              actions={customActions}
-              context={context}
-              projectId={projectId}
-              teradataBaseUrl={teradataBaseUrl}
+        {/* Editor Section - Collapsible */}
+        <Collapsible open={editorOpen} onOpenChange={setEditorOpen}>
+          <CollapsibleTrigger className="mb-2 px-2 py-1 rounded hover:bg-muted">
+            <span className="flex items-center gap-2">
+              <span className={cn(
+                'transition-transform',
+                editorOpen ? 'rotate-90' : ''
+              )}>▶</span>
+              <span>SQL Query Editor</span>
+            </span>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CodeMirrorSQLInput
+              value={code}
+              onChange={handleCodeChange}
+              onExecute={handleExecute}
+              disabled={isExecuting}
+              readOnly={readOnly}
             />
-          </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Results Section - Collapsible */}
+        {resultData && (
+          <Collapsible open={resultsOpen} onOpenChange={setResultsOpen}>
+            <CollapsibleTrigger className="mb-2 px-2 py-1 rounded hover:bg-muted border-t border-border pt-4">
+              <span className="flex items-center gap-2">
+                <span className={cn(
+                  'transition-transform',
+                  resultsOpen ? 'rotate-90' : ''
+                )}>▶</span>
+                <span>Query Results</span>
+                {result?.row_count !== undefined && (
+                  <span className="text-muted-foreground text-xs">
+                    ({result.row_count} rows)
+                  </span>
+                )}
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="min-h-[100px] max-h-[800px] overflow-auto">
+                <SQLResultsDisplay
+                  data={resultData}
+                  sql={code}
+                  savedConfig={resultsConfig}
+                  onConfigChange={handleConfigChange}
+                  actions={customActions}
+                  context={context}
+                  projectId={projectId}
+                  teradataBaseUrl={teradataBaseUrl}
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </CardContent>
     </Card>

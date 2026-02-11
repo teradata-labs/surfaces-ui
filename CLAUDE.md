@@ -1,4 +1,4 @@
-# Teradata MCP UI - Session Instructions for Claude
+# SurfacesUI - Session Instructions for Claude
 
 ## Project Overview
 
@@ -71,11 +71,11 @@ pnpm dev
 
 # Build
 pnpm build                    # Library build
-pnpm --filter @teradata-mcp-ui/components build:apps  # HTML app bundles
+pnpm --filter @surfacesui/components build:apps  # HTML app bundles
 
 # Test
 pnpm test
-pnpm --filter @teradata-mcp-ui/components test:coverage
+pnpm --filter @surfacesui/components test:coverage
 
 # Python server
 cd server && pip install -r requirements.txt

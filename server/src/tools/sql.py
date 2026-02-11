@@ -111,7 +111,7 @@ class StdioMcpClient:
             "protocolVersion": "2024-11-05",
             "capabilities": {},
             "clientInfo": {
-                "name": "teradata-mcp-ui",
+                "name": "surfacesui",
                 "version": "0.1.0",
             },
         })
@@ -251,12 +251,12 @@ async def _execute_via_stdio(
 
 def _normalize_result(raw_text: str) -> str:
     """
-    Normalize vantage-mcp result format to teradata-mcp-ui expected format.
+    Normalize vantage-mcp result format to surfacesui expected format.
 
     vantage-mcp returns:
         {"columns": ["col1", "col2"], "rows": [["val1", "val2"]]}
 
-    teradata-mcp-ui expects:
+    surfacesui expects:
         {"success": true, "columns": ["col1"], "data": [{"col1": "val1"}], "row_count": 1}
     """
     # Handle success messages (DDL/DML)
@@ -286,7 +286,7 @@ def _normalize_result(raw_text: str) -> str:
     if "success" in result:
         return raw_text
 
-    # Transform vantage-mcp format to teradata-mcp-ui format
+    # Transform vantage-mcp format to surfacesui format
     columns = result.get("columns", [])
     rows = result.get("rows", [])
 

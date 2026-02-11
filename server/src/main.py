@@ -1,10 +1,10 @@
 """
-Teradata MCP UI Server
+SurfacesUI Server
 
 FastMCP server that:
 - Serves UI resources (HTML apps built from components)
 - Provides tools that proxy to vantage-mcp or mock data for testing
-- Runs HTTP server for serving UI apps with full asset support (Monaco Editor, etc.)
+- Runs HTTP server for serving UI apps with full asset support
 
 Supports two communication modes with vantage-mcp:
 - HTTP mode: Proxies requests to an HTTP endpoint (requires HTTP server wrapper)
@@ -33,7 +33,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create MCP server instance
-server = Server("teradata-mcp-ui")
+server = Server("surfacesui")
 
 # Environment configuration
 MOCK_MODE = os.environ.get("MOCK_MODE", "true").lower() == "true"
@@ -41,6 +41,7 @@ VANTAGE_MCP_MODE = os.environ.get("VANTAGE_MCP_MODE", "stdio").lower()  # "http"
 VANTAGE_MCP_ADDR = os.environ.get("VANTAGE_MCP_ADDR", "")  # For HTTP mode
 VANTAGE_MCP_BINARY = os.environ.get("VANTAGE_MCP_BINARY", "")  # For stdio mode
 HTTP_PORT = int(os.environ.get("HTTP_PORT", "3000"))  # HTTP server port
+HTTP_ONLY = os.environ.get("HTTP_ONLY", "false").lower() == "true"  # HTTP-only mode (no MCP stdio)
 
 # Environment variables to pass to vantage-mcp subprocess (stdio mode)
 VANTAGE_ENV = {}
@@ -155,6 +156,7 @@ async def main():
     logger.info(f"Mock mode: {MOCK_MODE}")
     logger.info(f"Vantage MCP mode: {VANTAGE_MCP_MODE}")
     logger.info(f"HTTP port: {HTTP_PORT}")
+    logger.info(f"HTTP-only mode: {HTTP_ONLY}")
 
     if VANTAGE_MCP_MODE == "http":
         logger.info(f"Vantage MCP HTTP address: {VANTAGE_MCP_ADDR or 'not configured'}")
@@ -167,8 +169,14 @@ async def main():
     http_runner = await start_http_server()
 
     try:
-        # Run MCP server (stdio) - this blocks until stdin closes
-        await run_mcp_server()
+        if HTTP_ONLY:
+            # HTTP-only mode: run forever without MCP stdio
+            logger.info("Running in HTTP-only mode (no MCP stdio)")
+            # Keep server running forever
+            await asyncio.Event().wait()
+        else:
+            # Full mode: Run MCP server (stdio) - this blocks until stdin closes
+            await run_mcp_server()
     finally:
         # Cleanup HTTP server
         logger.info("Shutting down HTTP server")

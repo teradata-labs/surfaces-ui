@@ -18,7 +18,7 @@ export default defineConfig({
     outDir: 'dist/apps',
     emptyOutDir: true,
     rollupOptions: {
-      input: resolve(__dirname, 'src/apps/sql-editor.html'),
+      input: resolve(__dirname, 'src/apps/sql-editor-cdn.html'),
       output: {
         // Flatten output - put all files directly in outDir
         entryFileNames: '[name].js',

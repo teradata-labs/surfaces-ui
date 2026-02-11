@@ -1,8 +1,8 @@
 {
-  "name": "teradata-mcp-ui",
+  "name": "surfacesui",
   "version": "0.1.0",
   "private": true,
-  "description": "Teradata MCP UI Components - Reusable React components served via MCP Apps protocol",
+  "description": "SurfacesUI Components - Reusable React components served via MCP Apps protocol",
   "scripts": {
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r run build",

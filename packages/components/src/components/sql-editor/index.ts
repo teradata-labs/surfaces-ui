@@ -4,8 +4,8 @@
 
 export { SQLEditor } from './SQLEditor';
 export type { SQLEditorExtendedProps } from './SQLEditor';
-export { SQLInput } from './SQLInput';
-export { MonacoSQLInput } from './MonacoSQLInput';
+export { CodeMirrorSQLInput } from './CodeMirrorSQLInput';
+export { SimpleSQLInput } from './SimpleSQLInput';
 export { SQLToolbar } from './SQLToolbar';
 
 // Re-export SQLResultsDisplay and related types from sql-results
