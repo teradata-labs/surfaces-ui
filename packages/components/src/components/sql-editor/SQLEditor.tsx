@@ -1,8 +1,22 @@
 /**
  * SQLEditor - Main SQL Editor component using MCP Bridge.
  *
- * Now uses the new SQLResultsDisplay component with full chart support,
- * resizable views, and configurable actions.
+ * Features:
+ * - SQL input with syntax highlighting (Monaco Editor)
+ * - Result display with charts, tables, and filtering
+ * - MCP bridge integration for executing queries
+ *
+ * ## MCP Apps Timing Behavior
+ *
+ * When used in MCP Apps context (Claude Desktop), there's a timing challenge:
+ * Claude Desktop loads the UI *before* executing the SQL query. This means
+ * the UI cannot rely on query parameters being passed in the resource URI.
+ *
+ * Solution: The UI polls `get_last_result` every 500ms for up to 5 seconds.
+ * Once the SQL executes (typically within 1 second), the next poll retrieves
+ * the result and populates the editor with the executed SQL and results.
+ *
+ * This polling approach handles the async nature of tool execution in MCP Apps.
  */
 
 import * as React from 'react';
@@ -10,7 +24,7 @@ import { Card, CardContent } from '../../primitives/card';
 import { useMcpTool } from '../../bridge/hooks';
 import { cn } from '../../lib/utils';
 
-import { SQLInput } from './SQLInput';
+import { MonacoSQLInput } from './MonacoSQLInput';
 import { SQLToolbar } from './SQLToolbar';
 import { SQLResultsDisplay } from '../sql-results/SQLResultsDisplay';
 import type { SQLResultsConfig, SQLResultsAction } from '../sql-results/types';
@@ -54,7 +68,6 @@ export function SQLEditor({
   const [result, setResult] = React.useState<SQLResult | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [resultsConfig, setResultsConfig] = React.useState<SQLResultsConfig | undefined>(undefined);
-  const [hasFetchedLastResult, setHasFetchedLastResult] = React.useState(false);
 
   const {
     data: mcpResult,
@@ -75,18 +88,39 @@ export function SQLEditor({
     enabled: false,
   });
 
-  // Fetch last result on mount in MCP Apps context
-  // ONLY if no initialCode was provided (avoid overwriting params-based SQL)
+  // Fetch last result on mount in MCP Apps context with polling
+  // Polls every 500ms for up to 5 seconds to handle the timing issue where
+  // Claude Desktop loads the UI before executing the SQL query
   React.useEffect(() => {
-    if (context === 'mcp-apps' && !hasFetchedLastResult && !initialCode) {
-      setHasFetchedLastResult(true);
-      // Small delay to ensure bridge is connected
-      const timer = setTimeout(() => {
-        fetchLastResult();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [context, hasFetchedLastResult, fetchLastResult, initialCode]);
+    if (context !== 'mcp-apps') return;
+
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 10;
+    const pollInterval = 500;
+
+    const pollForResult = async () => {
+      if (cancelled || attempts >= maxAttempts) return;
+
+      attempts++;
+      await fetchLastResult();
+
+      // Schedule another poll if we haven't cancelled or exceeded max attempts
+      setTimeout(() => {
+        if (!cancelled && attempts < maxAttempts) {
+          pollForResult();
+        }
+      }, pollInterval);
+    };
+
+    // Start polling after small delay to ensure bridge is connected
+    const initialTimer = setTimeout(pollForResult, 200);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(initialTimer);
+    };
+  }, [context, fetchLastResult]);
 
   // Process last result when received
   React.useEffect(() => {
@@ -211,7 +245,7 @@ export function SQLEditor({
       />
 
       <CardContent className="p-4 space-y-4">
-        <SQLInput
+        <MonacoSQLInput
           value={code}
           onChange={handleCodeChange}
           onExecute={handleExecute}

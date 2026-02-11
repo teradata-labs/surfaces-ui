@@ -12,7 +12,8 @@
   },
   "devDependencies": {
     "prettier": "^3.7.0",
-    "prettier-plugin-tailwindcss": "^0.7.0"
+    "prettier-plugin-tailwindcss": "^0.7.0",
+    "vite-plugin-singlefile": "^2.3.0"
   },
   "packageManager": "pnpm@10.11.0",
   "engines": {

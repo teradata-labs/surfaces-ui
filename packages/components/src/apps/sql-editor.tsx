@@ -8,7 +8,7 @@
  * @modelcontextprotocol/ext-apps protocol.
  */
 
-import React from 'react';
+import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { McpAppsBridge } from '../bridge/McpAppsBridge';
@@ -57,16 +57,16 @@ function getProjectId(): string | undefined {
 
 function App() {
   const projectId = getProjectId();
+  const mcpParams = getMcpParams();
 
   // Get initial SQL from MCP params (passed by Claude when invoking the UI)
   const getInitialSQL = (): string => {
-    const mcpParams = getMcpParams();
-    return mcpParams.sql || 'SELECT TOP 10 * FROM dbc.TablesV';
+    const initialSQL = mcpParams.sql || 'SELECT TOP 10 * FROM dbc.TablesV';
+    return initialSQL;
   };
 
   // Auto-execute when in MCP Apps context with a SQL param
   const shouldAutoExecute = (): boolean => {
-    const mcpParams = getMcpParams();
     return Boolean(mcpParams.sql) || mcpParams.autoExecute === 'true';
   };
 

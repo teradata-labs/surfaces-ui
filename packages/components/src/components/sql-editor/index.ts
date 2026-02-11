@@ -5,6 +5,7 @@
 export { SQLEditor } from './SQLEditor';
 export type { SQLEditorExtendedProps } from './SQLEditor';
 export { SQLInput } from './SQLInput';
+export { MonacoSQLInput } from './MonacoSQLInput';
 export { SQLToolbar } from './SQLToolbar';
 
 // Re-export SQLResultsDisplay and related types from sql-results
