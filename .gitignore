@@ -47,7 +47,8 @@ pip-delete-this-directory.txt
 .ruff_cache/
 
 # IDEs and editors
-.vscode/
+.vscode/*.code-workspace
+.vscode/launch.json
 .idea/
 *.swp
 *.swo

@@ -1,0 +1,23 @@
+{
+  "recommendations": [
+    // Code formatting
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+
+    // Python
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "ms-python.vscode-pylance",
+
+    // Git
+    "eamodio.gitlens",
+
+    // React/TypeScript
+    "dsznajder.es7-react-js-snippets",
+    "bradlc.vscode-tailwindcss",
+
+    // Utilities
+    "christian-kohler.path-intellisense",
+    "usernamehw.errorlens"
+  ]
+}
