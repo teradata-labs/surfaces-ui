@@ -41,6 +41,11 @@ export function CatalogDemo() {
   const [selectedSpec, setSelectedSpec] = useState<string>('chart');
   const currentSpec = specOptions[selectedSpec];
 
+  // Guard against undefined spec (should never happen with valid select options)
+  if (!currentSpec) {
+    return <div className="p-4 text-error">Invalid spec selected</div>;
+  }
+
   return (
     <div className="p-4 space-y-4">
       {/* Component Selector */}

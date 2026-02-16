@@ -100,12 +100,19 @@ export {
   ChartWithControlsSchema,
   SQLResultsDisplaySchema,
   registry,
+  SurfacesRenderer,
   aiSystemPrompt,
   getCatalogPrompt,
   generateCatalogPrompt,
   generateComponentPrompt,
   generateComponentExample,
   generateSpecExample,
+  CatalogDemo,
+  chartSpec,
+  dataTableSpec,
+  tableWithFiltersSpec,
+  sqlResultsSpec,
+  sampleData,
 } from './catalog';
 export type {
   ChartProps as CatalogChartProps,
@@ -116,4 +123,5 @@ export type {
   TableWithFiltersSchemaProps as CatalogTableWithFiltersProps,
   ChartWithControlsSchemaProps as CatalogChartWithControlsProps,
   SQLResultsDisplaySchemaProps as CatalogSQLResultsDisplayProps,
+  SurfacesRendererProps,
 } from './catalog';
