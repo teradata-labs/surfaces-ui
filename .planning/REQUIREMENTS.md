@@ -9,24 +9,24 @@ Requirements for json-render integration with SQL results pattern proof of conce
 
 ### json-render Foundation
 
-- [ ] **JR-01**: Install and configure json-render packages (@json-render/core, @json-render/react)
-- [ ] **JR-02**: Define catalog with Zod schemas for all SQL results primitives
-- [ ] **JR-03**: Build registry mapping catalog entries to React component implementations
-- [ ] **JR-04**: Integrate renderer with React root and MCP Bridge provider
-- [ ] **JR-05**: Generate catalog prompt for AI consumption (describe components)
-- [ ] **JR-06**: Enforce 5-8 props maximum per catalog component for AI describability
+- [x] **JR-01**: Install and configure json-render packages (@json-render/core, @json-render/react)
+- [x] **JR-02**: Define catalog with Zod schemas for all SQL results primitives
+- [x] **JR-03**: Build registry mapping catalog entries to React component implementations
+- [x] **JR-04**: Integrate renderer with React root and MCP Bridge provider
+- [x] **JR-05**: Generate catalog prompt for AI consumption (describe components)
+- [x] **JR-06**: Enforce 5-8 props maximum per catalog component for AI describability
 
 ### Component Decomposition
 
-- [ ] **COMP-01**: Decompose SQLResultsDisplay (1772 lines) into primitives (<400 lines each)
-- [ ] **COMP-02**: Extract Chart primitive (standalone ECharts wrapper with theme integration)
-- [ ] **COMP-03**: Extract DataTable primitive (virtual scrolling ready)
-- [ ] **COMP-04**: Extract Filter primitive (column search/filter)
-- [ ] **COMP-05**: Extract DensityToggle primitive (compact/comfortable/spacious)
-- [ ] **COMP-06**: Extract ViewModeToggle primitive (table/chart/both)
-- [ ] **COMP-07**: Create TableWithFilters molecule (compose table + filter)
-- [ ] **COMP-08**: Create ChartWithControls molecule (compose chart + axis config)
-- [ ] **COMP-09**: Preserve SQLResultsDisplay organism as composition of primitives
+- [x] **COMP-01**: Decompose SQLResultsDisplay (1772 lines) into primitives (<400 lines each)
+- [x] **COMP-02**: Extract Chart primitive (standalone ECharts wrapper with theme integration)
+- [x] **COMP-03**: Extract DataTable primitive (virtual scrolling ready)
+- [x] **COMP-04**: Extract Filter primitive (column search/filter)
+- [x] **COMP-05**: Extract DensityToggle primitive (compact/comfortable/spacious)
+- [x] **COMP-06**: Extract ViewModeToggle primitive (table/chart/both)
+- [x] **COMP-07**: Create TableWithFilters molecule (compose table + filter)
+- [x] **COMP-08**: Create ChartWithControls molecule (compose chart + axis config)
+- [x] **COMP-09**: Preserve SQLResultsDisplay organism as composition of primitives
 
 ### Catalog Definitions
 
@@ -161,21 +161,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| JR-01 | Phase 1 | Pending |
-| JR-02 | Phase 1 | Pending |
-| JR-03 | Phase 1 | Pending |
-| JR-04 | Phase 1 | Pending |
-| JR-05 | Phase 1 | Pending |
-| JR-06 | Phase 1 | Pending |
-| COMP-01 | Phase 1 | Pending |
-| COMP-02 | Phase 1 | Pending |
-| COMP-03 | Phase 1 | Pending |
-| COMP-04 | Phase 1 | Pending |
-| COMP-05 | Phase 1 | Pending |
-| COMP-06 | Phase 1 | Pending |
-| COMP-07 | Phase 1 | Pending |
-| COMP-08 | Phase 1 | Pending |
-| COMP-09 | Phase 1 | Pending |
+| JR-01 | Phase 1 | Complete |
+| JR-02 | Phase 1 | Complete |
+| JR-03 | Phase 1 | Complete |
+| JR-04 | Phase 1 | Complete |
+| JR-05 | Phase 1 | Complete |
+| JR-06 | Phase 1 | Complete |
+| COMP-01 | Phase 1 | Complete |
+| COMP-02 | Phase 1 | Complete |
+| COMP-03 | Phase 1 | Complete |
+| COMP-04 | Phase 1 | Complete |
+| COMP-05 | Phase 1 | Complete |
+| COMP-06 | Phase 1 | Complete |
+| COMP-07 | Phase 1 | Complete |
+| COMP-08 | Phase 1 | Complete |
+| COMP-09 | Phase 1 | Complete |
 | CAT-01 | Phase 2 | Pending |
 | CAT-02 | Phase 2 | Pending |
 | CAT-03 | Phase 2 | Pending |
