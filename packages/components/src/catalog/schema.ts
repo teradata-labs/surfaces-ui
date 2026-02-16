@@ -88,6 +88,21 @@ export const ChartWithControlsSchema = z.object({
   // Note: data comes from context, onConfigChange/className are runtime
 });
 
+// Organisms - complete feature-rich components
+export const SQLResultsDisplaySchema = z.object({
+  // AI-specifiable configuration
+  sql: z.string().optional().describe('SQL query that produced results'),
+  context: z.enum(['web', 'mcp-apps']).default('web').describe('Execution context'),
+  projectId: z.string().optional().describe('Project ID for Teradata link'),
+  teradataBaseUrl: z.string().optional().describe('Base URL for Teradata app'),
+  initialViewMode: z.enum(['table', 'chart']).default('table').describe('Initial view mode'),
+  tableHeight: z.number().default(400).describe('Table height in pixels'),
+  chartHeight: z.number().default(400).describe('Chart height in pixels'),
+  // Note: data comes from context
+  // Note: savedConfig is constructed from initialViewMode/tableHeight/chartHeight
+  // Note: onConfigChange, actions, className are runtime
+});
+
 // Define the schema for json-render
 const schema = defineSchema((s) => ({
   spec: s.object({
@@ -150,6 +165,12 @@ export const catalog = defineCatalog(schema, {
       description: 'Chart with type/axis configuration panel',
       hasChildren: false,
     },
+    // Organisms - complete features
+    SQLResultsDisplay: {
+      props: SQLResultsDisplaySchema,
+      description: 'Full SQL results with table/chart views and export',
+      hasChildren: false,
+    },
   },
   actions: {
     export_csv: {
@@ -170,3 +191,4 @@ export type DensityToggleProps = z.infer<typeof DensityToggleSchema>;
 export type ViewModeToggleProps = z.infer<typeof ViewModeToggleSchema>;
 export type TableWithFiltersSchemaProps = z.infer<typeof TableWithFiltersSchema>;
 export type ChartWithControlsSchemaProps = z.infer<typeof ChartWithControlsSchema>;
+export type SQLResultsDisplaySchemaProps = z.infer<typeof SQLResultsDisplaySchema>;
