@@ -7,35 +7,61 @@
 import { defineSchema, defineCatalog } from '@json-render/core';
 import { z } from 'zod';
 
+/**
+ * Catalog Schemas - AI-Specifiable Props Only
+ *
+ * These schemas define props that AI can configure from natural language.
+ * They intentionally exclude:
+ * - Context-provided props (data arrays) - come from json-render context
+ * - Runtime props (callbacks, className) - managed by parent components
+ *
+ * The registry wrappers (registry.tsx) handle mapping between catalog schemas
+ * and full component interfaces.
+ */
+
 // Zod schemas for component props
 export const ChartSchema = z.object({
-  type: z.enum(['bar', 'line', 'pie', 'scatter', 'area', 'heatmap', 'stacked-bar', 'combo']),
-  xAxis: z.string().describe('Column name for X axis'),
-  yAxis: z.string().describe('Column name for Y axis'),
-  theme: z.string().nullable().default(null).describe('ECharts theme name'),
+  // AI-specifiable configuration
+  type: z.enum(['bar', 'line', 'pie', 'scatter', 'area', 'heatmap', 'stacked-bar', 'combo']).default('bar').describe('Chart visualization type'),
+  xAxis: z.string().optional().describe('Column name for X axis'),
+  yAxis: z.string().optional().describe('Column name for Y axis'),
+  theme: z.string().nullable().optional().describe('ECharts theme name'),
   height: z.number().default(400).describe('Chart height in pixels'),
   showDataLabels: z.boolean().default(false).describe('Show values on chart elements'),
+  // Note: data comes from json-render context, className is runtime styling
 });
 
 export const DataTableSchema = z.object({
-  columns: z.array(z.string()).describe('Column names to display'),
+  // AI-specifiable configuration
+  columns: z.array(z.string()).optional().describe('Column names to display'),
   height: z.number().default(400).describe('Table height in pixels'),
-  density: z.enum(['compact', 'comfortable', 'spacious']).default('comfortable'),
-  virtualScrolling: z.boolean().default(true).describe('Enable virtual scrolling for large datasets'),
+  density: z.enum(['compact', 'comfortable', 'spacious']).default('comfortable').describe('Row density'),
+  virtualScrolling: z.boolean().default(true).describe('Enable virtual scrolling'),
+  showRowNumbers: z.boolean().default(false).describe('Show row number column'),
+  // Note: data comes from context, onRowClick/className are runtime
 });
 
 export const FilterSchema = z.object({
-  placeholder: z.string().default('Search...').describe('Placeholder text for search input'),
-  columns: z.array(z.string()).describe('Columns available for filtering'),
+  // AI-specifiable configuration
+  placeholder: z.string().default('Search...').describe('Placeholder text'),
+  debounceMs: z.number().default(0).describe('Debounce delay in ms'),
+  ariaLabel: z.string().default('Search filter').describe('Accessibility label'),
+  // Note: value/onChange are controlled by parent, className is runtime
 });
 
 export const DensityToggleSchema = z.object({
-  value: z.enum(['compact', 'comfortable', 'spacious']).default('comfortable'),
+  // AI-specifiable configuration
+  value: z.enum(['compact', 'comfortable', 'spacious']).default('comfortable').describe('Current density'),
+  showLabels: z.boolean().default(false).describe('Show text labels'),
+  // Note: onChange/options/className are runtime
 });
 
 export const ViewModeToggleSchema = z.object({
-  modes: z.array(z.enum(['table', 'chart'])).default(['table', 'chart']),
-  activeMode: z.enum(['table', 'chart']).default('table'),
+  // AI-specifiable configuration
+  modes: z.array(z.enum(['table', 'chart'])).default(['table', 'chart']).describe('Available view modes'),
+  activeMode: z.enum(['table', 'chart']).default('table').describe('Currently active mode'),
+  showLabels: z.boolean().default(true).describe('Show text labels'),
+  // Note: options array and onModeChange are runtime
 });
 
 // Define the schema for json-render
