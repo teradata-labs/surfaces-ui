@@ -161,13 +161,84 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (To be populated by roadmapper) | | |
+| JR-01 | Phase 1 | Pending |
+| JR-02 | Phase 1 | Pending |
+| JR-03 | Phase 1 | Pending |
+| JR-04 | Phase 1 | Pending |
+| JR-05 | Phase 1 | Pending |
+| JR-06 | Phase 1 | Pending |
+| COMP-01 | Phase 1 | Pending |
+| COMP-02 | Phase 1 | Pending |
+| COMP-03 | Phase 1 | Pending |
+| COMP-04 | Phase 1 | Pending |
+| COMP-05 | Phase 1 | Pending |
+| COMP-06 | Phase 1 | Pending |
+| COMP-07 | Phase 1 | Pending |
+| COMP-08 | Phase 1 | Pending |
+| COMP-09 | Phase 1 | Pending |
+| CAT-01 | Phase 2 | Pending |
+| CAT-02 | Phase 2 | Pending |
+| CAT-03 | Phase 2 | Pending |
+| CAT-04 | Phase 2 | Pending |
+| CAT-05 | Phase 2 | Pending |
+| CAT-06 | Phase 2 | Pending |
+| CAT-07 | Phase 2 | Pending |
+| CAT-08 | Phase 2 | Pending |
+| REG-01 | Phase 3 | Pending |
+| REG-02 | Phase 3 | Pending |
+| REG-03 | Phase 3 | Pending |
+| REG-04 | Phase 3 | Pending |
+| REG-05 | Phase 3 | Pending |
+| REG-06 | Phase 3 | Pending |
+| REG-07 | Phase 3 | Pending |
+| REG-08 | Phase 3 | Pending |
+| MCP-01 | Phase 4 | Pending |
+| MCP-02 | Phase 4 | Pending |
+| MCP-03 | Phase 4 | Pending |
+| MCP-04 | Phase 4 | Pending |
+| MCP-05 | Phase 4 | Pending |
+| VIRT-01 | Phase 5 | Pending |
+| VIRT-02 | Phase 5 | Pending |
+| VIRT-03 | Phase 5 | Pending |
+| VIRT-04 | Phase 5 | Pending |
+| VIRT-05 | Phase 5 | Pending |
+| THEME-01 | Phase 6 | Pending |
+| THEME-02 | Phase 6 | Pending |
+| THEME-03 | Phase 6 | Pending |
+| THEME-04 | Phase 6 | Pending |
+| THEME-05 | Phase 6 | Pending |
+| THEME-06 | Phase 6 | Pending |
+| NL-01 | Phase 7 | Pending |
+| NL-02 | Phase 7 | Pending |
+| NL-03 | Phase 7 | Pending |
+| NL-04 | Phase 7 | Pending |
+| NL-05 | Phase 7 | Pending |
+| NL-06 | Phase 7 | Pending |
+| NL-07 | Phase 7 | Pending |
+| DEPLOY-01 | Phase 8 | Pending |
+| DEPLOY-02 | Phase 8 | Pending |
+| DEPLOY-03 | Phase 8 | Pending |
+| DEPLOY-04 | Phase 8 | Pending |
+| DEPLOY-05 | Phase 8 | Pending |
+| DEPLOY-06 | Phase 8 | Pending |
+| TEST-01 | Phase 9 | Pending |
+| TEST-02 | Phase 9 | Pending |
+| TEST-03 | Phase 9 | Pending |
+| TEST-04 | Phase 9 | Pending |
+| TEST-05 | Phase 9 | Pending |
+| TEST-06 | Phase 9 | Pending |
+| TEST-07 | Phase 9 | Pending |
+| DOC-01 | Phase 9 | Pending |
+| DOC-02 | Phase 9 | Pending |
+| DOC-03 | Phase 9 | Pending |
+| DOC-04 | Phase 9 | Pending |
+| DOC-05 | Phase 9 | Pending |
 
 **Coverage:**
 - v1 requirements: 61 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 61 ⚠️
+- Mapped to phases: 61 (100% coverage)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-15*
-*Last updated: 2026-02-15 after initial definition*
+*Last updated: 2026-02-15 after roadmap creation*
