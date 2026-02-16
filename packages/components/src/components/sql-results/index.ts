@@ -18,3 +18,4 @@ export {
   DEFAULT_CHART_CONFIG,
   DEFAULT_DATE_RANGE,
 } from './types';
+export { buildTeradataUrl } from './utils';
