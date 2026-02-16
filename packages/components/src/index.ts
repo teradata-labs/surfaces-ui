@@ -87,3 +87,26 @@ export type {
 
 // Utility
 export { cn } from './lib/utils';
+
+// json-render Catalog
+export {
+  catalog,
+  ChartSchema,
+  DataTableSchema,
+  FilterSchema,
+  DensityToggleSchema,
+  ViewModeToggleSchema,
+  registry,
+  aiSystemPrompt,
+  getCatalogPrompt,
+  generateCatalogPrompt,
+  generateComponentPrompt,
+  generateComponentExample,
+} from './catalog';
+export type {
+  ChartProps as CatalogChartProps,
+  DataTableProps as CatalogDataTableProps,
+  FilterProps as CatalogFilterProps,
+  DensityToggleProps as CatalogDensityToggleProps,
+  ViewModeToggleProps as CatalogViewModeToggleProps,
+} from './catalog';
