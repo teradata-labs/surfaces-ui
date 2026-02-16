@@ -34,10 +34,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. SQLResultsDisplay decomposed into primitives each under 400 lines
   4. Chart primitive renders ECharts with theme integration
   5. DataTable primitive renders with virtual scrolling architecture ready
-**Plans**: TBD
+**Plans**: 6 plans in 4 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 01-01-PLAN.md - Install json-render packages and create catalog foundation (Wave 1)
+- [ ] 01-02-PLAN.md - Extract Chart primitive with ECharts theme integration (Wave 2)
+- [ ] 01-03-PLAN.md - Extract DataTable primitive with TanStack Virtual (Wave 2)
+- [ ] 01-04-PLAN.md - Extract Filter and DensityToggle primitives (Wave 2)
+- [ ] 01-05-PLAN.md - Create TableWithFilters and ChartWithControls molecules (Wave 3)
+- [ ] 01-06-PLAN.md - Refactor SQLResultsDisplay and update catalog registry (Wave 4)
 
 ### Phase 2: Catalog Definitions
 **Goal**: Create complete json-render catalog with Zod schemas for all SQL results components
@@ -162,11 +167,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Component Decomposition | 0/TBD | Not started | - |
+| 1. Foundation & Component Decomposition | 0/6 | Planned | - |
 | 2. Catalog Definitions | 0/TBD | Not started | - |
 | 3. Registry Mappings | 0/TBD | Not started | - |
 | 4. MCP Bridge Integration | 0/TBD | Not started | - |
