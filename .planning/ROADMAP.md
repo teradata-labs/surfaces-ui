@@ -54,10 +54,12 @@ Plans:
   3. Zod schemas validate and provide TypeScript inference
   4. Molecule and organism catalog entries compose primitives correctly
   5. AI can understand component purpose from catalog descriptions
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 02-01-PLAN.md - Refine primitive schemas and create AI prompt utilities (Wave 1)
+- [ ] 02-02-PLAN.md - Add molecule catalog entries (TableWithFilters, ChartWithControls) (Wave 2)
+- [ ] 02-03-PLAN.md - Add organism catalog entry (SQLResultsDisplay) (Wave 2)
 
 ### Phase 3: Registry Mappings
 **Goal**: Build registry mapping catalog definitions to React components with validation
@@ -172,7 +174,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Component Decomposition | 6/6 | Complete | 2026-02-16 |
-| 2. Catalog Definitions | 0/TBD | Not started | - |
+| 2. Catalog Definitions | 0/3 | Not started | - |
 | 3. Registry Mappings | 0/TBD | Not started | - |
 | 4. MCP Bridge Integration | 0/TBD | Not started | - |
 | 5. Virtual Scrolling & Performance | 0/TBD | Not started | - |
