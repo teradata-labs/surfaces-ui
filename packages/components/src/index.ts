@@ -67,7 +67,8 @@ export type {
 // SQL Editor Components
 export {
   SQLEditor,
-  SQLInput,
+  CodeMirrorSQLInput,
+  SimpleSQLInput,
   SQLToolbar,
   SQLResultsTable,
   SQLVisualization,
