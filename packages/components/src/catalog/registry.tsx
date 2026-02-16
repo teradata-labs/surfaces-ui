@@ -25,8 +25,8 @@ import { SQLResultsDisplay } from '../components/sql-results';
 // These receive a ComponentContext and extract props.value for the actual components
 
 function CatalogChart(ctx: ComponentContext<any, 'Chart'>) {
-  const { type, xAxis, yAxis, theme, height, showDataLabels } = (ctx.props as any).value;
-  const data = (ctx as any).data?.value || [];
+  const { type, xAxis, yAxis, theme, height, showDataLabels } = ctx.props as any;
+  const data = (ctx as any).data || [];
 
   return (
     <Chart
@@ -42,8 +42,8 @@ function CatalogChart(ctx: ComponentContext<any, 'Chart'>) {
 }
 
 function CatalogDataTable(ctx: ComponentContext<any, 'DataTable'>) {
-  const { columns, height, density, virtualScrolling } = (ctx.props as any).value;
-  const data = (ctx as any).data?.value || [];
+  const { columns, height, density, virtualScrolling } = ctx.props as any;
+  const data = (ctx as any).data || [];
 
   return (
     <DataTable
@@ -57,7 +57,7 @@ function CatalogDataTable(ctx: ComponentContext<any, 'DataTable'>) {
 }
 
 function CatalogFilter(ctx: ComponentContext<any, 'Filter'>) {
-  const { placeholder, columns } = (ctx.props as any).value;
+  const { placeholder, columns } = ctx.props as any;
   // Filter needs value and onChange which come from parent context
   // This is a simplified version for catalog rendering
   const [value, setValue] = React.useState('');
@@ -72,7 +72,7 @@ function CatalogFilter(ctx: ComponentContext<any, 'Filter'>) {
 }
 
 function CatalogDensityToggle(ctx: ComponentContext<any, 'DensityToggle'>) {
-  const { value: initialValue } = (ctx.props as any).value;
+  const { value: initialValue } = ctx.props as any;
   const [density, setDensity] = React.useState(initialValue || 'comfortable');
 
   return (
@@ -84,7 +84,7 @@ function CatalogDensityToggle(ctx: ComponentContext<any, 'DensityToggle'>) {
 }
 
 function CatalogViewModeToggle(ctx: ComponentContext<any, 'ViewModeToggle'>) {
-  const { modes = ['table', 'chart'], activeMode: initialMode = 'table' } = (ctx.props as any).value;
+  const { modes = ['table', 'chart'], activeMode: initialMode = 'table' } = ctx.props as any;
   const [activeMode, setActiveMode] = React.useState(initialMode);
 
   const options = modes.map((mode: 'table' | 'chart') => ({
@@ -111,10 +111,10 @@ function CatalogTableWithFilters(ctx: ComponentContext<any, 'TableWithFilters'>)
     showFilter,
     showDensityToggle,
     virtualScrolling,
-  } = (ctx.props as any).value;
+  } = ctx.props as any;
 
   // Data comes from json-render context, not AI-specified props
-  const data = (ctx as any).data?.value || [];
+  const data = (ctx as any).data || [];
 
   return (
     <TableWithFilters
@@ -138,10 +138,10 @@ function CatalogChartWithControls(ctx: ComponentContext<any, 'ChartWithControls'
     initialYAxis,
     showControls,
     controlsCollapsed,
-  } = (ctx.props as any).value;
+  } = ctx.props as any;
 
   // Data comes from json-render context, not AI-specified props
-  const data = (ctx as any).data?.value || [];
+  const data = (ctx as any).data || [];
 
   return (
     <ChartWithControls
@@ -167,10 +167,10 @@ function CatalogSQLResultsDisplay(ctx: ComponentContext<any, 'SQLResultsDisplay'
     initialViewMode,
     tableHeight,
     chartHeight,
-  } = (ctx.props as any).value;
+  } = ctx.props as any;
 
   // Data comes from json-render context, not AI-specified props
-  const rawData = (ctx as any).data?.value;
+  const rawData = (ctx as any).data;
 
   // SQLResultsDisplay expects data in specific format
   // Support both {rows, columns} and {data, columns} formats

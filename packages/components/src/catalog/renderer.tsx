@@ -1,14 +1,18 @@
 /**
  * SurfacesRenderer - Main entry point for rendering JSON specs
  *
- * Wraps json-render Renderer with ThemeProvider, StateProvider, and ActionProvider
- * to provide complete theming and state management context.
+ * Wraps json-render Renderer with all required providers:
+ * - ThemeProvider: Theme mode and CSS token management
+ * - StateProvider: State management for json-render
+ * - ActionProvider: Action handlers for interactive components
+ * - VisibilityProvider: Visibility context for conditional rendering
  */
 import React from 'react';
 import {
   Renderer,
   StateProvider,
   ActionProvider,
+  VisibilityProvider,
   type Spec,
 } from '@json-render/react';
 
@@ -52,7 +56,9 @@ export function SurfacesRenderer({
     <ThemeProvider theme={theme} tokenOverrides={tokenOverrides}>
       <StateProvider initialState={initialState} onStateChange={onStateChange}>
         <ActionProvider handlers={handlers}>
-          <Renderer spec={spec} registry={registry} loading={loading} />
+          <VisibilityProvider>
+            <Renderer spec={spec} registry={registry} loading={loading} />
+          </VisibilityProvider>
         </ActionProvider>
       </StateProvider>
     </ThemeProvider>
