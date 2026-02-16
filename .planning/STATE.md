@@ -53,6 +53,7 @@ Recent decisions affecting current work:
 - **Limit schemas to 5-8 props** (01-01): Ensures AI describability and generation quality
 - [Phase 01-03]: Limit DataTable to exactly 8 props for AI describability (json-render constraint)
 - [Phase 01-04]: Filter primitive uses debounce with cleanup on unmount
+- [Phase 01-04]: DensityToggle uses radiogroup ARIA pattern for accessibility
 
 ### Pending Todos
 
