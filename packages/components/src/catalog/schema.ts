@@ -64,6 +64,30 @@ export const ViewModeToggleSchema = z.object({
   // Note: options array and onModeChange are runtime
 });
 
+// Molecule schemas - compose primitives into higher-level components
+export const TableWithFiltersSchema = z.object({
+  // AI-specifiable configuration
+  columns: z.array(z.string()).optional().describe('Column names to display'),
+  height: z.number().default(400).describe('Table height in pixels'),
+  initialDensity: z.enum(['compact', 'comfortable', 'spacious']).default('comfortable').describe('Initial row density'),
+  showFilter: z.boolean().default(true).describe('Show search filter'),
+  showDensityToggle: z.boolean().default(true).describe('Show density toggle'),
+  virtualScrolling: z.boolean().default(true).describe('Enable virtual scrolling'),
+  // Note: data comes from context, onRowClick/className are runtime
+});
+
+export const ChartWithControlsSchema = z.object({
+  // AI-specifiable configuration
+  columns: z.array(z.string()).optional().describe('Columns for axis selection'),
+  height: z.number().default(400).describe('Chart height in pixels'),
+  initialChartType: z.enum(['bar', 'line', 'area', 'pie', 'scatter', 'heatmap']).default('bar').describe('Initial chart type'),
+  initialXAxis: z.string().optional().describe('Initial X axis column'),
+  initialYAxis: z.string().optional().describe('Initial Y axis column'),
+  showControls: z.boolean().default(true).describe('Show chart options panel'),
+  controlsCollapsed: z.boolean().default(false).describe('Controls collapsed by default'),
+  // Note: data comes from context, onConfigChange/className are runtime
+});
+
 // Define the schema for json-render
 const schema = defineSchema((s) => ({
   spec: s.object({
@@ -89,6 +113,7 @@ const schema = defineSchema((s) => ({
 // Catalog definition - components will be registered as they're built
 export const catalog = defineCatalog(schema, {
   components: {
+    // Primitives - basic building blocks
     Chart: {
       props: ChartSchema,
       description: 'Render data as a chart using ECharts with theme integration. Use for visualizing trends, comparisons, and distributions.',
@@ -114,6 +139,17 @@ export const catalog = defineCatalog(schema, {
       description: 'Toggle between table and chart view modes. Use to switch visualization types.',
       hasChildren: false,
     },
+    // Molecules - compose primitives
+    TableWithFilters: {
+      props: TableWithFiltersSchema,
+      description: 'Data table with search filter and density toggle',
+      hasChildren: false,
+    },
+    ChartWithControls: {
+      props: ChartWithControlsSchema,
+      description: 'Chart with type/axis configuration panel',
+      hasChildren: false,
+    },
   },
   actions: {
     export_csv: {
@@ -132,3 +168,5 @@ export type DataTableProps = z.infer<typeof DataTableSchema>;
 export type FilterProps = z.infer<typeof FilterSchema>;
 export type DensityToggleProps = z.infer<typeof DensityToggleSchema>;
 export type ViewModeToggleProps = z.infer<typeof ViewModeToggleSchema>;
+export type TableWithFiltersSchemaProps = z.infer<typeof TableWithFiltersSchema>;
+export type ChartWithControlsSchemaProps = z.infer<typeof ChartWithControlsSchema>;
