@@ -96,12 +96,16 @@ export {
   FilterSchema,
   DensityToggleSchema,
   ViewModeToggleSchema,
+  TableWithFiltersSchema,
+  ChartWithControlsSchema,
+  SQLResultsDisplaySchema,
   registry,
   aiSystemPrompt,
   getCatalogPrompt,
   generateCatalogPrompt,
   generateComponentPrompt,
   generateComponentExample,
+  generateSpecExample,
 } from './catalog';
 export type {
   ChartProps as CatalogChartProps,
@@ -109,4 +113,7 @@ export type {
   FilterProps as CatalogFilterProps,
   DensityToggleProps as CatalogDensityToggleProps,
   ViewModeToggleProps as CatalogViewModeToggleProps,
+  TableWithFiltersSchemaProps as CatalogTableWithFiltersProps,
+  ChartWithControlsSchemaProps as CatalogChartWithControlsProps,
+  SQLResultsDisplaySchemaProps as CatalogSQLResultsDisplayProps,
 } from './catalog';
