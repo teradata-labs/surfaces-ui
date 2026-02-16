@@ -17,6 +17,9 @@ import { DataTable } from '../primitives/data-table';
 import { Filter } from '../primitives/filter';
 import { DensityToggle } from '../primitives/density-toggle';
 import { ViewModeToggle } from '../primitives/view-mode-toggle';
+import { TableWithFilters } from '../molecules/table-with-filters';
+import { ChartWithControls } from '../molecules/chart-with-controls';
+import { SQLResultsDisplay } from '../components/sql-results';
 
 // Wrapper components that adapt ComponentContext to component props
 // These receive a ComponentContext and extract props.value for the actual components
@@ -99,12 +102,120 @@ function CatalogViewModeToggle(ctx: ComponentContext<any, 'ViewModeToggle'>) {
   );
 }
 
+// Molecule wrapper components - inject data from context
+function CatalogTableWithFilters(ctx: ComponentContext<any, 'TableWithFilters'>) {
+  const {
+    columns,
+    height,
+    initialDensity,
+    showFilter,
+    showDensityToggle,
+    virtualScrolling,
+  } = (ctx.props as any).value;
+
+  // Data comes from json-render context, not AI-specified props
+  const data = (ctx as any).data?.value || [];
+
+  return (
+    <TableWithFilters
+      data={data}
+      columns={columns}
+      height={height}
+      initialDensity={initialDensity}
+      showFilter={showFilter}
+      showDensityToggle={showDensityToggle}
+      virtualScrolling={virtualScrolling}
+    />
+  );
+}
+
+function CatalogChartWithControls(ctx: ComponentContext<any, 'ChartWithControls'>) {
+  const {
+    columns,
+    height,
+    initialChartType,
+    initialXAxis,
+    initialYAxis,
+    showControls,
+    controlsCollapsed,
+  } = (ctx.props as any).value;
+
+  // Data comes from json-render context, not AI-specified props
+  const data = (ctx as any).data?.value || [];
+
+  return (
+    <ChartWithControls
+      data={data}
+      columns={columns}
+      height={height}
+      initialChartType={initialChartType}
+      initialXAxis={initialXAxis}
+      initialYAxis={initialYAxis}
+      showControls={showControls}
+      controlsCollapsed={controlsCollapsed}
+    />
+  );
+}
+
+// Organism wrapper component - complete feature-rich component
+function CatalogSQLResultsDisplay(ctx: ComponentContext<any, 'SQLResultsDisplay'>) {
+  const {
+    sql,
+    context: execContext,
+    projectId,
+    teradataBaseUrl,
+    initialViewMode,
+    tableHeight,
+    chartHeight,
+  } = (ctx.props as any).value;
+
+  // Data comes from json-render context, not AI-specified props
+  const rawData = (ctx as any).data?.value;
+
+  // SQLResultsDisplay expects data in specific format
+  // Support both {rows, columns} and {data, columns} formats
+  const data = React.useMemo(() => {
+    if (!rawData) return { rows: [], columns: [] };
+    if (Array.isArray(rawData)) {
+      // If just an array, derive columns from first row
+      const columns = rawData.length > 0 ? Object.keys(rawData[0]) : [];
+      return { rows: rawData, columns };
+    }
+    // Already in correct format
+    return rawData;
+  }, [rawData]);
+
+  // Build savedConfig from AI-specifiable schema props
+  const savedConfig = React.useMemo(() => ({
+    resultsViewMode: initialViewMode || 'table',
+    tableHeight: tableHeight || 400,
+    chartHeight: chartHeight || 400,
+  }), [initialViewMode, tableHeight, chartHeight]);
+
+  return (
+    <SQLResultsDisplay
+      data={data}
+      sql={sql}
+      savedConfig={savedConfig}
+      context={execContext}
+      projectId={projectId}
+      teradataBaseUrl={teradataBaseUrl}
+    />
+  );
+}
+
 export const { registry } = defineRegistry(catalog, {
   components: {
+    // Primitives
     Chart: CatalogChart,
     DataTable: CatalogDataTable,
     Filter: CatalogFilter,
     DensityToggle: CatalogDensityToggle,
     ViewModeToggle: CatalogViewModeToggle,
+    // Molecules
+    TableWithFilters: CatalogTableWithFilters,
+    ChartWithControls: CatalogChartWithControls,
+    // Organisms
+    SQLResultsDisplay: CatalogSQLResultsDisplay,
   },
 });
