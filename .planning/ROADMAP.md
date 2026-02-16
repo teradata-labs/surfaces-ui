@@ -13,7 +13,7 @@ Transform SurfacesUI from a static component library into an AI-driven, declarat
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Component Decomposition** - Establish json-render packages and decompose SQLResultsDisplay
-- [ ] **Phase 2: Catalog Definitions** - Define Zod schemas for all SQL results primitives
+- [x] **Phase 2: Catalog Definitions** - Define Zod schemas for all SQL results primitives
 - [ ] **Phase 3: Registry Mappings** - Map catalog entries to React component implementations
 - [ ] **Phase 4: MCP Bridge Integration** - Bridge json-render actions to MCP tool calls
 - [ ] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
@@ -57,12 +57,12 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 02-01-PLAN.md - Refine primitive schemas and create AI prompt utilities (Wave 1)
-- [ ] 02-02-PLAN.md - Add molecule catalog entries (TableWithFilters, ChartWithControls) (Wave 2)
-- [ ] 02-03-PLAN.md - Add organism catalog entry (SQLResultsDisplay) (Wave 2)
+- [x] 02-01-PLAN.md - Refine primitive schemas and create AI prompt utilities (Wave 1)
+- [x] 02-02-PLAN.md - Add molecule catalog entries (TableWithFilters, ChartWithControls) (Wave 2)
+- [x] 02-03-PLAN.md - Add organism catalog entry (SQLResultsDisplay) (Wave 2)
 
 ### Phase 3: Registry Mappings
-**Goal**: Build registry mapping catalog definitions to React components with validation
+**Goal**: Integrate SurfacesRenderer with ThemeProvider and validate catalog-to-component flow with demo app
 **Depends on**: Phase 2
 **Requirements**: REG-01, REG-02, REG-03, REG-04, REG-05, REG-06, REG-07, REG-08
 **Success Criteria** (what must be TRUE):
@@ -71,10 +71,12 @@ Plans:
   3. ThemeProvider wraps renderer and components inherit CSS variables
   4. Demo app shows catalog-to-component flow working
   5. Type safety enforced between catalog schemas and component props
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 03-01-PLAN.md - Create SurfacesRenderer with ThemeProvider integration (Wave 1)
+- [ ] 03-02-PLAN.md - Create CatalogDemo app with example JSON specs (Wave 2)
+- [ ] 03-03-PLAN.md - Validate registry mappings with integration tests (Wave 2)
 
 ### Phase 4: MCP Bridge Integration
 **Goal**: Connect json-render action system to SurfacesUI MCP Bridge for tool calls
@@ -175,7 +177,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 |-------|----------------|--------|-----------|
 | 1. Foundation & Component Decomposition | 6/6 | Complete | 2026-02-16 |
 | 2. Catalog Definitions | 3/3 | Complete | 2026-02-16 |
-| 3. Registry Mappings | 0/TBD | Not started | - |
+| 3. Registry Mappings | 0/3 | Not started | - |
 | 4. MCP Bridge Integration | 0/TBD | Not started | - |
 | 5. Virtual Scrolling & Performance | 0/TBD | Not started | - |
 | 6. Theming Integration | 0/TBD | Not started | - |
