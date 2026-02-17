@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 4 of 9 (MCP Bridge Integration)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In Progress
-Last activity: 2026-02-17 — Completed 04-01-PLAN.md (MCP action bridge layer)
+Last activity: 2026-02-17 — Completed 04-02-PLAN.md (Renderer MCP Bridge integration)
 
-Progress: [███░░░░░░░] 33% (1/3 plans in Phase 04)
+Progress: [██████░░░░] 67% (2/3 plans in Phase 04)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
-- Average duration: 5 minutes
-- Total execution time: 1.36 hours
+- Total plans completed: 16
+- Average duration: 4 minutes
+- Total execution time: 1.43 hours
 
 **By Phase:**
 
@@ -30,7 +30,7 @@ Progress: [███░░░░░░░] 33% (1/3 plans in Phase 04)
 | 01    | 6     | 26 min | 4 min    |
 | 02    | 3     | 20 min | 7 min    |
 | 03    | 5     | 33 min | 7 min    |
-| 04    | 1     | 3 min  | 3 min    |
+| 04    | 2     | 7 min  | 4 min    |
 
 **Recent Plans:**
 
@@ -45,6 +45,7 @@ Progress: [███░░░░░░░] 33% (1/3 plans in Phase 04)
 | 03-04    | 2 min    | 2     | 1     | State binding fix - gap closure (useStateValue hook) |
 | 03-05    | 4 min    | 3     | 3     | Registry type safety - gap closure (typed wrappers + type tests) |
 | 04-01    | 3 min    | 3     | 3     | MCP action bridge layer (execute_sql action + createMcpActionHandlers) |
+| 04-02    | 4 min    | 2     | 3     | Renderer MCP Bridge integration (optional bridge prop + handler merging) |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Recent decisions affecting current work:
 - [Phase 03-05]: Use explicit TypeScript interfaces instead of generic type inference for catalog-registry type safety
 - [Phase 04-01]: Use functional setState for atomic state updates (prevents race conditions in MCP actions)
 - [Phase 04-01]: Transform MCP columns/rows format to json-render Record[] format in action handlers
+- [Phase 04]: Renderer accepts optional bridge prop for backward compatibility
+- [Phase 04]: MCP action handlers merged with user handlers using useMemo
 
 ### Pending Todos
 
@@ -104,7 +107,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 04-01-PLAN.md (MCP action bridge layer)
+Stopped at: Completed 04-02-PLAN.md (Renderer MCP Bridge integration)
 Resume file: None
 
 **Phase 01 Status: COMPLETE**
@@ -126,9 +129,9 @@ All 6 plans executed successfully. Foundation established for Phase 02.
 - ✅ 03-04: State binding fix - gap closure (useStateValue hook replaces direct context access)
 - ✅ 03-05: Registry type safety - gap closure (typed wrappers eliminate 'as any' casts)
 
-**Phase 04 Status: IN PROGRESS (1/3 plans complete)**
+**Phase 04 Status: IN PROGRESS (2/3 plans complete)**
 - ✅ 04-01: MCP action bridge layer (execute_sql action + createMcpActionHandlers factory)
-- ⏳ 04-02: Integrate action handlers with SurfacesRenderer
+- ✅ 04-02: Renderer MCP Bridge integration (optional bridge prop + handler merging)
 - ⏳ 04-03: Add MCP action integration tests
 
-**Next Step:** Execute 04-02-PLAN.md (Renderer action integration)
+**Next Step:** Execute 04-03-PLAN.md (MCP action integration tests)
