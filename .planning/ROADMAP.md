@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & Component Decomposition** - Establish json-render packages and decompose SQLResultsDisplay
 - [x] **Phase 2: Catalog Definitions** - Define Zod schemas for all SQL results primitives
 - [x] **Phase 3: Registry Mappings** - Map catalog entries to React component implementations
-- [ ] **Phase 4: MCP Bridge Integration** - Bridge json-render actions to MCP tool calls
+- [x] **Phase 4: MCP Bridge Integration** - Bridge json-render actions to MCP tool calls
 - [ ] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
 - [ ] **Phase 6: Theming Integration** - Integrate Covalent design tokens with json-render
 - [ ] **Phase 7: NL Generation** - Enable prompt-to-UI generation with AI
@@ -93,12 +93,12 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 04-01-PLAN.md - Create action bridge layer with execute_sql action (Wave 1)
-- [ ] 04-02-PLAN.md - Update SurfacesRenderer with McpBridgeProvider integration (Wave 2)
-- [ ] 04-03-PLAN.md - Create integration tests for MCP action flow (Wave 3)
+- [x] 04-01-PLAN.md - Create action bridge layer with execute_sql action (Wave 1)
+- [x] 04-02-PLAN.md - Update SurfacesRenderer with McpBridgeProvider integration (Wave 2)
+- [x] 04-03-PLAN.md - Create integration tests for MCP action flow (Wave 3)
 
 ### Phase 5: Virtual Scrolling & Performance
-**Goal**: Enable DataTable to handle 100K+ row datasets with 60FPS performance
+**Goal**: Optimize DataTable for 100K+ row datasets with dynamic overscan, ARIA accessibility, and verified performance
 **Depends on**: Phase 4
 **Requirements**: VIRT-01, VIRT-02, VIRT-03, VIRT-04, VIRT-05
 **Success Criteria** (what must be TRUE):
@@ -107,10 +107,11 @@ Plans:
   3. Variable-height rows work with row height estimation
   4. Memory usage stays stable with large datasets
   5. Registry integration preserves virtual scrolling through catalog specs
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 05-01-PLAN.md - Performance optimization with dynamic overscan and ARIA accessibility (Wave 1)
+- [ ] 05-02-PLAN.md - Performance testing with 100K+ row validation (Wave 2)
 
 ### Phase 6: Theming Integration
 **Goal**: Integrate Covalent design tokens to provide theme-aware components through json-render
@@ -182,8 +183,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 1. Foundation & Component Decomposition | 6/6 | Complete | 2026-02-16 |
 | 2. Catalog Definitions | 3/3 | Complete | 2026-02-16 |
 | 3. Registry Mappings | 5/5 | Complete | 2026-02-17 |
-| 4. MCP Bridge Integration | 0/3 | Planned | - |
-| 5. Virtual Scrolling & Performance | 0/TBD | Not started | - |
+| 4. MCP Bridge Integration | 3/3 | Complete | 2026-02-17 |
+| 5. Virtual Scrolling & Performance | 0/2 | Planned | - |
 | 6. Theming Integration | 0/TBD | Not started | - |
 | 7. NL Generation | 0/TBD | Not started | - |
 | 8. MCP Apps Deployment | 0/TBD | Not started | - |
