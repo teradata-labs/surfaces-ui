@@ -8,6 +8,20 @@ export { registry } from './registry';
 export { SurfacesRenderer, type SurfacesRendererProps } from './renderer';
 export { aiSystemPrompt, getCatalogPrompt } from './prompt';
 export { generateCatalogPrompt, generateComponentPrompt, generateComponentExample, generateSpecExample } from './prompts';
+export {
+  validateGeneratedSpec,
+  attemptAutoFix,
+  getKnownComponentTypes,
+  type ValidationResult,
+  type ValidationError,
+} from './validation';
+export {
+  SpecValidationError,
+  createFallbackSpec,
+  ValidatedSpecRenderer,
+  type SpecValidationErrorProps,
+  type ValidatedSpecRendererProps,
+} from './fallback';
 
 // Re-export bridge type for consumers
 export type { BridgeLike } from '../bridge';
