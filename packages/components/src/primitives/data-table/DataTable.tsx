@@ -13,7 +13,8 @@ import { VirtualRow } from './VirtualRow';
 import type { DataTableProps, Density } from './types';
 import { ROW_HEIGHTS } from './types';
 
-const OVERSCAN = 5; // Extra rows rendered above/below viewport
+// Dynamic overscan based on dataset size for optimal performance
+const getOverscan = (count: number) => count < 1000 ? 5 : count < 50000 ? 10 : 15;
 
 export function DataTable({
   data,
@@ -36,12 +37,12 @@ export function DataTable({
 
   const rowHeight = ROW_HEIGHTS[density];
 
-  // Virtual scrolling setup
+  // Virtual scrolling setup with dynamic overscan
   const rowVirtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => rowHeight,
-    overscan: OVERSCAN,
+    overscan: getOverscan(data.length),
   });
 
   const virtualItems = rowVirtualizer.getVirtualItems();
@@ -69,18 +70,27 @@ export function DataTable({
         className={cn('border border-border rounded-lg overflow-hidden', className)}
       >
         <div className="overflow-auto" style={{ maxHeight: `${height}px` }}>
-          <table className="w-full text-xs" role="grid">
+          <table
+            className="w-full text-xs"
+            role="grid"
+            aria-rowcount={data.length + 1}
+            aria-colcount={columns.length + (showRowNumbers ? 1 : 0)}
+          >
             <thead className="bg-muted sticky top-0 z-10">
-              <tr>
+              <tr aria-rowindex={1}>
                 {showRowNumbers && (
-                  <th className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted w-12">
+                  <th
+                    className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted w-12"
+                    aria-colindex={1}
+                  >
                     #
                   </th>
                 )}
-                {columns.map((col) => (
+                {columns.map((col, idx) => (
                   <th
                     key={col}
                     className="px-3 py-1.5 text-left font-medium text-muted-foreground border-b border-border bg-muted"
+                    aria-colindex={idx + 1 + (showRowNumbers ? 1 : 0)}
                   >
                     {col}
                   </th>
@@ -98,6 +108,7 @@ export function DataTable({
                   density={density}
                   onClick={onRowClick}
                   showRowNumbers={showRowNumbers}
+                  ariaRowIndex={idx + 2}
                 />
               ))}
             </tbody>
@@ -117,18 +128,27 @@ export function DataTable({
         className="overflow-auto scrollbar-thin"
         style={{ height: `${height}px` }}
       >
-        <table className="w-full text-xs" role="grid">
+        <table
+          className="w-full text-xs"
+          role="grid"
+          aria-rowcount={data.length + 1}
+          aria-colcount={columns.length + (showRowNumbers ? 1 : 0)}
+        >
           <thead className="bg-muted sticky top-0 z-10">
-            <tr>
+            <tr aria-rowindex={1}>
               {showRowNumbers && (
-                <th className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted w-12">
+                <th
+                  className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted w-12"
+                  aria-colindex={1}
+                >
                   #
                 </th>
               )}
-              {columns.map((col) => (
+              {columns.map((col, idx) => (
                 <th
                   key={col}
                   className="px-3 py-1.5 text-left font-medium text-muted-foreground border-b border-border bg-muted"
+                  aria-colindex={idx + 1 + (showRowNumbers ? 1 : 0)}
                 >
                   {col}
                 </th>
@@ -155,6 +175,7 @@ export function DataTable({
                   density={density}
                   onClick={onRowClick}
                   showRowNumbers={showRowNumbers}
+                  ariaRowIndex={virtualRow.index + 2}
                 />
               );
             })}

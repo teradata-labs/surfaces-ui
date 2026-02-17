@@ -43,4 +43,5 @@ export interface VirtualRowProps {
   density: Density;
   onClick?: (row: Record<string, unknown>, index: number) => void;
   showRowNumbers?: boolean;
+  ariaRowIndex?: number;
 }

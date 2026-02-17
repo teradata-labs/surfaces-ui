@@ -17,6 +17,7 @@ function VirtualRowComponent({
   density,
   onClick,
   showRowNumbers,
+  ariaRowIndex,
 }: VirtualRowProps) {
   const handleClick = React.useCallback(() => {
     onClick?.(row, index);
@@ -34,17 +35,22 @@ function VirtualRowComponent({
       style={{ ...style, height: `${rowHeight}px` }}
       onClick={onClick ? handleClick : undefined}
       role="row"
+      aria-rowindex={ariaRowIndex}
     >
       {showRowNumbers && (
-        <td className={cn(paddingClass, 'text-muted-foreground text-right w-12')}>
+        <td
+          className={cn(paddingClass, 'text-muted-foreground text-right w-12')}
+          aria-colindex={1}
+        >
           {index + 1}
         </td>
       )}
-      {columns.map((col) => (
+      {columns.map((col, idx) => (
         <td
           key={col}
           className={cn(paddingClass, 'text-foreground leading-tight max-w-xs truncate')}
           title={String(row[col] ?? '')}
+          aria-colindex={idx + 1 + (showRowNumbers ? 1 : 0)}
         >
           {row[col] != null ? (
             String(row[col])
