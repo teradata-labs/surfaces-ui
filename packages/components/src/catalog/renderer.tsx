@@ -17,7 +17,7 @@ import {
   type Spec,
 } from '@json-render/react';
 
-import { ThemeProvider, type ThemeMode } from '../theme/ThemeProvider';
+import { ThemeProvider, type ThemeMode, type DensityMode } from '../theme/ThemeProvider';
 import { McpBridgeProvider, type BridgeLike } from '../bridge';
 import { registry } from './registry';
 import { createMcpActionHandlers } from './actions';
@@ -35,6 +35,8 @@ export interface SurfacesRendererProps {
   handlers?: Record<string, (...args: any[]) => Promise<unknown> | unknown>;
   /** Theme mode (defaults to 'system') */
   theme?: ThemeMode;
+  /** Density mode (defaults to 'comfortable') */
+  density?: DensityMode;
   /** CSS custom property overrides */
   tokenOverrides?: Record<string, string>;
   /** Whether the spec is currently streaming/loading */
@@ -51,6 +53,7 @@ export function SurfacesRenderer({
   initialState = {},
   handlers = {},
   theme = 'system',
+  density = 'comfortable',
   tokenOverrides,
   loading = false,
   onStateChange,
@@ -94,7 +97,7 @@ export function SurfacesRenderer({
   );
 
   return (
-    <ThemeProvider theme={theme} tokenOverrides={tokenOverrides}>
+    <ThemeProvider theme={theme} density={density} tokenOverrides={tokenOverrides}>
       {contentWithBridge}
     </ThemeProvider>
   );
