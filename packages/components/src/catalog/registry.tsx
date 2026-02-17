@@ -63,10 +63,16 @@ function CatalogDataTable(ctx: ComponentContext<typeof catalog, 'DataTable'>) {
   const data = useStateValue<DataRow[]>('/data') || [];
   const { columns, height, density, virtualScrolling } = props;
 
+  // Memoize columns to prevent breaking DataTable's internal memoization
+  const memoizedColumns = React.useMemo(
+    () => columns || undefined,
+    [columns]
+  );
+
   return (
     <DataTable
       data={data}
-      columns={columns}
+      columns={memoizedColumns}
       height={height}
       density={density}
       virtualScrolling={virtualScrolling}
@@ -138,10 +144,16 @@ function CatalogTableWithFilters(ctx: ComponentContext<typeof catalog, 'TableWit
   // Data comes from json-render state provider via useStateValue hook
   const data = useStateValue<DataRow[]>('/data') || [];
 
+  // Memoize columns to prevent breaking DataTable's internal memoization
+  const memoizedColumns = React.useMemo(
+    () => columns || undefined,
+    [columns]
+  );
+
   return (
     <TableWithFilters
       data={data}
-      columns={columns}
+      columns={memoizedColumns}
       height={height}
       initialDensity={initialDensity}
       showFilter={showFilter}
