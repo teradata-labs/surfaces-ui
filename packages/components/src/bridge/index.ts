@@ -9,7 +9,7 @@
 export { McpBridge } from './McpBridge';
 export { McpAppsBridge } from './McpAppsBridge';
 export { McpBridgeProvider, useMcpBridge } from './McpBridgeProvider';
-export type { McpBridgeProviderProps } from './McpBridgeProvider';
+export type { McpBridgeProviderProps, BridgeLike } from './McpBridgeProvider';
 export { useMcpTool, useMcpPagination, useMcpStream } from './hooks';
 export type {
   UseMcpToolOptions,
