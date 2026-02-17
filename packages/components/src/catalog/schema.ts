@@ -181,6 +181,10 @@ export const catalog = defineCatalog(schema, {
       params: z.object({}),
       description: 'Copy data as JSON to clipboard',
     },
+    execute_sql: {
+      params: z.object({ query: z.string(), connection_id: z.string().optional() }),
+      description: 'Execute SQL query via MCP Bridge and update state with results',
+    },
   },
 });
 
