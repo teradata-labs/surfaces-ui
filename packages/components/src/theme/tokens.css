@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import density token system */
+@import './density.css';
+
 @layer base {
   :root {
     /* ── Core Semantic Tokens (Light Mode) ─────────────────────────── */
