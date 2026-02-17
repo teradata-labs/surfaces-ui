@@ -171,7 +171,10 @@ export function attemptAutoFix(
     if (error.code === 'invalid_type' && error.path.endsWith('.props') && error.expected === 'object') {
       const pathParts = error.path.split('.');
       if (pathParts[0] === 'elements' && pathParts[1]) {
-        fixedSpec.elements[pathParts[1]].props = {};
+        const element = fixedSpec.elements[pathParts[1]];
+        if (element) {
+          element.props = {};
+        }
       }
     }
 
@@ -183,7 +186,7 @@ export function attemptAutoFix(
 
   // Revalidate the fixed spec
   const revalidated = validateGeneratedSpec(fixedSpec);
-  return revalidated.valid ? revalidated.spec : null;
+  return revalidated.valid && revalidated.spec ? revalidated.spec : null;
 }
 
 /**
