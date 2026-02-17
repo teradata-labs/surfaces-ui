@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Registry Mappings** - Map catalog entries to React component implementations
 - [x] **Phase 4: MCP Bridge Integration** - Bridge json-render actions to MCP tool calls
 - [x] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
-- [ ] **Phase 6: Theming Integration** - Integrate design tokens with json-render
+- [x] **Phase 6: Theming Integration** - Integrate design tokens with json-render
 - [ ] **Phase 7: NL Generation** - Enable prompt-to-UI generation with AI
 - [ ] **Phase 8: MCP Apps Deployment** - Build and deploy single-file HTML bundle
 - [ ] **Phase 9: Testing & Documentation** - Complete test coverage and documentation
@@ -126,9 +126,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 06-01-PLAN.md - Create density CSS tokens and FOUC prevention (Wave 1)
-- [ ] 06-02-PLAN.md - Enhance ThemeProvider with density support (Wave 2)
-- [ ] 06-03-PLAN.md - Add density integration tests and verify zero-runtime (Wave 3)
+- [x] 06-01-PLAN.md - Create density CSS tokens and FOUC prevention (Wave 1)
+- [x] 06-02-PLAN.md - Enhance ThemeProvider with density support (Wave 2)
+- [x] 06-03-PLAN.md - Add density integration tests and verify zero-runtime (Wave 3)
 
 ### Phase 7: NL Generation
 **Goal**: Enable end-to-end natural language to rendered UI generation flow
@@ -140,10 +140,14 @@ Plans:
   3. Invalid specs caught by validation before render with graceful errors
   4. Streaming compilation shows progressive UI updates
   5. Example prompts documented for each primitive work correctly
-**Plans**: TBD
+**Plans**: 5 plans in 3 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 07-01-PLAN.md - Create generate_ui MCP tool with Anthropic Claude integration (Wave 1)
+- [ ] 07-02-PLAN.md - Create validation layer and fallback UI for invalid specs (Wave 1)
+- [ ] 07-03-PLAN.md - Add streaming client and explainability (Wave 2)
+- [ ] 07-04-PLAN.md - Document example prompts for all components (Wave 2)
+- [ ] 07-05-PLAN.md - Create NLGenerator component and integration tests (Wave 3)
 
 ### Phase 8: MCP Apps Deployment
 **Goal**: Build production-ready single-file HTML bundle for MCP Apps distribution
@@ -188,6 +192,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 4. MCP Bridge Integration | 3/3 | Complete | 2026-02-17 |
 | 5. Virtual Scrolling & Performance | 2/2 | Complete | 2026-02-17 |
 | 6. Theming Integration | 3/3 | Complete | 2026-02-17 |
-| 7. NL Generation | 0/TBD | Not started | - |
+| 7. NL Generation | 0/5 | Planning complete | - |
 | 8. MCP Apps Deployment | 0/TBD | Not started | - |
 | 9. Testing & Documentation | 0/TBD | Not started | - |
