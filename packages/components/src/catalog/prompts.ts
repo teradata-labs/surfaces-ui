@@ -75,10 +75,56 @@ const actionDefinitions = {
 type ComponentName = keyof typeof componentDefinitions;
 
 /**
+ * Example prompts for each component type.
+ * Used for documentation and testing AI prompt generation.
+ */
+interface PromptExample {
+  prompt: string;
+  description: string;
+  expectedComponent: string;
+}
+
+const PROMPT_EXAMPLES: Record<ComponentName, PromptExample[]> = {
+  Chart: [
+    { prompt: "Show monthly sales as a line chart", description: "Time series visualization", expectedComponent: "Chart" },
+    { prompt: "Create a bar chart comparing department budgets", description: "Category comparison", expectedComponent: "Chart" },
+    { prompt: "Display market share as a pie chart", description: "Part-to-whole relationship", expectedComponent: "Chart" },
+  ],
+  DataTable: [
+    { prompt: "Show all customer records in a table", description: "Basic data table", expectedComponent: "DataTable" },
+    { prompt: "Display orders with compact rows for dense data", description: "Compact density", expectedComponent: "DataTable" },
+    { prompt: "Table of products with row numbers", description: "With row numbers", expectedComponent: "DataTable" },
+  ],
+  Filter: [
+    { prompt: "Add search to filter the table", description: "Search input", expectedComponent: "Filter" },
+    { prompt: "Filter with 200ms debounce", description: "With debounce", expectedComponent: "Filter" },
+  ],
+  DensityToggle: [
+    { prompt: "Let users change row density", description: "Density control", expectedComponent: "DensityToggle" },
+    { prompt: "Add density toggle with text labels", description: "With labels", expectedComponent: "DensityToggle" },
+  ],
+  ViewModeToggle: [
+    { prompt: "Toggle between table and chart views", description: "View switcher", expectedComponent: "ViewModeToggle" },
+  ],
+  TableWithFilters: [
+    { prompt: "Filterable table of employees", description: "Searchable table", expectedComponent: "TableWithFilters" },
+    { prompt: "Product catalog with search and density options", description: "Full featured table", expectedComponent: "TableWithFilters" },
+  ],
+  ChartWithControls: [
+    { prompt: "Interactive chart with type selector", description: "Configurable chart", expectedComponent: "ChartWithControls" },
+    { prompt: "Chart where users can change axes", description: "Axis selection", expectedComponent: "ChartWithControls" },
+  ],
+  SQLResultsDisplay: [
+    { prompt: "Full SQL results with table and chart views", description: "Complete results UI", expectedComponent: "SQLResultsDisplay" },
+    { prompt: "Query results starting in chart mode", description: "Chart-first view", expectedComponent: "SQLResultsDisplay" },
+  ],
+};
+
+/**
  * Generate a full catalog prompt describing all available components.
  * Used as system context for AI models generating UI specs.
  */
-export function generateCatalogPrompt(): string {
+export function generateCatalogPrompt(options: { includeExamples?: boolean } = {}): string {
   const organisms = Object.entries(componentDefinitions).filter(([_, def]) => def.category === 'organism');
   const molecules = Object.entries(componentDefinitions).filter(([_, def]) => def.category === 'molecule');
   const primitives = Object.entries(componentDefinitions).filter(([_, def]) => def.category === 'primitive');
@@ -110,6 +156,19 @@ export function generateCatalogPrompt(): string {
   prompt += `# Available Actions\n\n`;
   for (const [name, description] of Object.entries(actionDefinitions)) {
     prompt += `- ${name}: ${description}\n`;
+  }
+
+  if (options.includeExamples) {
+    prompt += `\n# Example Prompts\n\n`;
+    for (const [name, examples] of Object.entries(PROMPT_EXAMPLES)) {
+      if (examples.length > 0) {
+        prompt += `## ${name}\n`;
+        for (const ex of examples) {
+          prompt += `- "${ex.prompt}" - ${ex.description}\n`;
+        }
+        prompt += `\n`;
+      }
+    }
   }
 
   return prompt;
@@ -262,4 +321,18 @@ export function generateSpecExample(): string {
     {"category": "Entertainment", "total": 600}
   ]
 }`;
+}
+
+/**
+ * Generate all example prompts for documentation or testing.
+ */
+export function generateAllExamples(): Record<ComponentName, PromptExample[]> {
+  return PROMPT_EXAMPLES;
+}
+
+/**
+ * Get example prompts for a specific component.
+ */
+export function getExamplesForComponent(componentName: ComponentName): PromptExample[] {
+  return PROMPT_EXAMPLES[componentName] || [];
 }
