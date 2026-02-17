@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 7 of 9 (Natural Language Generation)
-Plan: 4 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-17 — Completed 07-04-PLAN.md (Example prompts and LLM provider documentation)
+Last activity: 2026-02-17 — Completed 07-01-PLAN.md (LLM provider integration)
 
-Progress: [████████░░] 80% (4/5 plans in Phase 07)
+Progress: [██████░░░░] 60% (3/5 plans in Phase 07)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 25
 - Average duration: 4 minutes
-- Total execution time: 1.70 hours
+- Total execution time: 1.80 hours
 
 **By Phase:**
 
@@ -33,7 +33,7 @@ Progress: [████████░░] 80% (4/5 plans in Phase 07)
 | 04    | 3     | 12 min | 4 min    |
 | 05    | 2     | 5 min  | 2.5 min  |
 | 06    | 3     | 5 min  | 1.7 min  |
-| 07    | 1     | 3 min  | 3 min    |
+| 07    | 3     | 10 min | 3.3 min  |
 
 **Recent Plans:**
 
@@ -55,6 +55,8 @@ Progress: [████████░░] 80% (4/5 plans in Phase 07)
 | 06-01    | 2 min    | 2     | 3     | Density token system & FOUC prevention (CSS foundation) |
 | 06-02    | 1 min    | 2     | 2     | ThemeProvider density support (state + localStorage + SurfacesRenderer) |
 | 06-03    | 2 min    | 2     | 3     | Density integration tests (13 tests + zero-runtime verification) |
+| 07-01    | 4 min    | 3     | 9     | LLM provider integration (Bedrock, Anthropic, OpenAI + generate_ui tool) |
+| 07-02    | 3 min    | 3     | 3     | Validation layer and error fallbacks (Zod validation + fallback UI) |
 | 07-04    | 3 min    | 3     | 3     | Example prompts and LLM provider documentation |
 
 ## Accumulated Context
@@ -115,6 +117,11 @@ Recent decisions affecting current work:
 - [Phase 06-03]: Use global localStorage mock in test setup for consistency across all tests
 - [Phase 06-03]: Test zero-runtime constraint via filesystem checks (reading source files)
 - [Phase 06-03]: Verify CSS custom properties usage in density.css and tokens.css files
+- [Phase 07-01]: Use provider abstraction pattern for multi-LLM support (Bedrock, Anthropic, OpenAI)
+- [Phase 07-01]: Default to AWS Bedrock with SSO support for enterprise auth workflows
+- [Phase 07-01]: Use structured output (tools/json_schema) to constrain LLM responses to valid json-render specs
+- [Phase 07-01]: Provide both MCP tool (call_tool) and HTTP streaming endpoint (/api/generate-ui)
+- [Phase 07-01]: Stream via JSONL for progressive UI updates in web interfaces
 - [Phase 07-04]: Documented all three LLM providers with comprehensive troubleshooting
 - [Phase 07-04]: Created example prompts for all 8 component types
 
