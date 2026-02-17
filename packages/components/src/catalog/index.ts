@@ -9,6 +9,9 @@ export { SurfacesRenderer, type SurfacesRendererProps } from './renderer';
 export { aiSystemPrompt, getCatalogPrompt } from './prompt';
 export { generateCatalogPrompt, generateComponentPrompt, generateComponentExample, generateSpecExample } from './prompts';
 
+// Re-export bridge type for consumers
+export type { BridgeLike } from '../bridge';
+
 // Demo components for testing catalog-to-component flow
 export { CatalogDemo } from './demo';
 export { chartSpec, dataTableSpec, tableWithFiltersSpec, sqlResultsSpec, sampleData } from './demo-specs';
