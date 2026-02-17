@@ -31,9 +31,21 @@ def get_generate_ui_tool_definition() -> Tool:
         }
     )
 
-def get_catalog_system_prompt() -> str:
+def get_catalog_system_prompt(include_explanation: bool = False) -> str:
     """Return the system prompt for UI generation."""
-    return '''You are a UI generation assistant. Generate json-render specifications for SurfacesUI components.
+    explanation_instructions = ""
+    if include_explanation:
+        explanation_instructions = '''
+
+## Explainability
+
+When explaining your component choices, briefly describe:
+1. Why you chose each component type (e.g., "DataTable for row-by-row inspection")
+2. Key prop decisions (e.g., "virtualScrolling=true for large datasets")
+3. Alternative approaches considered (e.g., "Chart would work, but TableWithFilters is better for exploring data")
+'''
+
+    return f'''You are a UI generation assistant. Generate json-render specifications for SurfacesUI components.
 
 ## Available Components
 
@@ -62,22 +74,22 @@ def get_catalog_system_prompt() -> str:
 ## Output Format
 
 Return ONLY valid JSON matching this structure:
-{
+{{
   "root": "<element-id>",
-  "elements": {
-    "<element-id>": {
+  "elements": {{
+    "<element-id>": {{
       "type": "<ComponentName>",
-      "props": { ... }
-    }
-  }
-}
+      "props": {{ ... }}
+    }}
+  }}
+}}
 
 ## Rules
 1. Use TableWithFilters for interactive data tables (not separate DataTable + Filter)
 2. Use SQLResultsDisplay for complete data exploration interfaces
 3. Use Chart for simple visualizations, ChartWithControls when users need options
 4. Default height is 400px unless specified
-5. Enable virtualScrolling for tables with potentially large datasets
+5. Enable virtualScrolling for tables with potentially large datasets{explanation_instructions}
 '''
 
 def get_ui_spec_json_schema() -> dict:
@@ -133,43 +145,34 @@ async def generate_ui_tool(
                 "error": f"LLM provider not configured. Set required environment variables for {type(provider).__name__}."
             })
 
-        system_prompt = get_catalog_system_prompt()
-
         if include_explanation:
-            # First call for reasoning
-            explain_prompt = f"Explain your component choices for this UI request, then provide the json-render spec:\n\n{prompt}"
-            response = await provider.generate(system_prompt, explain_prompt)
+            # Two-call approach for explainability:
+            # 1. First call requests explanation of component choices
+            system_prompt_with_explanation = get_catalog_system_prompt(include_explanation=True)
+            explain_prompt = f"Explain your component choices for this UI request:\n\n{prompt}\n\nDescribe why you chose each component type, key prop decisions, and alternatives considered."
 
-            # Parse explanation and spec from response
-            # The response may contain both explanation and JSON
-            content = response.content
+            explanation_response = await provider.generate(system_prompt_with_explanation, explain_prompt)
+            explanation = explanation_response.content.strip()
 
-            # Try to extract JSON from the response
-            import re
-            json_match = re.search(r'\{[\s\S]*"root"[\s\S]*"elements"[\s\S]*\}', content)
-            if json_match:
-                spec_str = json_match.group()
-                explanation = content[:json_match.start()].strip()
-                spec = json.loads(spec_str)
-            else:
-                # If no JSON found, make second call with structured output
-                spec_response = await provider.generate(
-                    system_prompt,
-                    prompt,
-                    json_schema=get_ui_spec_json_schema()
-                )
-                spec = json.loads(spec_response.content)
-                explanation = content
+            # 2. Second call generates the spec with structured output
+            system_prompt = get_catalog_system_prompt(include_explanation=False)
+            spec_response = await provider.generate(
+                system_prompt,
+                prompt,
+                json_schema=get_ui_spec_json_schema()
+            )
+            spec = json.loads(spec_response.content)
 
             return json.dumps({
                 "success": True,
                 "spec": spec,
                 "explanation": explanation,
-                "provider": response.provider,
-                "model": response.model,
+                "provider": spec_response.provider,
+                "model": spec_response.model,
             })
         else:
             # Single call with structured output
+            system_prompt = get_catalog_system_prompt(include_explanation=False)
             response = await provider.generate(
                 system_prompt,
                 prompt,
@@ -213,9 +216,21 @@ async def stream_ui_generation(
             yield json.dumps({"error": "LLM provider not configured"}) + "\n"
             return
 
-        system_prompt = get_catalog_system_prompt()
+        explanation = None
 
-        # Stream the response
+        if include_explanation:
+            # First: get explanation (non-streaming for simplicity)
+            system_prompt_with_explanation = get_catalog_system_prompt(include_explanation=True)
+            explain_prompt = f"Explain your component choices for this UI request:\n\n{prompt}\n\nDescribe why you chose each component type, key prop decisions, and alternatives considered."
+
+            explanation_response = await provider.generate(system_prompt_with_explanation, explain_prompt)
+            explanation = explanation_response.content.strip()
+
+            # Yield explanation as initial chunk
+            yield json.dumps({"explanation": explanation}) + "\n"
+
+        # Then: stream the spec generation
+        system_prompt = get_catalog_system_prompt(include_explanation=False)
         full_content = ""
         async for chunk in provider.stream(system_prompt, prompt):
             full_content += chunk
@@ -226,11 +241,14 @@ async def stream_ui_generation(
         json_match = re.search(r'\{[\s\S]*"root"[\s\S]*"elements"[\s\S]*\}', full_content)
         if json_match:
             spec = json.loads(json_match.group())
-            yield json.dumps({
+            final_chunk = {
                 "done": True,
                 "success": True,
                 "spec": spec,
-            }) + "\n"
+            }
+            if explanation:
+                final_chunk["explanation"] = explanation
+            yield json.dumps(final_chunk) + "\n"
         else:
             yield json.dumps({
                 "done": True,
