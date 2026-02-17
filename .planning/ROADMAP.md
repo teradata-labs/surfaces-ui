@@ -71,12 +71,14 @@ Plans:
   3. ThemeProvider wraps renderer and components inherit CSS variables
   4. Demo app shows catalog-to-component flow working
   5. Type safety enforced between catalog schemas and component props
-**Plans**: 3 plans in 2 waves
+**Plans**: 5 plans in 2 waves
 
 Plans:
-- [ ] 03-01-PLAN.md - Create SurfacesRenderer with ThemeProvider integration (Wave 1)
-- [ ] 03-02-PLAN.md - Create CatalogDemo app with example JSON specs (Wave 2)
-- [ ] 03-03-PLAN.md - Validate registry mappings with integration tests (Wave 2)
+- [x] 03-01-PLAN.md - Create SurfacesRenderer with ThemeProvider integration (Wave 1)
+- [x] 03-02-PLAN.md - Create CatalogDemo app with example JSON specs (Wave 2)
+- [x] 03-03-PLAN.md - Validate registry mappings with integration tests (Wave 2)
+- [ ] 03-04-PLAN.md - Fix state binding in registry wrappers (Wave 1, gap closure)
+- [ ] 03-05-PLAN.md - Add TypeScript types and remove `as any` casts (Wave 2, gap closure)
 
 ### Phase 4: MCP Bridge Integration
 **Goal**: Connect json-render action system to SurfacesUI MCP Bridge for tool calls
@@ -177,7 +179,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 |-------|----------------|--------|-----------|
 | 1. Foundation & Component Decomposition | 6/6 | Complete | 2026-02-16 |
 | 2. Catalog Definitions | 3/3 | Complete | 2026-02-16 |
-| 3. Registry Mappings | 0/3 | Not started | - |
+| 3. Registry Mappings | 3/5 | Gaps found | - |
 | 4. MCP Bridge Integration | 0/TBD | Not started | - |
 | 5. Virtual Scrolling & Performance | 0/TBD | Not started | - |
 | 6. Theming Integration | 0/TBD | Not started | - |
