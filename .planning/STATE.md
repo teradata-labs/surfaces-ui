@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 7 of 9 (Natural Language Generation)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-17 — Completed 07-01-PLAN.md (LLM provider integration)
+Last activity: 2026-02-17 — Completed 07-03-PLAN.md (Streaming spec compiler & explainability)
 
-Progress: [██████░░░░] 60% (3/5 plans in Phase 07)
+Progress: [████████░░] 80% (4/5 plans in Phase 07)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 4 minutes
-- Total execution time: 1.80 hours
+- Total execution time: 1.85 hours
 
 **By Phase:**
 
@@ -33,7 +33,7 @@ Progress: [██████░░░░] 60% (3/5 plans in Phase 07)
 | 04    | 3     | 12 min | 4 min    |
 | 05    | 2     | 5 min  | 2.5 min  |
 | 06    | 3     | 5 min  | 1.7 min  |
-| 07    | 3     | 10 min | 3.3 min  |
+| 07    | 4     | 13 min | 3.3 min  |
 
 **Recent Plans:**
 
@@ -57,6 +57,7 @@ Progress: [██████░░░░] 60% (3/5 plans in Phase 07)
 | 06-03    | 2 min    | 2     | 3     | Density integration tests (13 tests + zero-runtime verification) |
 | 07-01    | 4 min    | 3     | 9     | LLM provider integration (Bedrock, Anthropic, OpenAI + generate_ui tool) |
 | 07-02    | 3 min    | 3     | 3     | Validation layer and error fallbacks (Zod validation + fallback UI) |
+| 07-03    | 3 min    | 3     | 3     | Streaming spec compiler & explainability (useSpecStream + dual-call explanation) |
 | 07-04    | 3 min    | 3     | 3     | Example prompts and LLM provider documentation |
 
 ## Accumulated Context
@@ -122,6 +123,11 @@ Recent decisions affecting current work:
 - [Phase 07-01]: Use structured output (tools/json_schema) to constrain LLM responses to valid json-render specs
 - [Phase 07-01]: Provide both MCP tool (call_tool) and HTTP streaming endpoint (/api/generate-ui)
 - [Phase 07-01]: Stream via JSONL for progressive UI updates in web interfaces
+- [Phase 07-03]: Use JSONL streaming for progressive UI updates (chunk-by-chunk accumulation)
+- [Phase 07-03]: Progress estimation based on text length heuristic (500-2000 char typical spec)
+- [Phase 07-03]: Dual-call approach for explainability: explanation first, then structured spec
+- [Phase 07-03]: Explanation includes why components chosen, key props, and alternatives considered
+- [Phase 07-03]: Provide both streaming (useSpecStream) and non-streaming (generateSpec) variants
 - [Phase 07-04]: Documented all three LLM providers with comprehensive troubleshooting
 - [Phase 07-04]: Created example prompts for all 8 component types
 
@@ -143,7 +149,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 07-01-PLAN.md (LLM provider integration)
+Stopped at: Completed 07-03-PLAN.md (Streaming spec compiler & explainability)
 Resume file: None
 
 **Phase 01 Status: COMPLETE**
@@ -179,9 +185,10 @@ All 6 plans executed successfully. Foundation established for Phase 02.
 - ✅ 06-02: ThemeProvider density support (state + localStorage + SurfacesRenderer)
 - ✅ 06-03: Density integration tests (13 tests + zero-runtime verification)
 
-**Phase 07 Status: IN PROGRESS (3/5 plans complete)**
+**Phase 07 Status: IN PROGRESS (4/5 plans complete)**
 - ✅ 07-01: LLM provider integration (Bedrock, Anthropic, OpenAI + generate_ui tool)
 - ✅ 07-02: Validation layer and error fallbacks (Zod validation + fallback UI)
+- ✅ 07-03: Streaming spec compiler & explainability (useSpecStream + dual-call explanation)
 - ✅ 07-04: Example prompts and LLM provider documentation (documentation foundation)
 
 **Next Step:** Continue Phase 07 execution.
