@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: MCP Bridge Integration** - Bridge json-render actions to MCP tool calls
 - [x] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
 - [x] **Phase 6: Theming Integration** - Integrate design tokens with json-render
-- [ ] **Phase 7: NL Generation** - Enable prompt-to-UI generation with AI
+- [x] **Phase 7: NL Generation** - Enable prompt-to-UI generation with AI
 - [ ] **Phase 8: MCP Apps Deployment** - Build and deploy single-file HTML bundle
 - [ ] **Phase 9: Testing & Documentation** - Complete test coverage and documentation
 
@@ -143,11 +143,11 @@ Plans:
 **Plans**: 5 plans in 3 waves
 
 Plans:
-- [ ] 07-01-PLAN.md - Create generate_ui MCP tool with Anthropic Claude integration (Wave 1)
-- [ ] 07-02-PLAN.md - Create validation layer and fallback UI for invalid specs (Wave 1)
-- [ ] 07-03-PLAN.md - Add streaming client and explainability (Wave 2)
-- [ ] 07-04-PLAN.md - Document example prompts for all components (Wave 2)
-- [ ] 07-05-PLAN.md - Create NLGenerator component and integration tests (Wave 3)
+- [x] 07-01-PLAN.md - Create generate_ui MCP tool with Anthropic Claude integration (Wave 1)
+- [x] 07-02-PLAN.md - Create validation layer and fallback UI for invalid specs (Wave 1)
+- [x] 07-03-PLAN.md - Add streaming client and explainability (Wave 2)
+- [x] 07-04-PLAN.md - Document example prompts for all components (Wave 2)
+- [x] 07-05-PLAN.md - Create NLGenerator component and integration tests (Wave 3)
 
 ### Phase 8: MCP Apps Deployment
 **Goal**: Build production-ready single-file HTML bundle for MCP Apps distribution
@@ -159,10 +159,12 @@ Plans:
   3. McpAppsBridge handles postMessage communication correctly
   4. ThemeProvider wraps renderer for theme support
   5. Bundle size verified under 500KB gzipped
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 08-01-PLAN.md - Create json-render app entry point (HTML + TSX)
+- [ ] 08-02-PLAN.md - Update build configuration and create bundle
+- [ ] 08-03-PLAN.md - Bundle size verification and human testing
 
 ### Phase 9: Testing & Documentation
 **Goal**: Complete test coverage and documentation for production readiness
@@ -193,5 +195,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 5. Virtual Scrolling & Performance | 2/2 | Complete | 2026-02-17 |
 | 6. Theming Integration | 3/3 | Complete | 2026-02-17 |
 | 7. NL Generation | 5/5 | Complete | 2026-02-17 |
-| 8. MCP Apps Deployment | 0/TBD | Not started | - |
+| 8. MCP Apps Deployment | 0/3 | Not started | - |
 | 9. Testing & Documentation | 0/TBD | Not started | - |
