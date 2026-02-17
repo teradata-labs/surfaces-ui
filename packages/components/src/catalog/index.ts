@@ -22,6 +22,13 @@ export {
   type SpecValidationErrorProps,
   type ValidatedSpecRendererProps,
 } from './fallback';
+export {
+  useSpecStream,
+  generateSpec,
+  type SpecStreamState,
+  type SpecStreamChunk,
+  type UseSpecStreamOptions,
+} from './stream';
 
 // Re-export bridge type for consumers
 export type { BridgeLike } from '../bridge';
