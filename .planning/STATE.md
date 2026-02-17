@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 8 of 9 (MCP Apps Deployment)
-Plan: 0 of 3 in current phase
-Status: Planning complete
-Last activity: 2026-02-17 — Completed Phase 8 planning (3 plans in 3 waves)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-17 — Completed 08-01 (json-render MCP App entry point)
 
-Progress: [          ] 0% (0/3 plans in Phase 08)
+Progress: [###       ] 33% (1/3 plans in Phase 08)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 28
 - Average duration: 10 minutes
-- Total execution time: 4.55 hours
+- Total execution time: 4.56 hours
 
 **By Phase:**
 
@@ -34,6 +34,7 @@ Progress: [          ] 0% (0/3 plans in Phase 08)
 | 05    | 2     | 5 min  | 2.5 min  |
 | 06    | 3     | 5 min  | 1.7 min  |
 | 07    | 5     | 175 min | 35 min  |
+| 08    | 1     | 1 min  | 1 min    |
 
 **Recent Plans:**
 
@@ -60,6 +61,7 @@ Progress: [          ] 0% (0/3 plans in Phase 08)
 | 07-03    | 3 min    | 3     | 3     | Streaming spec compiler & explainability (useSpecStream + dual-call explanation) |
 | 07-04    | 3 min    | 3     | 3     | Example prompts and LLM provider documentation |
 | 07-05    | 162 min  | 4     | 3     | NL Generator UI component (streaming progress, validation, error recovery) |
+| 08-01    | 1 min    | 2     | 2     | json-render MCP App entry point (HTML + TSX with providers) |
 
 ## Accumulated Context
 
@@ -135,6 +137,10 @@ Recent decisions affecting current work:
 - [Phase 07-05]: Streaming progress visualization (progress bar + text preview for user engagement)
 - [Phase 07-05]: Inline error display with retry (preserves context on failure)
 - [Phase 07-05]: Optional explanation field (opt-in transparency without adding API cost to basic usage)
+- [Phase 08-01]: Use window.location.origin for baseUrl (host-agnostic deployment)
+- [Phase 08-01]: Enable showExamples for UX discoverability in MCP Apps
+- [Phase 08-01]: Disable includeExplanation by default to reduce API cost
+- [Phase 08-01]: Pass bridge to SurfacesRenderer for MCP action support
 
 ### Pending Todos
 
@@ -155,7 +161,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed Phase 8 planning - Ready for execution
+Stopped at: Completed 08-01 (json-render MCP App entry point)
 Resume file: None
 
 **Phase 01 Status: COMPLETE**
@@ -199,9 +205,9 @@ All 6 plans executed successfully. Foundation established for Phase 02.
 - ✅ 07-05: NL Generator UI component (streaming progress, validation, error recovery, 15 tests)
 - ✅ Verification: End-to-end flow verified with Bedrock backend
 
-**Phase 08 Status: PLANNING COMPLETE (0/3 plans complete)**
-- [ ] 08-01: Create json-render app entry point (HTML + TSX)
+**Phase 08 Status: IN PROGRESS (1/3 plans complete)**
+- ✅ 08-01: Create json-render app entry point (HTML + TSX with providers)
 - [ ] 08-02: Update build configuration and create bundle
 - [ ] 08-03: Bundle size verification and human testing
 
-**Next Step:** Execute Phase 08 plans with `/gsd:execute-phase 8`
+**Next Step:** Execute 08-02 (build configuration and bundling)
