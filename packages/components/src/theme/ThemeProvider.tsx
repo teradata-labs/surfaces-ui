@@ -10,6 +10,7 @@ import React, {
 /* ── Public Types ──────────────────────────────────────────────────── */
 
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type DensityMode = 'compact' | 'comfortable' | 'spacious';
 
 export interface ThemeConfig {
   /** The user-selected theme mode. */
@@ -18,11 +19,17 @@ export interface ThemeConfig {
   setTheme: (mode: ThemeMode) => void;
   /** The resolved theme after evaluating system preference (always 'light' | 'dark'). */
   resolvedTheme: 'light' | 'dark';
+  /** The current density mode. */
+  density: DensityMode;
+  /** Update the current density mode. */
+  setDensity: (mode: DensityMode) => void;
 }
 
 interface ThemeProviderProps {
   /** The desired theme mode. Defaults to 'system'. */
   theme?: ThemeMode;
+  /** The desired density mode. Defaults to 'comfortable'. */
+  density?: DensityMode;
   /** Optional CSS custom-property overrides applied to the wrapper element. */
   tokenOverrides?: Record<string, string>;
   children: React.ReactNode;
@@ -49,6 +56,7 @@ function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
 
 export function ThemeProvider({
   theme: initialTheme = 'system',
+  density: initialDensity,
   tokenOverrides,
   children,
 }: ThemeProviderProps) {
@@ -57,8 +65,23 @@ export function ThemeProvider({
     resolveTheme(initialTheme),
   );
 
+  const [density, setDensityState] = useState<DensityMode>(() => {
+    if (initialDensity) return initialDensity;
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('density');
+      if (stored === 'compact' || stored === 'comfortable' || stored === 'spacious') {
+        return stored;
+      }
+    }
+    return 'comfortable';
+  });
+
   const setTheme = useCallback((mode: ThemeMode) => {
     setThemeState(mode);
+  }, []);
+
+  const setDensity = useCallback((mode: DensityMode) => {
+    setDensityState(mode);
   }, []);
 
   // Sync the resolved theme whenever `theme` changes or the system preference changes.
@@ -102,9 +125,15 @@ export function ThemeProvider({
     setThemeState(initialTheme);
   }, [initialTheme]);
 
+  // Persist density changes to localStorage and apply data-density attribute
+  useEffect(() => {
+    localStorage.setItem('density', density);
+    document.documentElement.setAttribute('data-density', density);
+  }, [density]);
+
   const value = useMemo<ThemeConfig>(
-    () => ({ theme, setTheme, resolvedTheme }),
-    [theme, setTheme, resolvedTheme],
+    () => ({ theme, setTheme, resolvedTheme, density, setDensity }),
+    [theme, setTheme, resolvedTheme, density, setDensity],
   );
 
   // Build style object from tokenOverrides.
@@ -122,16 +151,13 @@ export function ThemeProvider({
     return style;
   }, [tokenOverrides]);
 
-  // When there are token overrides we wrap children in a div that applies
-  // the custom properties.  Otherwise we render children directly to avoid
-  // an unnecessary DOM node.
+  // Always wrap in a div to apply data-density attribute (needed for CSS inheritance).
+  // When there are token overrides, also apply the custom properties via style.
   return (
     <ThemeContext.Provider value={value}>
-      {overrideStyle ? (
-        <div style={overrideStyle}>{children}</div>
-      ) : (
-        children
-      )}
+      <div data-density={density} style={overrideStyle}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }
