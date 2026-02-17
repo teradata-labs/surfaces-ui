@@ -176,10 +176,12 @@ Plans:
   3. Performance tests validate 100K+ row handling
   4. Catalog API documented with props and descriptions
   5. Integration guide exists for existing SurfacesUI consumers
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 08-01-PLAN.md - Create json-render app entry point (HTML + TSX) (Wave 1)
+- [ ] 08-02-PLAN.md - Update build configuration and create bundle (Wave 2)
+- [ ] 08-03-PLAN.md - Bundle size verification and human testing (Wave 3)
 
 ## Progress
 
@@ -195,5 +197,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 5. Virtual Scrolling & Performance | 2/2 | Complete | 2026-02-17 |
 | 6. Theming Integration | 3/3 | Complete | 2026-02-17 |
 | 7. NL Generation | 5/5 | Complete | 2026-02-17 |
-| 8. MCP Apps Deployment | 0/3 | Not started | - |
+| 8. MCP Apps Deployment | 0/3 | Planning complete | - |
 | 9. Testing & Documentation | 0/TBD | Not started | - |
