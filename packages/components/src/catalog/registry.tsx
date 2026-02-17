@@ -5,7 +5,7 @@
  * Updated with real component implementations from primitives.
  */
 import * as React from 'react';
-import { defineRegistry, type ComponentContext } from '@json-render/react';
+import { defineRegistry, type ComponentContext, useStateValue } from '@json-render/react';
 import { Table as TableIcon, BarChart3 as BarChartIcon } from 'lucide-react';
 
 import { catalog } from './schema';
@@ -26,7 +26,7 @@ import { SQLResultsDisplay } from '../components/sql-results';
 
 function CatalogChart(ctx: ComponentContext<any, 'Chart'>) {
   const { type, xAxis, yAxis, theme, height, showDataLabels } = ctx.props as any;
-  const data = (ctx as any).data || [];
+  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
 
   return (
     <Chart
@@ -43,7 +43,7 @@ function CatalogChart(ctx: ComponentContext<any, 'Chart'>) {
 
 function CatalogDataTable(ctx: ComponentContext<any, 'DataTable'>) {
   const { columns, height, density, virtualScrolling } = ctx.props as any;
-  const data = (ctx as any).data || [];
+  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
 
   return (
     <DataTable
@@ -113,8 +113,8 @@ function CatalogTableWithFilters(ctx: ComponentContext<any, 'TableWithFilters'>)
     virtualScrolling,
   } = ctx.props as any;
 
-  // Data comes from json-render context, not AI-specified props
-  const data = (ctx as any).data || [];
+  // Data comes from json-render state provider via useStateValue hook
+  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
 
   return (
     <TableWithFilters
@@ -140,8 +140,8 @@ function CatalogChartWithControls(ctx: ComponentContext<any, 'ChartWithControls'
     controlsCollapsed,
   } = ctx.props as any;
 
-  // Data comes from json-render context, not AI-specified props
-  const data = (ctx as any).data || [];
+  // Data comes from json-render state provider via useStateValue hook
+  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
 
   return (
     <ChartWithControls
@@ -169,8 +169,8 @@ function CatalogSQLResultsDisplay(ctx: ComponentContext<any, 'SQLResultsDisplay'
     chartHeight,
   } = ctx.props as any;
 
-  // Data comes from json-render context, not AI-specified props
-  const rawData = (ctx as any).data;
+  // Data comes from json-render state provider via useStateValue hook
+  const rawData = useStateValue<unknown>('/data');
 
   // SQLResultsDisplay expects data in specific format
   // Support both {rows, columns} and {data, columns} formats
