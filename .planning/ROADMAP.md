@@ -16,8 +16,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Catalog Definitions** - Define Zod schemas for all SQL results primitives
 - [x] **Phase 3: Registry Mappings** - Map catalog entries to React component implementations
 - [x] **Phase 4: MCP Bridge Integration** - Bridge json-render actions to MCP tool calls
-- [ ] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
-- [ ] **Phase 6: Theming Integration** - Integrate Covalent design tokens with json-render
+- [x] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
+- [ ] **Phase 6: Theming Integration** - Integrate design tokens with json-render
 - [ ] **Phase 7: NL Generation** - Enable prompt-to-UI generation with AI
 - [ ] **Phase 8: MCP Apps Deployment** - Build and deploy single-file HTML bundle
 - [ ] **Phase 9: Testing & Documentation** - Complete test coverage and documentation
@@ -110,23 +110,25 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 05-01-PLAN.md - Performance optimization with dynamic overscan and ARIA accessibility (Wave 1)
-- [ ] 05-02-PLAN.md - Performance testing with 100K+ row validation (Wave 2)
+- [x] 05-01-PLAN.md - Performance optimization with dynamic overscan and ARIA accessibility (Wave 1)
+- [x] 05-02-PLAN.md - Performance testing with 100K+ row validation (Wave 2)
 
 ### Phase 6: Theming Integration
-**Goal**: Integrate Covalent design tokens to provide theme-aware components through json-render
+**Goal**: Add density variants and theme switching to json-render components using existing token system
 **Depends on**: Phase 5
-**Requirements**: THEME-01, THEME-02, THEME-03, THEME-04, THEME-05, THEME-06
+**Requirements**: THEME-03, THEME-04, THEME-05, THEME-06 (THEME-01, THEME-02 skipped per user decision)
 **Success Criteria** (what must be TRUE):
-  1. Covalent tokens fetched and mapped to SurfacesUI CSS custom properties
-  2. Density variants work via token scaling (compact 0.8x, spacious 1.2x)
-  3. Dark and light themes switch without page reload
-  4. json-render renderer injects theme context to all registry components
-  5. Zero-runtime styling preserved (no CSS-in-JS libraries added)
-**Plans**: TBD
+  1. Density variants work via CSS custom property scaling (compact 0.8x, spacious 1.2x)
+  2. Dark and light themes switch without page reload (already working, verified)
+  3. json-render renderer passes density context to ThemeProvider
+  4. Zero-runtime styling preserved (no CSS-in-JS libraries added)
+  5. FOUC prevented on page load via inline script
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 06-01-PLAN.md - Create density CSS tokens and FOUC prevention (Wave 1)
+- [ ] 06-02-PLAN.md - Enhance ThemeProvider with density support (Wave 2)
+- [ ] 06-03-PLAN.md - Add density integration tests and verify zero-runtime (Wave 3)
 
 ### Phase 7: NL Generation
 **Goal**: Enable end-to-end natural language to rendered UI generation flow
@@ -184,8 +186,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 2. Catalog Definitions | 3/3 | Complete | 2026-02-16 |
 | 3. Registry Mappings | 5/5 | Complete | 2026-02-17 |
 | 4. MCP Bridge Integration | 3/3 | Complete | 2026-02-17 |
-| 5. Virtual Scrolling & Performance | 0/2 | Planned | - |
-| 6. Theming Integration | 0/TBD | Not started | - |
+| 5. Virtual Scrolling & Performance | 2/2 | Complete | 2026-02-17 |
+| 6. Theming Integration | 0/3 | Planned | - |
 | 7. NL Generation | 0/TBD | Not started | - |
 | 8. MCP Apps Deployment | 0/TBD | Not started | - |
 | 9. Testing & Documentation | 0/TBD | Not started | - |
