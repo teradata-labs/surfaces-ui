@@ -22,6 +22,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, Tool, TextContent
 
 from .tools.sql import execute_sql_tool, get_sql_tool_definition
+from .tools.generate_ui import generate_ui_tool, get_generate_ui_tool_definition, stream_ui_generation
+from .llm import get_llm_provider
 from .resources.ui import get_ui_resources, get_ui_resource_content
 
 # Configure logging to stderr (MCP uses stdout for JSON-RPC)
@@ -57,7 +59,7 @@ HTTP_APPS_DIR = Path(__file__).parent.parent.parent / "packages" / "components" 
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     """List available tools with MCP Apps UI metadata."""
-    return [get_sql_tool_definition()]
+    return [get_sql_tool_definition(), get_generate_ui_tool_definition()]
 
 
 @server.call_tool()
@@ -72,6 +74,13 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             vantage_mode=VANTAGE_MCP_MODE,
             vantage_binary=VANTAGE_MCP_BINARY,
             vantage_env=VANTAGE_ENV,
+        )
+        return [TextContent(type="text", text=result)]
+    elif name == "generate_ui":
+        result = await generate_ui_tool(
+            prompt=arguments.get("prompt", ""),
+            include_explanation=arguments.get("include_explanation", False),
+            streaming=False,  # MCP doesn't support streaming in call_tool
         )
         return [TextContent(type="text", text=result)]
 
@@ -123,6 +132,32 @@ async def serve_assets(request):
     return web.FileResponse(asset_path)
 
 
+async def generate_ui_stream(request):
+    """Stream UI generation via HTTP for progressive updates."""
+    prompt = request.query.get('prompt', '')
+    include_explanation = request.query.get('explain', 'false').lower() == 'true'
+
+    if not prompt:
+        return web.Response(
+            text='{"error": "prompt required"}',
+            status=400,
+            content_type='application/json'
+        )
+
+    response = web.StreamResponse(
+        status=200,
+        reason='OK',
+        headers={'Content-Type': 'application/x-ndjson'}
+    )
+    await response.prepare(request)
+
+    async for chunk in stream_ui_generation(prompt, include_explanation):
+        await response.write(chunk.encode('utf-8'))
+
+    await response.write_eof()
+    return response
+
+
 async def start_http_server():
     """Start HTTP server for serving UI apps."""
     app = web.Application()
@@ -130,6 +165,7 @@ async def start_http_server():
     # Add routes
     app.router.add_get('/{app}', serve_app)
     app.router.add_get('/assets/{path:.*}', serve_assets)
+    app.router.add_get('/api/generate-ui', generate_ui_stream)
 
     # Start server
     runner = web.AppRunner(app)
@@ -157,6 +193,15 @@ async def main():
     logger.info(f"Vantage MCP mode: {VANTAGE_MCP_MODE}")
     logger.info(f"HTTP port: {HTTP_PORT}")
     logger.info(f"HTTP-only mode: {HTTP_ONLY}")
+
+    # Log LLM provider configuration
+    llm_provider = os.environ.get("LLM_PROVIDER", "bedrock")
+    logger.info(f"LLM Provider: {llm_provider}")
+    try:
+        provider = get_llm_provider()
+        logger.info(f"Provider configured: {provider.is_configured()}")
+    except Exception as e:
+        logger.warning(f"Provider check failed: {e}")
 
     if VANTAGE_MCP_MODE == "http":
         logger.info(f"Vantage MCP HTTP address: {VANTAGE_MCP_ADDR or 'not configured'}")
