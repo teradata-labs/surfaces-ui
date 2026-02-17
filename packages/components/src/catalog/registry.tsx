@@ -10,6 +10,17 @@ import { Table as TableIcon, BarChart3 as BarChartIcon } from 'lucide-react';
 
 import { catalog } from './schema';
 import type { Catalog } from '@json-render/core';
+import type {
+  DataRow,
+  ChartProps,
+  DataTableProps,
+  FilterProps,
+  DensityToggleProps,
+  ViewModeToggleProps,
+  TableWithFiltersProps,
+  ChartWithControlsProps,
+  SQLResultsDisplayProps,
+} from './types';
 
 // Import real component implementations
 import { Chart } from '../primitives/chart';
@@ -24,16 +35,22 @@ import { SQLResultsDisplay } from '../components/sql-results';
 // Wrapper components that adapt ComponentContext to component props
 // These receive a ComponentContext and extract props.value for the actual components
 
-function CatalogChart(ctx: ComponentContext<any, 'Chart'>) {
-  const { type, xAxis, yAxis, theme, height, showDataLabels } = ctx.props as any;
-  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
+function CatalogChart(ctx: ComponentContext<typeof catalog, 'Chart'>) {
+  const props = ctx.props as ChartProps;
+  const data = useStateValue<DataRow[]>('/data') || [];
+  const { type, xAxis, yAxis, theme, height, showDataLabels } = props;
+
+  // Chart requires xAxis and yAxis - use first two columns as defaults
+  const columns = data.length > 0 && data[0] ? Object.keys(data[0]) : [];
+  const finalXAxis = xAxis || columns[0] || '';
+  const finalYAxis = yAxis || columns[1] || '';
 
   return (
     <Chart
       data={data}
       type={type as any}
-      xAxis={xAxis}
-      yAxis={yAxis}
+      xAxis={finalXAxis}
+      yAxis={finalYAxis}
       theme={theme || undefined}
       height={height}
       showDataLabels={showDataLabels}
@@ -41,9 +58,10 @@ function CatalogChart(ctx: ComponentContext<any, 'Chart'>) {
   );
 }
 
-function CatalogDataTable(ctx: ComponentContext<any, 'DataTable'>) {
-  const { columns, height, density, virtualScrolling } = ctx.props as any;
-  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
+function CatalogDataTable(ctx: ComponentContext<typeof catalog, 'DataTable'>) {
+  const props = ctx.props as DataTableProps;
+  const data = useStateValue<DataRow[]>('/data') || [];
+  const { columns, height, density, virtualScrolling } = props;
 
   return (
     <DataTable
@@ -56,8 +74,9 @@ function CatalogDataTable(ctx: ComponentContext<any, 'DataTable'>) {
   );
 }
 
-function CatalogFilter(ctx: ComponentContext<any, 'Filter'>) {
-  const { placeholder, columns } = ctx.props as any;
+function CatalogFilter(ctx: ComponentContext<typeof catalog, 'Filter'>) {
+  const props = ctx.props as FilterProps;
+  const { placeholder } = props;
   // Filter needs value and onChange which come from parent context
   // This is a simplified version for catalog rendering
   const [value, setValue] = React.useState('');
@@ -71,8 +90,9 @@ function CatalogFilter(ctx: ComponentContext<any, 'Filter'>) {
   );
 }
 
-function CatalogDensityToggle(ctx: ComponentContext<any, 'DensityToggle'>) {
-  const { value: initialValue } = ctx.props as any;
+function CatalogDensityToggle(ctx: ComponentContext<typeof catalog, 'DensityToggle'>) {
+  const props = ctx.props as DensityToggleProps;
+  const { value: initialValue } = props;
   const [density, setDensity] = React.useState(initialValue || 'comfortable');
 
   return (
@@ -83,8 +103,9 @@ function CatalogDensityToggle(ctx: ComponentContext<any, 'DensityToggle'>) {
   );
 }
 
-function CatalogViewModeToggle(ctx: ComponentContext<any, 'ViewModeToggle'>) {
-  const { modes = ['table', 'chart'], activeMode: initialMode = 'table' } = ctx.props as any;
+function CatalogViewModeToggle(ctx: ComponentContext<typeof catalog, 'ViewModeToggle'>) {
+  const props = ctx.props as ViewModeToggleProps;
+  const { modes = ['table', 'chart'], activeMode: initialMode = 'table' } = props;
   const [activeMode, setActiveMode] = React.useState(initialMode);
 
   const options = modes.map((mode: 'table' | 'chart') => ({
@@ -103,7 +124,8 @@ function CatalogViewModeToggle(ctx: ComponentContext<any, 'ViewModeToggle'>) {
 }
 
 // Molecule wrapper components - inject data from context
-function CatalogTableWithFilters(ctx: ComponentContext<any, 'TableWithFilters'>) {
+function CatalogTableWithFilters(ctx: ComponentContext<typeof catalog, 'TableWithFilters'>) {
+  const props = ctx.props as TableWithFiltersProps;
   const {
     columns,
     height,
@@ -111,10 +133,10 @@ function CatalogTableWithFilters(ctx: ComponentContext<any, 'TableWithFilters'>)
     showFilter,
     showDensityToggle,
     virtualScrolling,
-  } = ctx.props as any;
+  } = props;
 
   // Data comes from json-render state provider via useStateValue hook
-  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
+  const data = useStateValue<DataRow[]>('/data') || [];
 
   return (
     <TableWithFilters
@@ -129,7 +151,8 @@ function CatalogTableWithFilters(ctx: ComponentContext<any, 'TableWithFilters'>)
   );
 }
 
-function CatalogChartWithControls(ctx: ComponentContext<any, 'ChartWithControls'>) {
+function CatalogChartWithControls(ctx: ComponentContext<typeof catalog, 'ChartWithControls'>) {
+  const props = ctx.props as ChartWithControlsProps;
   const {
     columns,
     height,
@@ -138,10 +161,10 @@ function CatalogChartWithControls(ctx: ComponentContext<any, 'ChartWithControls'
     initialYAxis,
     showControls,
     controlsCollapsed,
-  } = ctx.props as any;
+  } = props;
 
   // Data comes from json-render state provider via useStateValue hook
-  const data = useStateValue<Record<string, unknown>[]>('/data') || [];
+  const data = useStateValue<DataRow[]>('/data') || [];
 
   return (
     <ChartWithControls
@@ -158,7 +181,8 @@ function CatalogChartWithControls(ctx: ComponentContext<any, 'ChartWithControls'
 }
 
 // Organism wrapper component - complete feature-rich component
-function CatalogSQLResultsDisplay(ctx: ComponentContext<any, 'SQLResultsDisplay'>) {
+function CatalogSQLResultsDisplay(ctx: ComponentContext<typeof catalog, 'SQLResultsDisplay'>) {
+  const props = ctx.props as SQLResultsDisplayProps;
   const {
     sql,
     context: execContext,
@@ -167,7 +191,7 @@ function CatalogSQLResultsDisplay(ctx: ComponentContext<any, 'SQLResultsDisplay'
     initialViewMode,
     tableHeight,
     chartHeight,
-  } = ctx.props as any;
+  } = props;
 
   // Data comes from json-render state provider via useStateValue hook
   const rawData = useStateValue<unknown>('/data');
