@@ -29,6 +29,10 @@ export {
   type SpecStreamChunk,
   type UseSpecStreamOptions,
 } from './stream';
+export {
+  NLGenerator,
+  type NLGeneratorProps,
+} from './NLGenerator';
 
 // Re-export bridge type for consumers
 export type { BridgeLike } from '../bridge';
