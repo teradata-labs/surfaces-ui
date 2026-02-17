@@ -4,8 +4,12 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 import { resolve } from 'path';
 
 /**
- * Builds the SQL Editor as a standalone HTML app for MCP Apps protocol.
- * Produces a self-contained HTML file with inlined JS/CSS.
+ * Builds standalone HTML apps for MCP Apps protocol.
+ * Produces self-contained HTML files with inlined JS/CSS.
+ *
+ * Apps:
+ * - sql-editor-cdn: CodeMirror SQL editor
+ * - json-render-cdn: Natural language UI generator
  */
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
@@ -18,7 +22,10 @@ export default defineConfig({
     outDir: 'dist/apps',
     emptyOutDir: true,
     rollupOptions: {
-      input: resolve(__dirname, 'src/apps/sql-editor-cdn.html'),
+      input: {
+        'sql-editor-cdn': resolve(__dirname, 'src/apps/sql-editor-cdn.html'),
+        'json-render-cdn': resolve(__dirname, 'src/apps/json-render-cdn.html'),
+      },
       output: {
         // Flatten output - put all files directly in outDir
         entryFileNames: '[name].js',
