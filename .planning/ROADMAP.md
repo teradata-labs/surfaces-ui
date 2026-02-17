@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Component Decomposition** - Establish json-render packages and decompose SQLResultsDisplay
 - [x] **Phase 2: Catalog Definitions** - Define Zod schemas for all SQL results primitives
-- [ ] **Phase 3: Registry Mappings** - Map catalog entries to React component implementations
+- [x] **Phase 3: Registry Mappings** - Map catalog entries to React component implementations
 - [ ] **Phase 4: MCP Bridge Integration** - Bridge json-render actions to MCP tool calls
 - [ ] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
 - [ ] **Phase 6: Theming Integration** - Integrate Covalent design tokens with json-render
@@ -77,8 +77,8 @@ Plans:
 - [x] 03-01-PLAN.md - Create SurfacesRenderer with ThemeProvider integration (Wave 1)
 - [x] 03-02-PLAN.md - Create CatalogDemo app with example JSON specs (Wave 2)
 - [x] 03-03-PLAN.md - Validate registry mappings with integration tests (Wave 2)
-- [ ] 03-04-PLAN.md - Fix state binding in registry wrappers (Wave 1, gap closure)
-- [ ] 03-05-PLAN.md - Add TypeScript types and remove `as any` casts (Wave 2, gap closure)
+- [x] 03-04-PLAN.md - Fix state binding in registry wrappers (Wave 1, gap closure)
+- [x] 03-05-PLAN.md - Add TypeScript types and remove `as any` casts (Wave 2, gap closure)
 
 ### Phase 4: MCP Bridge Integration
 **Goal**: Connect json-render action system to SurfacesUI MCP Bridge for tool calls
@@ -90,10 +90,12 @@ Plans:
   3. State coordination layer prevents race conditions and duplicates
   4. Async tool results update component state correctly
   5. Registry components receive MCP Bridge context without breaking abstraction
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 04-01-PLAN.md - Create action bridge layer with execute_sql action (Wave 1)
+- [ ] 04-02-PLAN.md - Update SurfacesRenderer with McpBridgeProvider integration (Wave 2)
+- [ ] 04-03-PLAN.md - Create integration tests for MCP action flow (Wave 3)
 
 ### Phase 5: Virtual Scrolling & Performance
 **Goal**: Enable DataTable to handle 100K+ row datasets with 60FPS performance
@@ -180,7 +182,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 1. Foundation & Component Decomposition | 6/6 | Complete | 2026-02-16 |
 | 2. Catalog Definitions | 3/3 | Complete | 2026-02-16 |
 | 3. Registry Mappings | 5/5 | Complete | 2026-02-17 |
-| 4. MCP Bridge Integration | 0/TBD | Not started | - |
+| 4. MCP Bridge Integration | 0/3 | Planned | - |
 | 5. Virtual Scrolling & Performance | 0/TBD | Not started | - |
 | 6. Theming Integration | 0/TBD | Not started | - |
 | 7. NL Generation | 0/TBD | Not started | - |
