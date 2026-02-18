@@ -15,9 +15,14 @@ MCP_APP_MIME_TYPE = "text/html;profile=mcp-app"
 
 # Registry of available UI apps
 UI_APPS = {
-    "sql-editor": {
+    "sql-editor-cdn": {
         "name": "SQL Editor",
         "description": "Interactive SQL editor with query execution and visualization",
+        "mimeType": MCP_APP_MIME_TYPE,
+    },
+    "json-render-cdn": {
+        "name": "JSON Render UI Generator",
+        "description": "Natural language-driven UI component generator powered by json-render catalog",
         "mimeType": MCP_APP_MIME_TYPE,
     },
     "file-browser": {

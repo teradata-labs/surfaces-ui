@@ -52,8 +52,8 @@ for key in ["TD_USER", "TD_PASSWORD", "TD_PASS", "TD_HOST", "TD_DEFAULT_HOST", "
     if value:
         VANTAGE_ENV[key] = value
 
-# Path to built UI apps for HTTP serving
-HTTP_APPS_DIR = Path(__file__).parent.parent.parent / "packages" / "components" / "dist" / "http"
+# Path to built UI apps for HTTP serving (single-file bundles in dist/apps/)
+HTTP_APPS_DIR = Path(__file__).parent.parent.parent / "packages" / "components" / "dist" / "apps"
 
 
 @server.list_tools()
