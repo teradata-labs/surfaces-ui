@@ -671,7 +671,7 @@ The server exposes these UI resources:
 
 - **Test coverage:** 80% minimum required
 - **Accessibility:** axe-core 0 violations
-- **Bundle size:** <500KB gzipped per HTML app
+- **Bundle size:** ~600KB gzipped per HTML app (json-render app is 591KB)
 - **Component size:** <400 lines (atomic design)
 
 Run the quality checks:

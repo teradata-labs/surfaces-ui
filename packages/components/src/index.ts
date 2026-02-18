@@ -67,7 +67,8 @@ export type {
 // SQL Editor Components
 export {
   SQLEditor,
-  SQLInput,
+  CodeMirrorSQLInput,
+  SimpleSQLInput,
   SQLToolbar,
   SQLResultsTable,
   SQLVisualization,
@@ -86,3 +87,41 @@ export type {
 
 // Utility
 export { cn } from './lib/utils';
+
+// json-render Catalog
+export {
+  catalog,
+  ChartSchema,
+  DataTableSchema,
+  FilterSchema,
+  DensityToggleSchema,
+  ViewModeToggleSchema,
+  TableWithFiltersSchema,
+  ChartWithControlsSchema,
+  SQLResultsDisplaySchema,
+  registry,
+  SurfacesRenderer,
+  aiSystemPrompt,
+  getCatalogPrompt,
+  generateCatalogPrompt,
+  generateComponentPrompt,
+  generateComponentExample,
+  generateSpecExample,
+  CatalogDemo,
+  chartSpec,
+  dataTableSpec,
+  tableWithFiltersSpec,
+  sqlResultsSpec,
+  sampleData,
+} from './catalog';
+export type {
+  ChartProps as CatalogChartProps,
+  DataTableProps as CatalogDataTableProps,
+  FilterProps as CatalogFilterProps,
+  DensityToggleProps as CatalogDensityToggleProps,
+  ViewModeToggleProps as CatalogViewModeToggleProps,
+  TableWithFiltersSchemaProps as CatalogTableWithFiltersProps,
+  ChartWithControlsSchemaProps as CatalogChartWithControlsProps,
+  SQLResultsDisplaySchemaProps as CatalogSQLResultsDisplayProps,
+  SurfacesRendererProps,
+} from './catalog';
