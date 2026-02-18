@@ -10,17 +10,42 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Check if ANTHROPIC_API_KEY is set
-if ! grep -q "ANTHROPIC_API_KEY=sk-" .env 2>/dev/null; then
-    echo "⚠️  ANTHROPIC_API_KEY not configured in .env"
-    echo "   Please add your Anthropic API key to .env:"
-    echo "   ANTHROPIC_API_KEY=sk-ant-..."
-    echo ""
-    read -p "Do you want to continue anyway? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
+# Check LLM provider configuration
+LLM_PROVIDER=$(grep "^LLM_PROVIDER=" .env | cut -d '=' -f2)
+if [ "$LLM_PROVIDER" = "bedrock" ]; then
+    echo "✓ Using AWS Bedrock (Claude Sonnet 4.5)"
+    echo "  Checking AWS credentials..."
+
+    # Check if AWS credentials are available
+    if aws sts get-caller-identity &>/dev/null; then
+        IDENTITY=$(aws sts get-caller-identity --query 'Arn' --output text 2>/dev/null || echo "Unknown")
+        echo "  ✓ AWS credentials valid: $IDENTITY"
+    else
+        echo "  ⚠️  AWS credentials not found"
+        echo "     Please login with: aws sso login"
+        echo "     Or set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
+        echo ""
+        read -p "Do you want to continue anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
     fi
+elif [ "$LLM_PROVIDER" = "anthropic" ]; then
+    echo "✓ Using Anthropic API"
+    if ! grep -q "ANTHROPIC_API_KEY=sk-" .env 2>/dev/null; then
+        echo "  ⚠️  ANTHROPIC_API_KEY not configured in .env"
+        echo "     Please add your Anthropic API key to .env:"
+        echo "     ANTHROPIC_API_KEY=sk-ant-..."
+        echo ""
+        read -p "Do you want to continue anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+else
+    echo "⚠️  Unknown LLM provider: $LLM_PROVIDER"
 fi
 
 # Check if venv exists

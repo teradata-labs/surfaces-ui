@@ -13,15 +13,32 @@ The **json-render-cdn.html** app provides:
 
 ## Quick Start
 
-### 1. Add Your Anthropic API Key
+### 1. Configure AWS Bedrock Access
 
-Edit `server/.env` and add your API key:
+The server uses AWS Bedrock with Claude Sonnet 4.5. Make sure you have AWS credentials configured:
 
+**Option A: AWS SSO (Recommended)**
 ```bash
-ANTHROPIC_API_KEY=sk-ant-your-key-here
+aws sso login
 ```
 
-Get your API key from: https://console.anthropic.com/settings/keys
+**Option B: IAM Access Keys**
+```bash
+export AWS_ACCESS_KEY_ID=your-key-id
+export AWS_SECRET_ACCESS_KEY=your-secret-key
+```
+
+The `.env` file is already configured for Bedrock:
+```bash
+LLM_PROVIDER=bedrock
+AWS_REGION=us-east-1
+```
+
+**Note**: If you prefer to use Anthropic API instead, change in `server/.env`:
+```bash
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
 
 ### 2. Start the Server
 
@@ -153,12 +170,32 @@ After testing, verify these v1.0 accomplishments:
 
 ## Troubleshooting
 
-### Issue: "ANTHROPIC_API_KEY not configured"
+### Issue: "AWS credentials not found"
 
-**Solution**: Add your API key to `server/.env`:
+**Solution**: Login with AWS SSO:
 ```bash
-ANTHROPIC_API_KEY=sk-ant-your-key-here
+aws sso login
 ```
+
+Or set IAM credentials:
+```bash
+export AWS_ACCESS_KEY_ID=your-key-id
+export AWS_SECRET_ACCESS_KEY=your-secret-key
+```
+
+Verify credentials work:
+```bash
+aws sts get-caller-identity
+```
+
+### Issue: "Bedrock model not available in region"
+
+**Solution**: Change region in `server/.env`:
+```bash
+AWS_REGION=us-west-2  # or your preferred region with Claude Sonnet 4.5
+```
+
+Check model availability: https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html
 
 ### Issue: "App not found: json-render-cdn"
 
@@ -206,11 +243,21 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
         "HTTP_ONLY": "false",
         "MOCK_MODE": "true",
         "HTTP_PORT": "3000",
-        "LLM_PROVIDER": "anthropic",
-        "ANTHROPIC_API_KEY": "sk-ant-your-key-here"
+        "LLM_PROVIDER": "bedrock",
+        "AWS_REGION": "us-east-1"
       }
     }
   }
+}
+```
+
+**Note**: Claude Desktop will use your system's AWS credentials (SSO or environment variables).
+
+If you prefer Anthropic API, change env to:
+```json
+"env": {
+  "LLM_PROVIDER": "anthropic",
+  "ANTHROPIC_API_KEY": "sk-ant-your-key-here"
 }
 ```
 
