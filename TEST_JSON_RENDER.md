@@ -59,85 +59,48 @@ You should see the NLGenerator interface with:
 - Theme toggle (light/dark)
 - Density selector (compact/comfortable/spacious)
 
-## Testing Scenarios
+## Quick Testing
 
-### Test 1: Basic UI Generation
+Try these prompts to verify everything works:
 
-1. Click an example prompt button (e.g., "Show SQL results as table with charts")
-2. Watch the streaming progress indicator
-3. Verify the generated UI renders correctly
-4. Check that components match the expected catalog types
+### Example Prompts
 
-**Expected Result**:
-- Streaming progress shows compilation steps
-- Generated spec appears in the UI
-- Components render with proper styling
-- Theme and density settings apply correctly
+**Tables:**
+- `show me a table with filters` → TableWithFilters with 50 rows of sample data
+- `filterable table of employees` → TableWithFilters with search capability
+- `compact table with all data` → Table with compact density (tighter spacing)
+- `show a table with only id, name, and price columns` → Custom column selection
 
-### Test 2: Custom Prompts
+**Charts:**
+- `create a bar chart comparing revenue by region` → Bar chart with regional data
+- `show monthly sales as a line chart` → Line chart with time series
+- `chart with axis configuration controls` → ChartWithControls with dropdowns
 
-Try these natural language prompts:
+**Complete Interfaces:**
+- `full SQL results with table and chart views` → SQLResultsDisplay organism
+- `show me both a data table and a chart side by side` → Multiple components
 
-```
-Show a data table with sortable columns
-```
+**What You Should See:**
+- ✓ 50 rows of sample data with realistic values
+- ✓ Columns: id, name, category, price, quantity, revenue, region, status, date
+- ✓ Interactive filters that search across all fields
+- ✓ Charts with hover tooltips and legends
+- ✓ Smooth transitions and animations
 
-```
-Create a bar chart comparing sales by region
-```
+## Comprehensive Testing
 
-```
-Display SQL results with filtering and chart visualization
-```
+For detailed test scenarios with expected results and verification steps, see:
 
-**Expected Result**: AI generates valid JSON specs matching the catalog schema
+**[TESTING_GUIDE.md](./TESTING_GUIDE.md)**
 
-### Test 3: Theme Switching
+Includes:
+- 10 comprehensive test scenarios
+- Theme and density testing
+- Error handling verification
+- Performance benchmarks
+- Accessibility testing
+- Regression checklist
 
-1. Generate a UI component
-2. Toggle between light and dark themes
-3. Verify colors invert correctly
-4. Check that there's no flash of unstyled content (FOUC)
-
-**Expected Result**:
-- Instant theme switching without page reload
-- Background and foreground colors swap
-- All components inherit theme correctly
-
-### Test 4: Density Variants
-
-1. Generate a UI component
-2. Switch between compact/comfortable/spacious
-3. Verify spacing scales appropriately
-
-**Expected Result**:
-- Compact: 0.8x spacing scale
-- Comfortable: 1.0x spacing scale (default)
-- Spacious: 1.2x spacing scale
-
-### Test 5: Invalid Spec Handling
-
-1. Enter a prompt that doesn't match the catalog: "Create a video player"
-2. Verify graceful error handling
-
-**Expected Result**:
-- Validation catches unsupported component types
-- Clear error message displayed
-- No app crash or broken state
-
-## Verification Checklist
-
-After testing, verify these v1.0 accomplishments:
-
-- [ ] **NL Generation**: Natural language prompts generate valid specs
-- [ ] **Streaming**: Progressive UI updates during generation
-- [ ] **Catalog**: All 8 components accessible (DataTable, Chart, Filter, DensityToggle, ViewModeToggle, TableWithFilters, ChartWithControls, SQLResultsDisplay)
-- [ ] **Rendering**: Generated specs render to working React UIs
-- [ ] **Theming**: Light/dark theme switching works
-- [ ] **Density**: Compact/comfortable/spacious modes work
-- [ ] **Performance**: No lag or jank during generation/rendering
-- [ ] **Bundle Size**: Single-file HTML loads quickly (591KB gzipped)
-- [ ] **Accessibility**: Keyboard navigation works, screen readers supported
 
 ## Architecture
 
