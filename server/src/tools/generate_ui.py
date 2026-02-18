@@ -51,9 +51,9 @@ When explaining your component choices, briefly describe:
 
 ### Primitives
 - **Chart**: Data visualization (bar, line, pie, scatter, area, heatmap)
-  Props: type, xAxis, yAxis, height, showDataLabels, colors
+  Props: type, xAxis (string), yAxis (string), height, showDataLabels, colors
 - **DataTable**: Tabular data display with virtual scrolling
-  Props: columns, height, density (compact|comfortable|spacious), virtualScrolling, showRowNumbers
+  Props: columns (array of strings, e.g. ["name", "age"]), height, density (compact|comfortable|spacious), virtualScrolling, showRowNumbers
 - **Filter**: Search input for filtering data
   Props: placeholder, debounceMs
 - **DensityToggle**: Row density selector
@@ -63,9 +63,9 @@ When explaining your component choices, briefly describe:
 
 ### Molecules
 - **TableWithFilters**: DataTable + Filter + DensityToggle combined
-  Props: columns, height, initialDensity, showFilter, showDensityToggle, virtualScrolling
+  Props: columns (array of strings, e.g. ["id", "name", "email"]), height, initialDensity, showFilter, showDensityToggle, virtualScrolling
 - **ChartWithControls**: Chart with type/axis configuration panel
-  Props: height, initialChartType, showControls, controlsCollapsed
+  Props: columns (array of strings for axis options), height, initialChartType, showControls, controlsCollapsed
 
 ### Organisms
 - **SQLResultsDisplay**: Complete SQL results viewer with table, chart, export
@@ -83,6 +83,24 @@ Return ONLY valid JSON matching this structure:
     }}
   }}
 }}
+
+### Example: Table with Filters
+{{
+  "root": "main-table",
+  "elements": {{
+    "main-table": {{
+      "type": "TableWithFilters",
+      "props": {{
+        "columns": ["id", "name", "email", "status"],
+        "height": 500,
+        "showFilter": true,
+        "virtualScrolling": true
+      }}
+    }}
+  }}
+}}
+
+IMPORTANT: The "columns" property must be an array of strings (column names), NOT objects.
 
 ## Rules
 1. Use TableWithFilters for interactive data tables (not separate DataTable + Filter)
