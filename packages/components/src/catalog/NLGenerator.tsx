@@ -184,6 +184,7 @@ export function NLGenerator({
               className="h-full bg-primary transition-all duration-300"
               style={{ width: `${state.progress * 100}%` }}
               role="progressbar"
+              aria-label="UI generation progress"
               aria-valuenow={Math.round(state.progress * 100)}
               aria-valuemin={0}
               aria-valuemax={100}
