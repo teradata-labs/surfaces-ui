@@ -67,6 +67,7 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.0",
     "axe-core": "^4.10.0",
     "jest-axe": "^10.0.0",

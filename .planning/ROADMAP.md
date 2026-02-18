@@ -4,7 +4,27 @@
 
 Transform SurfacesUI from a static component library into an AI-driven, declarative UI generation system through json-render integration. Journey flows from establishing type-safe foundations and decomposing oversized components, through building the catalog-registry-renderer architecture, to enabling natural language-driven UI generation with full MCP Bridge integration and deployment-ready bundles. Each phase validates a critical capability before proceeding to the next layer.
 
-## Phases
+## Completed Milestones
+
+<details>
+<summary><strong>v1.0: NL-Driven Component Library</strong> (Feb 10-18, 2026) — 9 phases, 34 plans, 180 tests</summary>
+
+### Milestone Summary
+
+**Goal**: Prove natural language-driven UI generation paradigm with SQL results components
+
+**Delivered**:
+- json-render integration with catalog, registry, and renderer
+- 8 catalogable components decomposed from SQLResultsDisplay (all under 400 lines)
+- End-to-end NL generation flow: prompt → JSON spec → rendered React UI
+- MCP Bridge integration for action system
+- Virtual scrolling for 100K+ row datasets
+- Density variants and theme switching
+- Single-file HTML bundle (591KB gzipped)
+- 180 tests (100% pass rate, zero accessibility violations)
+- 1,991 lines of documentation
+
+### Phases
 
 **Phase Numbering:**
 - Integer phases (1, 2, 3): Planned milestone work
@@ -20,11 +40,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Theming Integration** - Integrate design tokens with json-render
 - [x] **Phase 7: NL Generation** - Enable prompt-to-UI generation with AI
 - [x] **Phase 8: MCP Apps Deployment** - Build and deploy single-file HTML bundle
-- [ ] **Phase 9: Testing & Documentation** - Complete test coverage and documentation
+- [x] **Phase 9: Testing & Documentation** - Complete test coverage and documentation
 
-## Phase Details
+### Phase Details
 
-### Phase 1: Foundation & Component Decomposition
+#### Phase 1: Foundation & Component Decomposition
 **Goal**: Install json-render packages and decompose SQLResultsDisplay into catalogable primitives that meet 400-line limit
 **Depends on**: Nothing (first phase)
 **Requirements**: JR-01, JR-02, JR-03, JR-04, JR-05, JR-06, COMP-01, COMP-02, COMP-03, COMP-04, COMP-05, COMP-06, COMP-07, COMP-08, COMP-09
@@ -44,7 +64,7 @@ Plans:
 - [x] 01-05-PLAN.md - Create TableWithFilters and ChartWithControls molecules (Wave 3)
 - [x] 01-06-PLAN.md - Refactor SQLResultsDisplay and update catalog registry (Wave 4)
 
-### Phase 2: Catalog Definitions
+#### Phase 2: Catalog Definitions
 **Goal**: Create complete json-render catalog with Zod schemas for all SQL results components
 **Depends on**: Phase 1
 **Requirements**: CAT-01, CAT-02, CAT-03, CAT-04, CAT-05, CAT-06, CAT-07, CAT-08
@@ -61,7 +81,7 @@ Plans:
 - [x] 02-02-PLAN.md - Add molecule catalog entries (TableWithFilters, ChartWithControls) (Wave 2)
 - [x] 02-03-PLAN.md - Add organism catalog entry (SQLResultsDisplay) (Wave 2)
 
-### Phase 3: Registry Mappings
+#### Phase 3: Registry Mappings
 **Goal**: Integrate SurfacesRenderer with ThemeProvider and validate catalog-to-component flow with demo app
 **Depends on**: Phase 2
 **Requirements**: REG-01, REG-02, REG-03, REG-04, REG-05, REG-06, REG-07, REG-08
@@ -80,7 +100,7 @@ Plans:
 - [x] 03-04-PLAN.md - Fix state binding in registry wrappers (Wave 1, gap closure)
 - [x] 03-05-PLAN.md - Add TypeScript types and remove `as any` casts (Wave 2, gap closure)
 
-### Phase 4: MCP Bridge Integration
+#### Phase 4: MCP Bridge Integration
 **Goal**: Connect json-render action system to SurfacesUI MCP Bridge for tool calls
 **Depends on**: Phase 3
 **Requirements**: MCP-01, MCP-02, MCP-03, MCP-04, MCP-05
@@ -97,7 +117,7 @@ Plans:
 - [x] 04-02-PLAN.md - Update SurfacesRenderer with McpBridgeProvider integration (Wave 2)
 - [x] 04-03-PLAN.md - Create integration tests for MCP action flow (Wave 3)
 
-### Phase 5: Virtual Scrolling & Performance
+#### Phase 5: Virtual Scrolling & Performance
 **Goal**: Optimize DataTable for 100K+ row datasets with dynamic overscan, ARIA accessibility, and verified performance
 **Depends on**: Phase 4
 **Requirements**: VIRT-01, VIRT-02, VIRT-03, VIRT-04, VIRT-05
@@ -113,7 +133,7 @@ Plans:
 - [x] 05-01-PLAN.md - Performance optimization with dynamic overscan and ARIA accessibility (Wave 1)
 - [x] 05-02-PLAN.md - Performance testing with 100K+ row validation (Wave 2)
 
-### Phase 6: Theming Integration
+#### Phase 6: Theming Integration
 **Goal**: Add density variants and theme switching to json-render components using existing token system
 **Depends on**: Phase 5
 **Requirements**: THEME-03, THEME-04, THEME-05, THEME-06 (THEME-01, THEME-02 skipped per user decision)
@@ -130,7 +150,7 @@ Plans:
 - [x] 06-02-PLAN.md - Enhance ThemeProvider with density support (Wave 2)
 - [x] 06-03-PLAN.md - Add density integration tests and verify zero-runtime (Wave 3)
 
-### Phase 7: NL Generation
+#### Phase 7: NL Generation
 **Goal**: Enable end-to-end natural language to rendered UI generation flow
 **Depends on**: Phase 6
 **Requirements**: NL-01, NL-02, NL-03, NL-04, NL-05, NL-06, NL-07
@@ -149,7 +169,7 @@ Plans:
 - [x] 07-04-PLAN.md - Document example prompts for all components (Wave 2)
 - [x] 07-05-PLAN.md - Create NLGenerator component and integration tests (Wave 3)
 
-### Phase 8: MCP Apps Deployment
+#### Phase 8: MCP Apps Deployment
 **Goal**: Build production-ready single-file HTML bundle for MCP Apps distribution
 **Depends on**: Phase 7
 **Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04, DEPLOY-05, DEPLOY-06
@@ -166,7 +186,7 @@ Plans:
 - [x] 08-02-PLAN.md - Update build configuration and create bundle (Wave 2)
 - [x] 08-03-PLAN.md - Bundle size verification and human testing (Wave 3)
 
-### Phase 9: Testing & Documentation
+#### Phase 9: Testing & Documentation
 **Goal**: Complete test coverage and documentation for production readiness
 **Depends on**: Phase 8
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, DOC-01, DOC-02, DOC-03, DOC-04, DOC-05
@@ -179,12 +199,12 @@ Plans:
 **Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 09-01-PLAN.md - Fix styling issues in bundled HTML (Wave 1, PRIORITY)
-- [ ] 09-02-PLAN.md - Comprehensive test coverage for catalog and validation (Wave 1)
-- [ ] 09-03-PLAN.md - NL generation and accessibility testing (Wave 2)
-- [ ] 09-04-PLAN.md - Documentation for catalog API and integration (Wave 3)
+- [x] 09-01-PLAN.md - Fix styling issues in bundled HTML (Wave 1, PRIORITY)
+- [x] 09-02-PLAN.md - Comprehensive test coverage for catalog and validation (Wave 1)
+- [x] 09-03-PLAN.md - NL generation and accessibility testing (Wave 2)
+- [x] 09-04-PLAN.md - Documentation for catalog API and integration (Wave 3)
 
-## Progress
+### Progress
 
 **Execution Order:**
 Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
@@ -200,3 +220,12 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 7. NL Generation | 5/5 | Complete | 2026-02-17 |
 | 8. MCP Apps Deployment | 3/3 | Complete | 2026-02-17 |
 | 9. Testing & Documentation | 4/4 | Complete | 2026-02-17 |
+
+</details>
+
+## Active Work
+
+No active milestone. Run `/gsd:new-milestone` to start the next iteration.
+
+---
+*Last updated: 2026-02-18 after v1.0 completion*

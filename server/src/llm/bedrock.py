@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class BedrockProvider(LLMProvider):
     """AWS Bedrock provider using Claude models via Converse API."""
 
-    MODEL_ID = "anthropic.claude-sonnet-4-5-20250514-v1:0"
+    MODEL_ID = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
     def __init__(self):
         self._client = None
