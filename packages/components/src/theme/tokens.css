@@ -2,10 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import density token system */
-@import './density.css';
-
 @layer base {
+  /* ── Density Token System ──────────────────────────────────────────── */
+  /* Provides density-aware scaling for spacing and layout components.      */
+  /* Typography and borders remain fixed per WCAG accessibility standards.  */
+
+  :root {
+    /* Base density multiplier (default: comfortable) */
+    --density-scale: 1;
+
+    /* Base spacing (unscaled) */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+
+    /* Scaled spacing (for density-aware components) */
+    --space-xs-scaled: calc(var(--space-xs) * var(--density-scale));
+    --space-sm-scaled: calc(var(--space-sm) * var(--density-scale));
+    --space-md-scaled: calc(var(--space-md) * var(--density-scale));
+    --space-lg-scaled: calc(var(--space-lg) * var(--density-scale));
+    --space-xl-scaled: calc(var(--space-xl) * var(--density-scale));
+
+    /* Typography scaling (conservative - don't go below 14px for WCAG) */
+    --font-size-sm: 14px;
+    --font-size-md: 16px;
+    --font-size-lg: 18px;
+
+    /* Line heights (fixed - don't scale to preserve readability) */
+    --line-height-sm: 20px;
+    --line-height-md: 24px;
+    --line-height-lg: 28px;
+
+    /* Fixed sizes (never scale) */
+    --border-width: 1px;
+    --icon-size-sm: 16px;
+    --icon-size-md: 20px;
+    --icon-size-lg: 24px;
+  }
+
+  /* Density variants */
+  [data-density="compact"] {
+    --density-scale: 0.8;
+  }
+
+  [data-density="comfortable"] {
+    --density-scale: 1;
+  }
+
+  [data-density="spacious"] {
+    --density-scale: 1.2;
+  }
+
+  /* ── Theme Tokens ──────────────────────────────────────────────────── */
+
   :root {
     /* ── Core Semantic Tokens (Light Mode) ─────────────────────────── */
     --background: 0 0% 100%;
