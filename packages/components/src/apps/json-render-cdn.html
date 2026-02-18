@@ -7,7 +7,11 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { height: 100%; width: 100%; min-height: 300px; }
-    body { font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+    }
   </style>
   <script>
     (function() {
