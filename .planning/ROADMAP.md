@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Virtual Scrolling & Performance** - Enable 100K+ row dataset support
 - [x] **Phase 6: Theming Integration** - Integrate design tokens with json-render
 - [x] **Phase 7: NL Generation** - Enable prompt-to-UI generation with AI
-- [ ] **Phase 8: MCP Apps Deployment** - Build and deploy single-file HTML bundle
+- [x] **Phase 8: MCP Apps Deployment** - Build and deploy single-file HTML bundle
 - [ ] **Phase 9: Testing & Documentation** - Complete test coverage and documentation
 
 ## Phase Details
@@ -162,9 +162,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 08-01-PLAN.md - Create json-render app entry point (HTML + TSX)
-- [ ] 08-02-PLAN.md - Update build configuration and create bundle
-- [ ] 08-03-PLAN.md - Bundle size verification and human testing
+- [x] 08-01-PLAN.md - Create json-render app entry point (HTML + TSX) (Wave 1)
+- [x] 08-02-PLAN.md - Update build configuration and create bundle (Wave 2)
+- [x] 08-03-PLAN.md - Bundle size verification and human testing (Wave 3)
 
 ### Phase 9: Testing & Documentation
 **Goal**: Complete test coverage and documentation for production readiness
@@ -176,12 +176,13 @@ Plans:
   3. Performance tests validate 100K+ row handling
   4. Catalog API documented with props and descriptions
   5. Integration guide exists for existing SurfacesUI consumers
-**Plans**: 3 plans in 3 waves
+**Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 08-01-PLAN.md - Create json-render app entry point (HTML + TSX) (Wave 1)
-- [ ] 08-02-PLAN.md - Update build configuration and create bundle (Wave 2)
-- [ ] 08-03-PLAN.md - Bundle size verification and human testing (Wave 3)
+- [ ] 09-01-PLAN.md - Fix styling issues in bundled HTML (Wave 1, PRIORITY)
+- [ ] 09-02-PLAN.md - Comprehensive test coverage for catalog and validation (Wave 1)
+- [ ] 09-03-PLAN.md - NL generation and accessibility testing (Wave 2)
+- [ ] 09-04-PLAN.md - Documentation for catalog API and integration (Wave 3)
 
 ## Progress
 
@@ -198,4 +199,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 6. Theming Integration | 3/3 | Complete | 2026-02-17 |
 | 7. NL Generation | 5/5 | Complete | 2026-02-17 |
 | 8. MCP Apps Deployment | 3/3 | Complete | 2026-02-17 |
-| 9. Testing & Documentation | 0/TBD | Not started | - |
+| 9. Testing & Documentation | 0/4 | Not started | - |
