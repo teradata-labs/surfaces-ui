@@ -2,7 +2,7 @@
 
 **Version:** 0.1.0
 
-React component library served via MCP Apps protocol for interactive UI in MCP-compliant clients.
+Reusable React component library served as self-contained HTML bundles via MCP bridge abstraction, with pluggable backends (Loom, MCP Apps, postMessage).
 
 ## Overview
 
@@ -11,30 +11,26 @@ This project provides:
 - **packages/components** - React component library (TypeScript + Tailwind)
 - **server/** - FastMCP Python server that serves HTML apps as MCP resources
 
-Components communicate through the MCP Bridge pattern, not direct REST calls. This enables the same components to work across Claude Desktop, VS Code MCP clients, and custom applications.
+Components communicate through the MCP Bridge pattern, not direct REST calls. Three bridge implementations allow the same components to work across different environments:
+
+| Bridge | Transport | Environment |
+|--------|-----------|-------------|
+| `McpBridge` | postMessage | iframe / web embedding |
+| `McpAppsBridge` | MCP Apps protocol | Claude Desktop, Cursor |
+| `LoomBridge` | HTTP (gRPC-gateway) | Loom agent framework |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
+- Node.js >= 20.0.0
 - pnpm >= 10.0.0
-- Python >= 3.11 (for MCP server)
+- Python >= 3.11 (for MCP server, optional)
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd surfaces-ui
-
-# Install JavaScript dependencies
 pnpm install
-
-# Install Python dependencies
-cd server
-pip install -r requirements.txt
-cd ..
 ```
 
 ### Build
@@ -60,25 +56,127 @@ pnpm test
 pnpm --filter @surfacesui/components test:coverage
 ```
 
-## Using with Claude Desktop
+## Bridge Architecture
 
-Claude Desktop supports MCP servers. Configure the surfaces-ui server in your Claude Desktop settings.
+All components use a `BridgeLike` interface for tool calls. The bridge is injected via React context (`McpBridgeProvider`), so components are backend-agnostic:
 
-### 1. Build the components
-
-```bash
-cd surfaces-ui
-pnpm install
-pnpm build
-pnpm --filter @surfacesui/components build:apps
+```tsx
+// Components call tools the same way regardless of bridge:
+const { bridge } = useMcpBridge();
+const result = await bridge.callTool('list_agents');
 ```
 
-### 2. Configure Claude Desktop
+### McpBridge (postMessage)
 
-Edit your Claude Desktop configuration file:
+For web-based MCP hosts that embed components in iframes. The parent window relays tool calls to the MCP server.
+
+### McpAppsBridge (MCP Apps protocol)
+
+For native MCP Apps environments like Claude Desktop. Uses `@modelcontextprotocol/ext-apps` for communication. Includes tool name mapping for vantage-mcp conventions (`execute_sql` -> `teradata_execute_sql`).
+
+### LoomBridge (HTTP / gRPC-gateway)
+
+For connecting directly to a running [Loom](https://github.com/teradata-labs/loom) server. Maps tool calls to Loom's REST API endpoints:
+
+| Tool Name | HTTP Method | Endpoint |
+|-----------|-------------|----------|
+| `list_agents` | GET | `/v1/agents` |
+| `list_sessions` | GET | `/v1/sessions` |
+| `list_ui_apps` | GET | `/v1/apps` |
+| `list_component_types` | GET | `/v1/apps/component-types` |
+| `get_health` | GET | `/health` |
+| `get_conversation_history` | GET | `/v1/sessions/{session_id}/history` |
+| `get_session` | GET | `/v1/sessions/{session_id}` |
+| `create_ui_app` | POST | `/v1/apps` |
+| `weave` | POST | `/v1/weave` |
+| *(unknown)* | POST | `/v1/weave` (agent-mediated fallback) |
+
+Unknown tool calls are automatically routed through Loom's Weave endpoint, which delegates to an agent.
+
+## Loom Integration Test
+
+The `loom-test` app is a live integration dashboard that connects surfaces-ui components to a running Loom server. It demonstrates the bridge abstraction working with a non-vantage-mcp backend.
+
+### Running
+
+Start a Loom server (default: gRPC on `:60051`, HTTP on `:5006`), then:
+
+```bash
+pnpm dev
+# Open http://localhost:5173/src/apps/loom-test.html
+```
+
+### What It Shows
+
+The dashboard has four sections, all fetching live data from Loom via `LoomBridge`:
+
+**Agents** - Cards for each running Loom agent (guide, weaver, etc.) with status badges and session counts. Click to select an agent for the chat panel.
+
+**Chat** - Send messages to the selected agent via Loom's `/v1/weave` endpoint. Responses include cost tracking. Session ID is captured for conversation continuity.
+
+**Conversation Viewer** - Browse all Loom sessions in a sidebar, click one to load its full message history. Messages are rendered with role-based styling (user, assistant, tool) and timestamps. Long messages collapse with a "show more" toggle.
+
+**UI Apps** - Lists all UI apps registered in Loom (conversation-viewer, data-chart, data-quality-dashboard, explain-plan-visualizer, plus any dynamic apps created by agents).
+
+### Architecture
+
+```
+loom-test.tsx
+  └── LoomBridge (http://localhost:5006)
+        ├── GET /v1/agents          → Agent cards
+        ├── GET /v1/sessions        → Session sidebar
+        ├── GET /v1/sessions/{id}/history → Conversation thread
+        ├── GET /v1/apps            → UI app list
+        ├── POST /v1/weave          → Agent chat
+        └── GET /health             → Health badge
+```
+
+The LoomBridge supports dynamic path parameters (session_id in URL), configurable agent/session IDs, and falls back to agent-mediated execution for unrecognized tools.
+
+### Creating a Custom Bridge
+
+To connect surfaces-ui to a new backend, implement `BridgeLike`:
+
+```typescript
+import type { BridgeLike } from '@surfacesui/components';
+
+class MyBridge implements BridgeLike {
+  connect(): void { /* ... */ }
+  disconnect(): void { /* ... */ }
+  get isConnected(): boolean { /* ... */ }
+
+  async callTool<T>(toolName: string, args?: Record<string, unknown>) {
+    // Map toolName to your backend's API
+    const response = await fetch(`/api/tools/${toolName}`, {
+      method: 'POST',
+      body: JSON.stringify(args),
+    });
+    return { success: true, data: await response.json() as T };
+  }
+
+  onDataPush(cb: (data: McpRenderData) => void) { return () => {}; }
+  fetchPage<T>(tool: string, args: any) { return this.callTool(tool, args); }
+  onStreamChunk(id: number, cb: (chunk: unknown) => void) { return () => {}; }
+  startStream<T>(tool: string, args?: any) {
+    return { id: 1, result: this.callTool<T>(tool, args) };
+  }
+  cancelStream(id: number): void {}
+}
+```
+
+Then wrap your components:
+
+```tsx
+<McpBridgeProvider bridge={new MyBridge()}>
+  <ConversationViewer />
+</McpBridgeProvider>
+```
+
+## Using with Claude Desktop
+
+Configure the surfaces-ui Python server in your Claude Desktop settings:
 
 **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -95,543 +193,76 @@ Edit your Claude Desktop configuration file:
 }
 ```
 
-### 3. Restart Claude Desktop
+### Connecting to vantage-mcp
 
-After updating the configuration, restart Claude Desktop. The MCP server will be available, providing:
+The Python server can proxy to vantage-mcp in two modes:
 
-- **Tools:** `execute_sql` - Execute SQL queries
-- **Resources:** UI apps accessible via `ui://sql-editor`, `ui://file-browser`, etc.
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MOCK_MODE` | Use mock data instead of real database | `true` |
-| `VANTAGE_MCP_MODE` | Communication mode: `stdio` or `http` | `stdio` |
-| `VANTAGE_MCP_BINARY` | Path to vantage-mcp binary (stdio mode) | (empty) |
-| `VANTAGE_MCP_ADDR` | HTTP address for vantage-mcp (http mode) | (empty) |
-| `TD_USER` | Teradata username (passed to vantage-mcp) | (empty) |
-| `TD_PASSWORD` | Teradata password (passed to vantage-mcp) | (empty) |
-| `TD_HOST` | Teradata host (passed to vantage-mcp) | (empty) |
-
-## Connecting to vantage-mcp
-
-The surfaces-ui server can connect to vantage-mcp (the Go-based MCP tools server) in two modes:
-
-### Mode 1: stdio (Recommended)
-
-In stdio mode, surfaces-ui spawns vantage-mcp as a subprocess and communicates via JSON-RPC over stdin/stdout. This is the native MCP communication method and requires no HTTP wrapper.
-
-**Claude Desktop Configuration:**
+**stdio (recommended):** Spawns vantage-mcp as a subprocess, communicates via JSON-RPC over stdin/stdout.
 
 ```json
 {
-  "mcpServers": {
-    "surfaces-ui": {
-      "command": "python",
-      "args": ["-m", "src.main"],
-      "cwd": "/path/to/surfaces-ui/server",
-      "env": {
-        "MOCK_MODE": "false",
-        "VANTAGE_MCP_MODE": "stdio",
-        "VANTAGE_MCP_BINARY": "/path/to/vantage-mcp",
-        "TD_USER": "your-username",
-        "TD_PASSWORD": "your-password",
-        "TD_HOST": "vantage.example.com"
-      }
-    }
+  "env": {
+    "MOCK_MODE": "false",
+    "VANTAGE_MCP_MODE": "stdio",
+    "VANTAGE_MCP_BINARY": "/path/to/vantage-mcp",
+    "TD_USER": "your-username",
+    "TD_PASSWORD": "your-password",
+    "TD_HOST": "vantage.example.com"
   }
 }
 ```
 
-**How it works:**
-1. surfaces-ui receives a `tools/call` request for `execute_sql`
-2. It spawns vantage-mcp as a subprocess (if not already running)
-3. Sends MCP `initialize` request to establish the session
-4. Forwards the tool call via JSON-RPC: `{"method": "tools/call", "params": {"name": "teradata_execute_sql", ...}}`
-5. Returns the result to the MCP client
-
-**Advantages:**
-- Native MCP protocol - no HTTP wrapper needed
-- Single process management by Claude Desktop
-- Environment variables passed directly to subprocess
-- Connection reused across multiple tool calls
-
-### Mode 2: HTTP
-
-In HTTP mode, surfaces-ui proxies requests to an HTTP endpoint. This requires running vantage-mcp with an HTTP wrapper or gateway.
-
-**Claude Desktop Configuration:**
+**HTTP:** Proxies to a running vantage-mcp HTTP endpoint.
 
 ```json
 {
-  "mcpServers": {
-    "surfaces-ui": {
-      "command": "python",
-      "args": ["-m", "src.main"],
-      "cwd": "/path/to/surfaces-ui/server",
-      "env": {
-        "MOCK_MODE": "false",
-        "VANTAGE_MCP_MODE": "http",
-        "VANTAGE_MCP_ADDR": "http://localhost:3000"
-      }
-    }
+  "env": {
+    "MOCK_MODE": "false",
+    "VANTAGE_MCP_MODE": "http",
+    "VANTAGE_MCP_ADDR": "http://localhost:3000"
   }
 }
-```
-
-**How it works:**
-1. surfaces-ui receives a `tools/call` request for `execute_sql`
-2. Makes an HTTP POST to `{VANTAGE_MCP_ADDR}/execute`
-3. Returns the response to the MCP client
-
-**When to use HTTP mode:**
-- vantage-mcp is running as a persistent service
-- Multiple MCP clients share the same vantage-mcp instance
-- You have an HTTP gateway in front of vantage-mcp
-
-### Mode Comparison
-
-| Feature | stdio Mode | HTTP Mode |
-|---------|-----------|-----------|
-| Setup complexity | Low | Medium (requires HTTP wrapper) |
-| Process management | Automatic | Manual |
-| Connection sharing | Per-client | Shared |
-| Environment passing | Direct | Via wrapper config |
-| Recommended for | Development, single-user | Production, multi-user |
-
-## Using with Loom
-
-[Loom](https://github.com/teradata-labs/loom) is an LLM agent framework. The surfaces-ui components can be used with loom agents by configuring vantage-mcp as an MCP tool provider.
-
-### Option 1: surfaces-ui with stdio mode (UI + Tools)
-
-Use surfaces-ui as the main server, which spawns vantage-mcp internally for tool execution:
-
-```yaml
-# looms.yaml or agent.yaml
-tools:
-  - name: surfaces-ui
-    type: mcp
-    config:
-      command: python
-      args: ["-m", "src.main"]
-      cwd: /path/to/surfaces-ui/server
-      env:
-        MOCK_MODE: "false"
-        VANTAGE_MCP_MODE: "stdio"
-        VANTAGE_MCP_BINARY: "/path/to/vantage-mcp"
-        TD_USER: "your-username"
-        TD_PASSWORD: "your-password"
-        TD_HOST: "vantage.example.com"
-```
-
-This provides both UI resources (`ui://sql-editor`, etc.) and tools (`execute_sql`).
-
-### Option 2: vantage-mcp directly (Tools Only)
-
-For tools-only access without UI resources, use vantage-mcp directly:
-
-```yaml
-# looms.yaml or agent.yaml
-tools:
-  - name: teradata
-    type: mcp
-    config:
-      command: /path/to/vantage-mcp
-      env:
-        TD_USER: "your-username"
-        TD_PASSWORD: "your-password"
-        TD_HOST: "vantage.example.com"
-```
-
-This provides only the `teradata_execute_sql` tool with no UI resources.
-
-### Option 3: Both servers (Separate UI and Tools)
-
-Run both servers for maximum flexibility:
-
-```yaml
-# looms.yaml or agent.yaml
-tools:
-  # UI resources server
-  - name: surfaces-ui
-    type: mcp
-    config:
-      command: python
-      args: ["-m", "src.main"]
-      cwd: /path/to/surfaces-ui/server
-      env:
-        MOCK_MODE: "true"  # UI server doesn't need backend access
-
-  # Tools server
-  - name: teradata-tools
-    type: mcp
-    config:
-      command: /path/to/vantage-mcp
-      env:
-        TD_USER: "your-username"
-        TD_PASSWORD: "your-password"
-        TD_HOST: "vantage.example.com"
-```
-
-This keeps concerns separated: surfaces-ui handles resources, vantage-mcp handles tools.
-
-## Integrating into Your MCP Server
-
-The component library builds to standalone HTML files that can be served as MCP UI resources from any MCP server implementation.
-
-### Build the HTML Apps
-
-First, build the HTML app bundles:
-
-```bash
-cd surfaces-ui
-pnpm install
-pnpm build
-pnpm --filter @surfacesui/components build:apps
-```
-
-This creates HTML files in `packages/components/dist/apps/`:
-- `sql-editor.html`
-- `file-browser.html`
-- `data-browser.html`
-- `chat-panel.html`
-
-### Node.js MCP Server
-
-Using the `@modelcontextprotocol/sdk` package:
-
-```typescript
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  ListResourcesRequestSchema,
-  ReadResourceRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { readFileSync } from "fs";
-import { join } from "path";
-
-// Path to built HTML apps
-const APPS_DIR = "/path/to/surfaces-ui/packages/components/dist/apps";
-
-// UI app registry
-const UI_APPS = {
-  "sql-editor": {
-    name: "SQL Editor",
-    description: "Interactive SQL editor with query execution",
-    mimeType: "text/html",
-  },
-  "data-browser": {
-    name: "Data Browser",
-    description: "Browse database tables and schemas",
-    mimeType: "text/html",
-  },
-};
-
-const server = new Server(
-  { name: "my-mcp-server", version: "1.0.0" },
-  { capabilities: { resources: {} } }
-);
-
-// List available UI resources
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  return {
-    resources: Object.entries(UI_APPS).map(([id, app]) => ({
-      uri: `ui://${id}`,
-      name: app.name,
-      description: app.description,
-      mimeType: app.mimeType,
-    })),
-  };
-});
-
-// Read UI resource content
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const uri = request.params.uri;
-
-  if (!uri.startsWith("ui://")) {
-    throw new Error(`Unknown resource: ${uri}`);
-  }
-
-  const appId = uri.replace("ui://", "");
-  const appFile = join(APPS_DIR, `${appId}.html`);
-
-  try {
-    const content = readFileSync(appFile, "utf-8");
-    return {
-      contents: [{
-        uri,
-        mimeType: "text/html",
-        text: content,
-      }],
-    };
-  } catch (error) {
-    throw new Error(`App not found: ${appId}`);
-  }
-});
-
-// Start server
-const transport = new StdioServerTransport();
-await server.connect(transport);
-```
-
-### FastMCP (Python)
-
-Using the `mcp` package:
-
-```python
-import asyncio
-from pathlib import Path
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-from mcp.types import Resource, TextContent
-
-# Path to built HTML apps
-APPS_DIR = Path("/path/to/surfaces-ui/packages/components/dist/apps")
-
-# UI app registry
-UI_APPS = {
-    "sql-editor": {
-        "name": "SQL Editor",
-        "description": "Interactive SQL editor with query execution",
-        "mimeType": "text/html",
-    },
-    "data-browser": {
-        "name": "Data Browser",
-        "description": "Browse database tables and schemas",
-        "mimeType": "text/html",
-    },
-}
-
-server = Server("my-mcp-server")
-
-
-@server.list_resources()
-async def list_resources() -> list[Resource]:
-    """List available UI resources."""
-    return [
-        Resource(
-            uri=f"ui://{app_id}",
-            name=app["name"],
-            description=app["description"],
-            mimeType=app["mimeType"],
-        )
-        for app_id, app in UI_APPS.items()
-    ]
-
-
-@server.read_resource()
-async def read_resource(uri: str) -> str:
-    """Read UI resource content."""
-    if not uri.startswith("ui://"):
-        raise ValueError(f"Unknown resource: {uri}")
-
-    app_id = uri.replace("ui://", "")
-    app_file = APPS_DIR / f"{app_id}.html"
-
-    if not app_file.exists():
-        raise ValueError(f"App not found: {app_id}")
-
-    return app_file.read_text()
-
-
-async def main():
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options(),
-        )
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### Go MCP Server
-
-For Go servers (like vantage-mcp), use the resource registry pattern:
-
-```go
-package main
-
-import (
-    "embed"
-    "encoding/json"
-    "fmt"
-    "io"
-    "os"
-)
-
-//go:embed apps/*.html
-var appsFS embed.FS
-
-// UIApp represents a UI application resource
-type UIApp struct {
-    Name        string `json:"name"`
-    Description string `json:"description"`
-    MimeType    string `json:"mimeType"`
-}
-
-// UI app registry
-var uiApps = map[string]UIApp{
-    "sql-editor": {
-        Name:        "SQL Editor",
-        Description: "Interactive SQL editor with query execution",
-        MimeType:    "text/html",
-    },
-    "data-browser": {
-        Name:        "Data Browser",
-        Description: "Browse database tables and schemas",
-        MimeType:    "text/html",
-    },
-}
-
-// Resource represents an MCP resource
-type Resource struct {
-    URI         string `json:"uri"`
-    Name        string `json:"name"`
-    Description string `json:"description,omitempty"`
-    MimeType    string `json:"mimeType,omitempty"`
-}
-
-// ListResources returns available UI resources
-func ListResources() []Resource {
-    resources := make([]Resource, 0, len(uiApps))
-    for id, app := range uiApps {
-        resources = append(resources, Resource{
-            URI:         fmt.Sprintf("ui://%s", id),
-            Name:        app.Name,
-            Description: app.Description,
-            MimeType:    app.MimeType,
-        })
-    }
-    return resources
-}
-
-// ReadResource reads a UI resource by URI
-func ReadResource(uri string) (string, error) {
-    if len(uri) < 5 || uri[:5] != "ui://" {
-        return "", fmt.Errorf("unknown resource: %s", uri)
-    }
-
-    appID := uri[5:]
-    if _, ok := uiApps[appID]; !ok {
-        return "", fmt.Errorf("app not found: %s", appID)
-    }
-
-    // Read from embedded filesystem
-    content, err := appsFS.ReadFile(fmt.Sprintf("apps/%s.html", appID))
-    if err != nil {
-        return "", fmt.Errorf("failed to read app: %w", err)
-    }
-
-    return string(content), nil
-}
-
-// HandleResourcesList handles the resources/list MCP method
-func HandleResourcesList() map[string]interface{} {
-    return map[string]interface{}{
-        "resources": ListResources(),
-    }
-}
-
-// HandleResourcesRead handles the resources/read MCP method
-func HandleResourcesRead(uri string) (map[string]interface{}, error) {
-    content, err := ReadResource(uri)
-    if err != nil {
-        return nil, err
-    }
-
-    return map[string]interface{}{
-        "contents": []map[string]interface{}{
-            {
-                "uri":      uri,
-                "mimeType": "text/html",
-                "text":     content,
-            },
-        },
-    }, nil
-}
-```
-
-To embed the HTML files in your Go binary, copy them to an `apps/` directory in your project:
-
-```bash
-# Copy built apps to your Go project
-mkdir -p /path/to/your-mcp-server/apps
-cp /path/to/surfaces-ui/packages/components/dist/apps/*.html \
-   /path/to/your-mcp-server/apps/
-```
-
-### Copying Built Assets
-
-For any server implementation, you can copy the built HTML files:
-
-```bash
-# Create destination directory
-mkdir -p /path/to/your-server/assets/ui
-
-# Copy all HTML app bundles
-cp surfaces-ui/packages/components/dist/apps/*.html \
-   /path/to/your-server/assets/ui/
-
-# Or use npm/pnpm to install as a dependency (if published)
-# npm install @surfacesui/components
-# Then reference: node_modules/@surfacesui/components/dist/apps/
 ```
 
 ## Components
 
 ### SQLEditor
 
-Interactive SQL editor with query execution and result visualization.
+Interactive SQL editor with CodeMirror, query execution, and result visualization.
 
 ```tsx
-import { SQLEditor, McpBridgeProvider } from '@surfacesui/components';
-
-function App() {
-  return (
-    <McpBridgeProvider>
-      <SQLEditor
-        initialCode="SELECT * FROM users LIMIT 10"
-        onExecutionComplete={(result) => console.log(result)}
-      />
-    </McpBridgeProvider>
-  );
-}
+<McpBridgeProvider bridge={bridge}>
+  <SQLEditor initialCode="SELECT * FROM users LIMIT 10" title="SQL Editor" />
+</McpBridgeProvider>
 ```
 
-**Props:**
-- `initialCode` - Pre-populated SQL code
-- `title` - Editor title
-- `onCodeChange` - Callback when code changes
-- `onExecutionComplete` - Callback with query results
-- `autoExecute` - Execute on mount
-- `connectionId` - Database connection identifier
-- `readOnly` - Disable editing
+### ConversationViewer
 
-### MCP Bridge Hooks
-
-All components use MCP Bridge hooks for data fetching:
+Displays Loom agent conversation history with a session sidebar and threaded message view.
 
 ```tsx
-import { useMcpTool } from '@surfacesui/components';
+<McpBridgeProvider bridge={bridge}>
+  <ConversationViewer initialSessionId="sess_abc123" />
+</McpBridgeProvider>
+```
 
-function QueryComponent() {
-  const { data, loading, error, refetch } = useMcpTool(
-    'execute_sql',
-    { query: 'SELECT 1', connection_id: 'default' },
-    { enabled: false }
-  );
+Fetches data via two tool calls:
+- `list_sessions` - populates the session sidebar
+- `get_conversation_history` (with `session_id`, `limit`) - loads the message thread
 
-  return (
-    <button onClick={() => refetch()}>
-      {loading ? 'Executing...' : 'Run Query'}
-    </button>
-  );
-}
+### NLGenerator
+
+Natural language UI generator powered by json-render. Generates interactive UI from text prompts.
+
+```tsx
+<McpBridgeProvider bridge={bridge}>
+  <ThemeProvider>
+    <NLGenerator
+      renderSpec={(spec) => <SurfacesRenderer spec={spec} bridge={bridge} />}
+      showExamples={true}
+    />
+  </ThemeProvider>
+</McpBridgeProvider>
 ```
 
 ## Project Structure
@@ -639,50 +270,49 @@ function QueryComponent() {
 ```
 surfaces-ui/
 ├── packages/
-│   └── components/           # React component library
-│       ├── src/
-│       │   ├── bridge/       # MCP Bridge provider and hooks
-│       │   ├── components/   # UI components (SQLEditor, etc.)
-│       │   ├── primitives/   # Base UI primitives (Button, Card, etc.)
-│       │   ├── theme/        # Theme provider and tokens
-│       │   └── lib/          # Utilities
-│       └── dist/             # Built library and HTML apps
-├── server/                   # FastMCP Python server
+│   └── components/
+│       └── src/
+│           ├── bridge/
+│           │   ├── McpBridge.ts          # postMessage bridge (web)
+│           │   ├── McpAppsBridge.ts       # MCP Apps bridge (Claude Desktop)
+│           │   ├── LoomBridge.ts          # Loom HTTP bridge
+│           │   ├── McpBridgeProvider.tsx   # React context + BridgeLike interface
+│           │   ├── hooks.ts               # useMcpTool, useMcpPagination, useMcpStream
+│           │   └── types.ts               # McpToolResult, PageResult, etc.
+│           ├── components/
+│           │   ├── sql-editor/            # SQL Editor component
+│           │   ├── conversation-viewer/   # Conversation Viewer component
+│           │   ├── sql-results/           # Query result display
+│           │   └── charts/                # Chart components
+│           ├── primitives/                # Button, Card, Badge, Dialog, etc.
+│           ├── catalog/                   # json-render NL UI generation
+│           ├── apps/                      # HTML bundle entry points
+│           │   ├── sql-editor-cdn.tsx      # SQL Editor app (McpAppsBridge)
+│           │   ├── json-render-cdn.tsx     # NL Generator app (McpAppsBridge)
+│           │   └── loom-test.tsx           # Loom integration dashboard (LoomBridge)
+│           └── theme/                     # ThemeProvider + CSS tokens
+├── server/                                # FastMCP Python server
 │   └── src/
-│       ├── main.py           # Server entry point
-│       ├── tools/            # MCP tools (sql.py)
-│       └── resources/        # MCP resources (ui.py)
+│       ├── main.py                        # Server entry point
+│       ├── tools/                         # MCP tools (sql.py)
+│       ├── resources/                     # MCP resources (ui.py)
+│       └── llm/                           # LLM providers (Bedrock, Anthropic, OpenAI)
 └── .claude/
-    └── agents/               # Quality review agents
+    └── agents/                            # UX, Engineering, Testing review agents
 ```
-
-## Available MCP Resources
-
-The server exposes these UI resources:
-
-| URI | Description |
-|-----|-------------|
-| `ui://sql-editor` | Interactive SQL editor |
-| `ui://file-browser` | File browser |
-| `ui://data-browser` | Database schema browser |
-| `ui://chat-panel` | AI chat interface |
 
 ## Quality Standards
 
-- **Test coverage:** 80% minimum required
-- **Accessibility:** axe-core 0 violations
-- **Bundle size:** ~600KB gzipped per HTML app (json-render app is 591KB)
-- **Component size:** <400 lines (atomic design)
+| Check | Threshold |
+|-------|-----------|
+| Test coverage (lines) | 60% |
+| Test coverage (branches) | 75% |
+| Accessibility (axe-core) | 0 violations |
+| Bundle size (gzipped) | 650KB per HTML app |
+| Component size | <400 lines (atomic design) |
+| TypeScript | Strict, zero errors |
 
-Run the quality checks:
-
-```bash
-# Run all tests
-pnpm test
-
-# Run with coverage
-pnpm --filter @surfacesui/components test:coverage
-```
+CI runs four jobs on every push and PR: **Test & Coverage**, **Lint & Type Check**, **Build & Bundle Analysis**, **Accessibility Check**.
 
 ## License
 
