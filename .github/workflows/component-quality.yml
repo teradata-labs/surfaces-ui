@@ -45,7 +45,7 @@ jobs:
           echo "| App | Size | Gzipped | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|------|---------|--------|" >> $GITHUB_STEP_SUMMARY
 
-          MAX_SIZE=512000  # 500KB in bytes
+          MAX_SIZE=665600  # 650KB in bytes (json-render includes ECharts)
           FAILED=0
 
           for file in packages/components/dist/apps/*.html; do
