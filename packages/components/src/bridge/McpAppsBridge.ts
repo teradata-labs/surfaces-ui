@@ -25,7 +25,7 @@ export class McpAppsBridge {
   private connected: boolean;
   private nextStreamId: number;
 
-  constructor(config?: McpBridgeConfig) {
+  constructor(_config?: McpBridgeConfig) {
     // Config is ignored for MCP Apps - the App class handles connection details
     this.app = new App({ name: 'SurfacesUI', version: '1.0.0' });
     this.listeners = new Set();

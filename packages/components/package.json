@@ -29,7 +29,7 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint src/"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",
@@ -82,7 +82,12 @@
     "vite": "^5.0.0",
     "vite-plugin-dts": "^3.6.0",
     "vite-plugin-singlefile": "0.13.5",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "eslint": "^9.0.0",
+    "@eslint/js": "^9.0.0",
+    "typescript-eslint": "^8.0.0",
+    "eslint-plugin-security": "^3.0.0",
+    "eslint-plugin-react-hooks": "^5.0.0"
   },
   "peerDependencies": {
     "react": "^18 || ^19",

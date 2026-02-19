@@ -5,7 +5,7 @@
  * degradation with user-friendly error display instead of crashing.
  */
 import * as React from 'react';
-import type { ValidationError, ValidationResult } from './validation';
+import type { ValidationError } from './validation';
 
 export interface SpecValidationErrorProps {
   errors: ValidationError[];
@@ -100,13 +100,13 @@ export function SpecValidationError({
  */
 export function createFallbackSpec(
   errors: ValidationError[],
-  originalPrompt?: string
+  _originalPrompt?: string
 ): {
   root: string;
   elements: Record<string, { type: string; props: Record<string, unknown> }>;
 } {
   // Create a DataTable showing the errors
-  const errorData = errors.map((error, index) => ({
+  const _errorData = errors.map((error, index) => ({
     '#': index + 1,
     path: error.path,
     error: error.message,

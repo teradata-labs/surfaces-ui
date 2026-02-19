@@ -27,7 +27,6 @@ import { useMcpBridge } from '../../bridge/McpBridgeProvider';
 import type {
   SQLResultsDisplayProps,
   SQLResultsConfig,
-  SQLResultsAction,
 } from './types';
 import { DEFAULT_RESULTS_CONFIG } from './types';
 import { createDefaultActions, buildTeradataUrl } from './utils';
@@ -57,8 +56,8 @@ export function SQLResultsDisplay({
   const [resultsViewMode, setResultsViewMode] = React.useState<'table' | 'chart'>(
     initialConfig.resultsViewMode
   );
-  const [chartHeight, setChartHeight] = React.useState(initialConfig.chartHeight);
-  const [tableHeight, setTableHeight] = React.useState(initialConfig.tableHeight);
+  const [chartHeight, _setChartHeight] = React.useState(initialConfig.chartHeight);
+  const [tableHeight, _setTableHeight] = React.useState(initialConfig.tableHeight);
 
   const isFirstRender = React.useRef(true);
 

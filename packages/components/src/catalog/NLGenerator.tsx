@@ -8,7 +8,7 @@
  * 4. Rendering the generated spec
  */
 import * as React from 'react';
-import { useSpecStream, type SpecStreamState } from './stream';
+import { useSpecStream } from './stream';
 import { SpecValidationError } from './fallback';
 import { getExamplesForComponent } from './prompts';
 

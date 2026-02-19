@@ -10,7 +10,7 @@ import * as React from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '../../lib/utils';
 import { VirtualRow } from './VirtualRow';
-import type { DataTableProps, Density } from './types';
+import type { DataTableProps } from './types';
 import { ROW_HEIGHTS } from './types';
 
 // Dynamic overscan based on dataset size for optimal performance

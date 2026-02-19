@@ -32,6 +32,7 @@ export interface SurfacesRendererProps {
   /** Optional initial state for StateProvider */
   initialState?: Record<string, unknown>;
   /** Additional action handlers (merged with MCP handlers when bridge provided) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handlers?: Record<string, (...args: any[]) => Promise<unknown> | unknown>;
   /** Theme mode (defaults to 'system') */
   theme?: ThemeMode;

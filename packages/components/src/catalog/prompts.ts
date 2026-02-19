@@ -177,7 +177,7 @@ export function generateCatalogPrompt(options: { includeExamples?: boolean } = {
 /**
  * Helper function to format a component for the catalog prompt
  */
-function formatComponent(name: string, def: { schema: z.ZodObject<any>; description: string; category: string }): string {
+function formatComponent(name: string, def: { schema: z.ZodObject<z.ZodRawShape>; description: string; category: string }): string {
   let output = `### ${name}\n`;
   output += `${def.description}\n\n`;
   output += `Props:\n`;
@@ -208,12 +208,12 @@ export function generateComponentPrompt(componentName: ComponentName): string {
   prompt += `${def.description}\n\n`;
   prompt += `## Props\n\n`;
 
-  const shape = (def.schema as z.ZodObject<any>).shape;
+  const shape = (def.schema as z.ZodObject<z.ZodRawShape>).shape;
   for (const [propName, propSchema] of Object.entries(shape)) {
     const zodType = propSchema as z.ZodTypeAny;
     const desc = zodType.description || 'No description';
     // Check if optional by looking for .optional() or default value
-    const isOptional = zodType.isOptional() || ('_def' in zodType && 'defaultValue' in (zodType as any)._def);
+    const isOptional = zodType.isOptional() || ('_def' in zodType && 'defaultValue' in (zodType as unknown as { _def: Record<string, unknown> })._def);
     prompt += `- **${propName}**${isOptional ? ' (optional)' : ''}: ${desc}\n`;
   }
 

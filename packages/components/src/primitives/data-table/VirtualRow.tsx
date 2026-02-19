@@ -6,7 +6,7 @@
  */
 import * as React from 'react';
 import { cn } from '../../lib/utils';
-import type { VirtualRowProps, Density } from './types';
+import type { VirtualRowProps } from './types';
 import { ROW_HEIGHTS } from './types';
 
 function VirtualRowComponent({

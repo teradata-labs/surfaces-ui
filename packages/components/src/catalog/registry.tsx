@@ -9,7 +9,6 @@ import { defineRegistry, type ComponentContext, useStateValue } from '@json-rend
 import { Table as TableIcon, BarChart3 as BarChartIcon } from 'lucide-react';
 
 import { catalog } from './schema';
-import type { Catalog } from '@json-render/core';
 import type {
   DataRow,
   ChartProps,
@@ -48,7 +47,7 @@ function CatalogChart(ctx: ComponentContext<typeof catalog, 'Chart'>) {
   return (
     <Chart
       data={data}
-      type={type as any}
+      type={type as ChartProps['type']}
       xAxis={finalXAxis}
       yAxis={finalYAxis}
       theme={theme || undefined}

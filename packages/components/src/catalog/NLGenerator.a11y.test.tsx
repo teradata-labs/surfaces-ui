@@ -163,7 +163,7 @@ describe('NLGenerator Accessibility', () => {
       const { container } = render(
         <NLGenerator
           baseUrl="http://localhost:8000"
-          renderSpec={(spec) => <div>Generated UI</div>}
+          renderSpec={(_spec) => <div>Generated UI</div>}
         />
       );
 
@@ -400,7 +400,7 @@ describe('NLGenerator Accessibility', () => {
 
       const user = userEvent.setup();
       const input = screen.getByLabelText(/describe the ui/i);
-      const form = input.closest('form');
+      const _form = input.closest('form');
 
       await user.type(input, 'test prompt');
 

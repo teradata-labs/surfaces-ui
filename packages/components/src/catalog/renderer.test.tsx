@@ -5,7 +5,7 @@
  * the zero-runtime constraint (THEME-06): no CSS-in-JS libraries.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { SurfacesRenderer } from './renderer';
 
 describe('SurfacesRenderer - Density Integration', () => {

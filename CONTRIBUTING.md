@@ -67,17 +67,41 @@ const response = await fetch('/api/query', ...);
 - Never hardcode colors
 - Test in both light and dark modes
 
+### Commit Signing
+
+All commits must be signed. Fork-signed commits (commits signed with your fork's GPG/SSH key) are acceptable. See [GitHub's documentation on signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) for setup instructions.
+
 ### Commit Messages
 
 - Use clear, descriptive commit messages
 - Reference issue numbers when applicable
 
+### Pre-PR Checklist
+
+Before submitting a pull request, ensure the following pass locally:
+
+```bash
+# Build the library (must compile with zero TypeScript errors)
+pnpm build
+
+# Run the full test suite (341+ tests, all must pass)
+pnpm test
+
+# Lint and type check (zero errors required; warnings are acceptable)
+pnpm --filter @surfacesui/components lint
+pnpm --filter @surfacesui/components exec tsc --noEmit
+
+# Audit production dependencies for known vulnerabilities
+pnpm audit --prod --audit-level=high
+```
+
 ### Pull Request Process
 
-1. PRs must pass all CI checks (build, test, lint, accessibility)
-2. PRs are reviewed by maintainers
-3. Maintain backwards compatibility when possible
-4. Update documentation for user-facing changes
+1. PRs must pass all CI checks (build, test, lint, accessibility, dependency review)
+2. All commits in the PR must be signed
+3. PRs are reviewed by maintainers
+4. Maintain backwards compatibility when possible
+5. Update documentation for user-facing changes
 
 ## License
 

@@ -7,7 +7,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMcpBridge } from './McpBridgeProvider';
-import type { PageResult } from './types';
 
 // ---------------------------------------------------------------------------
 // useMcpTool

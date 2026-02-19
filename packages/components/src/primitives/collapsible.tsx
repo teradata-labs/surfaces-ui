@@ -35,13 +35,13 @@ export function Collapsible({
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           if (child.type === CollapsibleTrigger) {
-            return React.cloneElement(child as React.ReactElement<any>, {
+            return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
               onClick: handleToggle,
               'aria-expanded': isOpen,
             });
           }
           if (child.type === CollapsibleContent) {
-            return React.cloneElement(child as React.ReactElement<any>, {
+            return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
               open: isOpen,
             });
           }

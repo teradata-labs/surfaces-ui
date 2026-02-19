@@ -5,7 +5,7 @@
  * Catches hallucinations (unknown component types, invalid props) and provides
  * structured error information for error recovery.
  */
-import { z, ZodError, ZodIssue } from 'zod';
+import { z, ZodIssue } from 'zod';
 import {
   ChartSchema,
   DataTableSchema,

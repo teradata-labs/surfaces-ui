@@ -11,7 +11,7 @@ import type { ChartType } from '../../primitives/chart/types';
 import { Card, CardContent } from '../../primitives/card';
 import { Button } from '../../primitives/button';
 import { cn } from '../../lib/utils';
-import type { ChartWithControlsProps, ChartControlsState } from './types';
+import type { ChartWithControlsProps } from './types';
 import { CHART_TYPE_OPTIONS } from './types';
 
 export function ChartWithControls({
