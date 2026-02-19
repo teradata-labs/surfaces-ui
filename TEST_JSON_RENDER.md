@@ -198,10 +198,10 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "surfacesui": {
-      "command": "/Users/josh.schoen/repos/surfacesui/server/venv/bin/python",
+    "surfaces-ui": {
+      "command": "/path/to/surfaces-ui/server/venv/bin/python",
       "args": ["-m", "src.main"],
-      "cwd": "/Users/josh.schoen/repos/surfacesui/server",
+      "cwd": "/path/to/surfaces-ui/server",
       "env": {
         "HTTP_ONLY": "false",
         "MOCK_MODE": "true",

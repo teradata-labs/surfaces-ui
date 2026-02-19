@@ -79,10 +79,10 @@ export class McpAppsBridge {
   }
 
   /**
-   * Normalize vantage-mcp response format to teradata-mcp-ui expected format.
+   * Normalize vantage-mcp response format to surfacesui expected format.
    *
    * vantage-mcp returns: { columns: [...], rows: [[...], [...]] }
-   * teradata-mcp-ui expects: { success: true, columns: [...], data: [{col: val}, ...], row_count: N }
+   * surfacesui expects: { success: true, columns: [...], data: [{col: val}, ...], row_count: N }
    */
   private normalizeResponse(raw: unknown): unknown {
     if (typeof raw !== 'object' || raw === null) {
@@ -137,7 +137,7 @@ export class McpAppsBridge {
   }
 
   /**
-   * Map tool names and arguments from teradata-mcp-ui conventions to vantage-mcp conventions.
+   * Map tool names and arguments from surfacesui conventions to vantage-mcp conventions.
    * This allows the same components to work with different backends.
    */
   private mapToolCall(toolName: string, args?: Record<string, unknown>): { name: string; arguments: Record<string, unknown> } {
@@ -197,7 +197,7 @@ export class McpAppsBridge {
         try {
           const parsed = JSON.parse(textContent.text);
 
-          // Normalize vantage-mcp response format to teradata-mcp-ui format
+          // Normalize vantage-mcp response format to surfacesui format
           const normalized = this.normalizeResponse(parsed);
 
           // Check if the result indicates an error

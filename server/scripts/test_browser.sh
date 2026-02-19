@@ -10,7 +10,7 @@ if ! lsof -i:3000 | grep -q LISTEN; then
     echo "❌ Server is not running on port 3000"
     echo ""
     echo "Start the server with:"
-    echo "  cd ~/repos/teradata-mcp-ui/server"
+    echo "  cd ~/repos/surfaces-ui/server"
     echo "  python test_http.py"
     exit 1
 fi

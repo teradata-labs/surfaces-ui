@@ -69,7 +69,7 @@ export TD_HOST="your-host.teradata.com"
 ```json
 {
   "mcpServers": {
-    "surfacesui": {
+    "surfaces-ui": {
       "command": "/path/to/python",
       "args": ["-m", "src.main"],
       "env": {
