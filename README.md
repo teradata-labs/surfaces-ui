@@ -26,7 +26,7 @@ Components communicate through the MCP Bridge pattern, not direct REST calls. Th
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd surfacesui
+cd surfaces-ui
 
 # Install JavaScript dependencies
 pnpm install
@@ -62,12 +62,12 @@ pnpm --filter @surfacesui/components test:coverage
 
 ## Using with Claude Desktop
 
-Claude Desktop supports MCP servers. Configure the surfacesui server in your Claude Desktop settings.
+Claude Desktop supports MCP servers. Configure the surfaces-ui server in your Claude Desktop settings.
 
 ### 1. Build the components
 
 ```bash
-cd surfacesui
+cd surfaces-ui
 pnpm install
 pnpm build
 pnpm --filter @surfacesui/components build:apps
@@ -83,10 +83,10 @@ Edit your Claude Desktop configuration file:
 ```json
 {
   "mcpServers": {
-    "teradata-ui": {
+    "surfaces-ui": {
       "command": "python",
       "args": ["-m", "src.main"],
-      "cwd": "/path/to/surfacesui/server",
+      "cwd": "/path/to/surfaces-ui/server",
       "env": {
         "MOCK_MODE": "true"
       }
@@ -116,21 +116,21 @@ After updating the configuration, restart Claude Desktop. The MCP server will be
 
 ## Connecting to vantage-mcp
 
-The surfacesui server can connect to vantage-mcp (the Go-based MCP tools server) in two modes:
+The surfaces-ui server can connect to vantage-mcp (the Go-based MCP tools server) in two modes:
 
 ### Mode 1: stdio (Recommended)
 
-In stdio mode, surfacesui spawns vantage-mcp as a subprocess and communicates via JSON-RPC over stdin/stdout. This is the native MCP communication method and requires no HTTP wrapper.
+In stdio mode, surfaces-ui spawns vantage-mcp as a subprocess and communicates via JSON-RPC over stdin/stdout. This is the native MCP communication method and requires no HTTP wrapper.
 
 **Claude Desktop Configuration:**
 
 ```json
 {
   "mcpServers": {
-    "teradata-ui": {
+    "surfaces-ui": {
       "command": "python",
       "args": ["-m", "src.main"],
-      "cwd": "/path/to/surfacesui/server",
+      "cwd": "/path/to/surfaces-ui/server",
       "env": {
         "MOCK_MODE": "false",
         "VANTAGE_MCP_MODE": "stdio",
@@ -145,7 +145,7 @@ In stdio mode, surfacesui spawns vantage-mcp as a subprocess and communicates vi
 ```
 
 **How it works:**
-1. surfacesui receives a `tools/call` request for `execute_sql`
+1. surfaces-ui receives a `tools/call` request for `execute_sql`
 2. It spawns vantage-mcp as a subprocess (if not already running)
 3. Sends MCP `initialize` request to establish the session
 4. Forwards the tool call via JSON-RPC: `{"method": "tools/call", "params": {"name": "teradata_execute_sql", ...}}`
@@ -159,17 +159,17 @@ In stdio mode, surfacesui spawns vantage-mcp as a subprocess and communicates vi
 
 ### Mode 2: HTTP
 
-In HTTP mode, surfacesui proxies requests to an HTTP endpoint. This requires running vantage-mcp with an HTTP wrapper or gateway.
+In HTTP mode, surfaces-ui proxies requests to an HTTP endpoint. This requires running vantage-mcp with an HTTP wrapper or gateway.
 
 **Claude Desktop Configuration:**
 
 ```json
 {
   "mcpServers": {
-    "teradata-ui": {
+    "surfaces-ui": {
       "command": "python",
       "args": ["-m", "src.main"],
-      "cwd": "/path/to/surfacesui/server",
+      "cwd": "/path/to/surfaces-ui/server",
       "env": {
         "MOCK_MODE": "false",
         "VANTAGE_MCP_MODE": "http",
@@ -181,7 +181,7 @@ In HTTP mode, surfacesui proxies requests to an HTTP endpoint. This requires run
 ```
 
 **How it works:**
-1. surfacesui receives a `tools/call` request for `execute_sql`
+1. surfaces-ui receives a `tools/call` request for `execute_sql`
 2. Makes an HTTP POST to `{VANTAGE_MCP_ADDR}/execute`
 3. Returns the response to the MCP client
 
@@ -202,21 +202,21 @@ In HTTP mode, surfacesui proxies requests to an HTTP endpoint. This requires run
 
 ## Using with Loom
 
-[Loom](https://github.com/teradata-labs/loom) is an LLM agent framework. The surfacesui components can be used with loom agents by configuring vantage-mcp as an MCP tool provider.
+[Loom](https://github.com/teradata-labs/loom) is an LLM agent framework. The surfaces-ui components can be used with loom agents by configuring vantage-mcp as an MCP tool provider.
 
-### Option 1: surfacesui with stdio mode (UI + Tools)
+### Option 1: surfaces-ui with stdio mode (UI + Tools)
 
-Use surfacesui as the main server, which spawns vantage-mcp internally for tool execution:
+Use surfaces-ui as the main server, which spawns vantage-mcp internally for tool execution:
 
 ```yaml
 # looms.yaml or agent.yaml
 tools:
-  - name: teradata-ui
+  - name: surfaces-ui
     type: mcp
     config:
       command: python
       args: ["-m", "src.main"]
-      cwd: /path/to/surfacesui/server
+      cwd: /path/to/surfaces-ui/server
       env:
         MOCK_MODE: "false"
         VANTAGE_MCP_MODE: "stdio"
@@ -255,12 +255,12 @@ Run both servers for maximum flexibility:
 # looms.yaml or agent.yaml
 tools:
   # UI resources server
-  - name: teradata-ui
+  - name: surfaces-ui
     type: mcp
     config:
       command: python
       args: ["-m", "src.main"]
-      cwd: /path/to/surfacesui/server
+      cwd: /path/to/surfaces-ui/server
       env:
         MOCK_MODE: "true"  # UI server doesn't need backend access
 
@@ -275,7 +275,7 @@ tools:
         TD_HOST: "vantage.example.com"
 ```
 
-This keeps concerns separated: teradata-ui handles resources, vantage-mcp handles tools.
+This keeps concerns separated: surfaces-ui handles resources, vantage-mcp handles tools.
 
 ## Integrating into Your MCP Server
 
@@ -286,7 +286,7 @@ The component library builds to standalone HTML files that can be served as MCP 
 First, build the HTML app bundles:
 
 ```bash
-cd surfacesui
+cd surfaces-ui
 pnpm install
 pnpm build
 pnpm --filter @surfacesui/components build:apps
@@ -313,7 +313,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 // Path to built HTML apps
-const APPS_DIR = "/path/to/surfacesui/packages/components/dist/apps";
+const APPS_DIR = "/path/to/surfaces-ui/packages/components/dist/apps";
 
 // UI app registry
 const UI_APPS = {
@@ -388,7 +388,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, TextContent
 
 # Path to built HTML apps
-APPS_DIR = Path("/path/to/surfacesui/packages/components/dist/apps")
+APPS_DIR = Path("/path/to/surfaces-ui/packages/components/dist/apps")
 
 # UI app registry
 UI_APPS = {
@@ -561,7 +561,7 @@ To embed the HTML files in your Go binary, copy them to an `apps/` directory in 
 ```bash
 # Copy built apps to your Go project
 mkdir -p /path/to/your-mcp-server/apps
-cp /path/to/surfacesui/packages/components/dist/apps/*.html \
+cp /path/to/surfaces-ui/packages/components/dist/apps/*.html \
    /path/to/your-mcp-server/apps/
 ```
 
@@ -574,7 +574,7 @@ For any server implementation, you can copy the built HTML files:
 mkdir -p /path/to/your-server/assets/ui
 
 # Copy all HTML app bundles
-cp surfacesui/packages/components/dist/apps/*.html \
+cp surfaces-ui/packages/components/dist/apps/*.html \
    /path/to/your-server/assets/ui/
 
 # Or use npm/pnpm to install as a dependency (if published)
@@ -637,7 +637,7 @@ function QueryComponent() {
 ## Project Structure
 
 ```
-surfacesui/
+surfaces-ui/
 ├── packages/
 │   └── components/           # React component library
 │       ├── src/
