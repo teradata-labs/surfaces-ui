@@ -12,6 +12,7 @@ import { McpBridgeProvider } from '../bridge/McpBridgeProvider';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { NLGenerator } from '../catalog/NLGenerator';
 import { SurfacesRenderer } from '../catalog/renderer';
+import type { Spec } from '@json-render/react';
 import '../theme/tokens.css';
 
 // Create the MCP Apps bridge instance
@@ -48,7 +49,7 @@ if (root) {
             baseUrl={window.location.origin}
             renderSpec={(spec) => (
               <SurfacesRenderer
-                spec={spec}
+                spec={spec as unknown as Spec}
                 bridge={bridge}
                 theme="system"
                 density="comfortable"
