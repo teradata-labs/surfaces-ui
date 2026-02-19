@@ -115,6 +115,7 @@ export function Chart({
       style={{ height: `${height}px` }}
       role="img"
       aria-label={`${type} chart showing ${yAxis} by ${xAxis}`}
+      data-testid="chart"
     />
   );
 }

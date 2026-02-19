@@ -4,12 +4,24 @@
  * Validates that all catalog schemas correctly map to React component implementations.
  * Covers all 8 registry wrappers (REG-01 through REG-08) plus completeness verification.
  */
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { catalog } from './schema';
 import { registry } from './registry';
 import { SurfacesRenderer } from './renderer';
 import type { Spec } from '@json-render/core';
+
+// Mock ECharts to avoid canvas rendering issues in jsdom
+vi.mock('echarts', () => ({
+  init: vi.fn(() => ({
+    setOption: vi.fn(),
+    resize: vi.fn(),
+    dispose: vi.fn(),
+    showLoading: vi.fn(),
+    hideLoading: vi.fn(),
+  })),
+  registerTheme: vi.fn(),
+}));
 
 // Mock window.matchMedia for ThemeProvider
 beforeAll(() => {
@@ -254,8 +266,8 @@ describe('REG-05: ViewModeToggle catalog mapping', () => {
 
     renderSpec(spec);
 
-    // ViewModeToggle renders toggle buttons
-    expect(screen.getByRole('group')).toBeTruthy();
+    // ViewModeToggle renders toggle buttons with tablist role
+    expect(screen.getByRole('tablist')).toBeTruthy();
   });
 
   it('renders ViewModeToggle with chart as active mode', () => {
@@ -275,7 +287,7 @@ describe('REG-05: ViewModeToggle catalog mapping', () => {
 
     renderSpec(spec);
 
-    expect(screen.getByRole('group')).toBeTruthy();
+    expect(screen.getByRole('tablist')).toBeTruthy();
   });
 });
 
@@ -400,7 +412,7 @@ describe('REG-08: SQLResultsDisplay catalog mapping', () => {
     renderSpec(spec);
 
     // Should render view mode toggle and content
-    expect(screen.getByRole('group')).toBeTruthy();
+    expect(screen.getByRole('tablist')).toBeTruthy();
   });
 
   it('renders SQLResultsDisplay with Teradata context', () => {
@@ -426,7 +438,7 @@ describe('REG-08: SQLResultsDisplay catalog mapping', () => {
     renderSpec(spec);
 
     // Should render with view mode toggle
-    expect(screen.getByRole('group')).toBeTruthy();
+    expect(screen.getByRole('tablist')).toBeTruthy();
   });
 
   it('renders SQLResultsDisplay with rows/columns data format', () => {
@@ -452,6 +464,6 @@ describe('REG-08: SQLResultsDisplay catalog mapping', () => {
 
     renderSpec(spec);
 
-    expect(screen.getByRole('group')).toBeTruthy();
+    expect(screen.getByRole('tablist')).toBeTruthy();
   });
 });

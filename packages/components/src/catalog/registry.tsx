@@ -82,7 +82,7 @@ function CatalogDataTable(ctx: ComponentContext<typeof catalog, 'DataTable'>) {
 
 function CatalogFilter(ctx: ComponentContext<typeof catalog, 'Filter'>) {
   const props = ctx.props as FilterProps;
-  const { placeholder } = props;
+  const { placeholder, ariaLabel } = props;
   // Filter needs value and onChange which come from parent context
   // This is a simplified version for catalog rendering
   const [value, setValue] = React.useState('');
@@ -92,6 +92,7 @@ function CatalogFilter(ctx: ComponentContext<typeof catalog, 'Filter'>) {
       value={value}
       onChange={setValue}
       placeholder={placeholder}
+      ariaLabel={ariaLabel}
     />
   );
 }

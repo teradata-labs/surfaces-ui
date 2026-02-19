@@ -29,6 +29,25 @@ vi.mock('echarts', () => ({
   registerTheme: vi.fn(),
 }));
 
+// Mock CodeMirror to avoid jsdom incompatibilities (getClientRects, canvas)
+vi.mock('../CodeMirrorSQLInput', () => ({
+  CodeMirrorSQLInput: ({ value, onChange, onExecute, disabled, readOnly, placeholder }: any) => (
+    <textarea
+      value={value}
+      onChange={(e: any) => onChange(e.target.value)}
+      onKeyDown={(e: any) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          onExecute();
+        }
+      }}
+      disabled={disabled}
+      readOnly={readOnly}
+      placeholder={placeholder || 'Enter SQL query...'}
+      aria-label="SQL input"
+    />
+  ),
+}));
+
 import { useMcpTool } from '../../../bridge/hooks';
 
 describe('SQLEditor', () => {

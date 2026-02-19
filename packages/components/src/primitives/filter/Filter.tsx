@@ -59,6 +59,7 @@ export function Filter({
       <Search className="absolute left-2 h-4 w-4 text-muted-foreground pointer-events-none" />
       <Input
         type="text"
+        role="searchbox"
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder}

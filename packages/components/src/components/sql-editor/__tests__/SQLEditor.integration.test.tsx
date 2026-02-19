@@ -29,6 +29,25 @@ vi.mock('echarts', () => ({
   registerTheme: vi.fn(),
 }));
 
+// Mock CodeMirror to avoid jsdom incompatibilities (getClientRects, canvas)
+vi.mock('../CodeMirrorSQLInput', () => ({
+  CodeMirrorSQLInput: ({ value, onChange, onExecute, disabled, readOnly, placeholder }: any) => (
+    <textarea
+      value={value}
+      onChange={(e: any) => onChange(e.target.value)}
+      onKeyDown={(e: any) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          onExecute();
+        }
+      }}
+      disabled={disabled}
+      readOnly={readOnly}
+      placeholder={placeholder || 'Enter SQL query...'}
+      aria-label="SQL input"
+    />
+  ),
+}));
+
 import { useMcpTool } from '../../../bridge/hooks';
 
 describe('SQLEditor MCP Integration', () => {
@@ -181,7 +200,9 @@ describe('SQLEditor MCP Integration', () => {
       });
 
       render(<SQLEditor initialCode="SELECT id FROM data" />);
-      expect(screen.getByText('5 rows')).toBeInTheDocument();
+      // Row count appears in both the CollapsibleTrigger and SQLResultsDisplay Badge
+      const matches = screen.getAllByText(/5 rows/);
+      expect(matches.length).toBeGreaterThan(0);
     });
 
     it('handles null values in response data', () => {
@@ -371,7 +392,9 @@ describe('SQLEditor MCP Integration', () => {
 
       rerender(<SQLEditor initialCode="SELECT 2" />);
 
-      expect(useMcpTool).toHaveBeenLastCalledWith(
+      // useMcpTool is called for both execute_sql and get_last_result,
+      // so check that execute_sql was called with the updated query
+      expect(useMcpTool).toHaveBeenCalledWith(
         'execute_sql',
         expect.objectContaining({ query: 'SELECT 2' }),
         expect.any(Object)
