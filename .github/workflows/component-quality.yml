@@ -25,10 +25,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build library
-        run: pnpm --filter @teradata-mcp-ui/components build
+        run: pnpm --filter @surfacesui/components build
 
       - name: Build HTML apps
-        run: pnpm --filter @teradata-mcp-ui/components build:apps
+        run: pnpm --filter @surfacesui/components build:apps
 
       - name: Check bundle sizes
         run: |
@@ -81,7 +81,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Run tests with coverage
-        run: pnpm --filter @teradata-mcp-ui/components test:coverage
+        run: pnpm --filter @surfacesui/components test:coverage
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
@@ -107,10 +107,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: TypeScript type check
-        run: pnpm --filter @teradata-mcp-ui/components exec tsc --noEmit
+        run: pnpm --filter @surfacesui/components exec tsc --noEmit
 
       - name: Lint
-        run: pnpm --filter @teradata-mcp-ui/components lint
+        run: pnpm --filter @surfacesui/components lint
 
   accessibility:
     name: Accessibility Check
@@ -131,4 +131,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Run accessibility tests
-        run: pnpm --filter @teradata-mcp-ui/components exec vitest run --reporter=verbose "**/*.a11y.test.*"
+        run: pnpm --filter @surfacesui/components exec vitest run --reporter=verbose "**/*.a11y.test.*"

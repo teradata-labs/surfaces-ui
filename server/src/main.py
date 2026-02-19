@@ -188,7 +188,7 @@ async def run_mcp_server():
 
 async def main():
     """Run the MCP server and HTTP server in parallel."""
-    logger.info("Starting Teradata MCP UI Server")
+    logger.info("Starting SurfacesUI Server")
     logger.info(f"Mock mode: {MOCK_MODE}")
     logger.info(f"Vantage MCP mode: {VANTAGE_MCP_MODE}")
     logger.info(f"HTTP port: {HTTP_PORT}")

@@ -699,7 +699,7 @@ wheels = [
 ]
 
 [[package]]
-name = "teradata-mcp-ui-server"
+name = "surfacesui-server"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

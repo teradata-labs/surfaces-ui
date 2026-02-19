@@ -1,12 +1,12 @@
 [project]
-name = "teradata-mcp-ui-server"
+name = "surfacesui-server"
 version = "0.1.0"
-description = "FastMCP server for Teradata MCP UI components"
+description = "FastMCP server for SurfacesUI components"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 authors = [
-    { name = "Teradata" }
+    { name = "Teradata Labs" }
 ]
 dependencies = [
     "mcp>=1.0.0",
