@@ -99,7 +99,7 @@ Before making the repository public or sharing with external collaborators:
 If you discover a security vulnerability in this repository:
 
 1. **Do NOT** open a public issue
-2. Contact the repository maintainers directly
+2. Report via [GitHub Security Advisories](https://github.com/teradata-labs/surfaces-ui/security/advisories)
 3. Provide details of the vulnerability
 4. Allow time for the issue to be addressed before public disclosure
 
