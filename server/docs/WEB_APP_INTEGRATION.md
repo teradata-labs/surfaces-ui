@@ -248,7 +248,7 @@ app.use(cors());
 ### Install Package
 
 ```bash
-npm install @surfaces-ui/components
+npm install @surfacesui/components
 ```
 
 ### Create Custom Bridge
@@ -290,10 +290,10 @@ export class HttpSqlBridge {
 
 ```tsx
 // src/App.tsx
-import { McpBridgeProvider } from '@surfaces-ui/components';
-import { SQLEditor } from '@surfaces-ui/components';
+import { McpBridgeProvider } from '@surfacesui/components';
+import { SQLEditor } from '@surfacesui/components';
 import { HttpSqlBridge } from './bridge/HttpSqlBridge';
-import '@surfaces-ui/components/theme/tokens.css';
+import '@surfacesui/components/theme/tokens.css';
 
 const bridge = new HttpSqlBridge('https://your-api.example.com/api');
 
@@ -491,7 +491,7 @@ your-app/
 │   ├── src/
 │   │   ├── App.tsx
 │   │   └── main.tsx
-│   └── package.json (includes @surfaces-ui/components)
+│   └── package.json (includes @surfacesui/components)
 ```
 
 ### Backend: Express + PostgreSQL

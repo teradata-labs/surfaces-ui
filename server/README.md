@@ -121,7 +121,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "teradata-ui": {
+    "surfaces-ui": {
       "command": "/path/to/venv/bin/python",
       "args": ["-m", "src.main"],
       "cwd": "/path/to/surfaces-ui/server",
@@ -196,7 +196,7 @@ See [docs/WEB_APP_INTEGRATION.md](docs/WEB_APP_INTEGRATION.md) for:
 ### Using as React Component
 
 ```bash
-npm install @surfaces-ui/components
+npm install @surfacesui/components
 ```
 
 See project root README for React component usage.

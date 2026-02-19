@@ -280,7 +280,7 @@ When you configure Claude Desktop with the MCP server:
 ```json
 {
   "mcpServers": {
-    "teradata-ui": {
+    "surfaces-ui": {
       "command": "python",
       "args": ["-m", "src.main"],
       "env": { "HTTP_PORT": "3000" }
@@ -329,7 +329,7 @@ The standalone version is **never used** in this flow - it's only for local test
 
 2. **Build:**
    ```bash
-   pnpm --filter @surfaces-ui/components build:http
+   pnpm --filter @surfacesui/components build:http
    ```
 
 3. **Test Standalone:**

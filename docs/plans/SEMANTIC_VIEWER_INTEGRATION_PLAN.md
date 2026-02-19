@@ -2956,7 +2956,7 @@ Teradata Vantage (database)
 
 ### surfaces-ui Setup
 - [ ] Build React components: `pnpm build`
-- [ ] Build HTML app bundles: `pnpm --filter @surfaces-ui/components build:apps`
+- [ ] Build HTML app bundles: `pnpm --filter @surfacesui/components build:apps`
 - [ ] Verify bundles exist: `packages/components/dist/apps/*.html`
 - [ ] Set `MCP_APPS_DIR`: `export MCP_APPS_DIR="$HOME/repos/surfaces-ui/packages/components/dist/apps"`
 - [ ] Verify vantage-mcp discovers apps (check resource list)

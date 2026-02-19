@@ -87,7 +87,7 @@ Monaco Editor requires HTTP server for web workers. We need to decide where this
 teradata/
 ├─ vantage-mcp/          (Go - MCP + DB)
 ├─ surfaces-ui/      (React components library)
-└─ teradata-ui-server/   (Python/Node - HTTP server)
+└─ surfacesui-server/    (Python/Node - HTTP server)
 ```
 
 **Pros:**
@@ -125,7 +125,7 @@ Laptop (localhost)
 ```
 ┌─────────────────────────────────┐
 │ Load Balancer                    │
-│ https://teradata-ui.company.com │
+│ https://surfaces-ui.company.com │
 └──────────┬──────────────────────┘
            │
     ┏──────┴──────┐
@@ -200,7 +200,7 @@ Laptop (localhost)
   "mcpServers": {
     "vantage-mcp": {
       "env": {
-        "UI_SERVER_URL": "https://teradata-ui.company.com"
+        "UI_SERVER_URL": "https://surfaces-ui.company.com"
       }
     }
   }

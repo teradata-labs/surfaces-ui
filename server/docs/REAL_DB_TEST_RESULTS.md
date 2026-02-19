@@ -177,7 +177,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "teradata-ui": {
+    "surfaces-ui": {
       "command": "/path/to/venv/bin/python",
       "args": ["-m", "src.main"],
       "cwd": "/path/to/surfaces-ui/server",
