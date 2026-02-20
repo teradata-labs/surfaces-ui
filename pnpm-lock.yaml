@@ -178,8 +178,8 @@ importers:
         specifier: ^3.6.0
         version: 3.9.1(@types/node@25.3.0)(rollup@4.57.1)(typescript@5.9.3)(vite@5.4.21(@types/node@25.3.0))
       vite-plugin-singlefile:
-        specifier: 0.13.5
-        version: 0.13.5(rollup@4.57.1)(vite@5.4.21(@types/node@25.3.0))
+        specifier: 2.3.0
+        version: 2.3.0(rollup@4.57.1)(vite@5.4.21(@types/node@25.3.0))
       vitest:
         specifier: ^1.0.0
         version: 1.6.1(@types/node@25.3.0)(jsdom@22.1.0)
@@ -3326,13 +3326,6 @@ packages:
     peerDependenciesMeta:
       vite:
         optional: true
-
-  vite-plugin-singlefile@0.13.5:
-    resolution: {integrity: sha512-y/aRGh8qHmw2f1IhaI/C6PJAaov47ESYDvUv1am1YHMhpY+19B5k5Odp8P+tgs+zhfvak6QB1ykrALQErEAo7g==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    peerDependencies:
-      rollup: '>=2.79.0'
-      vite: '>=3.2.0'
 
   vite-plugin-singlefile@2.3.0:
     resolution: {integrity: sha512-DAcHzYypM0CasNLSz/WG0VdKOCxGHErfrjOoyIPiNxTPTGmO6rRD/te93n1YL/s+miXq66ipF1brMBikf99c6A==}
@@ -6701,12 +6694,6 @@ snapshots:
       - '@types/node'
       - rollup
       - supports-color
-
-  vite-plugin-singlefile@0.13.5(rollup@4.57.1)(vite@5.4.21(@types/node@25.3.0)):
-    dependencies:
-      micromatch: 4.0.8
-      rollup: 4.57.1
-      vite: 5.4.21(@types/node@25.3.0)
 
   vite-plugin-singlefile@2.3.0(rollup@4.57.1)(vite@5.4.21(@types/node@25.3.0)):
     dependencies:
