@@ -3,6 +3,11 @@
  *
  * Each entry maps an app ID to its display name, description,
  * MIME type, and the filename of the built HTML bundle.
+ *
+ * Note: The previous Python server also registered file-browser,
+ * data-browser, and chat-panel as placeholder entries. These were
+ * removed because they had no corresponding HTML builds. They can
+ * be added here once build targets exist for them.
  */
 
 export const SURFACES_APPS = {

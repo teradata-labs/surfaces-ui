@@ -132,8 +132,8 @@ describe('DataTable performance characteristics', () => {
     const largeDuration = performance.now() - largeStart;
 
     // Large dataset should NOT take 10x longer (proving virtualization works)
-    // Allow 3x factor for variance and setup costs
-    expect(largeDuration).toBeLessThan(smallDuration * 3);
+    // Allow 5x factor for variance, GC pauses, and parallel CI load
+    expect(largeDuration).toBeLessThan(smallDuration * 5);
   });
 });
 

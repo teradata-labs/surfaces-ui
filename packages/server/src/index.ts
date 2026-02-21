@@ -24,7 +24,17 @@ import {
   getSurfacesResources,
   readSurfacesResource,
   isSurfacesUri,
+  validateBundles,
 } from "@surfacesui/mcp-adapter";
+
+// Validate that HTML bundles exist before starting
+const missing = validateBundles();
+if (missing.length > 0) {
+  console.error(
+    `WARNING: Missing HTML bundles: ${missing.join(", ")}. ` +
+    `Run "pnpm build" from the project root to generate them.`,
+  );
+}
 
 const server = new Server(
   { name: "surfaces-ui", version: "0.1.0" },

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { SURFACES_APPS, type AppId } from "./registry.js";
@@ -36,19 +36,26 @@ export function getSurfacesResources(): SurfacesResource[] {
  */
 export function readSurfacesResource(uri: string): SurfacesResourceContent {
   const id = uri.replace(URI_PREFIX, "") as AppId;
-  const meta = SURFACES_APPS[id];
-  if (!meta) {
+
+  if (!Object.hasOwn(SURFACES_APPS, id)) {
     throw new Error(`Unknown surfaces-ui app: "${id}"`);
   }
 
+  const meta = SURFACES_APPS[id as AppId];
   const filePath = resolve(APPS_DIR, meta.filename);
-  const text = readFileSync(filePath, "utf-8");
 
-  return {
-    uri,
-    mimeType: meta.mimeType,
-    text,
-  };
+  try {
+    const text = readFileSync(filePath, "utf-8");
+    return {
+      uri,
+      mimeType: meta.mimeType,
+      text,
+    };
+  } catch {
+    throw new Error(
+      `HTML bundle for "${id}" not found. Run "pnpm build" to generate app bundles.`,
+    );
+  }
 }
 
 /**
@@ -57,4 +64,20 @@ export function readSurfacesResource(uri: string): SurfacesResourceContent {
  */
 export function isSurfacesUri(uri: string): boolean {
   return uri.startsWith(URI_PREFIX);
+}
+
+/**
+ * Validates that all registered app bundles exist on disk.
+ * Returns an array of app IDs whose HTML bundles are missing.
+ * An empty array means all bundles are present.
+ */
+export function validateBundles(): string[] {
+  const missing: string[] = [];
+  for (const [id, meta] of Object.entries(SURFACES_APPS)) {
+    const filePath = resolve(APPS_DIR, meta.filename);
+    if (!existsSync(filePath)) {
+      missing.push(id);
+    }
+  }
+  return missing;
 }

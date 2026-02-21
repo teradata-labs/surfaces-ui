@@ -116,6 +116,9 @@ jobs:
       - name: Run mcp-adapter tests
         run: pnpm --filter @surfacesui/mcp-adapter test
 
+      - name: Run server tests
+        run: pnpm --filter @surfacesui/server test
+
       - name: Upload coverage
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
@@ -147,6 +150,9 @@ jobs:
 
       - name: TypeScript type check (mcp-adapter)
         run: pnpm --filter @surfacesui/mcp-adapter exec tsc --noEmit
+
+      - name: Build mcp-adapter types (required for server type check)
+        run: pnpm --filter @surfacesui/mcp-adapter exec tsc
 
       - name: TypeScript type check (server)
         run: pnpm --filter @surfacesui/server exec tsc --noEmit
