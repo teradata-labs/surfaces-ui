@@ -108,6 +108,124 @@ server.setRequestHandler("resources/read", async (req) => {
 No new config entry. No new process. Just a package dependency and a few lines
 of glue in the existing resource handlers.
 
+## Connecting to an MCP Server (Loom Example)
+
+There are three ways to use surfaces-ui with an MCP server. We use
+[Loom](https://github.com/teradata-labs/loom) as the running example since
+it's a Go-based agent framework with its own MCP layer (`loom-mcp`).
+
+### Option 1: Side-by-side MCP servers (simplest)
+
+Run `@surfacesui/server` alongside your existing MCP server. Claude Desktop
+and other MCP clients support multiple servers simultaneously.
+
+```json
+{
+  "mcpServers": {
+    "loom": {
+      "command": "/path/to/loom-mcp",
+      "args": ["--grpc-addr", "localhost:60051"]
+    },
+    "surfaces-ui": {
+      "command": "npx",
+      "args": ["@surfacesui/server"]
+    }
+  }
+}
+```
+
+The MCP client sees Loom's tools/resources and surfaces-ui's HTML apps as a
+combined set. No code changes to either server. This is the recommended
+starting point.
+
+### Option 2: Embed the adapter in a Node.js MCP server
+
+If your MCP server is written in Node.js/TypeScript, import
+`@surfacesui/mcp-adapter` directly (see [MCP Adapter](#mcp-adapter-embedding-in-your-own-server) above).
+
+### Option 3: Vendor the HTML bundles (Go, Rust, Python, etc.)
+
+For non-Node servers like Loom (Go), vendor the pre-built HTML bundles and
+serve them as MCP resources from your own codebase:
+
+```bash
+# Download the HTML bundles from the published npm package
+npm pack @surfacesui/mcp-adapter --pack-destination /tmp
+tar -xzf /tmp/surfacesui-mcp-adapter-*.tgz -C /tmp
+ls /tmp/package/apps/
+#   sql-editor-cdn.html
+#   json-render-cdn.html
+```
+
+Then register them in your server's resource handlers. In Loom's Go codebase,
+for example, you would embed the HTML files and register them in the
+`UIResourceRegistry`:
+
+```go
+import "embed"
+
+//go:embed html/sql-editor-cdn.html
+var sqlEditorHTML []byte
+
+//go:embed html/json-render-cdn.html
+var jsonRenderHTML []byte
+
+func RegisterSurfacesApps(registry *apps.UIResourceRegistry) error {
+    entries := []struct {
+        name, desc string
+        html       []byte
+    }{
+        {"sql-editor", "Interactive SQL editor with query execution", sqlEditorHTML},
+        {"json-render", "Natural language UI generator", jsonRenderHTML},
+    }
+    for _, e := range entries {
+        if _, _, err := registry.CreateApp(e.name, e.desc, e.html); err != nil {
+            return fmt.Errorf("register %s: %w", e.name, err)
+        }
+    }
+    return nil
+}
+```
+
+The apps then appear in `loom-mcp`'s `resources/list` alongside Loom's own
+built-in apps (conversation-viewer, data-chart, etc.) and any dynamic apps
+created by agents.
+
+### Option 4: LoomBridge (client-side, no MCP server needed)
+
+If you're building a web app that talks directly to a running Loom server,
+use the `LoomBridge` from `@surfacesui/components`. This bypasses MCP
+entirely and connects over Loom's HTTP/gRPC-gateway API:
+
+```tsx
+import { LoomBridge, McpBridgeProvider, ConversationViewer } from '@surfacesui/components';
+
+const bridge = new LoomBridge({ loomUrl: 'http://localhost:5006' });
+bridge.connect();
+
+function App() {
+  return (
+    <McpBridgeProvider bridge={bridge}>
+      <ConversationViewer />
+    </McpBridgeProvider>
+  );
+}
+```
+
+The `LoomBridge` maps component tool calls to Loom REST endpoints
+automatically:
+
+| Tool Call | Maps To |
+|-----------|---------|
+| `list_agents` | `GET /v1/agents` |
+| `list_sessions` | `GET /v1/sessions` |
+| `get_conversation_history` | `GET /v1/sessions/{id}/history` |
+| `weave` | `POST /v1/weave` |
+| *(any unknown tool)* | `POST /v1/weave` (agent-mediated) |
+
+See the [Loom Integration Test](#loom-integration-test) section below for a
+full working example.
+
 ## Bridge Architecture
 
 All components use a `BridgeLike` interface for tool calls. The bridge is injected via React context (`McpBridgeProvider`), so components are backend-agnostic:
