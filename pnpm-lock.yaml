@@ -30,11 +30,11 @@ importers:
         specifier: ^6.39.13
         version: 6.39.15
       '@json-render/core':
-        specifier: ^0.6.1
-        version: 0.6.1(zod@4.3.6)
+        specifier: ^0.8.0
+        version: 0.8.0(zod@4.3.6)
       '@json-render/react':
-        specifier: ^0.6.1
-        version: 0.6.1(react@18.3.1)(zod@4.3.6)
+        specifier: ^0.8.0
+        version: 0.8.0(react@18.3.1)(zod@4.3.6)
       '@modelcontextprotocol/ext-apps':
         specifier: ^1.0.1
         version: 1.0.1(@modelcontextprotocol/sdk@1.26.0(zod@4.3.6))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.3.6)
@@ -78,8 +78,8 @@ importers:
         specifier: ^5.5.0
         version: 5.6.0
       lucide-react:
-        specifier: ^0.460.0
-        version: 0.460.0(react@18.3.1)
+        specifier: ^0.575.0
+        version: 0.575.0(react@18.3.1)
       prismjs:
         specifier: ^1.30.0
         version: 1.30.0
@@ -599,13 +599,13 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@json-render/core@0.6.1':
-    resolution: {integrity: sha512-YDDld32kcyUxviFe+uR5dpM7dbbCtlDaC/HBRffbdq70jfuy0bMLK6xP9WCFjOZ3caX+c1E53Yq/lHRnNGEjZQ==}
+  '@json-render/core@0.8.0':
+    resolution: {integrity: sha512-EdUJtjogqt+e9vG9DodIaPYTHDpuEKCe+C27zEtP9fKlL6bWacA8X3lpGtxf6WkswarIhdrhUxeqR9ZAqs+7HQ==}
     peerDependencies:
       zod: ^4.0.0
 
-  '@json-render/react@0.6.1':
-    resolution: {integrity: sha512-Lwkb4ijTnKGD+dNPNzAIfCyV0HKqUe98kaUVrEVSja8hKElRl/jkQdCK9/GZMaziaNRNgxuLAhk48s/CTXs8tA==}
+  '@json-render/react@0.8.0':
+    resolution: {integrity: sha512-uL3gwnAk6FDz7uiypQYdmTn6LOl7453Bt7UihYHgq8rDz92i0m1DQjE3HVnTTpnSpu60YR58mRKgTHHCCdC03g==}
     peerDependencies:
       react: ^19.2.3
 
@@ -2527,10 +2527,10 @@ packages:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
 
-  lucide-react@0.460.0:
-    resolution: {integrity: sha512-BVtq/DykVeIvRTJvRAgCsOwaGL8Un3Bxh8MbDxMhEWlZay3T4IpEKDEpwt5KZ0KJMHzgm6jrltxlT5eXOWXDHg==}
+  lucide-react@0.575.0:
+    resolution: {integrity: sha512-VuXgKZrk0uiDlWjGGXmKV6MSk9Yy4l10qgVvzGn2AWBx1Ylt0iBexKOAoA6I7JO3m+M9oeovJd3yYENfkUbOeg==}
     peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -3839,13 +3839,13 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@json-render/core@0.6.1(zod@4.3.6)':
+  '@json-render/core@0.8.0(zod@4.3.6)':
     dependencies:
       zod: 4.3.6
 
-  '@json-render/react@0.6.1(react@18.3.1)(zod@4.3.6)':
+  '@json-render/react@0.8.0(react@18.3.1)(zod@4.3.6)':
     dependencies:
-      '@json-render/core': 0.6.1(zod@4.3.6)
+      '@json-render/core': 0.8.0(zod@4.3.6)
       react: 18.3.1
     transitivePeerDependencies:
       - zod
@@ -5901,7 +5901,7 @@ snapshots:
     dependencies:
       yallist: 4.0.0
 
-  lucide-react@0.460.0(react@18.3.1):
+  lucide-react@0.575.0(react@18.3.1):
     dependencies:
       react: 18.3.1
 
