@@ -5,7 +5,8 @@
   "description": "SurfacesUI Components - Reusable React components served via MCP Apps protocol",
   "scripts": {
     "dev": "pnpm -r --parallel run dev",
-    "build": "pnpm -r run build",
+    "build": "pnpm --filter @surfacesui/components build && pnpm --filter @surfacesui/mcp-adapter build && pnpm --filter @surfacesui/server build",
+    "build:apps": "pnpm --filter @surfacesui/components build:apps",
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
     "clean": "pnpm -r run clean"

@@ -6,10 +6,13 @@ Reusable React component library served as self-contained HTML bundles via MCP b
 
 ## Overview
 
-This project provides:
+This project provides three packages:
 
-- **packages/components** - React component library (TypeScript + Tailwind)
-- **server/** - FastMCP Python server that serves HTML apps as MCP resources
+| Package | Audience | What it does |
+|---|---|---|
+| `@surfacesui/components` | React app authors | Components + bridges |
+| `@surfacesui/mcp-adapter` | MCP server authors | Pure functions to register surfaces-ui resources/tools in any MCP server |
+| `@surfacesui/server` | End users / Claude Desktop | Standalone MCP server, `npx`-runnable |
 
 Components communicate through the MCP Bridge pattern, not direct REST calls. Three bridge implementations allow the same components to work across different environments:
 
@@ -25,7 +28,6 @@ Components communicate through the MCP Bridge pattern, not direct REST calls. Th
 
 - Node.js >= 20.0.0
 - pnpm >= 10.0.0
-- Python >= 3.11 (for MCP server, optional)
 
 ### Installation
 
@@ -36,11 +38,11 @@ pnpm install
 ### Build
 
 ```bash
-# Build the component library
+# Build all packages (components -> mcp-adapter -> server)
 pnpm build
 
-# Build HTML app bundles for MCP serving
-pnpm --filter @surfacesui/components build:apps
+# Build only HTML app bundles
+pnpm build:apps
 ```
 
 ### Development
@@ -55,6 +57,56 @@ pnpm test
 # Run tests with coverage
 pnpm --filter @surfacesui/components test:coverage
 ```
+
+## Using with Claude Desktop
+
+Configure the surfaces-ui MCP server in your Claude Desktop settings:
+
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "surfaces-ui": {
+      "command": "npx",
+      "args": ["@surfacesui/server"]
+    }
+  }
+}
+```
+
+No Python. No pip. No build step. Just `npx`.
+
+## MCP Adapter (Embedding in Your Own Server)
+
+The `@surfacesui/mcp-adapter` package provides pure, framework-agnostic functions
+that any MCP server can import to serve surfaces-ui apps as resources:
+
+```ts
+import {
+  getSurfacesResources,
+  readSurfacesResource,
+  isSurfacesUri,
+} from "@surfacesui/mcp-adapter";
+
+// Merge into your existing resource list handler
+server.setRequestHandler("resources/list", async () => ({
+  resources: [
+    ...myExistingResources,
+    ...getSurfacesResources(),
+  ],
+}));
+
+server.setRequestHandler("resources/read", async (req) => {
+  if (isSurfacesUri(req.params.uri)) {
+    return { contents: [readSurfacesResource(req.params.uri)] };
+  }
+  // ... handle own resources
+});
+```
+
+No new config entry. No new process. Just a package dependency and a few lines
+of glue in the existing resource handlers.
 
 ## Bridge Architecture
 
@@ -118,21 +170,6 @@ The dashboard has four sections, all fetching live data from Loom via `LoomBridg
 
 **UI Apps** - Lists all UI apps registered in Loom (conversation-viewer, data-chart, data-quality-dashboard, explain-plan-visualizer, plus any dynamic apps created by agents).
 
-### Architecture
-
-```
-loom-test.tsx
-  └── LoomBridge (http://localhost:5006)
-        ├── GET /v1/agents          → Agent cards
-        ├── GET /v1/sessions        → Session sidebar
-        ├── GET /v1/sessions/{id}/history → Conversation thread
-        ├── GET /v1/apps            → UI app list
-        ├── POST /v1/weave          → Agent chat
-        └── GET /health             → Health badge
-```
-
-The LoomBridge supports dynamic path parameters (session_id in URL), configurable agent/session IDs, and falls back to agent-mediated execution for unrecognized tools.
-
 ### Creating a Custom Bridge
 
 To connect surfaces-ui to a new backend, implement `BridgeLike`:
@@ -170,58 +207,6 @@ Then wrap your components:
 <McpBridgeProvider bridge={new MyBridge()}>
   <ConversationViewer />
 </McpBridgeProvider>
-```
-
-## Using with Claude Desktop
-
-Configure the surfaces-ui Python server in your Claude Desktop settings:
-
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "surfaces-ui": {
-      "command": "python",
-      "args": ["-m", "src.main"],
-      "cwd": "/path/to/surfaces-ui/server",
-      "env": {
-        "MOCK_MODE": "true"
-      }
-    }
-  }
-}
-```
-
-### Connecting to vantage-mcp
-
-The Python server can proxy to vantage-mcp in two modes:
-
-**stdio (recommended):** Spawns vantage-mcp as a subprocess, communicates via JSON-RPC over stdin/stdout.
-
-```json
-{
-  "env": {
-    "MOCK_MODE": "false",
-    "VANTAGE_MCP_MODE": "stdio",
-    "VANTAGE_MCP_BINARY": "/path/to/vantage-mcp",
-    "TD_USER": "your-username",
-    "TD_PASSWORD": "your-password",
-    "TD_HOST": "vantage.example.com"
-  }
-}
-```
-
-**HTTP:** Proxies to a running vantage-mcp HTTP endpoint.
-
-```json
-{
-  "env": {
-    "MOCK_MODE": "false",
-    "VANTAGE_MCP_MODE": "http",
-    "VANTAGE_MCP_ADDR": "http://localhost:3000"
-  }
-}
 ```
 
 ## Components
@@ -270,35 +255,33 @@ Natural language UI generator powered by json-render. Generates interactive UI f
 ```
 surfaces-ui/
 ├── packages/
-│   └── components/
+│   ├── components/                    # React component library
+│   │   └── src/
+│   │       ├── bridge/                # MCP bridge implementations
+│   │       │   ├── McpBridge.ts       # postMessage bridge (web)
+│   │       │   ├── McpAppsBridge.ts   # MCP Apps bridge (Claude Desktop)
+│   │       │   ├── LoomBridge.ts      # Loom HTTP bridge
+│   │       │   ├── McpBridgeProvider.tsx
+│   │       │   ├── hooks.ts           # useMcpTool, useMcpPagination, useMcpStream
+│   │       │   └── types.ts
+│   │       ├── components/            # SQL Editor, Conversation Viewer, etc.
+│   │       ├── primitives/            # Button, Card, Badge, Dialog, etc.
+│   │       ├── catalog/               # json-render NL UI generation
+│   │       ├── apps/                  # HTML bundle entry points
+│   │       └── theme/                 # ThemeProvider + CSS tokens
+│   ├── mcp-adapter/                   # Framework-agnostic MCP adapter
+│   │   ├── src/
+│   │   │   ├── registry.ts            # App metadata (single source of truth)
+│   │   │   ├── resources.ts           # Resource list + content reader
+│   │   │   ├── types.ts               # SurfacesResource, SurfacesResourceContent
+│   │   │   └── index.ts               # Public API
+│   │   ├── scripts/copy-apps.js       # Copies HTML bundles from components
+│   │   └── apps/                      # Copied HTML bundles (build artifact)
+│   └── server/                        # Standalone Node.js MCP server
 │       └── src/
-│           ├── bridge/
-│           │   ├── McpBridge.ts          # postMessage bridge (web)
-│           │   ├── McpAppsBridge.ts       # MCP Apps bridge (Claude Desktop)
-│           │   ├── LoomBridge.ts          # Loom HTTP bridge
-│           │   ├── McpBridgeProvider.tsx   # React context + BridgeLike interface
-│           │   ├── hooks.ts               # useMcpTool, useMcpPagination, useMcpStream
-│           │   └── types.ts               # McpToolResult, PageResult, etc.
-│           ├── components/
-│           │   ├── sql-editor/            # SQL Editor component
-│           │   ├── conversation-viewer/   # Conversation Viewer component
-│           │   ├── sql-results/           # Query result display
-│           │   └── charts/                # Chart components
-│           ├── primitives/                # Button, Card, Badge, Dialog, etc.
-│           ├── catalog/                   # json-render NL UI generation
-│           ├── apps/                      # HTML bundle entry points
-│           │   ├── sql-editor-cdn.tsx      # SQL Editor app (McpAppsBridge)
-│           │   ├── json-render-cdn.tsx     # NL Generator app (McpAppsBridge)
-│           │   └── loom-test.tsx           # Loom integration dashboard (LoomBridge)
-│           └── theme/                     # ThemeProvider + CSS tokens
-├── server/                                # FastMCP Python server
-│   └── src/
-│       ├── main.py                        # Server entry point
-│       ├── tools/                         # MCP tools (sql.py)
-│       ├── resources/                     # MCP resources (ui.py)
-│       └── llm/                           # LLM providers (Bedrock, Anthropic, OpenAI)
+│           └── index.ts               # MCP server using @surfacesui/mcp-adapter
 └── .claude/
-    └── agents/                            # UX, Engineering, Testing review agents
+    └── agents/                        # UX, Engineering, Testing review agents
 ```
 
 ## Quality Standards

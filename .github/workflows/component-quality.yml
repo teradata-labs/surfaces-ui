@@ -34,7 +34,7 @@ jobs:
         run: pnpm audit --prod --audit-level=high || echo "::warning::pnpm audit failed (may be transient npm registry issue)"
         continue-on-error: true
 
-      - name: Build library
+      - name: Build component library
         run: pnpm --filter @surfacesui/components build
 
       - name: Build HTML apps
@@ -69,9 +69,26 @@ jobs:
           done
 
           if [ "$FAILED" -eq 1 ]; then
-            echo "::error::One or more bundles exceed 500KB gzipped"
+            echo "::error::One or more bundles exceed 650KB gzipped"
             exit 1
           fi
+
+      - name: Build mcp-adapter
+        run: pnpm --filter @surfacesui/mcp-adapter build
+
+      - name: Verify adapter bundles
+        run: |
+          echo "## MCP Adapter Bundles" >> $GITHUB_STEP_SUMMARY
+          ls -la packages/mcp-adapter/apps/*.html
+          count=$(ls packages/mcp-adapter/apps/*.html 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No HTML bundles found in mcp-adapter/apps/"
+            exit 1
+          fi
+          echo "Found $count HTML bundle(s) in mcp-adapter/apps/" >> $GITHUB_STEP_SUMMARY
+
+      - name: Build server
+        run: pnpm --filter @surfacesui/server build
 
   test:
     name: Test & Coverage
@@ -93,8 +110,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Run tests with coverage
+      - name: Run component tests with coverage
         run: pnpm --filter @surfacesui/components test:coverage
+
+      - name: Run mcp-adapter tests
+        run: pnpm --filter @surfacesui/mcp-adapter test
 
       - name: Upload coverage
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -122,8 +142,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: TypeScript type check
+      - name: TypeScript type check (components)
         run: pnpm --filter @surfacesui/components exec tsc --noEmit
+
+      - name: TypeScript type check (mcp-adapter)
+        run: pnpm --filter @surfacesui/mcp-adapter exec tsc --noEmit
+
+      - name: TypeScript type check (server)
+        run: pnpm --filter @surfacesui/server exec tsc --noEmit
 
       - name: Lint
         run: pnpm --filter @surfacesui/components lint

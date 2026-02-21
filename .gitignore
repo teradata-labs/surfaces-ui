@@ -27,24 +27,8 @@ test-results/
 playwright-report/
 junit.xml
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.venv/
-venv/
-ENV/
-env/
-pip-log.txt
-pip-delete-this-directory.txt
-*.egg-info/
-.eggs/
-*.egg
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+# Build artifacts (mcp-adapter copies HTML bundles here during prebuild)
+packages/mcp-adapter/apps/
 
 # IDEs and editors
 .vscode/*.code-workspace
@@ -126,12 +110,6 @@ credentials.yml
 *.swo
 *~
 
-# Python distribution
-dist-info/
-wheels/
-.installed.cfg
-*.manifest
-*.spec
 
 # Jupyter Notebook
 .ipynb_checkpoints/

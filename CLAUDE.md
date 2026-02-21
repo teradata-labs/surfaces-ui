@@ -2,12 +2,13 @@
 
 ## Project Overview
 
-Reusable React component library served as pre-built HTML bundles via a FastMCP Python server using the MCP-UI Apps protocol. Components are extracted from `canvas-ai-compute-studio` and decoupled from its backend.
+Reusable React component library served as pre-built HTML bundles via MCP. Three packages: `@surfacesui/components` (React library + bridges), `@surfacesui/mcp-adapter` (framework-agnostic adapter for embedding in any MCP server), and `@surfacesui/server` (standalone Node.js MCP server).
 
 ## Architecture
 
 - **packages/components/** - React component library (Vite + TypeScript + Tailwind)
-- **server/** - FastMCP Python server that serves components as MCP UI resources
+- **packages/mcp-adapter/** - Framework-agnostic MCP resource adapter (pure TypeScript, no SDK dependency)
+- **packages/server/** - Standalone Node.js MCP server (uses `@modelcontextprotocol/sdk` + `@surfacesui/mcp-adapter`)
 - **.claude/agents/** - UX, Engineering, and Testing review agents
 
 ## Key Patterns
@@ -69,17 +70,18 @@ Every component must pass all 3 agents:
 pnpm install
 pnpm dev
 
-# Build
-pnpm build                    # Library build
-pnpm --filter @surfacesui/components build:apps  # HTML app bundles
+# Build (components -> mcp-adapter -> server, in dependency order)
+pnpm build
+pnpm build:apps               # HTML app bundles only
 
 # Test
 pnpm test
 pnpm --filter @surfacesui/components test:coverage
+pnpm --filter @surfacesui/mcp-adapter test
 
-# Python server
-cd server && pip install -r requirements.txt
-python -m src.main
+# Run standalone MCP server
+pnpm --filter @surfacesui/server start
+# Or via npx: npx @surfacesui/server
 ```
 
 ## File Structure Convention
