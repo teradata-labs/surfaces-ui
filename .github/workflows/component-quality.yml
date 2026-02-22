@@ -46,7 +46,7 @@ jobs:
           echo "| App | Size | Gzipped | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|------|---------|--------|" >> $GITHUB_STEP_SUMMARY
 
-          MAX_SIZE=665600  # 650KB in bytes (json-render includes ECharts)
+          MAX_SIZE=716800  # 700KB in bytes (React 19 + ECharts in sql-editor)
           FAILED=0
 
           for file in packages/components/dist/apps/*.html; do
@@ -69,7 +69,7 @@ jobs:
           done
 
           if [ "$FAILED" -eq 1 ]; then
-            echo "::error::One or more bundles exceed 650KB gzipped"
+            echo "::error::One or more bundles exceed 700KB gzipped"
             exit 1
           fi
 

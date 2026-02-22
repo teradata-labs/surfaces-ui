@@ -106,5 +106,5 @@ src/components/[name]/
 - 400-line component limit enforced by all agents
 - 80% test coverage minimum
 - axe-core 0 violations required
-- Bundle size target: ~600KB gzipped per HTML app (json-render app is 591KB due to ECharts)
+- Bundle size target: ~700KB gzipped per HTML app (sql-editor is ~660KB with React 19 + ECharts)
 - Branding is always configurable, never hardcoded

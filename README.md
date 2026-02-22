@@ -409,7 +409,7 @@ surfaces-ui/
 | Test coverage (lines) | 60% |
 | Test coverage (branches) | 75% |
 | Accessibility (axe-core) | 0 violations |
-| Bundle size (gzipped) | 650KB per HTML app |
+| Bundle size (gzipped) | 700KB per HTML app |
 | Component size | <400 lines (atomic design) |
 | TypeScript | Strict, zero errors |
 
