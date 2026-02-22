@@ -16,6 +16,13 @@
     "prettier-plugin-tailwindcss": "^0.7.0",
     "vite-plugin-singlefile": "^2.3.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@modelcontextprotocol/ext-apps",
+      "@swc/core"
+    ]
+  },
   "packageManager": "pnpm@10.11.0",
   "engines": {
     "node": ">=20.0.0"
