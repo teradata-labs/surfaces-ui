@@ -5,14 +5,13 @@ const mockSetRequestHandler = vi.fn();
 const mockConnect = vi.fn();
 
 vi.mock("@modelcontextprotocol/sdk/server/index.js", () => ({
-  Server: vi.fn(() => ({
-    setRequestHandler: mockSetRequestHandler,
-    connect: mockConnect,
-  })),
+  Server: vi.fn(function () {
+    return { setRequestHandler: mockSetRequestHandler, connect: mockConnect };
+  }),
 }));
 
 vi.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
-  StdioServerTransport: vi.fn(),
+  StdioServerTransport: vi.fn(function () { return {}; }),
 }));
 
 vi.mock("@modelcontextprotocol/sdk/types.js", () => ({

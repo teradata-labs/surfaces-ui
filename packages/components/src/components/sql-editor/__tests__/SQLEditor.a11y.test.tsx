@@ -10,12 +10,10 @@ import { SQLEditor } from '../SQLEditor';
 
 expect.extend(toHaveNoViolations);
 
-// Mock ResizeObserver for test environment
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock ResizeObserver for test environment (vitest 4 requires function/class for new)
+global.ResizeObserver = vi.fn().mockImplementation(function () {
+  return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+});
 
 // Mock the MCP Bridge hook
 vi.mock('../../../bridge/hooks', () => ({

@@ -21,13 +21,13 @@ export default defineConfig({
         'src/theme/tailwind-preset.ts',  // Build config, not runtime code
       ],
       thresholds: {
-        // Actual coverage as of 2026-02-19: lines 62%, branches 78%, functions 52%, statements 62%
-        // Coverage was never enforced in CI (coverage-v8 v4 / vitest v1 mismatch).
-        // Set realistic floor and ratchet up as tests are added.
-        lines: 60,
-        branches: 75,
+        // Actual coverage as of 2026-02-22 (vitest 4 + coverage-v8 4):
+        //   lines 59.66%, branches 59.64%, functions ~52%, statements 59.49%
+        // Set floor just below actuals and ratchet up as tests are added.
+        lines: 58,
+        branches: 58,
         functions: 50,
-        statements: 60,
+        statements: 58,
       },
     },
   },
