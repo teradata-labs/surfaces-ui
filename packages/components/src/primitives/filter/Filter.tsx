@@ -22,7 +22,7 @@ export function Filter({
   ariaLabel = 'Search filter',
 }: FilterProps) {
   const [localValue, setLocalValue] = React.useState(value);
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Sync external value changes
   React.useEffect(() => {
