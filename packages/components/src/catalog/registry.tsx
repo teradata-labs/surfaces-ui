@@ -254,4 +254,11 @@ export const { registry } = defineRegistry(catalog, {
     // Organisms
     SQLResultsDisplay: CatalogSQLResultsDisplay,
   },
+  // No-op action stubs — real implementations are provided at runtime
+  // via ActionProvider + createMcpActionHandlers(bridge)
+  actions: {
+    execute_sql: async () => {},
+    export_csv: async () => {},
+    copy_json: async () => {},
+  },
 });
