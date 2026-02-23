@@ -97,7 +97,7 @@ Configure the surfaces-ui MCP server in your Claude Desktop settings:
   "mcpServers": {
     "surfaces-ui": {
       "command": "node",
-      "args": ["/Users/josh.schoen/repos/surfaces-ui/packages/server/dist/index.js"]
+      "args": ["/path/to/surfaces-ui/packages/server/dist/index.js"]
     }
   }
 }
