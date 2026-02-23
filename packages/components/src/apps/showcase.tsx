@@ -12,7 +12,6 @@ import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { SurfacesRenderer } from '../catalog/renderer';
-import type { Spec } from '@json-render/react';
 import '../theme/tokens.css';
 
 const { useState } = React;
