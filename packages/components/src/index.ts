@@ -21,6 +21,9 @@ export type {
   SurfacesTokens,
 } from './theme/figma-tokens';
 
+// Covalent Design System Tokens
+export { COVALENT_TOKENS, convertCovalentToSurfaces, fetchCovalentTokens } from './theme/covalent-tokens';
+
 // MCP Bridge
 export { McpBridge } from './bridge/McpBridge';
 export { McpBridgeProvider, useMcpBridge } from './bridge/McpBridgeProvider';

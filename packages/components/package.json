@@ -30,7 +30,8 @@
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src/",
-    "figma-tokens": "tsx scripts/figma-tokens-cli.ts"
+    "figma-tokens": "tsx scripts/figma-tokens-cli.ts",
+    "generate-covalent-theme": "tsx scripts/generate-covalent-theme.ts"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",
