@@ -127,10 +127,10 @@ export function convertCovalentToSurfaces(): SurfacesTokens {
       'muted-foreground': parseColorToHsl(COVALENT_TOKENS.dark.secondary),
 
       accent: parseColorToHsl(COVALENT_TOKENS.dark.emphasis),
-      'accent-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onBackground),
+      'accent-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onPrimary),
 
       destructive: parseColorToHsl(COVALENT_TOKENS.dark.error),
-      'destructive-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onBackground),
+      'destructive-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onPrimary),
 
       border: parseColorToHsl(COVALENT_TOKENS.dark.border),
       input: parseColorToHsl(COVALENT_TOKENS.dark.input),
@@ -138,10 +138,10 @@ export function convertCovalentToSurfaces(): SurfacesTokens {
 
       // Additional Covalent semantic colors
       success: parseColorToHsl(COVALENT_TOKENS.dark.success),
-      'success-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onBackground),
+      'success-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onPrimary),
 
       warning: parseColorToHsl(COVALENT_TOKENS.dark.warning),
-      'warning-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onBackground),
+      'warning-foreground': parseColorToHsl(COVALENT_TOKENS.dark.onPrimary),
     },
   };
 }

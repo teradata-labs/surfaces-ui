@@ -31,7 +31,8 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src/",
     "figma-tokens": "tsx scripts/figma-tokens-cli.ts",
-    "generate-covalent-theme": "tsx scripts/generate-covalent-theme.ts"
+    "generate-covalent-theme": "tsx scripts/generate-covalent-theme.ts",
+    "check-theme-a11y": "tsx scripts/check-theme-accessibility.ts"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",
