@@ -266,7 +266,7 @@ export function SQLEditor({
       const timer = setTimeout(() => executeSql(), 100);
       return () => clearTimeout(timer);
     }
-  }, [autoExecute]);
+  }, [autoExecute, code, executeSql]);
 
   // Persist state to localStorage whenever it changes
   React.useEffect(() => {

@@ -150,6 +150,7 @@ export function ValidatedSpecRenderer({
   // Inline validation to avoid circular dependency
   const validateSpec = React.useMemo(() => {
     // Import dynamically to avoid circular deps
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { validateGeneratedSpec } = require('./validation');
     return validateGeneratedSpec(spec);
   }, [spec]);

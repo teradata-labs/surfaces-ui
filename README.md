@@ -8,19 +8,19 @@ Reusable React component library served as self-contained HTML bundles via MCP b
 
 This project provides three packages:
 
-| Package | Audience | What it does |
-|---|---|---|
-| `@surfacesui/components` | React app authors | Components + bridges |
-| `@surfacesui/mcp-adapter` | MCP server authors | Pure functions to register surfaces-ui resources/tools in any MCP server |
-| `@surfacesui/server` | End users / Claude Desktop | Standalone MCP server, `npx`-runnable |
+| Package                   | Audience                   | What it does                                                             |
+| ------------------------- | -------------------------- | ------------------------------------------------------------------------ |
+| `@surfacesui/components`  | React app authors          | Components + bridges                                                     |
+| `@surfacesui/mcp-adapter` | MCP server authors         | Pure functions to register surfaces-ui resources/tools in any MCP server |
+| `@surfacesui/server`      | End users / Claude Desktop | Standalone MCP server, `npx`-runnable                                    |
 
 Components communicate through the MCP Bridge pattern, not direct REST calls. Three bridge implementations allow the same components to work across different environments:
 
-| Bridge | Transport | Environment |
-|--------|-----------|-------------|
-| `McpBridge` | postMessage | iframe / web embedding |
-| `McpAppsBridge` | MCP Apps protocol | Claude Desktop, Cursor |
-| `LoomBridge` | HTTP (gRPC-gateway) | Loom agent framework |
+| Bridge          | Transport           | Environment            |
+| --------------- | ------------------- | ---------------------- |
+| `McpBridge`     | postMessage         | iframe / web embedding |
+| `McpAppsBridge` | MCP Apps protocol   | Claude Desktop, Cursor |
+| `LoomBridge`    | HTTP (gRPC-gateway) | Loom agent framework   |
 
 ## Getting Started
 
@@ -58,11 +58,26 @@ pnpm test
 pnpm --filter @surfacesui/components test:coverage
 ```
 
+**Component Showcase**: During development, you can view all 8 catalog components at:
+```
+http://localhost:5173/src/apps/showcase.html
+```
+
+The showcase provides:
+- Live previews of all components (SQLResultsDisplay, TableWithFilters, ChartWithControls, etc.)
+- Category filtering (Organism/Molecule/Primitive)
+- JSON spec viewer
+- Example prompts for natural language generation
+
+Note: The showcase is dev-only and not packaged as an MCP app.
+
 ## Using with Claude Desktop
 
 Configure the surfaces-ui MCP server in your Claude Desktop settings:
 
 **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**rom NPM**
 
 ```json
 {
@@ -70,6 +85,19 @@ Configure the surfaces-ui MCP server in your Claude Desktop settings:
     "surfaces-ui": {
       "command": "npx",
       "args": ["@surfacesui/server"]
+    }
+  }
+}
+```
+
+**Local build**
+
+```json
+{
+  "mcpServers": {
+    "surfaces-ui": {
+      "command": "node",
+      "args": ["/path/to/surfaces-ui/packages/server/dist/index.js"]
     }
   }
 }
@@ -83,21 +111,14 @@ The `@surfacesui/mcp-adapter` package provides pure, framework-agnostic function
 that any MCP server can import to serve surfaces-ui apps as resources:
 
 ```ts
-import {
-  getSurfacesResources,
-  readSurfacesResource,
-  isSurfacesUri,
-} from "@surfacesui/mcp-adapter";
+import { getSurfacesResources, readSurfacesResource, isSurfacesUri } from '@surfacesui/mcp-adapter';
 
 // Merge into your existing resource list handler
-server.setRequestHandler("resources/list", async () => ({
-  resources: [
-    ...myExistingResources,
-    ...getSurfacesResources(),
-  ],
+server.setRequestHandler('resources/list', async () => ({
+  resources: [...myExistingResources, ...getSurfacesResources()],
 }));
 
-server.setRequestHandler("resources/read", async (req) => {
+server.setRequestHandler('resources/read', async (req) => {
   if (isSurfacesUri(req.params.uri)) {
     return { contents: [readSurfacesResource(req.params.uri)] };
   }
@@ -215,13 +236,13 @@ function App() {
 The `LoomBridge` maps component tool calls to Loom REST endpoints
 automatically:
 
-| Tool Call | Maps To |
-|-----------|---------|
-| `list_agents` | `GET /v1/agents` |
-| `list_sessions` | `GET /v1/sessions` |
-| `get_conversation_history` | `GET /v1/sessions/{id}/history` |
-| `weave` | `POST /v1/weave` |
-| *(any unknown tool)* | `POST /v1/weave` (agent-mediated) |
+| Tool Call                  | Maps To                           |
+| -------------------------- | --------------------------------- |
+| `list_agents`              | `GET /v1/agents`                  |
+| `list_sessions`            | `GET /v1/sessions`                |
+| `get_conversation_history` | `GET /v1/sessions/{id}/history`   |
+| `weave`                    | `POST /v1/weave`                  |
+| _(any unknown tool)_       | `POST /v1/weave` (agent-mediated) |
 
 See the [Loom Integration Test](#loom-integration-test) section below for a
 full working example.
@@ -248,18 +269,18 @@ For native MCP Apps environments like Claude Desktop. Uses `@modelcontextprotoco
 
 For connecting directly to a running [Loom](https://github.com/teradata-labs/loom) server. Maps tool calls to Loom's REST API endpoints:
 
-| Tool Name | HTTP Method | Endpoint |
-|-----------|-------------|----------|
-| `list_agents` | GET | `/v1/agents` |
-| `list_sessions` | GET | `/v1/sessions` |
-| `list_ui_apps` | GET | `/v1/apps` |
-| `list_component_types` | GET | `/v1/apps/component-types` |
-| `get_health` | GET | `/health` |
-| `get_conversation_history` | GET | `/v1/sessions/{session_id}/history` |
-| `get_session` | GET | `/v1/sessions/{session_id}` |
-| `create_ui_app` | POST | `/v1/apps` |
-| `weave` | POST | `/v1/weave` |
-| *(unknown)* | POST | `/v1/weave` (agent-mediated fallback) |
+| Tool Name                  | HTTP Method | Endpoint                              |
+| -------------------------- | ----------- | ------------------------------------- |
+| `list_agents`              | GET         | `/v1/agents`                          |
+| `list_sessions`            | GET         | `/v1/sessions`                        |
+| `list_ui_apps`             | GET         | `/v1/apps`                            |
+| `list_component_types`     | GET         | `/v1/apps/component-types`            |
+| `get_health`               | GET         | `/health`                             |
+| `get_conversation_history` | GET         | `/v1/sessions/{session_id}/history`   |
+| `get_session`              | GET         | `/v1/sessions/{session_id}`           |
+| `create_ui_app`            | POST        | `/v1/apps`                            |
+| `weave`                    | POST        | `/v1/weave`                           |
+| _(unknown)_                | POST        | `/v1/weave` (agent-mediated fallback) |
 
 Unknown tool calls are automatically routed through Loom's Weave endpoint, which delegates to an agent.
 
@@ -296,9 +317,15 @@ To connect surfaces-ui to a new backend, implement `BridgeLike`:
 import type { BridgeLike } from '@surfacesui/components';
 
 class MyBridge implements BridgeLike {
-  connect(): void { /* ... */ }
-  disconnect(): void { /* ... */ }
-  get isConnected(): boolean { /* ... */ }
+  connect(): void {
+    /* ... */
+  }
+  disconnect(): void {
+    /* ... */
+  }
+  get isConnected(): boolean {
+    /* ... */
+  }
 
   async callTool<T>(toolName: string, args?: Record<string, unknown>) {
     // Map toolName to your backend's API
@@ -306,12 +333,18 @@ class MyBridge implements BridgeLike {
       method: 'POST',
       body: JSON.stringify(args),
     });
-    return { success: true, data: await response.json() as T };
+    return { success: true, data: (await response.json()) as T };
   }
 
-  onDataPush(cb: (data: McpRenderData) => void) { return () => {}; }
-  fetchPage<T>(tool: string, args: any) { return this.callTool(tool, args); }
-  onStreamChunk(id: number, cb: (chunk: unknown) => void) { return () => {}; }
+  onDataPush(cb: (data: McpRenderData) => void) {
+    return () => {};
+  }
+  fetchPage<T>(tool: string, args: any) {
+    return this.callTool(tool, args);
+  }
+  onStreamChunk(id: number, cb: (chunk: unknown) => void) {
+    return () => {};
+  }
   startStream<T>(tool: string, args?: any) {
     return { id: 1, result: this.callTool<T>(tool, args) };
   }
@@ -350,6 +383,7 @@ Displays Loom agent conversation history with a session sidebar and threaded mes
 ```
 
 Fetches data via two tool calls:
+
 - `list_sessions` - populates the session sidebar
 - `get_conversation_history` (with `session_id`, `limit`) - loads the message thread
 
@@ -404,14 +438,14 @@ surfaces-ui/
 
 ## Quality Standards
 
-| Check | Threshold |
-|-------|-----------|
-| Test coverage (lines) | 60% |
-| Test coverage (branches) | 75% |
-| Accessibility (axe-core) | 0 violations |
-| Bundle size (gzipped) | 700KB per HTML app |
-| Component size | <400 lines (atomic design) |
-| TypeScript | Strict, zero errors |
+| Check                    | Threshold                  |
+| ------------------------ | -------------------------- |
+| Test coverage (lines)    | 60%                        |
+| Test coverage (branches) | 75%                        |
+| Accessibility (axe-core) | 0 violations               |
+| Bundle size (gzipped)    | 700KB per HTML app         |
+| Component size           | <400 lines (atomic design) |
+| TypeScript               | Strict, zero errors        |
 
 CI runs four jobs on every push and PR: **Test & Coverage**, **Lint & Type Check**, **Build & Bundle Analysis**, **Accessibility Check**.
 

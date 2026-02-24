@@ -17,6 +17,8 @@ vi.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
 vi.mock("@modelcontextprotocol/sdk/types.js", () => ({
   ListResourcesRequestSchema: "ListResources",
   ReadResourceRequestSchema: "ReadResources",
+  ListToolsRequestSchema: "ListTools",
+  CallToolRequestSchema: "CallTool",
 }));
 
 // Mock the adapter
@@ -67,8 +69,8 @@ const listHandler = listCall?.[1] as ListHandler | undefined;
 const readHandler = readCall?.[1] as ReadHandler | undefined;
 
 describe("surfaces-ui MCP Server", () => {
-  it("registers two request handlers", () => {
-    expect(mockSetRequestHandler).toHaveBeenCalledTimes(2);
+  it("registers four request handlers", () => {
+    expect(mockSetRequestHandler).toHaveBeenCalledTimes(4);
   });
 
   it("connects via StdioServerTransport", () => {
