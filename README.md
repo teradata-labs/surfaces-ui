@@ -458,6 +458,41 @@ const css = generateSurfacesCSS(tokens);
 
 For detailed documentation and examples, see [FIGMA_TOKENS.md](packages/components/docs/FIGMA_TOKENS.md).
 
+## Covalent Design System Integration
+
+surfaces-ui includes a pre-configured theme based on the Covalent design system (@covalent/tokens@11.7.0). Generate a ready-to-use CSS theme file with all Covalent colors mapped to surfaces-ui semantic tokens.
+
+### Generate Covalent Theme
+
+```bash
+cd packages/components
+pnpm generate-covalent-theme src/theme/covalent.css
+```
+
+Output includes both light and dark mode with Covalent's color palette:
+- Primary Blue: #3053f4 (light) / #688bf1 (dark)
+- Secondary Navy: #00233c (light) / #c3c5dd (dark)
+- Error: #ae1209 (light) / #fd7d69 (dark)
+- Success: #036600 (light) / #81f976 (dark)
+- Warning: #f38800 (light) / #ffcd9e (dark)
+
+### Programmatic Usage
+
+```typescript
+import {
+  COVALENT_TOKENS,
+  convertCovalentToSurfaces,
+  generateSurfacesCSS
+} from '@surfacesui/components';
+
+const tokens = convertCovalentToSurfaces();
+const css = generateSurfacesCSS(tokens);
+```
+
+**Source:**
+- Tokens: https://cdn.jsdelivr.net/npm/@covalent/tokens@11.7.0/index.css
+- Figma: https://www.figma.com/design/KvXVAmYdCVAS7hzkOa73Em/Covalent-Principles
+
 ## Project Structure
 
 ```
