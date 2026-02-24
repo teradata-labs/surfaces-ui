@@ -2,6 +2,25 @@
 export { ThemeProvider, useTheme } from './theme/ThemeProvider';
 export type { ThemeConfig } from './theme/ThemeProvider';
 
+// Figma Design Tokens
+export {
+  rgbToHsl,
+  parseColorToHsl,
+  parseFigmaColorToHsl,
+  mapFigmaTokensToSurfaces,
+  mapFigmaVariablesToSurfaces,
+  generateSurfacesCSS,
+  mergeSurfacesTokens,
+} from './theme/figma-tokens';
+export type {
+  FigmaTokenType,
+  FigmaToken,
+  FigmaTokens,
+  FigmaVariable,
+  FigmaColor,
+  SurfacesTokens,
+} from './theme/figma-tokens';
+
 // MCP Bridge
 export { McpBridge } from './bridge/McpBridge';
 export { McpBridgeProvider, useMcpBridge } from './bridge/McpBridgeProvider';

@@ -402,6 +402,62 @@ Natural language UI generator powered by json-render. Generates interactive UI f
 </McpBridgeProvider>
 ```
 
+## Figma Design Tokens Integration
+
+surfaces-ui includes utilities to convert Figma design tokens into CSS custom properties compatible with the component library's theming system.
+
+### Export from Figma
+
+**Via Figma REST API:**
+```bash
+curl -H "X-Figma-Token: YOUR_TOKEN" \
+  "https://api.figma.com/v1/files/FILE_KEY/variables/local" > tokens.json
+```
+
+**Via Tokens Studio plugin:**
+Export tokens as JSON from the Tokens Studio plugin settings.
+
+### Convert to surfaces-ui CSS
+
+```bash
+cd packages/components
+pnpm figma-tokens tokens.json theme.css
+```
+
+Output:
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --primary: 217 33% 17%;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+}
+```
+
+### Programmatic Usage
+
+```typescript
+import {
+  mapFigmaTokensToSurfaces,
+  generateSurfacesCSS
+} from '@surfacesui/components';
+
+const figmaTokens = { /* ... */ };
+const tokens = mapFigmaTokensToSurfaces(figmaTokens);
+const css = generateSurfacesCSS(tokens);
+```
+
+**Supported Formats:**
+- Design Tokens Community Group (DTCG)
+- Figma Variables export
+- Tokens Studio plugin export
+
+For detailed documentation and examples, see [FIGMA_TOKENS.md](packages/components/docs/FIGMA_TOKENS.md).
+
 ## Project Structure
 
 ```
