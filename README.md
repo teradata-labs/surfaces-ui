@@ -458,40 +458,25 @@ const css = generateSurfacesCSS(tokens);
 
 For detailed documentation and examples, see [FIGMA_TOKENS.md](packages/components/docs/FIGMA_TOKENS.md).
 
-## Covalent Design System Integration
+## Theming
 
-surfaces-ui includes a pre-configured theme based on the Covalent design system (@covalent/tokens@11.7.0). Generate a ready-to-use CSS theme file with all Covalent colors mapped to surfaces-ui semantic tokens.
+surfaces-ui components use CSS custom properties for theming. The default theme (`tokens.css`) provides:
 
-### Generate Covalent Theme
+- **Semantic colors:** Background, foreground, primary, secondary, accent, success, warning, destructive
+- **WCAG 2.1 AA compliant:** All color combinations meet or exceed 4.5:1 contrast ratio
+- **Light and dark mode:** Automatic theme switching via `.dark` class
+- **Customizable:** Override CSS custom properties or generate from design tokens
+
+### Custom Themes
+
+Generate a custom theme from Figma design tokens:
 
 ```bash
 cd packages/components
-pnpm generate-covalent-theme src/theme/covalent.css
+pnpm figma-tokens your-tokens.json custom-theme.css
 ```
 
-Output includes both light and dark mode with Covalent's color palette:
-- Primary Blue: #3053f4 (light) / #688bf1 (dark)
-- Secondary Navy: #00233c (light) / #c3c5dd (dark)
-- Error: #ae1209 (light) / #fd7d69 (dark)
-- Success: #036600 (light) / #81f976 (dark)
-- Warning: #f38800 (light) / #ffcd9e (dark)
-
-### Programmatic Usage
-
-```typescript
-import {
-  COVALENT_TOKENS,
-  convertCovalentToSurfaces,
-  generateSurfacesCSS
-} from '@surfacesui/components';
-
-const tokens = convertCovalentToSurfaces();
-const css = generateSurfacesCSS(tokens);
-```
-
-**Source:**
-- Tokens: https://cdn.jsdelivr.net/npm/@covalent/tokens@11.7.0/index.css
-- Figma: https://www.figma.com/design/KvXVAmYdCVAS7hzkOa73Em/Covalent-Principles
+See [FIGMA_TOKENS.md](packages/components/docs/FIGMA_TOKENS.md) for details on token formats and customization.
 
 ## Project Structure
 
