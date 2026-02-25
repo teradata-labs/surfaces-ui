@@ -9,6 +9,18 @@
     html, body, #root { height: 100%; width: 100%; min-height: 300px; }
     body { font-family: system-ui, -apple-system, sans-serif; }
   </style>
+  <script>
+    // Restore persisted theme before first paint to prevent flash.
+    // Defaults to dark; only switches to light if explicitly saved.
+    (function () {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
 </head>
 <body>
   <div id="root"></div>

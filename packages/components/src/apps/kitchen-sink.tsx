@@ -11,6 +11,7 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../theme/ThemeProvider';
+import { ThemeToggle } from './ThemeToggle';
 import '../theme/tokens.css';
 
 import {
@@ -109,7 +110,11 @@ function KitchenSink() {
             </button>
           ))}
         </nav>
-        <div className="px-4 py-3 border-t border-cv-outline-variant">
+        <div className="px-4 py-3 border-t border-cv-outline-variant space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant">Theme</span>
+            <ThemeToggle />
+          </div>
           <p className="text-[10px] text-on-surface-variant">
             Covalent v11.7.0
           </p>
@@ -120,7 +125,10 @@ function KitchenSink() {
       <main className="flex-1 min-w-0 overflow-y-auto">
         {/* Mobile header */}
         <header className="lg:hidden sticky top-0 z-10 border-b border-cv-outline-variant bg-card/80 backdrop-blur px-4 py-3">
-          <h1 className="text-base font-bold text-foreground">Covalent Kitchen Sink</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-base font-bold text-foreground">Covalent Kitchen Sink</h1>
+            <ThemeToggle />
+          </div>
         </header>
 
         <div className="max-w-3xl mx-auto px-4 lg:px-8 py-8 space-y-8">
@@ -159,7 +167,7 @@ function KitchenSink() {
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(
-    <ThemeProvider>
+    <ThemeProvider persistTheme theme="dark">
       <KitchenSink />
     </ThemeProvider>
   );

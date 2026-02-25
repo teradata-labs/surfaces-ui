@@ -11,6 +11,7 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../theme/ThemeProvider';
+import { ThemeToggle } from './ThemeToggle';
 import { SurfacesRenderer } from '../catalog/renderer';
 import '../theme/tokens.css';
 
@@ -238,7 +239,8 @@ function Showcase() {
                 8 components powered by json-render
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <ThemeToggle />
               <button
                 onClick={() => setShowJson(!showJson)}
                 className="px-3 py-1.5 text-sm rounded border hover:bg-accent"
@@ -357,7 +359,7 @@ function Showcase() {
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(
-    <ThemeProvider>
+    <ThemeProvider persistTheme>
       <Showcase />
     </ThemeProvider>
   );
