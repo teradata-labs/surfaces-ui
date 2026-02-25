@@ -59,6 +59,37 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Selected state — nav items, list rows, active tabs
+        // Figma: --cv-theme-secondary-container (#1a274e dark / light blue light)
+        // Uses RGB channels so Tailwind opacity modifiers (e.g. /10) work correctly
+        'secondary-container': {
+          DEFAULT: 'rgb(var(--secondary-container-rgb) / <alpha-value>)',
+          foreground: 'hsl(var(--secondary-container-foreground))',
+        },
+        // Deeply nested surface — sidebar panels, code editor backgrounds
+        // Figma: --cv-theme-surface-container-lowest (#090d17)
+        'surface-container-lowest': 'hsl(var(--surface-container-lowest))',
+        // Muted text for inactive/variant elements — non-selected nav labels
+        // Figma: --cv-theme-on-surface-variant (#d5d3d8)
+        'on-surface-variant': 'hsl(var(--on-surface-variant))',
+        // Visible border for buttons, inputs, chips
+        // Figma: --cv-theme-outline (#727d9c)
+        'cv-outline': 'hsl(var(--outline))',
+        // Subtle divider / separator lines
+        // Figma: --cv-theme-outline-variant (rgba(235,232,236,0.16))
+        // Uses RGB channels + CSS alpha var so card borders render at correct 16% opacity
+        'cv-outline-variant': 'rgb(var(--outline-variant-rgb) / var(--outline-variant-alpha, 1))',
+        // Surface elevation layers
+        'surface': 'hsl(var(--surface))',
+        'surface-container': 'hsl(var(--surface-container))',
+        'surface-container-highest': 'hsl(var(--surface-container-highest))',
+        // Semantic status containers
+        'negative-container': 'hsl(var(--negative-container))',
+        'on-negative-container': 'hsl(var(--on-negative-container))',
+        'positive-container': 'hsl(var(--positive-container))',
+        'on-positive-container': 'hsl(var(--on-positive-container))',
+        'caution-container': 'hsl(var(--caution-container))',
+        'on-caution-container': 'hsl(var(--on-caution-container))',
         'chat-gradient-start': 'hsl(var(--chat-gradient-start))',
         'chat-gradient-end': 'hsl(var(--chat-gradient-end))',
         'chat-input-bg': 'hsl(var(--chat-input-bg))',

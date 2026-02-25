@@ -263,10 +263,10 @@ function Showcase() {
                     <button
                       key={cat}
                       onClick={() => setFilterCategory(cat)}
-                      className={`px-2 py-1 text-xs rounded ${
+                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
                         filterCategory === cat
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary hover:bg-secondary/80'
+                          ? 'bg-secondary-container text-secondary-container-foreground'
+                          : 'border border-cv-outline text-on-surface-variant hover:bg-secondary-container/10'
                       }`}
                     >
                       {cat}
@@ -285,14 +285,14 @@ function Showcase() {
                     <button
                       key={key}
                       onClick={() => setSelectedComponent(key)}
-                      className={`w-full text-left px-3 py-2 text-sm rounded transition-colors ${
+                      className={`w-full text-left px-3 py-2 text-sm rounded-full transition-colors ${
                         selectedComponent === key
-                          ? 'bg-accent text-accent-foreground font-medium'
-                          : 'hover:bg-accent/50'
+                          ? 'bg-secondary-container text-secondary-container-foreground font-medium'
+                          : 'text-on-surface-variant hover:bg-secondary-container/10'
                       }`}
                     >
                       <div>{comp.name}</div>
-                      <div className="text-xs text-muted-foreground">{comp.category}</div>
+                      <div className={`text-xs ${selectedComponent === key ? 'text-secondary-container-foreground/70' : 'text-on-surface-variant/70'}`}>{comp.category}</div>
                     </button>
                   ))}
                 </nav>
@@ -303,11 +303,11 @@ function Showcase() {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             {/* Component Info */}
-            <div className="bg-card rounded-lg border p-6">
+            <div className="bg-card rounded-lg border border-cv-outline-variant p-6">
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <h2 className="text-2xl font-bold">{currentComponent.name}</h2>
-                  <span className="px-2 py-0.5 text-xs rounded bg-primary/10 text-primary">
+                  <span className="px-2 py-0.5 text-xs rounded-full border border-cv-outline text-on-surface-variant">
                     {currentComponent.category}
                   </span>
                 </div>
@@ -315,7 +315,7 @@ function Showcase() {
               </div>
 
               {/* Component Preview */}
-              <div className="border rounded-lg p-4 bg-background">
+              <div className="border border-cv-outline-variant rounded-lg p-4 bg-background">
                 <SurfacesRenderer
                   spec={currentComponent.spec}
                   initialState={{ data: currentComponent.data }}
@@ -325,7 +325,7 @@ function Showcase() {
 
             {/* JSON Spec (conditional) */}
             {showJson && (
-              <div className="bg-card rounded-lg border p-6">
+              <div className="bg-card rounded-lg border border-cv-outline-variant p-6">
                 <h3 className="text-lg font-semibold mb-3">JSON Specification</h3>
                 <pre className="bg-muted p-4 rounded text-xs overflow-auto max-h-96">
                   {JSON.stringify(currentComponent.spec, null, 2)}
@@ -334,7 +334,7 @@ function Showcase() {
             )}
 
             {/* Usage Info */}
-            <div className="bg-card rounded-lg border p-6">
+            <div className="bg-card rounded-lg border border-cv-outline-variant p-6">
               <h3 className="text-lg font-semibold mb-3">Usage</h3>
               <p className="text-sm text-muted-foreground mb-3">
                 Generate this component with natural language:
