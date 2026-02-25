@@ -78,15 +78,13 @@ const preset: Config = {
           800: 'hsl(var(--gray-800))',
           900: 'hsl(var(--gray-900))',
         },
+        /* ── Brand Palette ───────────────────────────────────────── */
         brand: {
+          /* CSS-var theme tokens */
           'dark-blue': 'hsl(var(--brand-dark-blue))',
           'darker-blue': 'hsl(var(--brand-darker-blue))',
           'darkest-blue': 'hsl(var(--brand-darkest-blue))',
           'primary-blue': 'hsl(var(--brand-primary-blue))',
-        },
-
-        /* ── Brand Palette ───────────────────────────────────────── */
-        brand: {
           primary: {
             DEFAULT: '#3053f4',
             50: '#eef1fe',

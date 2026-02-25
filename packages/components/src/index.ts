@@ -33,8 +33,12 @@ export type { AnalyticsConfig } from './lib/analytics';
 
 // Primitives
 export { Button, buttonVariants } from './primitives/button';
+export type { ButtonProps } from './primitives/button';
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './primitives/card';
-export { Badge, badgeVariants } from './primitives/badge';
+export { Badge, badgeVariants, NotificationBadge } from './primitives/badge';
+export type { BadgeProps, NotificationBadgeProps } from './primitives/badge';
+export { Alert, AlertTitle, AlertDescription } from './primitives/alert';
+export type { AlertProps } from './primitives/alert';
 export {
   Dialog,
   DialogContent,
@@ -51,6 +55,18 @@ export { Input } from './primitives/input';
 export { Separator } from './primitives/separator';
 export { ViewModeToggle } from './primitives/view-mode-toggle';
 export type { ViewModeOption, ViewModeToggleProps } from './primitives/view-mode-toggle';
+
+// New primitives
+export { Switch } from './primitives/switch';
+export type { SwitchProps } from './primitives/switch';
+export { Checkbox } from './primitives/checkbox';
+export type { CheckboxProps } from './primitives/checkbox';
+export { RadioGroup, RadioGroupItem } from './primitives/radio-group';
+export type { RadioGroupProps, RadioGroupItemProps } from './primitives/radio-group';
+export { CircularProgress } from './primitives/circular-progress';
+export type { CircularProgressProps } from './primitives/circular-progress';
+export { Progress } from './primitives/progress';
+export type { ProgressProps } from './primitives/progress';
 
 // Charts
 export { ECharts } from './components/charts';
@@ -103,6 +119,16 @@ export type {
   LegacyChartConfig,
   LegacyResultsConfig,
 } from './components/sql-editor';
+
+// Molecules
+export { FilterChip, InputChip } from './molecules/chip';
+export type { FilterChipProps, InputChipProps } from './molecules/chip';
+export { EmptyState } from './molecules/empty-state';
+export type { EmptyStateProps } from './molecules/empty-state';
+export { FormField } from './molecules/form-field';
+export type { FormFieldProps } from './molecules/form-field';
+export { IconButton, iconButtonVariants } from './molecules/icon-button';
+export type { IconButtonProps } from './molecules/icon-button';
 
 // Utility
 export { cn } from './lib/utils';

@@ -34,3 +34,44 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
+
+// ── NotificationBadge ─────────────────────────────────────────────────────
+// Numeric/dot indicator overlaid on icons (different from the text Badge).
+
+export interface NotificationBadgeProps {
+  /** Text shown in count variant. Omit to render a dot. */
+  content?: string;
+  /** 'dot' shows a small filled circle; 'count' shows content in a pill. Default: 'count' when content is provided, else 'dot'. */
+  variant?: 'dot' | 'count';
+  className?: string;
+}
+
+function NotificationBadge({ content, variant, className }: NotificationBadgeProps) {
+  const resolvedVariant = variant ?? (content ? 'count' : 'dot');
+
+  if (resolvedVariant === 'dot') {
+    return (
+      <div
+        className={cn('w-2 h-2 rounded-full bg-destructive', className)}
+        role="status"
+        aria-label="New notification"
+      />
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        'min-w-[20px] h-5 px-1.5 rounded-full bg-destructive',
+        'flex items-center justify-center',
+        className
+      )}
+      role="status"
+      aria-label={`${content} notifications`}
+    >
+      <span className="text-[11px] font-medium text-white leading-none">{content}</span>
+    </div>
+  );
+}
+
+export { NotificationBadge }
