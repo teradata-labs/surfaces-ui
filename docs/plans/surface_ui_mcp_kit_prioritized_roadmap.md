@@ -7,6 +7,7 @@ SurfaceUI is the canonical rendering layer for MCP Apps across hosts (Claude Des
 It is not just a UI library — it is the deterministic UI surface for agentic systems.
 
 SurfaceUI enables:
+
 - Structured rendering of MCP tool outputs
 - Inspectable AI execution
 - Low-code ↔ Pro-code parity
@@ -27,6 +28,7 @@ These unlock the majority of immediate user value.
 **Why Priority:** Every tool call returns rows.
 
 ### Capabilities
+
 - Virtualized rendering for large datasets
 - Column sorting and filtering
 - Inline summary statistics
@@ -91,8 +93,9 @@ This surface is rendered when an MCP tool returns semantic data or knowledge gra
 **Why Priority:** Converts results into insights.
 
 ### Supported Charts
+
 - Line
-- Bar
+- Bar - horizontal, vertical, stacked
 - Area
 - Scatter
 - Sankey (for path analysis)
@@ -100,10 +103,13 @@ This surface is rendered when an MCP tool returns semantic data or knowledge gra
 - Geo maps
 
 ### Features
+
 - Editable chart configuration
 - Narrative side panel
 - "Explain this chart" AI hook
 - Save to dashboard
+- Download
+- Share via email
 
 ---
 
@@ -113,6 +119,7 @@ This surface is rendered when an MCP tool returns semantic data or knowledge gra
 **Why Priority:** Major enterprise differentiator.
 
 ### Features
+
 - DAG layout visualization
 - Operator nodes (scan, join, spool)
 - Cost overlays
@@ -127,6 +134,7 @@ This surface is rendered when an MCP tool returns semantic data or knowledge gra
 **Why Priority:** Enables Ask ↔ Code parity.
 
 ### Layout
+
 - Intent interpretation panel
 - Generated SQL editor
 - Inline execution controls
