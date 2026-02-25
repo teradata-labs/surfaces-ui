@@ -85,8 +85,8 @@ const preset: Config = {
           'primary-blue': 'hsl(var(--brand-primary-blue))',
         },
 
-        /* ── Covalent Brand Palette ──────────────────────────────── */
-        covalent: {
+        /* ── Brand Palette ───────────────────────────────────────── */
+        brand: {
           primary: {
             DEFAULT: '#3053f4',
             50: '#eef1fe',
@@ -193,7 +193,7 @@ const preset: Config = {
         inter: ['Inter', 'Arial', 'sans-serif'],
       },
 
-      /* ── Covalent Typography Scale ───────────────────────────────── */
+      /* ── Typography Scale ────────────────────────────────────────── */
       fontSize: {
         'headline-1': ['2.25rem', { lineHeight: '2.75rem', fontWeight: '700' }],
         'headline-2': ['1.875rem', { lineHeight: '2.25rem', fontWeight: '700' }],

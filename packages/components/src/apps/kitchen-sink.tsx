@@ -1,7 +1,7 @@
 /**
- * Covalent Kitchen Sink
+ * SurfacesUI Kitchen Sink
  *
- * Dark-mode showcase of all core Covalent UI components.
+ * Dark-mode showcase of all core SurfacesUI components.
  * Implements Figma node 25796:15712 (file Yl9Vh9sloq2VxueDt3Majm).
  *
  * DEV-ONLY: Access at http://localhost:5180/src/apps/kitchen-sink.html
@@ -90,9 +90,9 @@ function KitchenSink() {
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       {/* ── Sticky nav rail ── */}
-      <aside className="w-52 shrink-0 sticky top-0 h-screen overflow-y-auto bg-surface-container-lowest border-r border-cv-outline-variant hidden lg:flex flex-col">
-        <div className="px-4 py-5 border-b border-cv-outline-variant">
-          <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Covalent</p>
+      <aside className="w-52 shrink-0 sticky top-0 h-screen overflow-y-auto bg-surface-container-lowest border-r border-su-outline-variant hidden lg:flex flex-col">
+        <div className="px-4 py-5 border-b border-su-outline-variant">
+          <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">SurfacesUI</p>
           <h1 className="text-base font-bold text-foreground mt-0.5">Kitchen Sink</h1>
         </div>
         <nav className="flex-1 px-2 py-3">
@@ -110,13 +110,13 @@ function KitchenSink() {
             </button>
           ))}
         </nav>
-        <div className="px-4 py-3 border-t border-cv-outline-variant space-y-2">
+        <div className="px-4 py-3 border-t border-su-outline-variant space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs text-on-surface-variant">Theme</span>
             <ThemeToggle />
           </div>
           <p className="text-[10px] text-on-surface-variant">
-            Covalent v11.7.0
+            SurfacesUI v1.0
           </p>
         </div>
       </aside>
@@ -124,19 +124,19 @@ function KitchenSink() {
       {/* ── Main content ── */}
       <main className="flex-1 min-w-0 overflow-y-auto">
         {/* Mobile header */}
-        <header className="lg:hidden sticky top-0 z-10 border-b border-cv-outline-variant bg-card/80 backdrop-blur px-4 py-3">
+        <header className="lg:hidden sticky top-0 z-10 border-b border-su-outline-variant bg-card/80 backdrop-blur px-4 py-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-base font-bold text-foreground">Covalent Kitchen Sink</h1>
+            <h1 className="text-base font-bold text-foreground">Kitchen Sink</h1>
             <ThemeToggle />
           </div>
         </header>
 
         <div className="max-w-3xl mx-auto px-4 lg:px-8 py-8 space-y-8">
           {/* Page title */}
-          <div className="pb-4 border-b border-cv-outline-variant">
+          <div className="pb-4 border-b border-su-outline-variant">
             <h1 className="text-2xl font-bold text-foreground">Component Library</h1>
             <p className="text-sm text-on-surface-variant mt-1">
-              Covalent Design System — dark mode reference
+              SurfacesUI component library — dark mode
             </p>
           </div>
 

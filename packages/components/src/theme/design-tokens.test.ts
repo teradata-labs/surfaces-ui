@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { convertCovalentToSurfaces, COVALENT_TOKENS } from './covalent-tokens';
+import { convertToSurfaces, DESIGN_TOKENS } from './design-tokens';
 
-describe('Covalent Token Conversion', () => {
-  it('converts Covalent tokens to surfaces-ui format', () => {
-    const tokens = convertCovalentToSurfaces();
+describe('Design Token Conversion', () => {
+  it('converts design tokens to surfaces-ui format', () => {
+    const tokens = convertToSurfaces();
 
     expect(tokens.root).toBeDefined();
     expect(tokens.dark).toBeDefined();
   });
 
   it('converts light mode colors to HSL', () => {
-    const tokens = convertCovalentToSurfaces();
+    const tokens = convertToSurfaces();
 
-    // Primary should be Covalent blue (#3053f4)
+    // Primary should be brand blue (#3053f4)
     expect(tokens.root.primary).toMatch(/^\d+ \d+% \d+%$/);
 
     // Background should be light gray (#f8f9fb)
@@ -20,7 +20,7 @@ describe('Covalent Token Conversion', () => {
   });
 
   it('converts dark mode colors to HSL', () => {
-    const tokens = convertCovalentToSurfaces();
+    const tokens = convertToSurfaces();
 
     // Primary should be lighter blue (#688bf1)
     expect(tokens.dark.primary).toMatch(/^\d+ \d+% \d+%$/);
@@ -29,8 +29,8 @@ describe('Covalent Token Conversion', () => {
     expect(tokens.dark.background).toMatch(/^\d+ \d+% \d+%$/);
   });
 
-  it('includes Covalent semantic colors', () => {
-    const tokens = convertCovalentToSurfaces();
+  it('includes semantic colors', () => {
+    const tokens = convertToSurfaces();
 
     // Success (green)
     expect(tokens.root.success).toMatch(/^\d+ \d+% \d+%$/);
@@ -46,7 +46,7 @@ describe('Covalent Token Conversion', () => {
   });
 
   it('has all required surfaces-ui semantic tokens', () => {
-    const tokens = convertCovalentToSurfaces();
+    const tokens = convertToSurfaces();
 
     const required = [
       'background',
@@ -74,10 +74,10 @@ describe('Covalent Token Conversion', () => {
     }
   });
 
-  it('preserves Covalent color values', () => {
-    expect(COVALENT_TOKENS.light.primary).toBe('#3053f4');
-    expect(COVALENT_TOKENS.dark.primary).toBe('#688bf1');
-    expect(COVALENT_TOKENS.light.error).toBe('#ae1209');
-    expect(COVALENT_TOKENS.dark.success).toBe('#81f976');
+  it('preserves design token color values', () => {
+    expect(DESIGN_TOKENS.light.primary).toBe('#3053f4');
+    expect(DESIGN_TOKENS.dark.primary).toBe('#688bf1');
+    expect(DESIGN_TOKENS.light.error).toBe('#ae1209');
+    expect(DESIGN_TOKENS.dark.success).toBe('#81f976');
   });
 });

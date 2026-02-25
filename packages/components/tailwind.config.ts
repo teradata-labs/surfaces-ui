@@ -59,26 +59,21 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
-        // Selected state — nav items, list rows, active tabs
-        // Figma: --cv-theme-secondary-container (#1a274e dark / light blue light)
+        // Selected state — nav items, list rows, active tabs (#1a274e dark)
         // Uses RGB channels so Tailwind opacity modifiers (e.g. /10) work correctly
         'secondary-container': {
           DEFAULT: 'rgb(var(--secondary-container-rgb) / <alpha-value>)',
           foreground: 'hsl(var(--secondary-container-foreground))',
         },
-        // Deeply nested surface — sidebar panels, code editor backgrounds
-        // Figma: --cv-theme-surface-container-lowest (#090d17)
+        // Deeply nested surface — sidebar panels, code editor backgrounds (#090d17)
         'surface-container-lowest': 'hsl(var(--surface-container-lowest))',
-        // Muted text for inactive/variant elements — non-selected nav labels
-        // Figma: --cv-theme-on-surface-variant (#d5d3d8)
+        // Muted text for inactive/variant elements — non-selected nav labels (#d5d3d8)
         'on-surface-variant': 'hsl(var(--on-surface-variant))',
-        // Visible border for buttons, inputs, chips
-        // Figma: --cv-theme-outline (#727d9c)
-        'cv-outline': 'hsl(var(--outline))',
-        // Subtle divider / separator lines
-        // Figma: --cv-theme-outline-variant (rgba(235,232,236,0.16))
+        // Visible border for buttons, inputs, chips (#727d9c)
+        'su-outline': 'hsl(var(--outline))',
+        // Subtle divider / separator lines — rgba(235,232,236,0.16) in dark
         // Uses RGB channels + CSS alpha var so card borders render at correct 16% opacity
-        'cv-outline-variant': 'rgb(var(--outline-variant-rgb) / var(--outline-variant-alpha, 1))',
+        'su-outline-variant': 'rgb(var(--outline-variant-rgb) / var(--outline-variant-alpha, 1))',
         // Surface elevation layers
         'surface': 'hsl(var(--surface))',
         'surface-container': 'hsl(var(--surface-container))',

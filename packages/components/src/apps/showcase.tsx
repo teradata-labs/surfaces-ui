@@ -268,7 +268,7 @@ function Showcase() {
                       className={`px-3 py-1 text-xs rounded-full transition-colors ${
                         filterCategory === cat
                           ? 'bg-secondary-container text-secondary-container-foreground'
-                          : 'border border-cv-outline text-on-surface-variant hover:bg-secondary-container/10'
+                          : 'border border-su-outline text-on-surface-variant hover:bg-secondary-container/10'
                       }`}
                     >
                       {cat}
@@ -305,11 +305,11 @@ function Showcase() {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             {/* Component Info */}
-            <div className="bg-card rounded-lg border border-cv-outline-variant p-6">
+            <div className="bg-card rounded-lg border border-su-outline-variant p-6">
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <h2 className="text-2xl font-bold">{currentComponent.name}</h2>
-                  <span className="px-2 py-0.5 text-xs rounded-full border border-cv-outline text-on-surface-variant">
+                  <span className="px-2 py-0.5 text-xs rounded-full border border-su-outline text-on-surface-variant">
                     {currentComponent.category}
                   </span>
                 </div>
@@ -317,7 +317,7 @@ function Showcase() {
               </div>
 
               {/* Component Preview */}
-              <div className="border border-cv-outline-variant rounded-lg p-4 bg-background">
+              <div className="border border-su-outline-variant rounded-lg p-4 bg-background">
                 <SurfacesRenderer
                   spec={currentComponent.spec}
                   initialState={{ data: currentComponent.data }}
@@ -327,7 +327,7 @@ function Showcase() {
 
             {/* JSON Spec (conditional) */}
             {showJson && (
-              <div className="bg-card rounded-lg border border-cv-outline-variant p-6">
+              <div className="bg-card rounded-lg border border-su-outline-variant p-6">
                 <h3 className="text-lg font-semibold mb-3">JSON Specification</h3>
                 <pre className="bg-muted p-4 rounded text-xs overflow-auto max-h-96">
                   {JSON.stringify(currentComponent.spec, null, 2)}
@@ -336,7 +336,7 @@ function Showcase() {
             )}
 
             {/* Usage Info */}
-            <div className="bg-card rounded-lg border border-cv-outline-variant p-6">
+            <div className="bg-card rounded-lg border border-su-outline-variant p-6">
               <h3 className="text-lg font-semibold mb-3">Usage</h3>
               <p className="text-sm text-muted-foreground mb-3">
                 Generate this component with natural language:

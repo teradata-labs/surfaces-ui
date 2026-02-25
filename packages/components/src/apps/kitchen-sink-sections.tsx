@@ -1,5 +1,5 @@
 /**
- * Covalent Kitchen Sink — Section Components
+ * SurfacesUI Kitchen Sink — Section Components
  *
  * Individual section renderers for the dark-mode kitchen sink.
  * Implements Figma node 25796:15712 (file Yl9Vh9sloq2VxueDt3Majm).
@@ -24,7 +24,7 @@ export function Section({
   return (
     <section id={id} className="scroll-mt-20">
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
-      <div className="bg-card border border-cv-outline-variant rounded-xl p-6">
+      <div className="bg-card border border-su-outline-variant rounded-xl p-6">
         {children}
       </div>
     </section>
@@ -168,7 +168,7 @@ function CircularProgress({ percent = 75, size = 48 }: { percent: number; size?:
 export function ActionRibbonSection() {
   return (
     <Section id="action-ribbon" title="Action Ribbon">
-      <div className="flex items-center justify-between h-14 px-4 border-b border-cv-outline-variant bg-surface rounded-lg">
+      <div className="flex items-center justify-between h-14 px-4 border-b border-su-outline-variant bg-surface rounded-lg">
         <div className="flex items-center gap-3">
           <svg className="w-5 h-5 text-on-surface-variant" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6h16M4 12h16M4 18h16" />
@@ -300,8 +300,8 @@ export function ButtonsSection() {
 
         {/* Outlined buttons */}
         <DemoRow label="Outlined">
-          <button className="h-9 px-4 rounded-lg text-sm font-medium text-primary border border-cv-outline hover:bg-[var(--primary-8-raw)] transition-colors">Label</button>
-          <button className="h-9 px-4 rounded-lg text-sm font-medium text-primary border border-cv-outline bg-[var(--primary-8-raw)] transition-colors">Hovered</button>
+          <button className="h-9 px-4 rounded-lg text-sm font-medium text-primary border border-su-outline hover:bg-[var(--primary-8-raw)] transition-colors">Label</button>
+          <button className="h-9 px-4 rounded-lg text-sm font-medium text-primary border border-su-outline bg-[var(--primary-8-raw)] transition-colors">Hovered</button>
           <button className="h-9 px-4 rounded-lg text-sm font-medium text-primary border border-primary bg-[var(--primary-12-raw)] transition-colors">Focused</button>
           <button className="h-9 px-4 rounded-lg text-sm font-medium text-[var(--on-surface-38-raw)] border border-[var(--on-surface-12-raw)] cursor-not-allowed" disabled>Disabled</button>
         </DemoRow>
@@ -327,7 +327,7 @@ export function ButtonsSection() {
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Create
           </button>
-          <button className="h-9 px-4 rounded-lg text-sm font-medium text-primary border border-cv-outline hover:bg-[var(--primary-8-raw)] flex items-center gap-2 transition-colors">
+          <button className="h-9 px-4 rounded-lg text-sm font-medium text-primary border border-su-outline hover:bg-[var(--primary-8-raw)] flex items-center gap-2 transition-colors">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
             Export
           </button>
@@ -382,7 +382,7 @@ export function ChipSection() {
                 key={chip}
                 onClick={() => toggle(chip)}
                 className={`h-8 px-3 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5
-                  ${sel ? 'bg-secondary-container text-secondary-container-foreground' : 'border border-cv-outline text-on-surface-variant hover:bg-secondary-container/10'}
+                  ${sel ? 'bg-secondary-container text-secondary-container-foreground' : 'border border-su-outline text-on-surface-variant hover:bg-secondary-container/10'}
                 `}
               >
                 {sel && (
@@ -397,7 +397,7 @@ export function ChipSection() {
         </DemoRow>
         <DemoRow label="Input chip (dismissible)">
           {['React', 'TypeScript', 'Tailwind'].map(chip => (
-            <div key={chip} className="flex items-center gap-1 h-8 pl-3 pr-2 rounded-full border border-cv-outline text-sm text-foreground bg-surface-container">
+            <div key={chip} className="flex items-center gap-1 h-8 pl-3 pr-2 rounded-full border border-su-outline text-sm text-foreground bg-surface-container">
               <span>{chip}</span>
               <button className="ml-1 w-4 h-4 flex items-center justify-center rounded-full hover:bg-[var(--on-surface-12-raw)] text-on-surface-variant transition-colors">
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -440,8 +440,8 @@ export function CircularProgressSection() {
 export function CodeSnippetSection() {
   return (
     <Section id="code-snippet" title="Code Snippet">
-      <div className="rounded-lg bg-surface-container-highest border border-cv-outline-variant overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2 border-b border-cv-outline-variant">
+      <div className="rounded-lg bg-surface-container-highest border border-su-outline-variant overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-su-outline-variant">
           <span className="text-xs text-on-surface-variant font-mono">query.sql</span>
           <button className="text-xs text-primary hover:text-primary/80 transition-colors">Copy</button>
         </div>
@@ -480,7 +480,7 @@ export function DialogSection() {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <div className="relative bg-card rounded-2xl border border-cv-outline-variant shadow-2xl w-full max-w-md mx-4 p-6">
+          <div className="relative bg-card rounded-2xl border border-su-outline-variant shadow-2xl w-full max-w-md mx-4 p-6">
             <h3 className="text-lg font-semibold text-foreground mb-2">Confirm Action</h3>
             <p className="text-sm text-on-surface-variant mb-6">
               Are you sure you want to delete this item? This action cannot be undone.
@@ -512,14 +512,14 @@ export function DividerSection() {
       <div className="flex flex-col gap-4">
         <div>
           <p className="text-sm text-foreground mb-3">Content above</p>
-          <hr className="border-cv-outline-variant" />
+          <hr className="border-su-outline-variant" />
           <p className="text-sm text-foreground mt-3">Content below</p>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-on-surface-variant">Label</span>
-          <div className="h-px flex-1 bg-cv-outline-variant" />
+          <div className="h-px flex-1 bg-su-outline-variant" />
           <span className="text-sm text-on-surface-variant">Label</span>
-          <div className="h-px flex-1 bg-cv-outline-variant" />
+          <div className="h-px flex-1 bg-su-outline-variant" />
           <span className="text-sm text-on-surface-variant">Label</span>
         </div>
       </div>
@@ -560,7 +560,7 @@ export function FormFieldSection() {
           <input
             type="text"
             placeholder="Placeholder text"
-            className="h-10 px-3 rounded-lg border border-cv-outline bg-surface-container text-sm text-foreground placeholder:text-on-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+            className="h-10 px-3 rounded-lg border border-su-outline bg-surface-container text-sm text-foreground placeholder:text-on-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
           />
           <p className="text-xs text-on-surface-variant">Helper text</p>
         </div>
