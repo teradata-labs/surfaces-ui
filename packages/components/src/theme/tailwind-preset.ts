@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss';
 
 const preset: Config = {
   content: [],
-  darkMode: ['class'],
+  // darkMode is configured via @custom-variant in tokens.css
   theme: {
     extend: {
       /* ── Semantic Colors (shadcn/ui pattern) ─────────────────────── */

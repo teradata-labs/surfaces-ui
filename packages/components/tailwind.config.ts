@@ -3,7 +3,7 @@ import tailwindcssAnimate from 'tailwindcss-animate';
 import typography from '@tailwindcss/typography';
 
 export default {
-  darkMode: ['class'],
+  // darkMode now configured via @custom-variant in tokens.css
   content: ['./src/**/*.{ts,tsx,html}'],
   prefix: '',
   theme: {

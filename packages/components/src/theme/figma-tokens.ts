@@ -122,7 +122,7 @@ export function parseColorToHsl(color: string): string {
 
   // RGB/RGBA
   const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (rgbMatch) {
+  if (rgbMatch && rgbMatch[1] && rgbMatch[2] && rgbMatch[3]) {
     return rgbToHsl(
       parseInt(rgbMatch[1]),
       parseInt(rgbMatch[2]),
@@ -234,7 +234,7 @@ export function mapFigmaTokensToSurfaces(
         const token = value as FigmaToken;
         if (token.$type === 'color' || typeof token.$value === 'string') {
           const normalizedKey = key.toLowerCase().replace(/[_\s]/g, '-');
-          const surfacesKey = mapping[normalizedKey] || normalizedKey;
+          const surfacesKey = (mapping as Record<string, string>)[normalizedKey] || normalizedKey;
 
           try {
             target[surfacesKey] = parseColorToHsl(token.$value as string);

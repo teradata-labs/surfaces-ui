@@ -161,7 +161,9 @@ export async function fetchDesignTokens(version = '11.7.0'): Promise<Record<stri
   let match;
 
   while ((match = regex.exec(css)) !== null) {
-    tokens[match[1]] = match[2].trim();
+    if (match[1] && match[2]) {
+      tokens[match[1]] = match[2].trim();
+    }
   }
 
   return tokens;
