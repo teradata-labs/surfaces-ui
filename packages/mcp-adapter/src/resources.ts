@@ -5,7 +5,7 @@ import { SURFACES_APPS, type AppId } from "./registry.js";
 import type { SurfacesResource, SurfacesResourceContent } from "./types.js";
 
 /** URI scheme for surfaces-ui resources. */
-const URI_PREFIX = "surfaces-ui://apps/";
+const URI_PREFIX = "surfaces-ui/apps/";
 
 /**
  * Resolve the directory containing built HTML app bundles.

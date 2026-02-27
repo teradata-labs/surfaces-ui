@@ -69,7 +69,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "surfaces-ui://apps/sql-editor-cdn",
+          resourceUri: "surfaces-ui/apps/sql-editor-cdn",
           visibility: ["model", "app"],
         },
       },
@@ -92,7 +92,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "surfaces-ui://apps/json-render-cdn",
+          resourceUri: "surfaces-ui/apps/json-render-cdn",
           visibility: ["model", "app"],
         },
       },
@@ -123,8 +123,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       _meta: {
         ui: {
           resourceUri: args?.initialQuery
-            ? `surfaces-ui://apps/sql-editor-cdn?sql=${encodeURIComponent(args.initialQuery as string)}`
-            : "surfaces-ui://apps/sql-editor-cdn",
+            ? `surfaces-ui/apps/sql-editor-cdn?sql=${encodeURIComponent(args.initialQuery as string)}`
+            : "surfaces-ui/apps/sql-editor-cdn",
         },
       },
       content: [
@@ -145,7 +145,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       _meta: {
         ui: {
-          resourceUri: `surfaces-ui://apps/json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
+          resourceUri: `surfaces-ui/apps/json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
         },
       },
       content: [
