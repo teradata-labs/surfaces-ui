@@ -17,6 +17,8 @@ createRoot(root).render(
     <ThemeWrapper
       title="Catalog Demo"
       description="Component catalog examples"
+      showDemoNav={true}
+      currentDemo="catalog"
     >
       <CatalogDemo />
     </ThemeWrapper>

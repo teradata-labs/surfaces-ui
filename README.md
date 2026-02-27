@@ -58,18 +58,30 @@ pnpm test
 pnpm --filter @surfacesui/components test:coverage
 ```
 
-**Component Showcase**: During development, you can view all 8 catalog components at:
-```
-http://localhost:5173/src/apps/showcase.html
+### Demo Gallery
+
+During development, you can explore interactive demos with unified navigation:
+
+**Available Demos:**
+- **Spacing Demo** (`demo-spacing.html`) - Comprehensive Tailwind v4 spacing utilities showcase
+- **Catalog Demo** (`catalog-demo.html`) - Component catalog examples
+- **Component Showcase** (`showcase.html`) - All 8 catalog components with JSON viewer
+- **Kitchen Sink** (`kitchen-sink.html`) - Complete primitives and molecules library
+- **Loom Integration** (`demo-loom.html`) - Bridge integration with Loom server
+
+Each demo includes:
+- Global navigation sidebar (desktop) or menu button (mobile)
+- Theme toggle (light/dark mode with persistence)
+- Responsive layouts
+- Live component interactions
+
+Example:
+```bash
+pnpm dev
+# Open http://localhost:5173/src/apps/demo-spacing.html
 ```
 
-The showcase provides:
-- Live previews of all components (SQLResultsDisplay, TableWithFilters, ChartWithControls, etc.)
-- Category filtering (Organism/Molecule/Primitive)
-- JSON spec viewer
-- Example prompts for natural language generation
-
-Note: The showcase is dev-only and not packaged as an MCP app.
+Use the navigation panel to jump between demos while exploring the library.
 
 ## Using with Claude Desktop
 
@@ -284,9 +296,9 @@ For connecting directly to a running [Loom](https://github.com/teradata-labs/loo
 
 Unknown tool calls are automatically routed through Loom's Weave endpoint, which delegates to an agent.
 
-## Loom Integration Test
+## Loom Integration Demo
 
-The `loom-test` app is a live integration dashboard that connects surfaces-ui components to a running Loom server. It demonstrates the bridge abstraction working with a non-vantage-mcp backend.
+The `demo-loom` app is a live integration dashboard that connects surfaces-ui components to a running Loom server. It demonstrates the bridge abstraction working with a non-vantage-mcp backend.
 
 ### Running
 
@@ -294,7 +306,7 @@ Start a Loom server (default: gRPC on `:60051`, HTTP on `:5006`), then:
 
 ```bash
 pnpm dev
-# Open http://localhost:5173/src/apps/loom-test.html
+# Open http://localhost:5173/src/apps/demo-loom.html
 ```
 
 ### What It Shows

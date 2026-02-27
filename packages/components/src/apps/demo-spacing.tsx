@@ -3,11 +3,13 @@ import { createRoot } from 'react-dom/client';
 import { ThemeWrapper } from './ThemeWrapper';
 import '../theme/tokens.css';
 
-function SpacingTest() {
+function SpacingDemo() {
   return (
     <ThemeWrapper
       title="Tailwind v4 Spacing Utilities"
       description="Comprehensive showcase of padding, margin, gap, and space utilities"
+      showDemoNav={true}
+      currentDemo="spacing"
     >
       <div className="space-y-12">
         {/* Padding Examples */}
@@ -257,5 +259,5 @@ function SpacingTest() {
 
 const root = document.getElementById('root');
 if (root) {
-  createRoot(root).render(<SpacingTest />);
+  createRoot(root).render(<SpacingDemo />);
 }
