@@ -147,7 +147,8 @@ function CatalogTableWithFilters(ctx: ComponentContext<typeof catalog, 'TableWit
   } = props;
 
   // Data comes from json-render state provider via useStateValue hook
-  const data = useStateValue<DataRow[]>('/data') || [];
+  const rawData = useStateValue<DataRow[]>('/data');
+  const data = React.useMemo(() => rawData || [], [rawData]);
 
   // Validate that spec columns exist in actual data; if not, derive from data
   // Memoize columns to prevent breaking DataTable's internal memoization
@@ -188,7 +189,8 @@ function CatalogChartWithControls(ctx: ComponentContext<typeof catalog, 'ChartWi
   } = props;
 
   // Data comes from json-render state provider via useStateValue hook
-  const data = useStateValue<DataRow[]>('/data') || [];
+  const rawData = useStateValue<DataRow[]>('/data');
+  const data = React.useMemo(() => rawData || [], [rawData]);
 
   // Validate that spec columns exist in actual data; if not, derive from data
   const columns = React.useMemo(() => {

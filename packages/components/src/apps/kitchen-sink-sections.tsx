@@ -66,15 +66,6 @@ function DemoRow({ label, children }: { label?: string; children: React.ReactNod
   );
 }
 
-/** State label pill */
-function StateLabel({ label }: { label: string }) {
-  return (
-    <span className="text-[10px] text-on-surface-variant uppercase tracking-wider w-16 shrink-0 text-right">
-      {label}
-    </span>
-  );
-}
-
 // ── Sections ─────────────────────────────────────────────────────────────
 
 export function ActionRibbonSection() {

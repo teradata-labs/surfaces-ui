@@ -15,7 +15,6 @@ import { ThemeToggle } from './ThemeToggle';
 import '../theme/tokens.css';
 
 import {
-  Section,
   ActionRibbonSection,
   AlertsSection,
   BadgeSection,

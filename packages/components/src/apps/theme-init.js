@@ -1,3 +1,4 @@
+/* global localStorage, window, document */
 // Apply dark class immediately (before React loads) to prevent FOUC
 (function() {
   const theme = localStorage.getItem('theme') || 'system';
