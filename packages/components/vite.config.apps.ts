@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
 /**
@@ -25,7 +26,7 @@ if (!validApps.includes(app)) {
 }
 
 export default defineConfig({
-  plugins: [react(), viteSingleFile()],
+  plugins: [tailwindcss(), react(), viteSingleFile()],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
