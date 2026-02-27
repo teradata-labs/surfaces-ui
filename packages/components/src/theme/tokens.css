@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ── Tailwind 4 Theme Configuration ─────────────────────────────────────── */
-/* Maps CSS custom properties to Tailwind utilities                           */
+/* Extend default theme with custom colors and tokens                         */
 @theme {
   /* Core semantic colors */
   --color-background: hsl(var(--background));
@@ -96,16 +96,22 @@
   --color-brand-darker-blue: hsl(var(--brand-darker-blue));
   --color-brand-darkest-blue: hsl(var(--brand-darkest-blue));
   --color-brand-primary-blue: hsl(var(--brand-primary-blue));
+
+  /* Animation keyframes (migrated from tailwindcss-animate plugin) */
+  --ease-spring: linear(
+    0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%,
+    0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%,
+    1.017 63.9%, 1.001
+  );
 }
 
-@layer base {
-  /* ── Density Token System ──────────────────────────────────────────── */
-  /* Provides density-aware scaling for spacing and layout components.      */
-  /* Typography and borders remain fixed per WCAG accessibility standards.  */
+/* ── Density Token System ──────────────────────────────────────────── */
+/* Provides density-aware scaling for spacing and layout components.      */
+/* Typography and borders remain fixed per WCAG accessibility standards.  */
 
-  :root {
-    /* Base density multiplier (default: comfortable) */
-    --density-scale: 1;
+:root {
+  /* Base density multiplier (default: comfortable) */
+  --density-scale: 1;
 
     /* Base spacing (unscaled) */
     --space-xs: 4px;
@@ -390,39 +396,38 @@
     /* #ffcd9e                       */
     --on-caution-container: 34 100% 81%;
   }
-}
 
 /* ── WCAG AA 2.2 Accessible Utility Classes ──────────────────────── */
 @layer utilities {
   .text-error-accessible {
-    @apply text-red-600 dark:text-red-300;
-  }
+  @apply text-red-600 dark:text-red-300;
+}
 
-  .text-warning-accessible {
-    @apply text-orange-600 dark:text-orange-300;
-  }
+.text-warning-accessible {
+  @apply text-orange-600 dark:text-orange-300;
+}
 
-  .text-error-icon {
-    @apply text-red-600 dark:text-red-400;
-  }
+.text-error-icon {
+  @apply text-red-600 dark:text-red-400;
+}
 
-  .text-warning-icon {
-    @apply text-orange-600 dark:text-orange-400;
-  }
+.text-warning-icon {
+  @apply text-orange-600 dark:text-orange-400;
+}
 
-  .bg-error-accessible {
-    @apply bg-red-950/20 dark:bg-red-950/30;
-  }
+.bg-error-accessible {
+  @apply bg-red-950/20 dark:bg-red-950/30;
+}
 
-  .bg-warning-accessible {
-    @apply bg-orange-950/20 dark:bg-orange-950/30;
-  }
+.bg-warning-accessible {
+  @apply bg-orange-950/20 dark:bg-orange-950/30;
+}
 
-  .border-error-accessible {
-    @apply border-red-400/50;
-  }
+.border-error-accessible {
+  @apply border-red-400/50;
+}
 
-  .border-warning-accessible {
-    @apply border-orange-400/50;
-  }
+.border-warning-accessible {
+  @apply border-orange-400/50;
+}
 }
