@@ -6,7 +6,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { CatalogDemo } from '../catalog/demo';
-import { ThemeProvider } from '../theme/ThemeProvider';
+import { ThemeWrapper } from './ThemeWrapper';
 import '../theme/tokens.css';
 
 const root = document.getElementById('root');
@@ -14,8 +14,11 @@ if (!root) throw new Error('Root element not found');
 
 createRoot(root).render(
   <React.StrictMode>
-    <ThemeProvider theme="system">
+    <ThemeWrapper
+      title="Catalog Demo"
+      description="Component catalog examples"
+    >
       <CatalogDemo />
-    </ThemeProvider>
+    </ThemeWrapper>
   </React.StrictMode>
 );
