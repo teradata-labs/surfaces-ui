@@ -38,7 +38,9 @@ function generateSampleData(rowCount = 50) {
 }
 
 // Check if we're in standalone mode (no backend API available)
-const isStandalone = !window.location.pathname.includes('/mcp-apps/');
+// Allow localhost:3457 for local Bedrock testing
+const isStandalone = !window.location.pathname.includes('/mcp-apps/') &&
+                     window.location.port !== '3457';
 
 // Render the application
 const root = document.getElementById('root');
