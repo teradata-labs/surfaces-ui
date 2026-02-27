@@ -78,7 +78,7 @@ function KitchenSink() {
           }
         }
       },
-      { rootMargin: '-20% 0px -70% 0px', threshold: 0 }
+      { rootMargin: '-20% 0px -70% 0px', threshold: 0 },
     );
     NAV_ITEMS.forEach(({ id }) => {
       const el = document.getElementById(id);
@@ -88,54 +88,54 @@ function KitchenSink() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="bg-background text-foreground flex min-h-screen">
       {/* ── Sticky nav rail ── */}
-      <aside className="w-52 shrink-0 sticky top-0 h-screen overflow-y-auto bg-surface-container-lowest border-r border-su-outline-variant hidden lg:flex flex-col">
-        <div className="px-4 py-5 border-b border-su-outline-variant">
-          <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">SurfacesUI</p>
-          <h1 className="text-base font-bold text-foreground mt-0.5">Kitchen Sink</h1>
+      <aside className="bg-surface-container-lowest border-su-outline-variant sticky top-0 hidden h-screen w-52 shrink-0 flex-col overflow-y-auto border-r lg:flex">
+        <div className="border-su-outline-variant border-b px-4 py-5">
+          <p className="text-on-surface-variant text-xs font-semibold tracking-widest uppercase">
+            SurfacesUI
+          </p>
+          <h1 className="text-foreground mt-0.5 text-base font-bold">Kitchen Sink</h1>
         </div>
         <nav className="flex-1 px-2 py-3">
           {NAV_ITEMS.map(({ id, label }) => (
             <button
               key={id}
               onClick={() => handleNavClick(id)}
-              className={`w-full text-left px-3 py-2 text-sm rounded-full transition-colors mb-0.5
-                ${active === id
+              className={`mb-0.5 w-full rounded-full px-3 py-2 text-left text-sm transition-colors ${
+                active === id
                   ? 'bg-secondary-container text-secondary-container-foreground font-medium'
-                  : 'text-on-surface-variant hover:bg-secondary-container/10'}
-              `}
+                  : 'text-on-surface-variant hover:bg-secondary-container/10'
+              } `}
             >
               {label}
             </button>
           ))}
         </nav>
-        <div className="px-4 py-3 border-t border-su-outline-variant space-y-2">
+        <div className="border-su-outline-variant space-y-2 border-t px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-on-surface-variant">Theme</span>
+            <span className="text-on-surface-variant text-xs">Theme</span>
             <ThemeToggle />
           </div>
-          <p className="text-[10px] text-on-surface-variant">
-            SurfacesUI v1.0
-          </p>
+          <p className="text-on-surface-variant text-[10px]">SurfacesUI v1.0</p>
         </div>
       </aside>
 
       {/* ── Main content ── */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto">
         {/* Mobile header */}
-        <header className="lg:hidden sticky top-0 z-10 border-b border-su-outline-variant bg-card/80 backdrop-blur px-4 py-3">
+        <header className="border-su-outline-variant bg-card/80 sticky top-0 z-10 border-b px-4 py-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between">
-            <h1 className="text-base font-bold text-foreground">Kitchen Sink</h1>
+            <h1 className="text-foreground text-base font-bold">Kitchen Sink</h1>
             <ThemeToggle />
           </div>
         </header>
 
-        <div className="max-w-3xl mx-auto px-4 lg:px-8 py-8 space-y-8">
+        <div className="mx-auto max-w-3xl space-y-8 px-4 py-8 lg:px-8">
           {/* Page title */}
-          <div className="pb-4 border-b border-su-outline-variant">
-            <h1 className="text-2xl font-bold text-foreground">Component Library</h1>
-            <p className="text-sm text-on-surface-variant mt-1">
+          <div className="border-su-outline-variant border-b pb-4">
+            <h1 className="text-foreground text-2xl font-bold">Component Library</h1>
+            <p className="text-on-surface-variant mt-1 text-sm">
               SurfacesUI component library — dark mode
             </p>
           </div>
@@ -156,6 +156,11 @@ function KitchenSink() {
           <ProgressBarSection />
           <RadioSection />
           <SwitchSection />
+
+          <div className="flex gap-4">
+            <div className="bg-card flex-1 border p-4">Gap test 1</div>
+            <div className="bg-card flex-1 border p-4">Gap test 2</div>
+          </div>
         </div>
       </main>
     </div>
@@ -169,6 +174,6 @@ if (root) {
   createRoot(root).render(
     <ThemeProvider persistTheme theme="dark">
       <KitchenSink />
-    </ThemeProvider>
+    </ThemeProvider>,
   );
 }
