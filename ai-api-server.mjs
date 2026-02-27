@@ -30,10 +30,19 @@ const SYSTEM_PROMPT = `You are a UI specification generator. Given a natural lan
 
 Available components:
 - TableWithFilters: Filterable data table with density controls
+  * Required props: columns (array of column name strings), height (number)
+  * Optional props: initialDensity, showFilter, showDensityToggle
 - ChartWithControls: Chart (bar/line/pie/scatter) with axis configuration
+  * Required props: columns (array of column name strings), height (number), initialChartType, initialXAxis, initialYAxis
+  * Optional props: showControls
 - SQLResultsDisplay: Combined table and chart views for SQL results
+  * Required props: sql (string), context (MUST be "web" or "mcp-apps"), initialViewMode, tableHeight, chartHeight
 - DataTable: Simple virtualized table
+  * Required props: columns (array of column name strings), height (number)
+  * Optional props: density, virtualScrolling
 - Chart: Basic chart without controls
+  * Required props: type, xAxis (column name string), yAxis (column name string), height
+  * Optional props: showDataLabels
 - Filter: Search filter component
 - DensityToggle: Density mode toggle
 - ViewModeToggle: Table/chart view toggle
@@ -44,22 +53,33 @@ Response format:
   "elements": {
     "elementId": {
       "type": "ComponentName",
-      "props": { ... }
+      "props": {
+        "columns": ["name", "email", "department", "salary"],
+        "height": 400
+      }
     }
   }
 }
 
-Rules:
+CRITICAL Rules:
 1. Always use "root" and "elements" structure
-2. Choose the most appropriate component for the request
-3. Include all required props for the component
-4. Use realistic column names and properties
-5. Return ONLY valid JSON, no markdown or explanation
+2. columns MUST be an array of STRING column names (e.g., ["id", "name", "email"]), NEVER numbers or indices
+3. The sample data has these columns available: ["id", "name", "product", "category", "value", "amount", "region", "status", "date"]
+   - Use "amount" or "value" for numeric Y-axis values
+   - Use "product" or "category" for categorical data
+   - Use "date" for time-series X-axis
+   - Use "name" for customer/item names
+   - Use "region" for geographical grouping
+4. height MUST be a number (e.g., 400, not "400")
+5. Chart axis props (xAxis, yAxis) MUST be single column name strings (e.g., "name", not ["name"])
+6. Only use column names from the available list above - invalid columns will cause errors
+7. Return ONLY valid JSON, no markdown, no explanation, no code blocks
 
-Examples:
-- "Show a filterable table" → TableWithFilters
-- "Display as a bar chart" → ChartWithControls
-- "SQL results with table and chart" → SQLResultsDisplay`;
+Good Examples:
+- "Filterable table" → {"root":"table","elements":{"table":{"type":"TableWithFilters","props":{"columns":["id","name","product","amount","region"],"height":400}}}}
+- "Bar chart of sales" → {"root":"chart","elements":{"chart":{"type":"ChartWithControls","props":{"columns":["product","amount"],"height":400,"initialChartType":"bar","initialXAxis":"product","initialYAxis":"amount"}}}}
+- "Full SQL results" → {"root":"results","elements":{"results":{"type":"SQLResultsDisplay","props":{"sql":"SELECT * FROM data","context":"web","initialViewMode":"table","tableHeight":400,"chartHeight":400}}}}`;
+
 
 // ============================================================================
 // Provider Implementations
@@ -240,6 +260,88 @@ function getProvider() {
   }
 }
 
+/**
+ * Fix common AI mistakes in generated specs
+ */
+function fixSpec(spec) {
+  const defaultColumns = {
+    employee: ['id', 'name', 'email', 'department', 'salary', 'hireDate'],
+    sales: ['id', 'product', 'amount', 'date', 'region'],
+    default: ['id', 'name', 'category', 'value', 'status', 'date']
+  };
+
+  // Helper to detect data type from element type or prompt context
+  function getDefaultColumns(type, length) {
+    const columns = type?.toLowerCase().includes('sql') || type?.toLowerCase().includes('employee')
+      ? defaultColumns.employee
+      : defaultColumns.default;
+    return columns.slice(0, length || 5);
+  }
+
+  // Recursively fix all elements
+  function fixElement(element, elementId) {
+    if (!element || typeof element !== 'object') return;
+
+    const { type, props } = element;
+
+    // Fix SQLResultsDisplay required props
+    if (type === 'SQLResultsDisplay') {
+      if (!props.sql || typeof props.sql !== 'string') {
+        props.sql = 'SELECT * FROM data';
+        console.log(`  🔧 Fixed ${elementId}.sql: "${props.sql}"`);
+      }
+      // context MUST be 'web' or 'mcp-apps' - fix if invalid
+      if (!props.context || (props.context !== 'web' && props.context !== 'mcp-apps')) {
+        props.context = 'web';
+        console.log(`  🔧 Fixed ${elementId}.context: "web" (was: "${props.context}")`);
+      }
+      if (!props.initialViewMode) {
+        props.initialViewMode = 'table';
+        console.log(`  🔧 Fixed ${elementId}.initialViewMode: "table"`);
+      }
+      if (!props.tableHeight || typeof props.tableHeight !== 'number') {
+        props.tableHeight = 400;
+        console.log(`  🔧 Fixed ${elementId}.tableHeight: 400`);
+      }
+      if (!props.chartHeight || typeof props.chartHeight !== 'number') {
+        props.chartHeight = 400;
+        console.log(`  🔧 Fixed ${elementId}.chartHeight: 400`);
+      }
+    }
+
+    // Fix columns if it's an array of numbers
+    if (props?.columns && Array.isArray(props.columns)) {
+      const hasNumericColumns = props.columns.some(col => typeof col === 'number');
+      if (hasNumericColumns) {
+        const columnCount = props.columns.length;
+        props.columns = getDefaultColumns(type || elementId, columnCount);
+        console.log(`  🔧 Fixed ${elementId}.columns: [${props.columns.join(', ')}]`);
+      }
+    }
+
+    // Fix xAxis/yAxis if they're numbers
+    if (props?.xAxis !== undefined && typeof props.xAxis === 'number') {
+      const cols = getDefaultColumns(type, 5);
+      props.xAxis = cols[props.xAxis] || cols[0];
+      console.log(`  🔧 Fixed ${elementId}.xAxis: "${props.xAxis}"`);
+    }
+    if (props?.yAxis !== undefined && typeof props.yAxis === 'number') {
+      const cols = getDefaultColumns(type, 5);
+      props.yAxis = cols[props.yAxis] || cols[1];
+      console.log(`  🔧 Fixed ${elementId}.yAxis: "${props.yAxis}"`);
+    }
+  }
+
+  // Fix all elements in spec
+  if (spec.elements) {
+    Object.entries(spec.elements).forEach(([id, element]) => {
+      fixElement(element, id);
+    });
+  }
+
+  return spec;
+}
+
 // ============================================================================
 // HTTP Server
 // ============================================================================
@@ -302,11 +404,14 @@ const server = createServer(async (req, res) => {
             // Extract JSON from response (handles both raw JSON and markdown)
             const jsonMatch = fullText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-              const spec = JSON.parse(jsonMatch[0]);
+              let spec = JSON.parse(jsonMatch[0]);
 
               // Validate it's a proper spec
               if (spec.root && spec.elements) {
                 specExtracted = true;
+
+                // Fix common AI mistakes
+                spec = fixSpec(spec);
 
                 // Extract explanation if present
                 const explanation = explain
@@ -330,8 +435,11 @@ const server = createServer(async (req, res) => {
         try {
           const jsonMatch = fullText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
-            const spec = JSON.parse(jsonMatch[0]);
+            let spec = JSON.parse(jsonMatch[0]);
             if (spec.root && spec.elements) {
+              // Fix common AI mistakes
+              spec = fixSpec(spec);
+
               const explanation = explain
                 ? fullText.split(jsonMatch[0])[1]?.trim() || null
                 : null;

@@ -20,18 +20,19 @@ import '../theme/tokens.css';
 const bridge = new McpAppsBridge();
 
 // Generate sample data for demo purposes
+// Columns match AI system prompt expectations for better compatibility
 function generateSampleData(rowCount = 50) {
-  const categories = ['Electronics', 'Clothing', 'Food', 'Books', 'Sports', 'Home'];
+  const products = ['Laptop', 'Phone', 'Tablet', 'Monitor', 'Keyboard', 'Mouse', 'Headphones', 'Camera'];
   const regions = ['North', 'South', 'East', 'West', 'Central'];
   const statuses = ['Active', 'Pending', 'Completed', 'Cancelled'];
 
   return Array.from({ length: rowCount }, (_, i) => ({
     id: i + 1,
-    name: `Item ${i + 1}`,
-    category: categories[Math.floor(Math.random() * categories.length)],
-    price: Math.floor(Math.random() * 1000) + 10,
-    quantity: Math.floor(Math.random() * 100) + 1,
-    revenue: Math.floor(Math.random() * 10000) + 100,
+    name: `Customer ${i + 1}`,
+    product: products[Math.floor(Math.random() * products.length)],
+    category: products[Math.floor(Math.random() * products.length)],
+    value: Math.floor(Math.random() * 10000) + 100,
+    amount: Math.floor(Math.random() * 10000) + 100,
     region: regions[Math.floor(Math.random() * regions.length)],
     status: statuses[Math.floor(Math.random() * statuses.length)],
     date: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
@@ -73,6 +74,8 @@ if (root) {
 
           <NLGenerator
             baseUrl={isStandalone ? undefined : window.location.origin}
+            layout="horizontal"
+            showRawJson={true}
             renderSpec={(spec) => (
               <SurfacesRenderer
                 spec={spec as unknown as Spec}

@@ -44,6 +44,11 @@ function CatalogChart(ctx: ComponentContext<typeof catalog, 'Chart'>) {
   const finalXAxis = xAxis || columns[0] || '';
   const finalYAxis = yAxis || columns[1] || '';
 
+  // Log debug info in development
+  if (typeof window !== 'undefined' && !data.length) {
+    console.warn('[CatalogChart] No data available. Check initialState={{ data: [...] }}');
+  }
+
   return (
     <Chart
       data={data}
@@ -133,7 +138,7 @@ function CatalogViewModeToggle(ctx: ComponentContext<typeof catalog, 'ViewModeTo
 function CatalogTableWithFilters(ctx: ComponentContext<typeof catalog, 'TableWithFilters'>) {
   const props = ctx.props as TableWithFiltersProps;
   const {
-    columns,
+    columns: specColumns,
     height,
     initialDensity,
     showFilter,
@@ -144,11 +149,18 @@ function CatalogTableWithFilters(ctx: ComponentContext<typeof catalog, 'TableWit
   // Data comes from json-render state provider via useStateValue hook
   const data = useStateValue<DataRow[]>('/data') || [];
 
+  // Validate that spec columns exist in actual data; if not, derive from data
   // Memoize columns to prevent breaking DataTable's internal memoization
-  const memoizedColumns = React.useMemo(
-    () => columns || undefined,
-    [columns]
-  );
+  const memoizedColumns = React.useMemo(() => {
+    if (!specColumns) return undefined; // Let DataTable derive from data
+    if (!data.length) return specColumns;
+    const actualColumns = Object.keys(data[0] || {});
+    // If any spec column doesn't exist in data, use actual columns instead
+    if (specColumns.some(col => !actualColumns.includes(col))) {
+      return actualColumns;
+    }
+    return specColumns;
+  }, [data, specColumns]);
 
   return (
     <TableWithFilters
@@ -166,7 +178,7 @@ function CatalogTableWithFilters(ctx: ComponentContext<typeof catalog, 'TableWit
 function CatalogChartWithControls(ctx: ComponentContext<typeof catalog, 'ChartWithControls'>) {
   const props = ctx.props as ChartWithControlsProps;
   const {
-    columns,
+    columns: specColumns,
     height,
     initialChartType,
     initialXAxis,
@@ -177,6 +189,17 @@ function CatalogChartWithControls(ctx: ComponentContext<typeof catalog, 'ChartWi
 
   // Data comes from json-render state provider via useStateValue hook
   const data = useStateValue<DataRow[]>('/data') || [];
+
+  // Validate that spec columns exist in actual data; if not, derive from data
+  const columns = React.useMemo(() => {
+    if (!data.length) return specColumns;
+    const actualColumns = Object.keys(data[0] || {});
+    // If any spec column doesn't exist in data, use actual columns instead
+    if (specColumns && specColumns.some(col => !actualColumns.includes(col))) {
+      return actualColumns;
+    }
+    return specColumns;
+  }, [data, specColumns]);
 
   return (
     <ChartWithControls
