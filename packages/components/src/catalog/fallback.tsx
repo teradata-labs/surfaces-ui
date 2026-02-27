@@ -32,7 +32,7 @@ export function SpecValidationError({
     >
       <div className="flex items-start gap-3">
         <svg
-          className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5"
+          className="h-5 w-5 text-destructive shrink-0 mt-0.5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

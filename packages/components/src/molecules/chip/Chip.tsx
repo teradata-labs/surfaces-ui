@@ -82,7 +82,7 @@ const InputChip = React.forwardRef<HTMLDivElement, InputChipProps>(
           aria-label={`Remove ${label}`}
           className={cn(
             'ml-0.5 w-4 h-4 flex items-center justify-center rounded-full',
-            'hover:bg-[var(--on-surface-12-raw)] text-on-surface-variant transition-colors',
+            'hover:bg-(--on-surface-12-raw) text-on-surface-variant transition-colors',
             'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
           )}
         >

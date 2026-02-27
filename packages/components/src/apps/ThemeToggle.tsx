@@ -62,7 +62,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors
-        text-on-surface-variant hover:bg-[var(--on-surface-8-raw)] shrink-0
+        text-on-surface-variant hover:bg-(--on-surface-8-raw) shrink-0
         ${className ?? ''}`}
     >
       {isDark ? <SunIcon /> : <MoonIcon />}

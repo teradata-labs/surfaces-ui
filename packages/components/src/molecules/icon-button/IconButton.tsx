@@ -13,13 +13,13 @@ const iconButtonVariants = cva(
     variants: {
       variant: {
         standard:
-          'text-on-surface-variant hover:bg-[var(--on-surface-8-raw)]',
+          'text-on-surface-variant hover:bg-(--on-surface-8-raw)',
         filled:
           'bg-primary text-primary-foreground hover:opacity-90 shadow-sm',
         tonal:
-          'bg-surface-container text-on-surface-variant hover:bg-[var(--on-surface-8-raw)]',
+          'bg-surface-container text-on-surface-variant hover:bg-(--on-surface-8-raw)',
         outlined:
-          'border border-su-outline text-on-surface-variant hover:bg-[var(--on-surface-8-raw)]',
+          'border border-su-outline text-on-surface-variant hover:bg-(--on-surface-8-raw)',
       },
       size: {
         sm: 'w-8 h-8',
