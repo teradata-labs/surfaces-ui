@@ -37,16 +37,33 @@ function generateSampleData(rowCount = 50) {
   }));
 }
 
+// Check if we're in standalone mode (no backend API available)
+const isStandalone = !window.location.pathname.includes('/mcp-apps/');
+
 // Render the application
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(
     <McpBridgeProvider bridge={bridge}>
-      <ThemeProvider theme="system" density="comfortable">
+      <ThemeProvider persistTheme density="comfortable">
         <div className="p-4 max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold mb-4">JSON Render UI Generator</h1>
+
+          {isStandalone && (
+            <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm">
+              <p className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">⚠️ Standalone Mode</p>
+              <p className="text-yellow-700 dark:text-yellow-300">
+                This app requires a backend API at <code className="px-1 py-0.5 bg-yellow-100 dark:bg-yellow-900 rounded">/api/generate-ui</code> to generate specs.
+                In production, this is provided by Claude Desktop via MCP or by a vantage-mcp backend.
+              </p>
+              <p className="text-yellow-700 dark:text-yellow-300 mt-2">
+                For testing, use the example prompts below or manually provide JSON specs.
+              </p>
+            </div>
+          )}
+
           <NLGenerator
-            baseUrl={window.location.origin}
+            baseUrl={isStandalone ? undefined : window.location.origin}
             renderSpec={(spec) => (
               <SurfacesRenderer
                 spec={spec as unknown as Spec}
