@@ -54,7 +54,7 @@ export interface UseSpecStreamOptions {
  * @example
  * ```tsx
  * const { state, generate, abort } = useSpecStream({
- *   onComplete: (result) => console.log('Done:', result.spec)
+ *   onComplete: (result) => setSpec(result.spec)
  * });
  *
  * // Start generation

@@ -43,7 +43,7 @@ export interface NLGeneratorProps {
  * @example
  * ```tsx
  * <NLGenerator
- *   onSpecGenerated={(spec) => console.log('Generated:', spec)}
+ *   onSpecGenerated={(spec) => setGeneratedSpec(spec)}
  *   renderSpec={(spec) => <SurfacesRenderer spec={spec} data={data} />}
  * />
  * ```

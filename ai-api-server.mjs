@@ -3,6 +3,9 @@
 /**
  * Multi-Provider AI API Server for json-render testing
  *
+ * NOTE: This is a STANDALONE DEVELOPMENT SERVER, not an MCP server.
+ * Console.log usage is intentional for development logging (does not interfere with MCP protocol).
+ *
  * Supports:
  * - AWS Bedrock (Claude via Bedrock)
  * - Anthropic API (Direct Claude API)

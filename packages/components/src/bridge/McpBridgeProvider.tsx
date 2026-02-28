@@ -140,7 +140,7 @@ export function McpBridgeProvider({ config, bridge: externalBridge, children }: 
  *
  *   const handleClick = async () => {
  *     const result = await bridge.callTool('myTool', { key: 'value' });
- *     console.log(result);
+ *     setToolResult(result);
  *   };
  *
  *   return <button onClick={handleClick}>Call Tool</button>;
