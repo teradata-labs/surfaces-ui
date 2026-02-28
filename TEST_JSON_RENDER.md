@@ -43,15 +43,15 @@ ANTHROPIC_API_KEY=sk-ant-your-key-here
 ### 2. Start the Server
 
 ```bash
-cd server
+# From project root
 ./test_json_render.sh
 ```
 
-The server will start on http://localhost:3000
+The server will start on http://localhost:3457
 
 ### 3. Open the App
 
-Navigate to: **http://localhost:3000/json-render-cdn**
+Navigate to: **http://localhost:3457/json-render**
 
 You should see the NLGenerator interface with:
 - Prompt input field
@@ -106,7 +106,7 @@ Includes:
 
 ```
 ┌─────────────────────────────────────────┐
-│  Browser: http://localhost:3000/json-render-cdn
+│  Browser: http://localhost:3457/json-render
 │  ┌─────────────────────────────────┐
 │  │  NLGenerator Component          │
 │  │  • Prompt input                 │
@@ -115,18 +115,19 @@ Includes:
 │  └──────────┬──────────────────────┘
 │             │ calls
 │  ┌──────────▼──────────────────────┐
-│  │  McpAppsBridge (postMessage)    │
+│  │  /api/generate-ui endpoint      │
 │  └──────────┬──────────────────────┘
 └─────────────┼──────────────────────────┘
               │
 ┌─────────────▼──────────────────────────┐
-│  MCP Server (Python FastMCP)           │
+│  Node.js AI Server (ai-api-server.mjs) │
 │  ┌─────────────────────────────────┐   │
-│  │  generate_ui tool               │   │
-│  │  • Catalog prompt generation    │   │
-│  │  • Anthropic Claude 4.5         │   │
-│  │  • Structured output (JSON)     │   │
-│  │  • Streaming compilation        │   │
+│  │  Multi-Provider AI Backend      │   │
+│  │  • AWS Bedrock (default)        │   │
+│  │  • Anthropic API                │   │
+│  │  • OpenAI API                   │   │
+│  │  • Google Gemini                │   │
+│  │  • Streaming JSON specs         │   │
 │  └─────────────────────────────────┘   │
 └────────────────────────────────────────┘
 ```
@@ -199,32 +200,19 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "surfaces-ui": {
-      "command": "/path/to/surfaces-ui/server/venv/bin/python",
-      "args": ["-m", "src.main"],
-      "cwd": "/path/to/surfaces-ui/server",
+      "command": "node",
+      "args": ["/absolute/path/to/surfaces-ui/packages/server/dist/index.js"],
       "env": {
-        "HTTP_ONLY": "false",
-        "MOCK_MODE": "true",
-        "HTTP_PORT": "3000",
-        "LLM_PROVIDER": "bedrock",
-        "AWS_REGION": "us-east-1"
+        "NODE_ENV": "production"
       }
     }
   }
 }
 ```
 
-**Note**: Claude Desktop will use your system's AWS credentials (SSO or environment variables).
-
-If you prefer Anthropic API, change env to:
-```json
-"env": {
-  "LLM_PROVIDER": "anthropic",
-  "ANTHROPIC_API_KEY": "sk-ant-your-key-here"
-}
-```
-
-Then restart Claude Desktop. The json-render app will be available as an MCP resource: `ui://json-render-cdn`
+Then restart Claude Desktop. The json-render and sql-editor apps will be available as MCP resources:
+- `ui://json-render-cdn`
+- `ui://sql-editor-cdn`
 
 ## What's Next?
 

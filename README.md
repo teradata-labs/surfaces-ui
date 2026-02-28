@@ -45,6 +45,19 @@ pnpm build
 pnpm build:apps
 ```
 
+### Preview Built Apps
+
+To quickly preview the pre-built HTML apps (SQL Editor and JSON Render) without any AI backend:
+
+```bash
+node serve-apps.mjs
+# Opens http://localhost:3456
+```
+
+Available apps:
+- **SQL Editor**: http://localhost:3456/sql-editor
+- **JSON Render**: http://localhost:3456/json-render (standalone mode with demo data)
+
 ### Development
 
 ```bash
@@ -57,6 +70,17 @@ pnpm test
 # Run tests with coverage
 pnpm --filter @surfacesui/components test:coverage
 ```
+
+### Testing JSON Render with AI
+
+To test the natural language UI generation with live AI backends (AWS Bedrock, Anthropic, OpenAI, or Google Gemini):
+
+```bash
+./test_json_render.sh
+# Opens http://localhost:3457/json-render
+```
+
+See **[TEST_JSON_RENDER.md](TEST_JSON_RENDER.md)** for detailed testing instructions, example prompts, and troubleshooting.
 
 ### Demo Gallery
 
@@ -82,6 +106,43 @@ pnpm dev
 ```
 
 Use the navigation panel to jump between demos while exploring the library.
+
+## Using Components in Your React App
+
+Install the components package in your React project:
+
+```bash
+npm install @surfacesui/components
+# or
+pnpm add @surfacesui/components
+```
+
+Import and use components with a bridge:
+
+```tsx
+import { McpAppsBridge, McpBridgeProvider, SQLEditor } from '@surfacesui/components';
+import '@surfacesui/components/dist/style.css';
+
+const bridge = new McpAppsBridge();
+
+function App() {
+  return (
+    <McpBridgeProvider bridge={bridge}>
+      <SQLEditor
+        initialCode="SELECT * FROM users LIMIT 10"
+        title="My SQL Editor"
+      />
+    </McpBridgeProvider>
+  );
+}
+```
+
+All components require:
+- A bridge instance (McpAppsBridge, McpBridge, or LoomBridge)
+- The bridge provider wrapping your component tree
+- The component stylesheet imported
+
+See the [Bridge Architecture](#bridge-architecture) section for details on choosing the right bridge for your environment.
 
 ## Using with Claude Desktop
 
