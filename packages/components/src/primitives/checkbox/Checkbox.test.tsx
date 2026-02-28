@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Checkbox } from './Checkbox';
 
 describe('Checkbox', () => {
@@ -18,17 +19,19 @@ describe('Checkbox', () => {
     expect(screen.getByRole('checkbox').getAttribute('data-state')).toBe('checked');
   });
 
-  it('calls onCheckedChange on click', () => {
+  it('calls onCheckedChange on click', async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Checkbox aria-label="Accept" onCheckedChange={onChange} />);
-    fireEvent.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('checkbox'));
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it('does not call onCheckedChange when disabled', () => {
+  it('does not call onCheckedChange when disabled', async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Checkbox aria-label="Accept" disabled onCheckedChange={onChange} />);
-    fireEvent.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('checkbox'));
     expect(onChange).not.toHaveBeenCalled();
   });
 
@@ -40,5 +43,17 @@ describe('Checkbox', () => {
   it('accepts custom className', () => {
     render(<Checkbox aria-label="Accept" className="custom-cls" />);
     expect(screen.getByRole('checkbox').className).toContain('custom-cls');
+  });
+
+  it('toggles on Space key press', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Checkbox aria-label="Accept" onCheckedChange={onChange} />);
+
+    const checkbox = screen.getByRole('checkbox');
+    checkbox.focus();
+    await user.keyboard(' ');
+
+    expect(onChange).toHaveBeenCalledWith(true);
   });
 });

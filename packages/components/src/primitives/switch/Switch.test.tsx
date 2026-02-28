@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Switch } from './Switch';
 
 describe('Switch', () => {
@@ -18,22 +19,36 @@ describe('Switch', () => {
     expect(screen.getByRole('switch').getAttribute('data-state')).toBe('checked');
   });
 
-  it('calls onCheckedChange when clicked', () => {
+  it('calls onCheckedChange when clicked', async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Switch aria-label="Toggle" onCheckedChange={onChange} />);
-    fireEvent.click(screen.getByRole('switch'));
+    await user.click(screen.getByRole('switch'));
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it('does not fire onCheckedChange when disabled', () => {
+  it('does not fire onCheckedChange when disabled', async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Switch aria-label="Toggle" disabled onCheckedChange={onChange} />);
-    fireEvent.click(screen.getByRole('switch'));
+    await user.click(screen.getByRole('switch'));
     expect(onChange).not.toHaveBeenCalled();
   });
 
   it('accepts custom className', () => {
     render(<Switch aria-label="Toggle" className="my-custom-class" />);
     expect(screen.getByRole('switch').className).toContain('my-custom-class');
+  });
+
+  it('toggles on Space key press', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Switch aria-label="Toggle" onCheckedChange={onChange} />);
+
+    const switchElement = screen.getByRole('switch');
+    switchElement.focus();
+    await user.keyboard(' ');
+
+    expect(onChange).toHaveBeenCalledWith(true);
   });
 });

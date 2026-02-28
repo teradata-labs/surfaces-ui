@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { RadioGroup, RadioGroupItem } from './RadioGroup';
 
 describe('RadioGroup', () => {
@@ -23,10 +24,11 @@ describe('RadioGroup', () => {
     expect(screen.getAllByRole('radio')).toHaveLength(3);
   });
 
-  it('selects item on click and calls onValueChange', () => {
+  it('selects item on click and calls onValueChange', async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     renderGroup(onChange);
-    fireEvent.click(screen.getByLabelText('Option B'));
+    await user.click(screen.getByLabelText('Option B'));
     expect(onChange).toHaveBeenCalledWith('b');
   });
 
@@ -48,5 +50,36 @@ describe('RadioGroup', () => {
       </RadioGroup>
     );
     expect(screen.getByRole('radiogroup').className).toContain('my-group');
+  });
+
+  it('supports keyboard navigation with arrow keys', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <RadioGroup aria-label="Options" onValueChange={onChange} defaultValue="a">
+        <RadioGroupItem value="a" aria-label="Option A" />
+        <RadioGroupItem value="b" aria-label="Option B" />
+        <RadioGroupItem value="c" aria-label="Option C" />
+      </RadioGroup>
+    );
+
+    const firstRadio = screen.getByLabelText('Option A');
+    firstRadio.focus();
+
+    // Arrow down navigates to next radio
+    await user.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(screen.getByLabelText('Option B'));
+
+    // Arrow right also navigates forward
+    await user.keyboard('{ArrowRight}');
+    expect(document.activeElement).toBe(screen.getByLabelText('Option C'));
+
+    // Arrow up navigates backward
+    await user.keyboard('{ArrowUp}');
+    expect(document.activeElement).toBe(screen.getByLabelText('Option B'));
+
+    // Arrow left also navigates backward
+    await user.keyboard('{ArrowLeft}');
+    expect(document.activeElement).toBe(screen.getByLabelText('Option A'));
   });
 });

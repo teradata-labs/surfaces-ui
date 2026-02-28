@@ -1,77 +1,50 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { IconButton } from './IconButton';
-
-const PlusIcon = () => (
-  <svg aria-hidden="true" viewBox="0 0 24 24">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
 
 describe('IconButton', () => {
   it('renders a button', () => {
-    render(
-      <IconButton aria-label="Add item">
-        <PlusIcon />
-      </IconButton>
-    );
-    expect(screen.getByRole('button', { name: 'Add item' })).toBeDefined();
+    render(<IconButton aria-label="Settings">⚙️</IconButton>);
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
   });
 
-  it('calls onClick handler', () => {
-    const onClick = vi.fn();
-    render(
-      <IconButton aria-label="Add" onClick={onClick}>
-        <PlusIcon />
-      </IconButton>
-    );
-    fireEvent.click(screen.getByRole('button'));
-    expect(onClick).toHaveBeenCalledOnce();
-  });
-
-  it('applies filled variant classes', () => {
-    render(
-      <IconButton aria-label="Add" variant="filled">
-        <PlusIcon />
-      </IconButton>
-    );
+  it('accepts variant props', () => {
+    const { rerender } = render(<IconButton aria-label="Settings" variant="filled">⚙️</IconButton>);
     expect(screen.getByRole('button').className).toContain('bg-primary');
+
+    rerender(<IconButton aria-label="Settings" variant="outlined">⚙️</IconButton>);
+    expect(screen.getByRole('button').className).toContain('border');
   });
 
-  it('applies active class when active=true', () => {
-    render(
-      <IconButton aria-label="Add" active>
-        <PlusIcon />
-      </IconButton>
-    );
+  it('accepts size props', () => {
+    const { rerender } = render(<IconButton aria-label="Settings" size="sm">⚙️</IconButton>);
+    expect(screen.getByRole('button').className).toContain('w-8');
+
+    rerender(<IconButton aria-label="Settings" size="lg">⚙️</IconButton>);
+    expect(screen.getByRole('button').className).toContain('w-12');
+  });
+
+  it('calls onClick when clicked', async () => {
+    const user = userEvent.setup();
+    const handleClick = vi.fn();
+    render(<IconButton aria-label="Settings" onClick={handleClick}>⚙️</IconButton>);
+    await user.click(screen.getByRole('button'));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies active state styling', () => {
+    render(<IconButton aria-label="Settings" active>⚙️</IconButton>);
     expect(screen.getByRole('button').className).toContain('bg-secondary-container');
   });
 
-  it('is disabled when disabled prop set', () => {
-    render(
-      <IconButton aria-label="Add" disabled>
-        <PlusIcon />
-      </IconButton>
-    );
+  it('is disabled when disabled prop is true', () => {
+    render(<IconButton aria-label="Settings" disabled>⚙️</IconButton>);
     expect(screen.getByRole('button')).toBeDisabled();
   });
 
   it('accepts custom className', () => {
-    render(
-      <IconButton aria-label="Add" className="my-btn">
-        <PlusIcon />
-      </IconButton>
-    );
-    expect(screen.getByRole('button').className).toContain('my-btn');
-  });
-
-  it('renders sm size', () => {
-    render(
-      <IconButton aria-label="Add" size="sm">
-        <PlusIcon />
-      </IconButton>
-    );
-    expect(screen.getByRole('button').className).toContain('w-8');
+    render(<IconButton aria-label="Settings" className="custom-class">⚙️</IconButton>);
+    expect(screen.getByRole('button').className).toContain('custom-class');
   });
 });
