@@ -3,6 +3,19 @@
 ## Purpose
 Ensure comprehensive test coverage including unit tests, accessibility tests, and MCP integration tests.
 
+## Scope
+**Default: Full codebase review**
+
+Unless explicitly scoped to specific files, reviews MUST cover:
+- All primitives (`src/primitives/**/`)
+- All molecules (`src/molecules/**/`)
+- All organisms (`src/components/**/`)
+- All catalog components (`src/catalog/**/`)
+- Test files co-located with components
+- Overall coverage metrics
+
+This ensures pre-existing test gaps are tracked alongside new changes.
+
 ## Review Checklist
 
 ### Coverage Requirements
