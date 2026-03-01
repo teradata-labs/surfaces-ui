@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
 /**
@@ -18,14 +19,14 @@ import { resolve } from 'path';
 
 // Determine which app to build based on APP env var
 const app = process.env.APP || 'sql-editor-cdn';
-const validApps = ['sql-editor-cdn', 'json-render-cdn', 'showcase', 'loom-test'];
+const validApps = ['sql-editor-cdn', 'json-render-cdn', 'showcase', 'demo-loom', 'demo-spacing', 'catalog-demo'];
 
 if (!validApps.includes(app)) {
   throw new Error(`Invalid APP="${app}". Must be one of: ${validApps.join(', ')}`);
 }
 
 export default defineConfig({
-  plugins: [react(), viteSingleFile()],
+  plugins: [tailwindcss(), react(), viteSingleFile()],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),

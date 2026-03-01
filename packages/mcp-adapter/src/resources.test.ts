@@ -24,10 +24,10 @@ describe("getSurfacesResources", () => {
     expect(resources).toHaveLength(Object.keys(SURFACES_APPS).length);
   });
 
-  it("uses the surfaces-ui:// URI scheme", () => {
+  it("uses the surfaces-ui/apps/ path-based URI format", () => {
     const resources = getSurfacesResources();
     for (const r of resources) {
-      expect(r.uri).toMatch(/^surfaces-ui:\/\/apps\//);
+      expect(r.uri).toMatch(/^surfaces-ui\/apps\//);
     }
   });
 
@@ -45,8 +45,8 @@ describe("getSurfacesResources", () => {
   it("maps URIs to app IDs correctly", () => {
     const resources = getSurfacesResources();
     const uris = resources.map((r) => r.uri);
-    expect(uris).toContain("surfaces-ui://apps/sql-editor-cdn");
-    expect(uris).toContain("surfaces-ui://apps/json-render-cdn");
+    expect(uris).toContain("surfaces-ui/apps/sql-editor-cdn");
+    expect(uris).toContain("surfaces-ui/apps/json-render-cdn");
   });
 });
 
@@ -57,32 +57,32 @@ describe("readSurfacesResource", () => {
 
   it("returns content for a valid URI", () => {
     const content = readSurfacesResource(
-      "surfaces-ui://apps/sql-editor-cdn",
+      "surfaces-ui/apps/sql-editor-cdn",
     );
-    expect(content.uri).toBe("surfaces-ui://apps/sql-editor-cdn");
+    expect(content.uri).toBe("surfaces-ui/apps/sql-editor-cdn");
     expect(content.mimeType).toBe("text/html;profile=mcp-app");
     expect(content.text).toContain("<!DOCTYPE html>");
   });
 
   it("throws for an unknown app ID", () => {
     expect(() =>
-      readSurfacesResource("surfaces-ui://apps/nonexistent"),
+      readSurfacesResource("surfaces-ui/apps/nonexistent"),
     ).toThrow('Unknown surfaces-ui app: "nonexistent"');
   });
 
   it("throws for path traversal attempts", () => {
     expect(() =>
-      readSurfacesResource("surfaces-ui://apps/../../etc/passwd"),
+      readSurfacesResource("surfaces-ui/apps/../../etc/passwd"),
     ).toThrow('Unknown surfaces-ui app: "../../etc/passwd"');
   });
 
   it("throws for prototype pollution keys", () => {
     expect(() =>
-      readSurfacesResource("surfaces-ui://apps/__proto__"),
+      readSurfacesResource("surfaces-ui/apps/__proto__"),
     ).toThrow('Unknown surfaces-ui app: "__proto__"');
 
     expect(() =>
-      readSurfacesResource("surfaces-ui://apps/constructor"),
+      readSurfacesResource("surfaces-ui/apps/constructor"),
     ).toThrow('Unknown surfaces-ui app: "constructor"');
   });
 
@@ -92,21 +92,22 @@ describe("readSurfacesResource", () => {
     });
 
     expect(() =>
-      readSurfacesResource("surfaces-ui://apps/sql-editor-cdn"),
+      readSurfacesResource("surfaces-ui/apps/sql-editor-cdn"),
     ).toThrow('HTML bundle for "sql-editor-cdn" not found');
   });
 });
 
 describe("isSurfacesUri", () => {
-  it("returns true for surfaces-ui:// URIs", () => {
-    expect(isSurfacesUri("surfaces-ui://apps/sql-editor-cdn")).toBe(true);
-    expect(isSurfacesUri("surfaces-ui://apps/json-render-cdn")).toBe(true);
+  it("returns true for path-based surfaces-ui/apps/ URIs", () => {
+    expect(isSurfacesUri("surfaces-ui/apps/sql-editor-cdn")).toBe(true);
+    expect(isSurfacesUri("surfaces-ui/apps/json-render-cdn")).toBe(true);
   });
 
   it("returns false for non-surfaces URIs", () => {
     expect(isSurfacesUri("file:///tmp/test.html")).toBe(false);
     expect(isSurfacesUri("https://example.com")).toBe(false);
     expect(isSurfacesUri("ui://sql-editor")).toBe(false);
+    expect(isSurfacesUri("surfaces-ui://apps/old-format")).toBe(false);
     expect(isSurfacesUri("")).toBe(false);
   });
 });

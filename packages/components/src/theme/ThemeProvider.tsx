@@ -32,6 +32,12 @@ interface ThemeProviderProps {
   density?: DensityMode;
   /** Optional CSS custom-property overrides applied to the wrapper element. */
   tokenOverrides?: Record<string, string>;
+  /**
+   * When true, persists the current theme mode to `localStorage` under the
+   * key `'theme'` and restores it on the next page load (overriding the
+   * `theme` prop default).
+   */
+  persistTheme?: boolean;
   children: React.ReactNode;
 }
 
@@ -58,12 +64,27 @@ export function ThemeProvider({
   theme: initialTheme = 'system',
   density: initialDensity,
   tokenOverrides,
+  persistTheme = false,
   children,
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<ThemeMode>(initialTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() =>
-    resolveTheme(initialTheme),
-  );
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    if (persistTheme && typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark' || saved === 'system') {
+        return saved as ThemeMode;
+      }
+    }
+    return initialTheme;
+  });
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
+    if (persistTheme && typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark' || saved === 'system') {
+        return resolveTheme(saved as ThemeMode);
+      }
+    }
+    return resolveTheme(initialTheme);
+  });
 
   const [density, setDensityState] = useState<DensityMode>(() => {
     if (initialDensity) return initialDensity;
@@ -76,9 +97,15 @@ export function ThemeProvider({
     return 'comfortable';
   });
 
-  const setTheme = useCallback((mode: ThemeMode) => {
-    setThemeState(mode);
-  }, []);
+  const setTheme = useCallback(
+    (mode: ThemeMode) => {
+      setThemeState(mode);
+      if (persistTheme && typeof window !== 'undefined') {
+        localStorage.setItem('theme', mode);
+      }
+    },
+    [persistTheme],
+  );
 
   const setDensity = useCallback((mode: DensityMode) => {
     setDensityState(mode);

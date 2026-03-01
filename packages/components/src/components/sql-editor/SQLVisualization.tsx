@@ -70,7 +70,7 @@ export function SQLVisualization({
 
   return (
     <div className="flex gap-4">
-      <Card className="w-56 flex-shrink-0">
+      <Card className="w-56 shrink-0">
         <CardContent className="p-3 space-y-4">
           <div>
             <Label className="text-xs font-medium">Chart Type</Label>

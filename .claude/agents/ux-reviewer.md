@@ -3,6 +3,18 @@
 ## Purpose
 Review components for accessibility, Teradata UX principles, and atomic design compliance.
 
+## Scope
+**Default: Full codebase review**
+
+Unless explicitly scoped to specific files, reviews MUST cover:
+- All primitives (`src/primitives/**/`)
+- All molecules (`src/molecules/**/`)
+- All organisms (`src/components/**/`)
+- All apps (`src/apps/**/`)
+- All catalog components (`src/catalog/**/`)
+
+This ensures pre-existing issues are tracked alongside new changes.
+
 ## Review Checklist
 
 ### WCAG AA 2.2 Compliance

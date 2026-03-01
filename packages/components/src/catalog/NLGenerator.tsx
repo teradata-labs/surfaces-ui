@@ -29,6 +29,10 @@ export interface NLGeneratorProps {
   placeholder?: string;
   /** Show example prompts section */
   showExamples?: boolean;
+  /** Layout orientation */
+  layout?: 'vertical' | 'horizontal';
+  /** Show raw JSON alongside rendered result */
+  showRawJson?: boolean;
   /** Additional CSS class names */
   className?: string;
 }
@@ -39,7 +43,7 @@ export interface NLGeneratorProps {
  * @example
  * ```tsx
  * <NLGenerator
- *   onSpecGenerated={(spec) => console.log('Generated:', spec)}
+ *   onSpecGenerated={(spec) => setGeneratedSpec(spec)}
  *   renderSpec={(spec) => <SurfacesRenderer spec={spec} data={data} />}
  * />
  * ```
@@ -53,9 +57,12 @@ export function NLGenerator({
   initialPrompt = '',
   placeholder = 'Describe the UI you want to generate...',
   showExamples = true,
+  layout = 'vertical',
+  showRawJson = false,
   className = '',
 }: NLGeneratorProps): React.ReactElement {
   const [prompt, setPrompt] = React.useState(initialPrompt);
+  const [hasGenerated, setHasGenerated] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
   const { state, generate, abort, reset } = useSpecStream({
@@ -72,6 +79,7 @@ export function NLGenerator({
   const handleSubmit = React.useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (prompt.trim() && !state.isStreaming) {
+      setHasGenerated(true);
       generate(prompt.trim());
     }
   }, [prompt, state.isStreaming, generate]);
@@ -94,43 +102,42 @@ export function NLGenerator({
     ...getExamplesForComponent('SQLResultsDisplay').slice(0, 1),
   ], []);
 
-  return (
-    <div className={`flex flex-col gap-4 ${className}`}>
+  // Left column content (input and controls)
+  const leftColumn = (
+    <div className="flex flex-col gap-4 h-full">
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <label htmlFor="nl-prompt" className="text-sm font-medium text-foreground">
           Describe the UI you want
         </label>
+        <textarea
+          ref={inputRef}
+          id="nl-prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder={placeholder}
+          rows={layout === 'horizontal' ? (hasGenerated ? 12 : 4) : 2}
+          disabled={state.isStreaming}
+          className="w-full min-h-[60px] px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 resize-none"
+          aria-describedby={showExamples ? 'nl-examples' : undefined}
+        />
         <div className="flex gap-2">
-          <textarea
-            ref={inputRef}
-            id="nl-prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder={placeholder}
-            rows={2}
-            disabled={state.isStreaming}
-            className="flex-1 min-h-[60px] px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 resize-none"
-            aria-describedby={showExamples ? 'nl-examples' : undefined}
-          />
-          <div className="flex flex-col gap-1">
+          <button
+            type="submit"
+            disabled={!prompt.trim() || state.isStreaming}
+            className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {state.isStreaming ? 'Generating...' : 'Generate'}
+          </button>
+          {state.isStreaming && (
             <button
-              type="submit"
-              disabled={!prompt.trim() || state.isStreaming}
-              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              type="button"
+              onClick={abort}
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {state.isStreaming ? 'Generating...' : 'Generate'}
+              Cancel
             </button>
-            {state.isStreaming && (
-              <button
-                type="button"
-                onClick={abort}
-                className="px-4 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </form>
 
@@ -153,6 +160,26 @@ export function NLGenerator({
         </div>
       )}
 
+      {/* Reset Button */}
+      {(state.spec || state.error) && !state.isStreaming && (
+        <button
+          type="button"
+          onClick={() => {
+            reset();
+            setPrompt('');
+            setHasGenerated(false);
+          }}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Clear and start over
+        </button>
+      )}
+    </div>
+  );
+
+  // Right column content (results)
+  const rightColumn = (
+    <div className="flex flex-col gap-4">
       {/* Progress Indicator */}
       {state.isStreaming && (
         <div className="flex flex-col gap-2">
@@ -217,30 +244,62 @@ export function NLGenerator({
 
       {/* Rendered Spec */}
       {state.spec && !state.isStreaming && !state.error && (
-        <div className="border border-border rounded-lg overflow-hidden">
-          {renderSpec ? (
-            renderSpec(state.spec)
-          ) : (
-            <pre className="p-4 text-xs bg-muted overflow-x-auto">
-              {JSON.stringify(state.spec, null, 2)}
-            </pre>
-          )}
-        </div>
-      )}
+        <>
+          <div className="border border-border rounded-lg overflow-hidden">
+            {renderSpec ? (
+              renderSpec(state.spec)
+            ) : (
+              <pre className="p-4 text-xs bg-muted overflow-x-auto">
+                {JSON.stringify(state.spec, null, 2)}
+              </pre>
+            )}
+          </div>
 
-      {/* Reset Button */}
-      {(state.spec || state.error) && !state.isStreaming && (
-        <button
-          type="button"
-          onClick={() => {
-            reset();
-            setPrompt('');
-          }}
-          className="self-start text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Clear and start over
-        </button>
+          {/* Raw JSON View */}
+          {showRawJson && renderSpec && (
+            <div className="border border-border rounded-lg overflow-hidden">
+              <div className="bg-muted px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">
+                JSON Specification
+              </div>
+              <pre className="p-4 text-xs bg-muted/30 overflow-x-auto max-h-96 overflow-y-auto">
+                {JSON.stringify(state.spec, null, 2)}
+              </pre>
+            </div>
+          )}
+        </>
       )}
+    </div>
+  );
+
+  if (layout === 'horizontal') {
+    // Before generation: show fullscreen centered prompt
+    if (!hasGenerated) {
+      return (
+        <div className={`flex items-center justify-center min-h-[60vh] ${className}`}>
+          <div className="w-full max-w-2xl">
+            {leftColumn}
+          </div>
+        </div>
+      );
+    }
+
+    // After generation: show side-by-side layout
+    return (
+      <div className={`flex gap-6 ${className}`}>
+        <div className="w-[30%] flex-shrink-0">
+          {leftColumn}
+        </div>
+        <div className="w-[70%] flex-shrink-0">
+          {rightColumn}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex flex-col gap-4 ${className}`}>
+      {leftColumn}
+      {rightColumn}
     </div>
   );
 }

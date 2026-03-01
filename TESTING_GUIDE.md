@@ -12,12 +12,12 @@ aws sts get-caller-identity  # Verify credentials
 
 ### 2. Start the Server
 ```bash
-cd server
+# From project root
 ./test_json_render.sh
 ```
 
 ### 3. Open the App
-Navigate to: **http://localhost:3000/json-render-cdn**
+Navigate to: **http://localhost:3457/json-render**
 
 ---
 

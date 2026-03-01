@@ -3,6 +3,19 @@
 ## Purpose
 Review components for TypeScript correctness, MCP integration, performance, security, and code quality.
 
+## Scope
+**Default: Full codebase review**
+
+Unless explicitly scoped to specific files, reviews MUST cover:
+- All primitives (`src/primitives/**/`)
+- All molecules (`src/molecules/**/`)
+- All organisms (`src/components/**/`)
+- All apps (`src/apps/**/`)
+- All catalog components (`src/catalog/**/`)
+- Build configuration and bundle outputs
+
+This ensures pre-existing issues are tracked alongside new changes.
+
 ## Review Checklist
 
 ### TypeScript Strict Mode

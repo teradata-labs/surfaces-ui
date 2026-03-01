@@ -4,18 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JSON Render UI Generator</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body, #root { height: 100%; width: 100%; min-height: 300px; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: hsl(var(--background));
-      color: hsl(var(--foreground));
-    }
-  </style>
   <script>
+    // Apply dark class immediately (before React loads) to prevent FOUC
     (function() {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = localStorage.getItem('theme') || 'system';
+      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       if (isDark) {
         document.documentElement.classList.add('dark');
       }

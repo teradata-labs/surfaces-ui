@@ -45,6 +45,19 @@ pnpm build
 pnpm build:apps
 ```
 
+### Preview Built Apps
+
+To quickly preview the pre-built HTML apps (SQL Editor and JSON Render) without any AI backend:
+
+```bash
+node serve-apps.mjs
+# Opens http://localhost:3456
+```
+
+Available apps:
+- **SQL Editor**: http://localhost:3456/sql-editor
+- **JSON Render**: http://localhost:3456/json-render (standalone mode with demo data)
+
 ### Development
 
 ```bash
@@ -58,18 +71,78 @@ pnpm test
 pnpm --filter @surfacesui/components test:coverage
 ```
 
-**Component Showcase**: During development, you can view all 8 catalog components at:
-```
-http://localhost:5173/src/apps/showcase.html
+### Testing JSON Render with AI
+
+To test the natural language UI generation with live AI backends (AWS Bedrock, Anthropic, OpenAI, or Google Gemini):
+
+```bash
+./test_json_render.sh
+# Opens http://localhost:3457/json-render
 ```
 
-The showcase provides:
-- Live previews of all components (SQLResultsDisplay, TableWithFilters, ChartWithControls, etc.)
-- Category filtering (Organism/Molecule/Primitive)
-- JSON spec viewer
-- Example prompts for natural language generation
+See **[TEST_JSON_RENDER.md](TEST_JSON_RENDER.md)** for detailed testing instructions, example prompts, and troubleshooting.
 
-Note: The showcase is dev-only and not packaged as an MCP app.
+### Demo Gallery
+
+During development, you can explore interactive demos with unified navigation:
+
+**Available Demos:**
+- **Spacing Demo** (`demo-spacing.html`) - Comprehensive Tailwind v4 spacing utilities showcase
+- **Catalog Demo** (`catalog-demo.html`) - Component catalog examples
+- **Component Showcase** (`showcase.html`) - All 8 catalog components with JSON viewer
+- **Kitchen Sink** (`kitchen-sink.html`) - Complete primitives and molecules library
+- **Loom Integration** (`demo-loom.html`) - Bridge integration with Loom server
+
+Each demo includes:
+- Global navigation sidebar (desktop) or menu button (mobile)
+- Theme toggle (light/dark mode with persistence)
+- Responsive layouts
+- Live component interactions
+
+Example:
+```bash
+pnpm dev
+# Open http://localhost:5173/src/apps/demo-spacing.html
+```
+
+Use the navigation panel to jump between demos while exploring the library.
+
+## Using Components in Your React App
+
+Install the components package in your React project:
+
+```bash
+npm install @surfacesui/components
+# or
+pnpm add @surfacesui/components
+```
+
+Import and use components with a bridge:
+
+```tsx
+import { McpAppsBridge, McpBridgeProvider, SQLEditor } from '@surfacesui/components';
+import '@surfacesui/components/dist/style.css';
+
+const bridge = new McpAppsBridge();
+
+function App() {
+  return (
+    <McpBridgeProvider bridge={bridge}>
+      <SQLEditor
+        initialCode="SELECT * FROM users LIMIT 10"
+        title="My SQL Editor"
+      />
+    </McpBridgeProvider>
+  );
+}
+```
+
+All components require:
+- A bridge instance (McpAppsBridge, McpBridge, or LoomBridge)
+- The bridge provider wrapping your component tree
+- The component stylesheet imported
+
+See the [Bridge Architecture](#bridge-architecture) section for details on choosing the right bridge for your environment.
 
 ## Using with Claude Desktop
 
@@ -284,9 +357,9 @@ For connecting directly to a running [Loom](https://github.com/teradata-labs/loo
 
 Unknown tool calls are automatically routed through Loom's Weave endpoint, which delegates to an agent.
 
-## Loom Integration Test
+## Loom Integration Demo
 
-The `loom-test` app is a live integration dashboard that connects surfaces-ui components to a running Loom server. It demonstrates the bridge abstraction working with a non-vantage-mcp backend.
+The `demo-loom` app is a live integration dashboard that connects surfaces-ui components to a running Loom server. It demonstrates the bridge abstraction working with a non-vantage-mcp backend.
 
 ### Running
 
@@ -294,7 +367,7 @@ Start a Loom server (default: gRPC on `:60051`, HTTP on `:5006`), then:
 
 ```bash
 pnpm dev
-# Open http://localhost:5173/src/apps/loom-test.html
+# Open http://localhost:5173/src/apps/demo-loom.html
 ```
 
 ### What It Shows
@@ -401,6 +474,82 @@ Natural language UI generator powered by json-render. Generates interactive UI f
   </ThemeProvider>
 </McpBridgeProvider>
 ```
+
+## Figma Design Tokens Integration
+
+surfaces-ui includes utilities to convert Figma design tokens into CSS custom properties compatible with the component library's theming system.
+
+### Export from Figma
+
+**Via Figma REST API:**
+```bash
+curl -H "X-Figma-Token: YOUR_TOKEN" \
+  "https://api.figma.com/v1/files/FILE_KEY/variables/local" > tokens.json
+```
+
+**Via Tokens Studio plugin:**
+Export tokens as JSON from the Tokens Studio plugin settings.
+
+### Convert to surfaces-ui CSS
+
+```bash
+cd packages/components
+pnpm figma-tokens tokens.json theme.css
+```
+
+Output:
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --primary: 217 33% 17%;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+}
+```
+
+### Programmatic Usage
+
+```typescript
+import {
+  mapFigmaTokensToSurfaces,
+  generateSurfacesCSS
+} from '@surfacesui/components';
+
+const figmaTokens = { /* ... */ };
+const tokens = mapFigmaTokensToSurfaces(figmaTokens);
+const css = generateSurfacesCSS(tokens);
+```
+
+**Supported Formats:**
+- Design Tokens Community Group (DTCG)
+- Figma Variables export
+- Tokens Studio plugin export
+
+For detailed documentation and examples, see [FIGMA_TOKENS.md](packages/components/docs/FIGMA_TOKENS.md).
+
+## Theming
+
+surfaces-ui components use CSS custom properties for theming. The default theme (`tokens.css`) provides:
+
+- **Semantic colors:** Background, foreground, primary, secondary, accent, success, warning, destructive
+- **WCAG 2.1 AA compliant:** All color combinations meet or exceed 4.5:1 contrast ratio
+- **Light and dark mode:** Automatic theme switching via `.dark` class
+- **Customizable:** Override CSS custom properties or generate from design tokens
+
+### Custom Themes
+
+Generate a custom theme from Figma design tokens:
+
+```bash
+cd packages/components
+pnpm figma-tokens your-tokens.json custom-theme.css
+```
+
+See [FIGMA_TOKENS.md](packages/components/docs/FIGMA_TOKENS.md) for details on token formats and customization.
 
 ## Project Structure
 

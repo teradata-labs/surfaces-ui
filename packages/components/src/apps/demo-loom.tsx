@@ -1,5 +1,5 @@
 /**
- * Loom Integration Test App
+ * Loom Integration Demo App
  *
  * Dashboard that connects surfaces-ui components to a live Loom server
  * via LoomBridge. Demonstrates:

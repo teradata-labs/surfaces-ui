@@ -73,7 +73,7 @@ export function ChartWithControls({
         <div
           className={cn(
             'transition-all duration-300',
-            controlsCollapsed ? 'w-10' : 'w-56 flex-shrink-0'
+            controlsCollapsed ? 'w-10' : 'w-56 shrink-0'
           )}
         >
           {controlsCollapsed ? (

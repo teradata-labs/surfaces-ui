@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss';
 
 const preset: Config = {
   content: [],
-  darkMode: ['class'],
+  // darkMode is configured via @custom-variant in tokens.css
   theme: {
     extend: {
       /* ── Semantic Colors (shadcn/ui pattern) ─────────────────────── */
@@ -40,6 +40,14 @@ const preset: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',
@@ -70,15 +78,13 @@ const preset: Config = {
           800: 'hsl(var(--gray-800))',
           900: 'hsl(var(--gray-900))',
         },
+        /* ── Brand Palette ───────────────────────────────────────── */
         brand: {
+          /* CSS-var theme tokens */
           'dark-blue': 'hsl(var(--brand-dark-blue))',
           'darker-blue': 'hsl(var(--brand-darker-blue))',
           'darkest-blue': 'hsl(var(--brand-darkest-blue))',
           'primary-blue': 'hsl(var(--brand-primary-blue))',
-        },
-
-        /* ── Covalent Brand Palette ──────────────────────────────── */
-        covalent: {
           primary: {
             DEFAULT: '#3053f4',
             50: '#eef1fe',
@@ -185,7 +191,7 @@ const preset: Config = {
         inter: ['Inter', 'Arial', 'sans-serif'],
       },
 
-      /* ── Covalent Typography Scale ───────────────────────────────── */
+      /* ── Typography Scale ────────────────────────────────────────── */
       fontSize: {
         'headline-1': ['2.25rem', { lineHeight: '2.75rem', fontWeight: '700' }],
         'headline-2': ['1.875rem', { lineHeight: '2.25rem', fontWeight: '700' }],

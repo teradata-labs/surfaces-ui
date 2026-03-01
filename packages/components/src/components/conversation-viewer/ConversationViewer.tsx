@@ -79,7 +79,7 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
       </div>
 
       {content ? (
-        <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+        <div className="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed">
           {displayContent}
           {isLong && (
             <button

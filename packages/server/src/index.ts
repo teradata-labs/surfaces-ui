@@ -38,18 +38,32 @@ if (missing.length > 0) {
   );
 }
 
+// Type-safe server capabilities with UI extensions
+interface ServerCapabilities {
+  resources?: Record<string, unknown>;
+  tools?: Record<string, unknown>;
+  extensions?: {
+    [key: string]: {
+      mimeTypes?: string[];
+      [key: string]: unknown;
+    };
+  };
+}
+
+const serverCapabilities: ServerCapabilities = {
+  resources: {},
+  tools: {},
+  extensions: {
+    "io.modelcontextprotocol/ui": {
+      mimeTypes: ["text/html;profile=mcp-app"],
+    },
+  },
+};
+
 const server = new Server(
   { name: "surfaces-ui", version: "0.1.0" },
   {
-    capabilities: {
-      resources: {},
-      tools: {},
-      extensions: {
-        "io.modelcontextprotocol/ui": {
-          mimeTypes: ["text/html;profile=mcp-app"],
-        },
-      },
-    } as any,
+    capabilities: serverCapabilities,
   },
 );
 
@@ -69,7 +83,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "surfaces-ui://apps/sql-editor-cdn",
+          resourceUri: "surfaces-ui/apps/sql-editor-cdn",
           visibility: ["model", "app"],
         },
       },
@@ -92,7 +106,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "surfaces-ui://apps/json-render-cdn",
+          resourceUri: "surfaces-ui/apps/json-render-cdn",
           visibility: ["model", "app"],
         },
       },
@@ -119,12 +133,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   if (name === "open_sql_editor") {
+    // Type guard for initialQuery
+    const initialQuery = args?.initialQuery;
+    const resourceUri =
+      typeof initialQuery === "string" && initialQuery.length > 0
+        ? `surfaces-ui/apps/sql-editor-cdn?sql=${encodeURIComponent(initialQuery)}`
+        : "surfaces-ui/apps/sql-editor-cdn";
+
     return {
       _meta: {
         ui: {
-          resourceUri: args?.initialQuery
-            ? `surfaces-ui://apps/sql-editor-cdn?sql=${encodeURIComponent(args.initialQuery as string)}`
-            : "surfaces-ui://apps/sql-editor-cdn",
+          resourceUri,
         },
       },
       content: [
@@ -137,15 +156,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "generate_ui_component") {
-    const prompt = args?.prompt as string;
-    if (!prompt) {
-      throw new Error("Missing required parameter: prompt");
+    // Type guard for prompt
+    const prompt = args?.prompt;
+    if (typeof prompt !== "string" || prompt.length === 0) {
+      throw new Error("Missing required parameter: prompt (must be non-empty string)");
     }
 
     return {
       _meta: {
         ui: {
-          resourceUri: `surfaces-ui://apps/json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
+          resourceUri: `surfaces-ui/apps/json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
         },
       },
       content: [
