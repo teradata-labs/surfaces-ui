@@ -32,7 +32,9 @@
     "lint": "eslint src/",
     "figma-tokens": "tsx scripts/figma-tokens-cli.ts",
     "generate-covalent-theme": "tsx scripts/generate-covalent-theme.ts",
-    "check-theme-a11y": "tsx scripts/check-theme-accessibility.ts"
+    "check-theme-a11y": "tsx scripts/check-theme-accessibility.ts",
+    "register:loom": "node scripts/register-loom-apps.mjs",
+    "unregister:loom": "node scripts/register-loom-apps.mjs --unregister"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",

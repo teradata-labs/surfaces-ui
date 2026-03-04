@@ -11,7 +11,9 @@
  *   - list_ui_apps     → GET  /v1/apps
  *   - list_component_types → GET /v1/apps/component-types
  *   - get_health       → GET  /health
- *   - create_ui_app    → POST /v1/apps
+ *   - register_app     → POST /v1/apps (raw HTML via content field)
+ *   - create_ui_app    → POST /v1/apps (from UIAppSpec)
+ *   - delete_ui_app    → DELETE /v1/apps/{name}
  *   - weave            → POST /v1/weave
  *   - (default)        → POST /v1/weave (agent-mediated)
  */
@@ -34,7 +36,7 @@ export interface LoomBridgeConfig extends McpBridgeConfig {
 
 /** Route definition for mapping a tool name to a REST call. */
 interface ToolRoute {
-  method: 'GET' | 'POST';
+  method: 'GET' | 'POST' | 'DELETE';
   /** Path template. Use {arg_name} for path params extracted from args. */
   path: string | ((args: Record<string, unknown>) => string);
   /** Transform tool args into the request body/params. */
@@ -71,10 +73,26 @@ export class LoomBridge {
       ['list_component_types', { method: 'GET', path: '/v1/apps/component-types' }],
       ['get_health', { method: 'GET', path: '/health' }],
       ['create_ui_app', { method: 'POST', path: '/v1/apps' }],
+      ['register_app', {
+        method: 'POST',
+        path: '/v1/apps',
+        mapArgs: (args) => ({
+          name: args.name,
+          display_name: args.display_name ?? args.displayName ?? '',
+          description: args.description ?? '',
+          content: args.content, // base64-encoded HTML
+          overwrite: args.overwrite ?? true,
+        }),
+      }],
       ['update_ui_app', {
         method: 'POST',
         path: '/v1/apps',
         mapArgs: (args) => ({ ...args, overwrite: true }),
+      }],
+      ['delete_ui_app', {
+        method: 'DELETE',
+        path: (args) => `/v1/apps/${args.name}`,
+        mapArgs: () => ({}),
       }],
       ['weave', {
         method: 'POST',
@@ -146,6 +164,13 @@ export class LoomBridge {
           const resp = await fetch(url);
           if (!resp.ok) {
             return { success: false, error: `Loom ${resolvedPath}: ${resp.status} ${resp.statusText}` };
+          }
+          data = await resp.json();
+        } else if (route.method === 'DELETE') {
+          const resp = await fetch(`${this.loomUrl}${resolvedPath}`, { method: 'DELETE' });
+          if (!resp.ok) {
+            const errText = await resp.text();
+            return { success: false, error: `Loom ${resolvedPath}: ${resp.status} ${errText}` };
           }
           data = await resp.json();
         } else {

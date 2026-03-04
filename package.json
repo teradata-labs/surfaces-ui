@@ -9,7 +9,9 @@
     "build:apps": "pnpm --filter @surfacesui/components build:apps",
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
-    "clean": "pnpm -r run clean"
+    "clean": "pnpm -r run clean",
+    "register:loom": "pnpm --filter @surfacesui/components register:loom",
+    "unregister:loom": "pnpm --filter @surfacesui/components unregister:loom"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
