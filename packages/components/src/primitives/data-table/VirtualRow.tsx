@@ -48,7 +48,7 @@ function VirtualRowComponent({
       {columns.map((col, idx) => (
         <td
           key={col}
-          className={cn(paddingClass, 'text-foreground leading-tight max-w-xs truncate')}
+          className={cn(paddingClass, 'text-foreground leading-tight truncate')}
           title={String(row[col] ?? '')}
           aria-colindex={idx + 1 + (showRowNumbers ? 1 : 0)}
         >

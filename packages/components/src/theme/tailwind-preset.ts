@@ -204,6 +204,11 @@ const preset: Config = {
         caption: ['0.75rem', { lineHeight: '1rem', fontWeight: '400' }],
       },
 
+      /* ── Border Color ────────────────────────────────────────────── */
+      borderColor: {
+        DEFAULT: 'hsl(var(--border))',
+      },
+
       /* ── Border Radius ───────────────────────────────────────────── */
       borderRadius: {
         lg: 'var(--radius)',

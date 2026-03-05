@@ -15,6 +15,7 @@ export interface SessionSummary {
   state: string;
   totalCostUsd?: number;
   conversationCount?: number;
+  agentId?: string;
 }
 
 /** Response shape from Loom's GetConversationHistory. */

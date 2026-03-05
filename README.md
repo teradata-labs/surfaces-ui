@@ -1,4 +1,4 @@
-# SurfacesUI
+![SurfacesUI](./assets/SurfacesUI-Light-Transparent.svg)
 
 **Version:** 0.1.0
 
@@ -55,6 +55,7 @@ node serve-apps.mjs
 ```
 
 Available apps:
+
 - **SQL Editor**: http://localhost:3456/sql-editor
 - **JSON Render**: http://localhost:3456/json-render (standalone mode with demo data)
 
@@ -84,22 +85,33 @@ See **[TEST_JSON_RENDER.md](TEST_JSON_RENDER.md)** for detailed testing instruct
 
 ### Demo Gallery
 
-During development, you can explore interactive demos with unified navigation:
+Explore 7 interactive demos showcasing components, styling utilities, and MCP integration.
+
+**Quick Access:**
+```bash
+pnpm dev
+# Navigate to http://localhost:5173/src/apps/*.html
+```
 
 **Available Demos:**
-- **Spacing Demo** (`demo-spacing.html`) - Comprehensive Tailwind v4 spacing utilities showcase
-- **Catalog Demo** (`catalog-demo.html`) - Component catalog examples
-- **Component Showcase** (`showcase.html`) - All 8 catalog components with JSON viewer
-- **Kitchen Sink** (`kitchen-sink.html`) - Complete primitives and molecules library
-- **Loom Integration** (`demo-loom.html`) - Bridge integration with Loom server
+- **Component Showcase** - Browse all 8 catalog components with live previews
+- **Kitchen Sink** - Comprehensive showcase of 16 primitives and molecules
+- **Spacing Utilities** - Tailwind v4 spacing system demonstrations
+- **Catalog Components** - Interactive catalog-to-component rendering
+- **Loom Integration** - LoomBridge dashboard with live agent data
+
+**See [DEMOS.md](./DEMOS.md) for complete demo documentation, instructions, and features.**
 
 Each demo includes:
-- Global navigation sidebar (desktop) or menu button (mobile)
+
+- Unified sidebar navigation with collapsible sections
+- Theme switching (light/dark mode)
 - Theme toggle (light/dark mode with persistence)
 - Responsive layouts
 - Live component interactions
 
 Example:
+
 ```bash
 pnpm dev
 # Open http://localhost:5173/src/apps/demo-spacing.html
@@ -128,16 +140,14 @@ const bridge = new McpAppsBridge();
 function App() {
   return (
     <McpBridgeProvider bridge={bridge}>
-      <SQLEditor
-        initialCode="SELECT * FROM users LIMIT 10"
-        title="My SQL Editor"
-      />
+      <SQLEditor initialCode="SELECT * FROM users LIMIT 10" title="My SQL Editor" />
     </McpBridgeProvider>
   );
 }
 ```
 
 All components require:
+
 - A bridge instance (McpAppsBridge, McpBridge, or LoomBridge)
 - The bridge provider wrapping your component tree
 - The component stylesheet imported
@@ -482,6 +492,7 @@ surfaces-ui includes utilities to convert Figma design tokens into CSS custom pr
 ### Export from Figma
 
 **Via Figma REST API:**
+
 ```bash
 curl -H "X-Figma-Token: YOUR_TOKEN" \
   "https://api.figma.com/v1/files/FILE_KEY/variables/local" > tokens.json
@@ -498,6 +509,7 @@ pnpm figma-tokens tokens.json theme.css
 ```
 
 Output:
+
 ```css
 :root {
   --background: 0 0% 100%;
@@ -514,17 +526,17 @@ Output:
 ### Programmatic Usage
 
 ```typescript
-import {
-  mapFigmaTokensToSurfaces,
-  generateSurfacesCSS
-} from '@surfacesui/components';
+import { mapFigmaTokensToSurfaces, generateSurfacesCSS } from '@surfacesui/components';
 
-const figmaTokens = { /* ... */ };
+const figmaTokens = {
+  /* ... */
+};
 const tokens = mapFigmaTokensToSurfaces(figmaTokens);
 const css = generateSurfacesCSS(tokens);
 ```
 
 **Supported Formats:**
+
 - Design Tokens Community Group (DTCG)
 - Figma Variables export
 - Tokens Studio plugin export
@@ -597,6 +609,14 @@ surfaces-ui/
 | TypeScript               | Strict, zero errors        |
 
 CI runs four jobs on every push and PR: **Test & Coverage**, **Lint & Type Check**, **Build & Bundle Analysis**, **Accessibility Check**.
+
+## Documentation
+
+- **[DEMOS.md](./DEMOS.md)** - Complete demo documentation with instructions and features
+- **[TEST_JSON_RENDER.md](./TEST_JSON_RENDER.md)** - JSON Render testing guide with AI backends
+- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - General testing instructions
+- **[FIGMA_TOKENS.md](./packages/components/docs/FIGMA_TOKENS.md)** - Design token integration guide
+- **[CLAUDE.md](./CLAUDE.md)** - Project instructions for Claude AI sessions
 
 ## License
 

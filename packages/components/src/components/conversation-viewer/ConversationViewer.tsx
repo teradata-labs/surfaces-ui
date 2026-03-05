@@ -11,6 +11,8 @@
 
 import * as React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useMcpBridge } from '../../bridge/McpBridgeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '../../primitives/card';
 import { Badge } from '../../primitives/badge';
@@ -79,8 +81,10 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
       </div>
 
       {content ? (
-        <div className="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed">
-          {displayContent}
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {displayContent}
+          </ReactMarkdown>
           {isLong && (
             <button
               onClick={() => setExpanded(!expanded)}
@@ -148,11 +152,13 @@ function SessionPicker({
 export interface ConversationViewerProps {
   /** Pre-select a session by ID. */
   initialSessionId?: string;
+  /** Filter sessions by agent ID. */
+  agentId?: string;
   /** CSS class for the outer container. */
   className?: string;
 }
 
-export function ConversationViewer({ initialSessionId, className }: ConversationViewerProps) {
+export function ConversationViewer({ initialSessionId, agentId, className }: ConversationViewerProps) {
   const { bridge } = useMcpBridge();
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -161,6 +167,7 @@ export function ConversationViewer({ initialSessionId, className }: Conversation
   const [loading, setLoading] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAllSessions, setShowAllSessions] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -224,6 +231,16 @@ export function ConversationViewer({ initialSessionId, className }: Conversation
     messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [messages]);
 
+  // Filter sessions by agent if agentId provided
+  const filteredSessions = React.useMemo(() => {
+    if (!agentId || showAllSessions) return sessions;
+    return sessions.filter(s => s.agentId === agentId);
+  }, [sessions, agentId, showAllSessions]);
+
+  const displaySessions = filteredSessions;
+  const filteredCount = agentId ? sessions.filter(s => s.agentId === agentId).length : sessions.length;
+  const totalCount = sessions.length;
+
   return (
     <div className={`flex gap-4 ${className ?? ''}`}>
       {/* Session sidebar */}
@@ -241,15 +258,28 @@ export function ConversationViewer({ initialSessionId, className }: Conversation
               {sessionsLoading ? '...' : 'Refresh'}
             </Button>
           </div>
+          {agentId && totalCount > 0 && (
+            <div className="text-xs text-muted-foreground mt-1">
+              {filteredCount} / <button
+                onClick={() => setShowAllSessions(!showAllSessions)}
+                className="text-primary hover:underline cursor-pointer"
+              >
+                {totalCount}
+              </button>
+              {showAllSessions ? ' (showing all)' : ''}
+            </div>
+          )}
         </CardHeader>
         <CardContent className="max-h-[600px] overflow-y-auto">
           {sessionsLoading ? (
             <p className="text-xs text-muted-foreground animate-pulse">Loading sessions...</p>
-          ) : sessions.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No sessions found</p>
+          ) : displaySessions.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {agentId && !showAllSessions ? 'No sessions for this agent' : 'No sessions found'}
+            </p>
           ) : (
             <SessionPicker
-              sessions={sessions}
+              sessions={displaySessions}
               selected={selectedSession}
               onSelect={setSelectedSession}
             />
