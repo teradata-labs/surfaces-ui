@@ -47,13 +47,7 @@ export function CatalogDemo() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 space-y-4">
-      {/* Header */}
-      <div className="border-b pb-4">
-        <h1 className="text-2xl font-bold">SurfacesUI Catalog Demo</h1>
-        <p className="text-muted-foreground">Interactive examples of catalog components</p>
-      </div>
-
+    <div className="space-y-4">
       {/* Component Selector */}
       <div className="flex items-center gap-4">
         <label htmlFor="spec-select" className="font-medium text-foreground">

@@ -221,9 +221,9 @@ function SpacingDemo() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4 lg:gap-8">
-              <div className="bg-card border p-4 rounded text-center text-sm">Column 1</div>
-              <div className="bg-card border p-4 rounded text-center text-sm">Column 2</div>
-              <div className="bg-card border p-4 rounded text-center text-sm">Column 3</div>
+              <div className="bg-card border border-border p-4 rounded text-center text-sm">Column 1</div>
+              <div className="bg-card border border-border p-4 rounded text-center text-sm">Column 2</div>
+              <div className="bg-card border border-border p-4 rounded text-center text-sm">Column 3</div>
             </div>
             <div className="text-xs text-muted-foreground">
               gap-2 (mobile) → gap-4 (tablet) → gap-8 (desktop)

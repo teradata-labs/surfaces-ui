@@ -330,7 +330,9 @@ export function CodeSnippetSection() {
       <div className="rounded-lg bg-surface-container-highest border border-su-outline-variant overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2 border-b border-su-outline-variant">
           <span className="text-xs text-on-surface-variant font-mono">query.sql</span>
-          <button className="text-xs text-primary hover:text-primary/80 transition-colors">Copy</button>
+          <Button variant="ghost" size="sm" className="text-xs h-auto py-1">
+            Copy
+          </Button>
         </div>
         <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto leading-relaxed">
           <code>
