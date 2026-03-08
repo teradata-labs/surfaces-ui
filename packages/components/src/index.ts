@@ -154,6 +154,12 @@ export {
   generateComponentPrompt,
   generateComponentExample,
   generateSpecExample,
+  getFullSystemPrompt,
+  COMPONENT_SCHEMAS,
+  getSchemaByName,
+  getSchemasByCategory,
+  getAvailableSchemas,
+  generateComponentCatalogPrompt,
   CatalogDemo,
   chartSpec,
   dataTableSpec,
@@ -171,4 +177,31 @@ export type {
   ChartWithControlsSchemaProps as CatalogChartWithControlsProps,
   SQLResultsDisplaySchemaProps as CatalogSQLResultsDisplayProps,
   SurfacesRendererProps,
+  ComponentSchema,
+  PropDefinition,
+  UsageGuidance,
+  UsagePattern,
 } from './catalog';
+
+// Figma Component Map
+export {
+  COMPONENT_MAP,
+  getComponentsByStatus,
+  getComponentsByCategory,
+  getComponentsByLevel,
+  figmaToReact,
+  reactToFigma,
+  getComponentCatalog,
+} from './figma';
+export type { ComponentMapEntry, AtomicLevel, ComponentStatus, ComponentCategory } from './figma';
+
+// Covalent Variable Map
+export {
+  COLOR_VARIABLE_MAP,
+  COMPONENT_VARIABLE_MAP,
+  TYPOGRAPHY_VARIABLE_MAP,
+  ELEVATION_MAP,
+  resolveColorVariable,
+  resolveComponentVariable,
+  getAllMappings,
+} from './theme/covalent-variable-map';

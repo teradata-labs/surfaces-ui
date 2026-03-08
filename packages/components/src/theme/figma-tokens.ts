@@ -60,6 +60,14 @@ export interface FigmaColor {
 export interface SurfacesTokens {
   root: Record<string, string>;
   dark: Record<string, string>;
+  /** Spacing and sizing tokens (e.g., button-height, card-padding) */
+  spacing?: Record<string, string>;
+  /** Typography scale tokens (e.g., headline-1-font-size) */
+  typography?: Record<string, string>;
+  /** Component-specific dimension tokens (e.g., su-button-height) */
+  components?: Record<string, string>;
+  /** Elevation / box-shadow tokens */
+  elevation?: Record<string, string>;
 }
 
 // ── Color Conversion Utilities ──────────────────────────────────────────────
@@ -283,12 +291,21 @@ export function mapFigmaVariablesToSurfaces(
     lightModeId?: string;      // Mode ID for light theme (default: 'light')
     darkModeId?: string;       // Mode ID for dark theme (default: 'dark')
     semanticMapping?: Record<string, string>;
+    /** Include FLOAT variables as spacing/component tokens */
+    includeFloats?: boolean;
+    /** Unit to append to FLOAT values (default: 'px') */
+    floatUnit?: string;
+    /** Custom mapping for float variable names to CSS property names */
+    floatMapping?: Record<string, string>;
   } = {}
 ): SurfacesTokens {
   const {
     lightModeId = 'light',
     darkModeId = 'dark',
     semanticMapping = {},
+    includeFloats = false,
+    floatUnit = 'px',
+    floatMapping = {},
   } = options;
 
   const result: SurfacesTokens = {
@@ -296,32 +313,45 @@ export function mapFigmaVariablesToSurfaces(
     dark: {},
   };
 
-  for (const variable of variables) {
-    if (variable.resolvedType !== 'COLOR') continue;
+  if (includeFloats) {
+    result.spacing = {};
+    result.components = {};
+  }
 
+  for (const variable of variables) {
     // Extract semantic name (e.g., 'colors/background' -> 'background')
     const name = variable.name.split('/').pop()?.toLowerCase().replace(/[_\s]/g, '-');
     if (!name) continue;
 
-    const surfacesKey = semanticMapping[name] || name;
+    if (variable.resolvedType === 'COLOR') {
+      const surfacesKey = semanticMapping[name] || name;
 
-    // Map light mode
-    const lightValue = variable.valuesByMode[lightModeId];
-    if (lightValue && typeof lightValue === 'string') {
-      try {
-        result.root[surfacesKey] = parseColorToHsl(lightValue);
-      } catch (err) {
-        console.warn(`Failed to parse light color for ${name}:`, err);
+      // Map light mode
+      const lightValue = variable.valuesByMode[lightModeId];
+      if (lightValue && typeof lightValue === 'string') {
+        try {
+          result.root[surfacesKey] = parseColorToHsl(lightValue);
+        } catch (err) {
+          console.warn(`Failed to parse light color for ${name}:`, err);
+        }
       }
-    }
 
-    // Map dark mode
-    const darkValue = variable.valuesByMode[darkModeId];
-    if (darkValue && typeof darkValue === 'string') {
-      try {
-        result.dark[surfacesKey] = parseColorToHsl(darkValue);
-      } catch (err) {
-        console.warn(`Failed to parse dark color for ${name}:`, err);
+      // Map dark mode
+      const darkValue = variable.valuesByMode[darkModeId];
+      if (darkValue && typeof darkValue === 'string') {
+        try {
+          result.dark[surfacesKey] = parseColorToHsl(darkValue);
+        } catch (err) {
+          console.warn(`Failed to parse dark color for ${name}:`, err);
+        }
+      }
+    } else if (variable.resolvedType === 'FLOAT' && includeFloats) {
+      const surfacesKey = floatMapping[name] || name;
+      const lightValue = variable.valuesByMode[lightModeId];
+
+      if (lightValue !== undefined && typeof lightValue === 'number') {
+        const target = result.components!;
+        target[surfacesKey] = `${lightValue}${floatUnit}`;
       }
     }
   }
@@ -346,6 +376,38 @@ export function generateSurfacesCSS(tokens: SurfacesTokens): string {
 
   for (const [key, value] of Object.entries(tokens.root)) {
     css += `  --${key}: ${value};\n`;
+  }
+
+  // Component tokens (spacing, sizing)
+  if (tokens.components && Object.keys(tokens.components).length > 0) {
+    css += '\n  /* Component tokens */\n';
+    for (const [key, value] of Object.entries(tokens.components)) {
+      css += `  --${key}: ${value};\n`;
+    }
+  }
+
+  // Spacing tokens
+  if (tokens.spacing && Object.keys(tokens.spacing).length > 0) {
+    css += '\n  /* Spacing tokens */\n';
+    for (const [key, value] of Object.entries(tokens.spacing)) {
+      css += `  --${key}: ${value};\n`;
+    }
+  }
+
+  // Typography tokens
+  if (tokens.typography && Object.keys(tokens.typography).length > 0) {
+    css += '\n  /* Typography tokens */\n';
+    for (const [key, value] of Object.entries(tokens.typography)) {
+      css += `  --${key}: ${value};\n`;
+    }
+  }
+
+  // Elevation tokens
+  if (tokens.elevation && Object.keys(tokens.elevation).length > 0) {
+    css += '\n  /* Elevation tokens */\n';
+    for (const [key, value] of Object.entries(tokens.elevation)) {
+      css += `  --${key}: ${value};\n`;
+    }
   }
 
   css += '}\n\n';

@@ -31,6 +31,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src/",
     "figma-tokens": "tsx scripts/figma-tokens-cli.ts",
+    "figma-sync": "tsx scripts/figma-sync.ts",
     "generate-covalent-theme": "tsx scripts/generate-covalent-theme.ts",
     "check-theme-a11y": "tsx scripts/check-theme-accessibility.ts",
     "register:loom": "node scripts/register-loom-apps.mjs",
