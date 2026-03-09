@@ -11,11 +11,22 @@ import {
 describe('COMPONENT_SCHEMAS', () => {
   it('has schemas for implemented components', () => {
     const expectedComponents = [
-      'Button', 'IconButton', 'Alert', 'Dialog',
-      'CircularProgress', 'Progress', 'EmptyState',
-      'Badge', 'FilterChip', 'Input', 'Textarea',
-      'Select', 'Checkbox', 'RadioGroup', 'FormField',
-      'Tabs', 'Separator', 'Tooltip', 'Switch',
+      // Actions
+      'Button', 'IconButton', 'ActionRibbon',
+      // Feedback
+      'Alert', 'Dialog', 'CircularProgress', 'Progress', 'EmptyState',
+      'Snackbar', 'StatusDialog', 'FullScreenDialog',
+      // Layout
+      'Separator', 'SideSheet', 'FocusedPage', 'OnboardingCards',
+      // Data Display
+      'Badge', 'FilterChip', 'ListItem', 'TreeList', 'DataTable', 'NotebookCell',
+      // Inputs
+      'Input', 'Textarea', 'Select', 'Checkbox', 'RadioGroup',
+      'FormField', 'Switch', 'Slider',
+      // Navigation
+      'Tabs', 'Menu', 'Toolbar',
+      // Content
+      'Tooltip', 'Typography', 'Icon', 'IconLockup', 'TextLockup', 'CodeSnippet',
     ];
 
     for (const name of expectedComponents) {
@@ -90,6 +101,42 @@ describe('getSchemaByName', () => {
     expect(schema!.category).toBe('feedback');
   });
 
+  it('returns schema for new feedback components', () => {
+    expect(getSchemaByName('Snackbar')).toBeDefined();
+    expect(getSchemaByName('StatusDialog')).toBeDefined();
+    expect(getSchemaByName('FullScreenDialog')).toBeDefined();
+  });
+
+  it('returns schema for layout components', () => {
+    expect(getSchemaByName('SideSheet')).toBeDefined();
+    expect(getSchemaByName('FocusedPage')).toBeDefined();
+    expect(getSchemaByName('OnboardingCards')).toBeDefined();
+  });
+
+  it('returns schema for content components', () => {
+    expect(getSchemaByName('Typography')).toBeDefined();
+    expect(getSchemaByName('Icon')).toBeDefined();
+    expect(getSchemaByName('IconLockup')).toBeDefined();
+    expect(getSchemaByName('TextLockup')).toBeDefined();
+    expect(getSchemaByName('CodeSnippet')).toBeDefined();
+  });
+
+  it('returns schema for data-display components', () => {
+    expect(getSchemaByName('ListItem')).toBeDefined();
+    expect(getSchemaByName('TreeList')).toBeDefined();
+    expect(getSchemaByName('DataTable')).toBeDefined();
+    expect(getSchemaByName('NotebookCell')).toBeDefined();
+  });
+
+  it('returns schema for navigation components', () => {
+    expect(getSchemaByName('Menu')).toBeDefined();
+    expect(getSchemaByName('Toolbar')).toBeDefined();
+  });
+
+  it('returns schema for new input components', () => {
+    expect(getSchemaByName('Slider')).toBeDefined();
+  });
+
   it('returns undefined for unknown component', () => {
     expect(getSchemaByName('NonExistent')).toBeUndefined();
   });
@@ -109,6 +156,26 @@ describe('getSchemasByCategory', () => {
 
   it('returns input components', () => {
     const schemas = getSchemasByCategory('inputs');
+    expect(schemas.length).toBeGreaterThan(0);
+  });
+
+  it('returns layout components', () => {
+    const schemas = getSchemasByCategory('layout');
+    expect(schemas.length).toBeGreaterThan(0);
+  });
+
+  it('returns content components', () => {
+    const schemas = getSchemasByCategory('content');
+    expect(schemas.length).toBeGreaterThan(0);
+  });
+
+  it('returns navigation components', () => {
+    const schemas = getSchemasByCategory('navigation');
+    expect(schemas.length).toBeGreaterThan(0);
+  });
+
+  it('returns data-display components', () => {
+    const schemas = getSchemasByCategory('data-display');
     expect(schemas.length).toBeGreaterThan(0);
   });
 

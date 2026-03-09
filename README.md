@@ -1,4 +1,4 @@
-![SurfacesUI](./assets/SurfacesUI-Light-Transparent.svg)
+![SurfacesUI](./assets/SurfacesUI-Light.svg)
 
 **Version:** 0.1.0
 
@@ -88,12 +88,14 @@ See **[TEST_JSON_RENDER.md](TEST_JSON_RENDER.md)** for detailed testing instruct
 Explore 7 interactive demos showcasing components, styling utilities, and MCP integration.
 
 **Quick Access:**
+
 ```bash
 pnpm dev
 # Navigate to http://localhost:5173/src/apps/*.html
 ```
 
 **Available Demos:**
+
 - **Component Showcase** - Browse all 8 catalog components with live previews
 - **Kitchen Sink** - Comprehensive showcase of 16 primitives and molecules
 - **Spacing Utilities** - Tailwind v4 spacing system demonstrations

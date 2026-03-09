@@ -11,9 +11,9 @@ import {
 } from './component-map';
 
 describe('COMPONENT_MAP', () => {
-  it('contains all 42 Figma cv-* components', () => {
+  it('contains all 43 Figma cv-* components', () => {
     const keys = Object.keys(COMPONENT_MAP);
-    expect(keys.length).toBe(42);
+    expect(keys.length).toBe(43);
     keys.forEach(key => {
       expect(key).toMatch(/^cv-/);
     });
@@ -38,9 +38,9 @@ describe('COMPONENT_MAP', () => {
     }
   });
 
-  it('has 20 implemented components', () => {
+  it('has 43 implemented components', () => {
     const implemented = getComponentsByStatus('implemented');
-    expect(implemented.length).toBe(20);
+    expect(implemented.length).toBe(43);
   });
 
   it('all implemented components have valid paths', () => {
@@ -60,20 +60,14 @@ describe('getComponentsByStatus', () => {
     });
   });
 
-  it('returns planned components', () => {
+  it('returns planned components (none remaining — all implemented)', () => {
     const result = getComponentsByStatus('planned');
-    expect(result.length).toBeGreaterThan(0);
-    result.forEach(entry => {
-      expect(entry.status).toBe('planned');
-    });
+    expect(result.length).toBe(0);
   });
 
-  it('returns extend-existing components', () => {
+  it('returns extend-existing components (none remaining — all implemented)', () => {
     const result = getComponentsByStatus('extend-existing');
-    expect(result.length).toBeGreaterThan(0);
-    result.forEach(entry => {
-      expect(entry.status).toBe('extend-existing');
-    });
+    expect(result.length).toBe(0);
   });
 });
 
@@ -183,10 +177,10 @@ describe('getComponentCatalog', () => {
     expect(button?.available).toBe(true);
   });
 
-  it('marks planned components as not available', () => {
+  it('marks all components as available (all implemented)', () => {
     const catalog = getComponentCatalog();
-    const slider = catalog.find(c => c.name === 'Slider');
-    expect(slider?.available).toBe(false);
+    const unavailable = catalog.filter(c => !c.available);
+    expect(unavailable.length).toBe(0);
   });
 
   it('includes all required fields for AI consumption', () => {

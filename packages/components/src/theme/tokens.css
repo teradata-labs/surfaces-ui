@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Configure class-based dark mode with higher specificity */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -6,6 +7,9 @@
 /* ── Tailwind 4 Theme Configuration ─────────────────────────────────────── */
 /* Extend default theme with custom colors and tokens                         */
 @theme {
+  /* Font families */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
   /* Core semantic colors */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -54,6 +58,7 @@
   --color-secondary-container: rgb(var(--secondary-container-rgb));
   --color-secondary-container-foreground: hsl(var(--secondary-container-foreground));
   --color-surface-container-lowest: hsl(var(--surface-container-lowest));
+  --color-on-surface: hsl(var(--foreground));
   --color-on-surface-variant: hsl(var(--on-surface-variant));
   --color-su-outline: hsl(var(--outline));
   --color-su-outline-variant: rgb(var(--outline-variant-rgb) / var(--outline-variant-alpha, 1));
@@ -62,6 +67,21 @@
   --color-surface: hsl(var(--surface));
   --color-surface-container: hsl(var(--surface-container));
   --color-surface-container-highest: hsl(var(--surface-container-highest));
+
+  /* Inverse surface (tooltip) */
+  --color-inverse-surface: hsl(var(--inverse-surface));
+  --color-inverse-on-surface: hsl(var(--inverse-on-surface));
+
+  /* Semantic status — full-page alert colors */
+  --color-negative: hsl(var(--negative));
+  --color-on-negative: hsl(var(--on-negative));
+  --color-caution: hsl(var(--caution));
+  --color-on-caution: hsl(var(--on-caution));
+  --color-positive: hsl(var(--positive));
+  --color-on-positive: hsl(var(--on-positive));
+
+  /* Error alias (maps to negative for Covalent compat) */
+  --color-error: hsl(var(--negative));
 
   /* Semantic status containers */
   --color-negative-container: hsl(var(--negative-container));
@@ -260,6 +280,9 @@
     --surface: 220 25% 98%;
     --surface-container: 220 36% 95%;
     --surface-container-highest: 220 20% 89%;
+    /* Inverse surface — tooltip bg (light: dark surface, dark: light surface) */
+    --inverse-surface: 222 17% 29%;            /* #3e4557 */
+    --inverse-on-surface: 220 47% 96%;         /* #f1f3f8 */
 
     /* State overlay tokens — alpha-only, stored as raw rgba() strings       */
     /* Light on-surface base: #00233c = rgb(0,35,60)                         */
@@ -272,6 +295,14 @@
     --primary-12-raw: rgba(48,83,244,0.12);
     --primary-20-raw: rgba(48,83,244,0.20);
 
+    /* Semantic status — full-page alert backgrounds (light mode)             */
+    --negative: 4 92% 37%;               /* #ae1209 */
+    --on-negative: 0 0% 100%;            /* white   */
+    --caution: 33 100% 48%;              /* #f38800 */
+    --on-caution: 0 0% 100%;             /* white   */
+    --positive: 118 100% 20%;            /* #036600 */
+    --on-positive: 0 0% 100%;            /* white   */
+
     /* Semantic status containers (light mode)                               */
     --negative-container: 8 100% 91%;
     --on-negative-container: 3 90% 36%;
@@ -279,6 +310,14 @@
     --on-positive-container: 118 100% 20%;
     --caution-container: 34 100% 80%;
     --on-caution-container: 34 100% 48%;
+
+    /* CodeMirror syntax highlight tokens (Atom One Light)                   */
+    --cm-keyword: #a626a4;
+    --cm-text: #383a42;
+    --cm-string: #377e22;
+    --cm-number: #986801;
+    --cm-comment: #a0a1a7;
+    --cm-link: #4078f2;
   }
 
   :root.dark,
@@ -370,6 +409,9 @@
     --surface-container: 223 33% 18%;
     /* #34435f                  */
     --surface-container-highest: 220 28% 29%;
+    /* Inverse surface — tooltip bg (dark: light surface)                    */
+    --inverse-surface: 280 3% 93%;             /* #ebe8ec */
+    --inverse-on-surface: 0 1% 25%;            /* #3e3e41 */
 
     /* State overlay tokens — alpha-only, stored as raw rgba() strings       */
     /* Dark on-surface base: #ebe8ec = rgb(235,232,236)                      */
@@ -381,6 +423,14 @@
     --primary-8-raw: rgba(104,139,241,0.08);
     --primary-12-raw: rgba(104,139,241,0.12);
     --primary-20-raw: rgba(104,139,241,0.20);
+
+    /* Semantic status — full-page alert backgrounds (dark mode)              */
+    --negative: 8 97% 70%;               /* #fd7d69 */
+    --on-negative: 8 25% 14%;            /* #331915 */
+    --caution: 34 100% 81%;              /* #ffcd9e */
+    --on-caution: 28 38% 29%;            /* #66492f */
+    --positive: 113 92% 72%;             /* #81f976 */
+    --on-positive: 108 14% 22%;          /* #31412e */
 
     /* Semantic status containers (dark mode)                                */
     /* #65322a                         */
@@ -395,7 +445,24 @@
     --caution-container: 28 38% 29%;
     /* #ffcd9e                       */
     --on-caution-container: 34 100% 81%;
+
+    /* CodeMirror syntax highlight tokens (Atom One Dark)                   */
+    --cm-keyword: #c678dd;
+    --cm-text: #abb2bf;
+    --cm-string: #98c379;
+    --cm-number: #d19a66;
+    --cm-comment: #5c6370;
+    --cm-link: #61afef;
   }
+
+/* ── Base Styles ──────────────────────────────────────────────────── */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
 
 /* ── WCAG AA 2.2 Accessible Utility Classes ──────────────────────── */
 @layer utilities {

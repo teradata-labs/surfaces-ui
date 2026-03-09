@@ -43,16 +43,34 @@ export const DEMO_ITEMS: DemoItem[] = [
     path: '/src/apps/showcase.html',
   },
   {
+    id: 'playground',
+    title: 'Component Playground',
+    description: 'Interactive props, variations & docs',
+    path: '/src/apps/playground.html',
+  },
+  {
     id: 'kitchen-sink',
     title: 'Kitchen Sink',
     description: 'All SurfacesUI primitives and molecules',
     path: '/src/apps/kitchen-sink.html',
   },
   {
+    id: 'ai-playground',
+    title: 'AI Playground',
+    description: 'Generate pages with any LLM',
+    path: '/src/apps/ai-playground.html',
+  },
+  {
     id: 'loom',
     title: 'Loom Integration',
     description: 'Bridge integration with Loom server',
     path: '/src/apps/demo-loom.html',
+  },
+  {
+    id: 'sql-visual-explain',
+    title: 'SQL Visual Explain',
+    description: 'Interactive query plan visualization',
+    path: '/src/apps/sql-visual-explain.html',
   },
 ];
 
@@ -88,13 +106,13 @@ export function DemoNav({ currentDemo, subMenuItems, activeSubItem }: DemoNavPro
       {/* Navigation Panel */}
       <nav
         className={`
-          fixed lg:sticky top-0 left-0 h-screen w-64 bg-surface-container-lowest border-r border-border
+          fixed lg:sticky top-0 left-0 h-screen w-64 bg-surface-container-lowest
           flex flex-col z-40 transform transition-transform duration-200 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         {/* Header */}
-        <div className="border-b border-border px-4 py-5">
+        <div className="px-4 py-5">
           <div className="flex items-center justify-between">
             <div>
               <Logo height={28} />

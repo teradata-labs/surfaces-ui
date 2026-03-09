@@ -29,7 +29,31 @@ import {
   IconButtonSection,
   ProgressBarSection,
   RadioSection,
+  SliderSection,
+  SnackbarSection,
   SwitchSection,
+  TypographySection,
+  IconSection,
+  ListItemSection,
+  TextLockupSection,
+  IconLockupSection,
+  MenuSection,
+  ToolbarSection,
+  StatusDialogSection,
+  SideSheetSection,
+  FullScreenDialogSection,
+  FocusedPageSection,
+  TreeListSection,
+  OnboardingCardsSection,
+  NotebookCellSection,
+  DataTableSection,
+  TabsSection,
+  TooltipSection,
+  FlowNodeSection,
+  NodePaletteSection,
+  FlowEditorSection,
+  AgentFlowViewSection,
+  SqlVisualExplainSection,
 } from './kitchen-sink-sections';
 
 // ── Nav config ───────────────────────────────────────────────────────────
@@ -50,7 +74,31 @@ const NAV_ITEMS = [
   { id: 'icon-button', label: 'Icon Button' },
   { id: 'progress-bar', label: 'Progress Bar' },
   { id: 'radio', label: 'Radio' },
+  { id: 'slider', label: 'Slider' },
+  { id: 'snackbar', label: 'Snackbar' },
   { id: 'switch', label: 'Switch' },
+  { id: 'typography', label: 'Typography' },
+  { id: 'icon', label: 'Icon' },
+  { id: 'list-item', label: 'List Item' },
+  { id: 'text-lockup', label: 'Text Lockup' },
+  { id: 'icon-lockup', label: 'Icon Lockup' },
+  { id: 'menu', label: 'Menu' },
+  { id: 'toolbar', label: 'Toolbar' },
+  { id: 'status-dialog', label: 'Status Dialog' },
+  { id: 'side-sheet', label: 'Side Sheet' },
+  { id: 'full-screen-dialog', label: 'Full Screen Dialog' },
+  { id: 'focused-page', label: 'Focused Page' },
+  { id: 'tree-list', label: 'Tree List' },
+  { id: 'onboarding-cards', label: 'Onboarding Cards' },
+  { id: 'notebook-cell', label: 'Notebook Cell' },
+  { id: 'data-table', label: 'Data Table' },
+  { id: 'tabs', label: 'Tabs' },
+  { id: 'tooltip', label: 'Tooltip' },
+  { id: 'flow-node', label: 'Flow Node' },
+  { id: 'node-palette', label: 'Node Palette' },
+  { id: 'flow-editor', label: 'Flow Editor' },
+  { id: 'agent-flow-view', label: 'Agent Flow View' },
+  { id: 'sql-visual-explain', label: 'SQL Visual Explain' },
 ];
 
 // ── App Wrapper with submenu ─────────────────────────────────────────────
@@ -132,7 +180,31 @@ function KitchenSinkContent({
       <IconButtonSection />
       <ProgressBarSection />
       <RadioSection />
+      <SliderSection />
+      <SnackbarSection />
       <SwitchSection />
+      <TypographySection />
+      <IconSection />
+      <ListItemSection />
+      <TextLockupSection />
+      <IconLockupSection />
+      <MenuSection />
+      <ToolbarSection />
+      <StatusDialogSection />
+      <SideSheetSection />
+      <FullScreenDialogSection />
+      <FocusedPageSection />
+      <TreeListSection />
+      <OnboardingCardsSection />
+      <NotebookCellSection />
+      <DataTableSection />
+      <TabsSection />
+      <TooltipSection />
+      <FlowNodeSection />
+      <NodePaletteSection />
+      <FlowEditorSection />
+      <AgentFlowViewSection />
+      <SqlVisualExplainSection />
     </div>
   );
 }

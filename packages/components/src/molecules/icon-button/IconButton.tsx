@@ -39,26 +39,42 @@ export interface IconButtonProps
     VariantProps<typeof iconButtonVariants> {
   /** Selected/active state — overrides bg to secondary-container */
   active?: boolean;
+  /** Toggle mode: whether the button is pressed/toggled on */
+  pressed?: boolean;
+  /** Callback when pressed state changes (toggle mode) */
+  onPressedChange?: (pressed: boolean) => void;
   /** Required for accessibility */
   'aria-label': string;
   className?: string;
 }
 
 const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ className, variant, size, active, children, ...props }, ref) => (
-    <button
-      ref={ref}
-      type="button"
-      className={cn(
-        iconButtonVariants({ variant, size }),
-        active && 'bg-secondary-container text-secondary-container-foreground',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  )
+  ({ className, variant, size, active, pressed, onPressedChange, onClick, children, ...props }, ref) => {
+    const isToggle = pressed !== undefined || onPressedChange !== undefined;
+    const isActive = active || pressed;
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (isToggle) onPressedChange?.(!pressed);
+      onClick?.(e);
+    };
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        aria-pressed={isToggle ? !!pressed : undefined}
+        className={cn(
+          iconButtonVariants({ variant, size }),
+          isActive && 'bg-secondary-container text-secondary-container-foreground',
+          className
+        )}
+        onClick={handleClick}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
 );
 IconButton.displayName = 'IconButton';
 

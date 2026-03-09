@@ -57,3 +57,45 @@ describe('Checkbox', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });
+
+describe('Checkbox custom icon', () => {
+  it('renders custom icon when checked', () => {
+    render(
+      <Checkbox
+        aria-label="Accept"
+        checked={true}
+        icon={<span data-testid="custom-icon">★</span>}
+      />
+    );
+    expect(screen.getByTestId('custom-icon')).toBeDefined();
+  });
+
+  it('renders default checkmark when no icon provided and checked', () => {
+    const { container } = render(
+      <Checkbox aria-label="Accept" checked={true} />
+    );
+    // default check is an SVG polyline
+    const svg = container.querySelector('svg polyline');
+    expect(svg).not.toBeNull();
+  });
+
+  it('renders custom indeterminate icon', () => {
+    render(
+      <Checkbox
+        aria-label="Accept"
+        checked="indeterminate"
+        indeterminateIcon={<span data-testid="custom-dash">—</span>}
+      />
+    );
+    expect(screen.getByTestId('custom-dash')).toBeDefined();
+  });
+
+  it('renders default dash when indeterminate and no custom icon', () => {
+    const { container } = render(
+      <Checkbox aria-label="Accept" checked="indeterminate" />
+    );
+    // default dash is an SVG line
+    const svg = container.querySelector('svg line');
+    expect(svg).not.toBeNull();
+  });
+});
