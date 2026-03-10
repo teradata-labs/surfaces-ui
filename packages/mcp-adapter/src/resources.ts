@@ -5,7 +5,7 @@ import { SURFACES_APPS, type AppId } from "./registry.js";
 import type { SurfacesResource, SurfacesResourceContent } from "./types.js";
 
 /** URI scheme for surfaces-ui resources. */
-const URI_PREFIX = "surfaces-ui/apps/";
+const URI_PREFIX = "ui://";
 
 /**
  * Resolve the directory containing built HTML app bundles.
@@ -33,9 +33,13 @@ export function getSurfacesResources(): SurfacesResource[] {
 /**
  * Reads a surfaces-ui resource by its URI and returns the full content.
  * Throws if the URI is not recognised or the HTML bundle is missing.
+ *
+ * Query parameters (e.g., ?sql=...) are stripped before app ID lookup.
  */
 export function readSurfacesResource(uri: string): SurfacesResourceContent {
-  const id = uri.replace(URI_PREFIX, "") as AppId;
+  // Strip query parameters and fragment before extracting app ID
+  const cleanUri = uri.split('?')[0]!.split('#')[0]!;
+  const id = cleanUri.replace(URI_PREFIX, "") as AppId;
 
   if (!Object.hasOwn(SURFACES_APPS, id)) {
     throw new Error(`Unknown surfaces-ui app: "${id}"`);

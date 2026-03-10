@@ -11,6 +11,12 @@
  */
 
 export const SURFACES_APPS = {
+  "test-tiny": {
+    name: "Test Tiny App",
+    description: "Minimal test app for debugging MCP resource loading",
+    mimeType: "text/html;profile=mcp-app" as const,
+    filename: "test-tiny.html",
+  },
   "sql-editor-cdn": {
     name: "SQL Editor",
     description:

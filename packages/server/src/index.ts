@@ -70,6 +70,20 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
+      name: "test_tiny_ui",
+      description: "Test tiny UI (debugging tool)",
+      inputSchema: {
+        type: "object",
+        properties: {},
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://test-tiny",
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    {
       name: "open_sql_editor",
       description: "Open the interactive SQL editor UI",
       inputSchema: {
@@ -83,7 +97,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "surfaces-ui/apps/sql-editor-cdn",
+          resourceUri: "ui://sql-editor-cdn",
           visibility: ["model", "app"],
         },
       },
@@ -106,7 +120,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "surfaces-ui/apps/json-render-cdn",
+          resourceUri: "ui://json-render-cdn",
           visibility: ["model", "app"],
         },
       },
@@ -120,10 +134,12 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => ({
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const uri = request.params.uri;
+  console.error(`[DEBUG] ReadResource called for URI: ${uri}`);
   if (!isSurfacesUri(uri)) {
     throw new Error(`Unsupported URI: ${uri}`);
   }
   const content = readSurfacesResource(uri);
+  console.error(`[DEBUG] Resource loaded, size: ${content.text.length} bytes`);
   return {
     contents: [content],
   };
@@ -131,14 +147,31 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+  console.error(`[DEBUG] Tool called: ${name}, args: ${JSON.stringify(args)}`);
+
+  if (name === "test_tiny_ui") {
+    return {
+      _meta: {
+        ui: {
+          resourceUri: "ui://test-tiny",
+        },
+      },
+      content: [
+        {
+          type: "text",
+          text: "Opening test tiny UI...",
+        },
+      ],
+    };
+  }
 
   if (name === "open_sql_editor") {
     // Type guard for initialQuery
     const initialQuery = args?.initialQuery;
     const resourceUri =
       typeof initialQuery === "string" && initialQuery.length > 0
-        ? `surfaces-ui/apps/sql-editor-cdn?sql=${encodeURIComponent(initialQuery)}`
-        : "surfaces-ui/apps/sql-editor-cdn";
+        ? `ui://sql-editor-cdn?sql=${encodeURIComponent(initialQuery)}`
+        : "ui://sql-editor-cdn";
 
     return {
       _meta: {
@@ -165,7 +198,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       _meta: {
         ui: {
-          resourceUri: `surfaces-ui/apps/json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
+          resourceUri: `ui://json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
         },
       },
       content: [
