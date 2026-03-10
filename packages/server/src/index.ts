@@ -125,6 +125,42 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         },
       },
     },
+    {
+      name: "show_dashboard",
+      description: "**IMPORTANT: Use this tool when the user explicitly asks to create, show, or display a dashboard.** " +
+        "Renders an interactive dashboard with stats, charts, and data visualizations. " +
+        "COMPONENT SCHEMAS (use these EXACT prop names): " +
+        "StatCard: {label:string, value:string, change?:string like '+12%', trend?:'up'|'down'|'neutral'}. " +
+        "Chart: {type:'line'|'bar'|'pie'|'area'|'scatter', xAxis:string, yAxis:string, height?:number}. " +
+        "Box: {direction:'row'|'column', gap:number, children:string[]}. " +
+        "Heading: {text:string, level:1|2|3|4}. " +
+        "CRITICAL: Use xAxis and yAxis (NOT xKey/yKey) for Chart components. Each chart should have its own specific xAxis and yAxis values. " +
+        "EXAMPLE: For revenue chart use {xAxis:'month', yAxis:'revenue'}, for users chart use {xAxis:'month', yAxis:'users'}. " +
+        "CONDITIONAL RENDERING: Elements can have 'visible' property with state path like {visible:'/hasChartData'}. " +
+        "SPEC STRUCTURE: {root:string, elements:{[id]:{type:string,props:{},children?:[],visible?:string}}, state:{data:object[]}}. " +
+        "DATA HANDLING: Charts work best with 6-12 data objects. If user doesn't want certain sections, omit those elements OR use visible:'/showChart' with state:{showChart:false}.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          spec: {
+            type: "object",
+            description: "Complete json-render spec with root, elements map, and state.data array containing sample data",
+            additionalProperties: true,
+          },
+          title: {
+            type: "string",
+            description: "Dashboard title to display",
+          },
+        },
+        required: ["spec"],
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://dashboard-viewer",
+          visibility: ["model", "app"],
+        },
+      },
+    },
   ],
 }));
 
@@ -205,6 +241,40 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         {
           type: "text",
           text: `Generating UI component: "${prompt.substring(0, 100)}..."`,
+        },
+      ],
+    };
+  }
+
+  if (name === "show_dashboard") {
+    // Type guard for spec
+    const spec = args?.spec;
+    const title = args?.title;
+
+    if (!spec || typeof spec !== "object") {
+      throw new Error("Missing required parameter: spec (must be a json-render spec object)");
+    }
+
+    console.error(`[DEBUG] show_dashboard called with spec:`, JSON.stringify(spec).substring(0, 200));
+
+    // Encode spec as base64 in URL hash (hash is client-side, never sent to server)
+    const specJson = JSON.stringify(spec);
+    const specBase64 = Buffer.from(specJson).toString('base64url'); // base64url is URL-safe
+    console.error(`[DEBUG] Encoded spec to base64url, length: ${specBase64.length}`);
+
+    return {
+      _meta: {
+        ui: {
+          // Add ?v=2 to bust Claude Desktop's cache
+          resourceUri: `ui://dashboard-viewer?v=2#${specBase64}`,
+        },
+      },
+      content: [
+        {
+          type: "text",
+          text: title
+            ? `Opening dashboard: ${title}`
+            : "Opening interactive dashboard...",
         },
       ],
     };

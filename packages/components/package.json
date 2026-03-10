@@ -23,7 +23,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:apps": "rm -rf dist/apps && APP=sql-editor-cdn vite build --config vite.config.apps.ts && APP=json-render-cdn vite build --config vite.config.apps.ts && npm run build:apps:move",
+    "build:apps": "rm -rf dist/apps && APP=sql-editor-cdn vite build --config vite.config.apps.ts && APP=json-render-cdn vite build --config vite.config.apps.ts && APP=dashboard-viewer vite build --config vite.config.apps.ts && npm run build:apps:move",
     "build:apps:move": "test -d dist/apps/src/apps && mv dist/apps/src/apps/*.html dist/apps/ && rm -rf dist/apps/src || true",
     "clean": "rimraf dist",
     "test": "vitest run",

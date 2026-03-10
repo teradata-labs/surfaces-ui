@@ -31,6 +31,13 @@ export const SURFACES_APPS = {
     mimeType: "text/html;profile=mcp-app" as const,
     filename: "json-render-cdn.html",
   },
+  "dashboard-viewer": {
+    name: "Dashboard Viewer",
+    description:
+      "Interactive dashboard renderer for Claude-generated dashboard specs",
+    mimeType: "text/html;profile=mcp-app" as const,
+    filename: "dashboard-viewer.html",
+  },
 } as const;
 
 export type AppId = keyof typeof SURFACES_APPS;

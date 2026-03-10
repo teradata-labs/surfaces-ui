@@ -200,6 +200,17 @@ function UIChart(ctx: ComponentContext<typeof uiCatalog, 'Chart'>) {
   const columns = data.length > 0 && data[0] ? Object.keys(data[0]) : [];
   const finalXAxis = props.xAxis || columns[0] || '';
   const finalYAxis = props.yAxis || columns[1] || '';
+
+  // Don't render if no data
+  if (!data || data.length === 0) {
+    return (
+      <div className="p-4 border border-dashed border-muted rounded-lg text-center text-muted-foreground text-sm">
+        <p>No data available for chart</p>
+        {props.title && <p className="text-xs mt-1">{props.title}</p>}
+      </div>
+    );
+  }
+
   return (
     <Chart
       data={data}
