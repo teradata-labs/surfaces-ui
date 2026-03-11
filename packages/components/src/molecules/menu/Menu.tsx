@@ -52,21 +52,15 @@ function Menu({ trigger, items, align = 'start', className }: MenuProps) {
 
   return (
     <div ref={menuRef} className={cn('relative inline-block', className)}>
-      <div
-        onClick={() => setOpen(v => !v)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setOpen(v => !v);
-          }
-        }}
-        role="button"
-        tabIndex={0}
-      >
+      <div>
         {React.isValidElement(trigger)
           ? React.cloneElement(trigger as React.ReactElement<Record<string, unknown>>, {
               'aria-haspopup': 'menu',
               'aria-expanded': open,
+              onClick: (e: React.MouseEvent) => {
+                e.preventDefault();
+                setOpen(v => !v);
+              },
             })
           : trigger}
       </div>
