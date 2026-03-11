@@ -44,7 +44,7 @@ import {
 
 // Dashboard-specific Chart wrapper with theme
 function DashboardChart(ctx: ComponentContext<typeof uiCatalog, 'Chart'>) {
-  const props = ctx.props as ChartProps & { xKey?: string; yKey?: string };
+  const props = ctx.props as ChartProps & { xKey?: string; yKey?: string; title?: string };
   const data = useStateValue<DataRow[]>('/data') || [];
   const columns = data.length > 0 && data[0] ? Object.keys(data[0]) : [];
 

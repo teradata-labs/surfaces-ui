@@ -5,7 +5,6 @@ import {
   getSchemasByCategory,
   getAvailableSchemas,
   generateComponentCatalogPrompt,
-  type ComponentSchema,
 } from './component-schemas';
 
 describe('COMPONENT_SCHEMAS', () => {

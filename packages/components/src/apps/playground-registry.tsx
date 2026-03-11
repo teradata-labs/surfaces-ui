@@ -8,7 +8,7 @@
 import * as React from 'react';
 
 // Primitives
-import { Button } from '../primitives/button';
+import { Button, type ButtonProps } from '../primitives/button';
 import { Alert } from '../primitives/alert';
 import { Badge } from '../primitives/badge';
 import { Checkbox } from '../primitives/checkbox';
@@ -250,7 +250,12 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
   Button: {
     defaultProps: { variant: 'default', size: 'default', density: 'compact', disabled: false, children: 'Click Me' },
     render: (p) => (
-      <Button variant={p.variant as any} size={p.size as any} density={p.density as any} disabled={p.disabled as boolean}>
+      <Button
+        variant={p.variant as unknown as ButtonProps['variant']}
+        size={p.size as unknown as ButtonProps['size']}
+        density={p.density as unknown as ButtonProps['density']}
+        disabled={p.disabled as boolean}
+      >
         {(p.children as string) || 'Click Me'}
       </Button>
     ),
@@ -258,7 +263,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
   IconButton: {
     defaultProps: { variant: 'standard', size: 'md', disabled: false },
     render: (p) => (
-      <IconButton variant={p.variant as any} size={p.size as any} disabled={p.disabled as boolean} aria-label="Settings">
+      <IconButton variant={p.variant as unknown as never} size={p.size as unknown as never} disabled={p.disabled as boolean} aria-label="Settings">
         <Settings className="h-5 w-5" />
       </IconButton>
     ),
@@ -267,7 +272,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
     defaultProps: { state: 'active', label: 'Editing row 5' },
     render: (p) => (
       <div className="w-full border border-su-outline-variant rounded-lg overflow-hidden">
-        <ActionRibbon state={p.state as any} label={p.label as string}
+        <ActionRibbon state={p.state as unknown as never} label={p.label as string}
           actions={p.state === 'active' ? [
             <Button key="s" size="sm">Save</Button>,
             <Button key="c" variant="text" size="sm">Cancel</Button>,
@@ -281,7 +286,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
   Alert: {
     defaultProps: { variant: 'secondary', mode: 'inline', title: 'Heads up!' },
     render: (p) => (
-      <Alert variant={p.variant as any} mode={p.mode as any} title={(p.title as string) || 'Alert'}
+      <Alert variant={p.variant as unknown as never} mode={p.mode as unknown as never} title={(p.title as string) || 'Alert'}
         description="This is an alert with important information." />
     ),
   },
@@ -291,7 +296,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
   },
   CircularProgress: {
     defaultProps: { value: 65, size: 'md', showLabel: true },
-    render: (p) => <CircularProgress value={p.value as number} size={p.size as any} showLabel={p.showLabel as boolean} />,
+    render: (p) => <CircularProgress value={p.value as number} size={p.size as unknown as never} showLabel={p.showLabel as boolean} />,
   },
   Progress: {
     defaultProps: { value: 60 },
@@ -322,7 +327,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
     defaultProps: { orientation: 'horizontal' },
     render: (p) => (
       <div className={p.orientation === 'vertical' ? 'h-12' : 'w-64'}>
-        <Separator orientation={p.orientation as any} />
+        <Separator orientation={p.orientation as unknown as never} />
       </div>
     ),
   },
@@ -342,7 +347,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
   // ── Data Display ────────────────────────────────────────────────────────
   Badge: {
     defaultProps: { variant: 'default', children: 'Badge' },
-    render: (p) => <Badge variant={p.variant as any}>{(p.children as string) || 'Badge'}</Badge>,
+    render: (p) => <Badge variant={p.variant as unknown as never}>{(p.children as string) || 'Badge'}</Badge>,
   },
   FilterChip: {
     defaultProps: { label: 'Active', selected: false },
@@ -370,7 +375,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
     render: (p) => (
       <div className="w-full border border-su-outline-variant rounded-lg overflow-hidden">
         <DataTable columns={SAMPLE_COLUMNS} data={SAMPLE_TABLE_DATA}
-          density={p.density as any} height={250} />
+          density={p.density as unknown as never} height={250} />
       </div>
     ),
   },
@@ -378,7 +383,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
     defaultProps: { type: 'code', status: 'idle' },
     render: (p) => (
       <div className="w-full">
-        <NotebookCell type={p.type as any} status={p.status as any}
+        <NotebookCell type={p.type as unknown as never} status={p.status as unknown as never}
           value={SAMPLE_SQL} />
       </div>
     ),
@@ -389,7 +394,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
     defaultProps: { placeholder: 'Enter text...', disabled: false, type: 'text', density: 'compact' },
     render: (p) => (
       <Input placeholder={p.placeholder as string} disabled={p.disabled as boolean}
-        type={p.type as string} density={p.density as any} className="w-64" />
+        type={p.type as string} density={p.density as unknown as never} className="w-64" />
     ),
   },
   Textarea: {
@@ -405,7 +410,7 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
   Select: {
     defaultProps: { density: 'compact' },
     render: (p) => (
-      <Select density={p.density as any}>
+      <Select density={p.density as unknown as never}>
         <SelectTrigger className="w-64">
           <SelectValue placeholder="Select option" />
         </SelectTrigger>
@@ -510,11 +515,11 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
   },
   Typography: {
     defaultProps: { variant: 'body-md', children: 'The quick brown fox jumps over the lazy dog.' },
-    render: (p) => <Typography variant={p.variant as any}>{(p.children as string) || 'Sample text'}</Typography>,
+    render: (p) => <Typography variant={p.variant as unknown as never}>{(p.children as string) || 'Sample text'}</Typography>,
   },
   Icon: {
     defaultProps: { size: 'md' },
-    render: (p) => <Icon size={p.size as any}><Database className="h-5 w-5" /></Icon>,
+    render: (p) => <Icon size={p.size as unknown as never}><Database className="h-5 w-5" /></Icon>,
   },
   IconLockup: {
     defaultProps: { label: 'Database', layout: 'horizontal' },
@@ -522,14 +527,14 @@ export const COMPONENT_REGISTRY: Record<string, RegistryEntry> = {
       <IconLockup
         icon={<Icon size="md"><Database className="h-5 w-5" /></Icon>}
         label={p.label as string}
-        layout={p.layout as any}
+        layout={p.layout as unknown as never}
       />
     ),
   },
   TextLockup: {
     defaultProps: { title: 'Headline', subtitle: 'Supporting text', size: 'md' },
     render: (p) => (
-      <TextLockup title={p.title as string} subtitle={p.subtitle as string} size={p.size as any} />
+      <TextLockup title={p.title as string} subtitle={p.subtitle as string} size={p.size as unknown as never} />
     ),
   },
   CodeSnippet: {

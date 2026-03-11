@@ -20,7 +20,7 @@ export interface ChartTheme {
   };
 }
 
-export const chartThemes = {
+export const chartThemes: Record<string, ChartTheme> = {
   // Theme 1: High Contrast Professional
   highContrastLight: {
     name: "High Contrast Light",
@@ -302,7 +302,11 @@ export const getThemeGroups = () => {
 
 // Get theme by key
 export const getTheme = (themeKey: ChartThemeKey): ChartTheme => {
-  return chartThemes[themeKey];
+  const theme = chartThemes[themeKey];
+  if (!theme) {
+    return chartThemes['professionalLight'] as ChartTheme;
+  }
+  return theme;
 };
 
 // Get all theme keys

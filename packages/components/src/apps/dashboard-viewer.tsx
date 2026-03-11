@@ -70,7 +70,8 @@ function DashboardViewer() {
 
       if (receivedSpec) {
         console.log('[DashboardViewer] Setting up dashboard with root:', receivedSpec.root);
-        console.log('[DashboardViewer] Using spec data:', receivedSpec.state?.data?.length || 0, 'items');
+        const dataLength = Array.isArray(receivedSpec.state?.data) ? receivedSpec.state.data.length : 0;
+        console.log('[DashboardViewer] Using spec data:', dataLength, 'items');
 
         setInitialState(receivedSpec.state || {});
         setSpec(receivedSpec);

@@ -123,16 +123,6 @@ export function SpecPreview({ spec, onSpecChange, showJson = true }: SpecPreview
     URL.revokeObjectURL(url);
   }, [jsonText]);
 
-  if (!spec) {
-    return (
-      <div className="flex items-center justify-center h-64 border border-dashed border-border rounded-lg bg-muted/20">
-        <p className="text-sm text-muted-foreground">
-          Generate a spec to see the preview here
-        </p>
-      </div>
-    );
-  }
-
   // Sanitize spec: strip children refs that point to non-existent elements
   const sanitizedSpec = React.useMemo(() => {
     if (!spec) return null;
@@ -160,6 +150,16 @@ export function SpecPreview({ spec, onSpecChange, showJson = true }: SpecPreview
       return spec;
     }
   }, [spec]);
+
+  if (!sanitizedSpec) {
+    return (
+      <div className="flex items-center justify-center h-64 border border-dashed border-border rounded-lg bg-muted/20">
+        <p className="text-sm text-muted-foreground">
+          Generate a spec to see the preview here
+        </p>
+      </div>
+    );
+  }
 
   const renderPreview = () => (
     <div className="bg-background rounded-lg border border-border overflow-auto">

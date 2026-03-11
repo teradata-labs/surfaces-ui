@@ -649,9 +649,9 @@ function repairJSON(text: string): string | null {
     // Replace single-quoted strings with double-quoted strings
     // This is a best-effort heuristic: replace ' at word boundaries
     fixed = fixed.replace(
-      /(?<=[:,\[\{\s])'/g, '"'
+      /(?<=[:,[\]{\s])'/g, '"'
     ).replace(
-      /'(?=[,\]\}:\s])/g, '"'
+      /'(?=[,\]}:\s])/g, '"'
     );
 
     if (isValidJSON(fixed)) return fixed;

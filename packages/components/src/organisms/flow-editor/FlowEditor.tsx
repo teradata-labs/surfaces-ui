@@ -30,7 +30,7 @@ function DefaultFlowNode({ data }: { data: Record<string, unknown> }) {
       icon={data.icon as React.ReactNode}
       label={data.label as string}
       description={data.description as string}
-      variant={(data.variant as any) || 'default'}
+      variant={(data.variant as unknown as never) || 'default'}
       status={data.status as React.ReactNode}
     />
   );
@@ -54,6 +54,7 @@ export interface FlowEditorProps {
   /** Initial edges */
   initialEdges?: Edge[];
   /** Custom node type components (merged with defaults) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nodeTypes?: Record<string, React.ComponentType<any>>;
   /** Called when a palette item generates a new node */
   onNodeAdd?: (item: PaletteItem, node: Node) => void;

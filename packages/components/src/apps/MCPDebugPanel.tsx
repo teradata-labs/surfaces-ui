@@ -62,7 +62,7 @@ export function MCPDebugPanel({ maxMessages = 20 }: MCPDebugPanelProps) {
         try {
           const dataStr = JSON.stringify(event.data, null, 2);
           addMessage(`   Data: ${dataStr.substring(0, 200)}${dataStr.length > 200 ? '...' : ''}`);
-        } catch (err) {
+        } catch {
           addMessage(`   Data: [Unable to stringify]`);
         }
       } else {

@@ -17,11 +17,10 @@ import remarkGfm from 'remark-gfm';
 import { LoomBridge } from '../bridge/LoomBridge';
 import { McpBridgeProvider } from '../bridge/McpBridgeProvider';
 import { ThemeWrapper } from './ThemeWrapper';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../primitives/card';
+import { Card, CardContent } from '../primitives/card';
 import { Badge } from '../primitives/badge';
 import { Button } from '../primitives/button';
 import { Input } from '../primitives/input';
-import { Alert, AlertDescription } from '../primitives/alert';
 import { ConversationViewer } from '../components/conversation-viewer';
 import { TableWithFilters } from '../molecules/table-with-filters/TableWithFilters';
 import { SelectableList } from '../molecules/selectable-list';
@@ -59,7 +58,7 @@ function LoomDashboard({ bridge }: { bridge: LoomBridge }) {
   const [apps, setApps] = useState<LoomUIApp[]>([]);
   const [health, setHealth] = useState<string>('checking...');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
 
   // Chat state
   const [chatInput, setChatInput] = useState('');

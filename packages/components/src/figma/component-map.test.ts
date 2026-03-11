@@ -7,7 +7,6 @@ import {
   figmaToReact,
   reactToFigma,
   getComponentCatalog,
-  type ComponentMapEntry,
 } from './component-map';
 
 describe('COMPONENT_MAP', () => {

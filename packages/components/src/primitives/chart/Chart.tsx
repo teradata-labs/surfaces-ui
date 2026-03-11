@@ -93,6 +93,7 @@ export function Chart({
       chartInstance.current?.dispose();
       chartInstance.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
   // Update chart options when data or config changes OR when chart re-initializes

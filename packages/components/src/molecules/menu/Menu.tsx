@@ -52,8 +52,17 @@ function Menu({ trigger, items, align = 'start', className }: MenuProps) {
 
   return (
     <div ref={menuRef} className={cn('relative inline-block', className)}>
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-      <div onClick={() => setOpen(v => !v)}>
+      <div
+        onClick={() => setOpen(v => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpen(v => !v);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
         {React.isValidElement(trigger)
           ? React.cloneElement(trigger as React.ReactElement<Record<string, unknown>>, {
               'aria-haspopup': 'menu',

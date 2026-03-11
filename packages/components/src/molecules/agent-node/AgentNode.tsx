@@ -9,7 +9,6 @@
 
 import * as React from 'react';
 import { Position } from '@xyflow/react';
-import type { Node } from '@xyflow/react';
 import { Bot, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Badge } from '../../primitives/badge';

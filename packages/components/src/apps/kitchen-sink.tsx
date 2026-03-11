@@ -138,7 +138,7 @@ function KitchenSinkApp() {
 // ── Content Component ────────────────────────────────────────────────────
 
 function KitchenSinkContent({
-  activeSection,
+  activeSection: _activeSection,
   setActiveSection
 }: {
   activeSection: string;

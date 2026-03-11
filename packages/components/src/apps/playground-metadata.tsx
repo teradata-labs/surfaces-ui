@@ -12,7 +12,7 @@ import * as React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../primitives/tabs';
 import { Badge } from '../primitives/badge';
 import type { ComponentSchema } from '../catalog/component-schemas';
-import { CheckCircle, XCircle, Info, Lightbulb, Layers, Palette, Link } from 'lucide-react';
+import { CheckCircle, XCircle, Lightbulb, Layers, Palette, Link } from 'lucide-react';
 
 interface MetadataPanelProps {
   schema: ComponentSchema;

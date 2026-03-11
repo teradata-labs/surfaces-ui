@@ -31,6 +31,7 @@ export interface FlowCanvasProps {
   /** Array of ReactFlow edges */
   edges: Edge[];
   /** Map of node type names to React components */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nodeTypes: Record<string, React.ComponentType<any>>;
   /** Node change handler (drag, select, remove) */
   onNodesChange?: OnNodesChange;

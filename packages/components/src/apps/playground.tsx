@@ -212,7 +212,7 @@ function ComponentHeader({ schema }: { schema: ComponentSchema }) {
     <div className="space-y-2">
       <div className="flex items-center gap-3">
         <h2 className="text-2xl font-bold text-foreground">{schema.name}</h2>
-        <Badge variant={LEVEL_COLORS[schema.level] as any} className="text-[10px] uppercase">
+        <Badge variant={LEVEL_COLORS[schema.level] as unknown as never} className="text-[10px] uppercase">
           {schema.level}
         </Badge>
         <Badge variant="outline" className="text-[10px]">
@@ -232,12 +232,16 @@ function ComponentHeader({ schema }: { schema: ComponentSchema }) {
 const container = document.getElementById('root');
 if (container) {
   // Reuse existing root on HMR to avoid "createRoot on same container" warnings
-  const existingRoot = (container as any).__reactRoot;
+  interface ContainerWithRoot extends HTMLElement {
+    __reactRoot?: ReturnType<typeof createRoot>;
+  }
+  const containerWithRoot = container as ContainerWithRoot;
+  const existingRoot = containerWithRoot.__reactRoot;
   if (existingRoot) {
     existingRoot.render(<PlaygroundApp />);
   } else {
     const reactRoot = createRoot(container);
-    (container as any).__reactRoot = reactRoot;
+    containerWithRoot.__reactRoot = reactRoot;
     reactRoot.render(<PlaygroundApp />);
   }
 }

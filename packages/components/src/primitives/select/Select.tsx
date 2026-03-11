@@ -239,7 +239,8 @@ const SelectItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => {
   const selectDensity = React.useContext(SelectDensityCtx);
-  const density = selectDensity ?? useDensity();
+  const globalDensity = useDensity();
+  const density = selectDensity ?? globalDensity;
   const isCompact = density === 'compact' || density === 'comfortable';
   return (
     <SelectPrimitive.Item

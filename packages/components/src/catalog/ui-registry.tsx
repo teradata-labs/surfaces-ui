@@ -13,8 +13,7 @@ import { defineCatalog } from '@json-render/core';
 import { z } from 'zod';
 import { Table as TableIcon, BarChart3 as BarChartIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-// Import existing catalog schema (reuse schema definition)
-import { catalog as dataCatalog } from './schema';
+// Note: dataCatalog not needed here, only using schema definitions
 import type {
   DataRow,
   ChartProps,
@@ -195,7 +194,7 @@ export const uiCatalog = defineCatalog(uiSchemaDefinition, {
 
 // Re-use existing data-viz wrappers
 function UIChart(ctx: ComponentContext<typeof uiCatalog, 'Chart'>) {
-  const props = ctx.props as ChartProps;
+  const props = ctx.props as ChartProps & { title?: string };
   const data = useStateValue<DataRow[]>('/data') || [];
   const columns = data.length > 0 && data[0] ? Object.keys(data[0]) : [];
   const finalXAxis = props.xAxis || columns[0] || '';

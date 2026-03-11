@@ -90,7 +90,7 @@ export function MarkdownViewer({ content, className = '' }: MarkdownViewerProps)
               {children}
             </td>
           ),
-          a: ({ href, children }: any) => (
+          a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
             <a
               href={href}
               target="_blank"
@@ -100,6 +100,7 @@ export function MarkdownViewer({ content, className = '' }: MarkdownViewerProps)
               {children}
             </a>
           ),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           code: ({ inline, className, children, ...props }: any) => {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';

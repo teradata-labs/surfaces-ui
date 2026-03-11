@@ -5,7 +5,6 @@
  */
 import type * as echarts from 'echarts';
 import type { ChartType } from './types';
-import { DEFAULT_CHART_COLORS } from './types';
 
 /**
  * Detect the system theme (dark/light) for ECharts
@@ -74,7 +73,7 @@ export function generateChartOption(
   yAxis: string,
   type: ChartType = 'bar',
   showDataLabels = false,
-  colors?: string[]
+  _colors?: string[]
 ): echarts.EChartsOption {
   if (!data.length) return {};
 

@@ -243,6 +243,7 @@ function parseCode(
 
     // Extract children: >content</ComponentName>
     const childrenMatch = code.match(
+      // eslint-disable-next-line security/detect-non-literal-regexp
       new RegExp(`>([\\s\\S]*?)</${componentName}>`)
     );
     if (childrenMatch?.[1]) {
@@ -281,7 +282,7 @@ function parseCode(
       // Skip the opening <Component tag line and self-closing />
       if (trimmed.startsWith('<') || trimmed === '/>' || trimmed === '>') continue;
       // Standalone identifier with no = sign → boolean true
-      if (/^(\w+)$/.test(trimmed) && !parsed.hasOwnProperty(trimmed)) {
+      if (/^(\w+)$/.test(trimmed) && !Object.prototype.hasOwnProperty.call(parsed, trimmed)) {
         parsed[trimmed] = true;
       }
     }

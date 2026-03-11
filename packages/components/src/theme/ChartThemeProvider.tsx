@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import { chartThemes, getAutoThemeKey, type ChartThemeKey, type ChartTheme } from './chart-themes';
+import { getAutoThemeKey, getTheme, type ChartThemeKey, type ChartTheme } from './chart-themes';
 import { useTheme } from './ThemeProvider';
 
 interface ChartThemeContextValue {
@@ -69,7 +69,7 @@ export function ChartThemeProvider({
     return manualThemeKey || getAutoThemeKey(isDark, baseTheme);
   }, [autoSwitch, isDark, baseTheme, manualThemeKey]);
 
-  const theme = React.useMemo(() => chartThemes[themeKey], [themeKey]);
+  const theme = React.useMemo(() => getTheme(themeKey), [themeKey]);
 
   const setBaseTheme = React.useCallback((base: string) => {
     setBaseThemeState(base);
