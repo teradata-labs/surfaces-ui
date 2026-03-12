@@ -1,0 +1,22 @@
+/**
+ * Re-export of the surfaces-ui design tokens.
+ *
+ * Consumer apps import this via:
+ *   import '@surfacesui/app-framework/tokens.css';
+ *
+ * This pulls in Tailwind 4, the custom variant setup, theme tokens,
+ * density system, and WCAG utility classes.
+ */
+@import '@surfacesui/components/theme/tokens.css';
+
+/*
+ * Tell Tailwind 4 to scan the components package for class names.
+ * Without this, Tailwind only scans the consumer's project files and
+ * misses classes used inside Card, Button, etc.
+ *
+ * The relative path works for both:
+ *   - workspace: packages/app-framework/src/ → packages/components/
+ *   - node_modules: @surfacesui/app-framework/src/ → @surfacesui/components/
+ */
+@source "../../components/src";
+@source "../../components/dist";

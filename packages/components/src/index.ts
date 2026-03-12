@@ -23,7 +23,9 @@ export type {
 
 // MCP Bridge
 export { McpBridge } from './bridge/McpBridge';
+export { McpAppsBridge } from './bridge/McpAppsBridge';
 export { McpBridgeProvider, useMcpBridge } from './bridge/McpBridgeProvider';
+export type { BridgeLike } from './bridge/McpBridgeProvider';
 export { useMcpTool, useMcpPagination, useMcpStream } from './bridge/hooks';
 export type { McpToolResult, PageResult, McpRenderData, McpBridgeConfig, McpMessage } from './bridge/types';
 
