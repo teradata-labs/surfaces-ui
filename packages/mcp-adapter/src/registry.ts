@@ -40,4 +40,39 @@ export const SURFACES_APPS = {
   },
 } as const;
 
+/**
+ * Stylesheet resources for standalone HTML/CSS/JS development.
+ * These CSS files contain all the design tokens and component styles
+ * needed to create UIs that match the SurfacesUI design system.
+ */
+export const SURFACES_STYLESHEETS = {
+  "styles/tokens": {
+    name: "Design Tokens CSS",
+    description: "Core design tokens including colors, typography, spacing, and theme variables. Use this for standalone HTML/CSS without React components.",
+    mimeType: "text/css" as const,
+    filename: "tokens.css",
+  },
+  "styles/components": {
+    name: "Component Styles CSS",
+    description: "Complete compiled CSS for all SurfacesUI components including React Flow and third-party library styles. ~16KB minified.",
+    mimeType: "text/css" as const,
+    filename: "components.css",
+  },
+} as const;
+
+/**
+ * Documentation and prompt resources for AI-assisted development.
+ */
+export const SURFACES_DOCS = {
+  "docs/react-components": {
+    name: "React Components Guide",
+    description: "Complete guide to SurfacesUI React components with TypeScript interfaces, usage examples, and best practices",
+    mimeType: "text/markdown" as const,
+    filename: "react-components.md",
+  },
+} as const;
+
 export type AppId = keyof typeof SURFACES_APPS;
+export type StylesheetId = keyof typeof SURFACES_STYLESHEETS;
+export type DocId = keyof typeof SURFACES_DOCS;
+export type ResourceId = AppId | StylesheetId | DocId;
