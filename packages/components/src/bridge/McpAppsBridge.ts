@@ -12,11 +12,13 @@
 
 import { App } from '@modelcontextprotocol/ext-apps';
 import type {
-  McpBridgeConfig,
+  McpAppsBridgeOptions,
   McpRenderData,
   McpToolResult,
   PageResult,
+  ToolMapping,
 } from './types';
+import { TERADATA_MCP_TOOL_MAPPING } from './types';
 
 export class McpAppsBridge {
   private app: App;
@@ -24,9 +26,10 @@ export class McpAppsBridge {
   private streamListeners: Map<number, (chunk: unknown) => void>;
   private connected: boolean;
   private nextStreamId: number;
+  private toolMapping: ToolMapping;
 
-  constructor(_config?: McpBridgeConfig) {
-    // Config is ignored for MCP Apps - the App class handles connection details
+  constructor(options?: McpAppsBridgeOptions) {
+    this.toolMapping = options?.toolMapping ?? TERADATA_MCP_TOOL_MAPPING;
     this.app = new App({ name: 'SurfacesUI', version: '1.0.0' });
     this.listeners = new Set();
     this.streamListeners = new Map();
@@ -79,10 +82,13 @@ export class McpAppsBridge {
   }
 
   /**
-   * Normalize vantage-mcp response format to surfacesui expected format.
+   * Normalize backend response formats to the surfacesui expected format:
+   * { success: true, columns: string[], data: Record<string,unknown>[], row_count: number }
    *
-   * vantage-mcp returns: { columns: [...], rows: [[...], [...]] }
-   * surfacesui expects: { success: true, columns: [...], data: [{col: val}, ...], row_count: N }
+   * Handles three server formats:
+   * - Already formatted (has `success` field) → returned as-is
+   * - teradata-mcp-server: { data: [...objects], columns, row_count, metadata }
+   * - vantage-mcp (legacy): { columns, rows: [[...], ...] } — 2D array
    */
   private normalizeResponse(raw: unknown): unknown {
     if (typeof raw !== 'object' || raw === null) {
@@ -91,31 +97,27 @@ export class McpAppsBridge {
 
     const obj = raw as Record<string, unknown>;
 
-    // If already in expected format (has success field), return as-is
+    // Already in surfacesui format (has success field) — return as-is
     if ('success' in obj) {
       return obj;
     }
 
-    // Handle success message strings (DDL/DML)
-    if (typeof raw === 'string') {
-      const text = raw as string;
-      if (text.startsWith('✓') || text.toLowerCase().includes('executed successfully')) {
-        return {
-          success: true,
-          message: text,
-          columns: [],
-          data: [],
-          row_count: 0,
-        };
-      }
+    // teradata-mcp-server format: { data: [...objects], columns, row_count }
+    // data is already an array of row objects (converted via rows_to_json())
+    if ('data' in obj && Array.isArray(obj.data) && 'columns' in obj && !('rows' in obj)) {
+      return {
+        success: true,
+        columns: obj.columns as string[],
+        data: obj.data as Record<string, unknown>[],
+        row_count: typeof obj.row_count === 'number' ? obj.row_count : (obj.data as unknown[]).length,
+      };
     }
 
-    // Transform vantage-mcp format { columns, rows } to { success, columns, data, row_count }
+    // vantage-mcp (legacy) format: { columns, rows: [[...], ...] } — 2D array
     if ('columns' in obj && 'rows' in obj) {
       const columns = obj.columns as string[];
       const rows = obj.rows as unknown[][];
 
-      // Convert 2D array to array of objects
       const data = rows.map((row) => {
         if (!Array.isArray(row)) return row;
         const rowObj: Record<string, unknown> = {};
@@ -137,32 +139,48 @@ export class McpAppsBridge {
   }
 
   /**
-   * Map tool names and arguments from surfacesui conventions to vantage-mcp conventions.
-   * This allows the same components to work with different backends.
+   * Map a logical tool name (used by components) to the actual server tool name
+   * using the configured `toolMapping`. Returns `null` if the logical tool is
+   * known but not present in the current mapping (e.g. `get_last_result` on
+   * teradata-mcp-server), signalling `callTool()` to return an empty success.
    */
-  private mapToolCall(toolName: string, args?: Record<string, unknown>): { name: string; arguments: Record<string, unknown> } {
-    // Map execute_sql -> teradata_execute_sql, query -> sql
-    if (toolName === 'execute_sql') {
-      const mappedArgs: Record<string, unknown> = {};
-      if (args?.query !== undefined) {
-        mappedArgs.sql = args.query;
-      }
-      // Pass through other args
-      for (const [key, value] of Object.entries(args ?? {})) {
-        if (key !== 'query') {
-          mappedArgs[key] = value;
+  private mapToolCall(
+    toolName: string,
+    args?: Record<string, unknown>,
+  ): { name: string; arguments: Record<string, unknown> } | null {
+    switch (toolName) {
+      case 'execute_sql': {
+        // Remap `query` → `sql` for the server's parameter name
+        const mappedArgs: Record<string, unknown> = {};
+        if (args?.query !== undefined) {
+          mappedArgs.sql = args.query;
         }
+        for (const [key, value] of Object.entries(args ?? {})) {
+          if (key !== 'query') mappedArgs[key] = value;
+        }
+        return { name: this.toolMapping.executeSQL, arguments: mappedArgs };
       }
-      return { name: 'teradata_execute_sql', arguments: mappedArgs };
-    }
 
-    // Map get_last_result -> teradata_get_last_result (used by UI to fetch Claude's results)
-    if (toolName === 'get_last_result') {
-      return { name: 'teradata_get_last_result', arguments: args ?? {} };
-    }
+      case 'get_last_result':
+        if (!this.toolMapping.getLastResult) return null;
+        return { name: this.toolMapping.getLastResult, arguments: args ?? {} };
 
-    // Default: pass through unchanged
-    return { name: toolName, arguments: args ?? {} };
+      case 'get_tables':
+        if (!this.toolMapping.getTables) return null;
+        return { name: this.toolMapping.getTables, arguments: args ?? {} };
+
+      case 'get_databases':
+        if (!this.toolMapping.getDatabases) return null;
+        return { name: this.toolMapping.getDatabases, arguments: args ?? {} };
+
+      case 'get_columns':
+        if (!this.toolMapping.getColumns) return null;
+        return { name: this.toolMapping.getColumns, arguments: args ?? {} };
+
+      default:
+        // Unknown logical name — pass through unchanged
+        return { name: toolName, arguments: args ?? {} };
+    }
   }
 
   /**
@@ -181,8 +199,13 @@ export class McpAppsBridge {
     }
 
     try {
-      // Map tool name and args to vantage-mcp conventions
+      // Map tool name and args via the configured toolMapping
       const mapped = this.mapToolCall(toolName, args);
+
+      // null means the tool is known but not supported by this backend — return empty success
+      if (mapped === null) {
+        return { success: true, data: { columns: [], data: [], row_count: 0 } as T };
+      }
 
       const toolResult = await this.app.callServerTool({
         name: mapped.name,
@@ -197,7 +220,7 @@ export class McpAppsBridge {
         try {
           const parsed = JSON.parse(textContent.text);
 
-          // Normalize vantage-mcp response format to surfacesui format
+          // Normalize backend response format to surfacesui format
           const normalized = this.normalizeResponse(parsed);
 
           // Check if the result indicates an error

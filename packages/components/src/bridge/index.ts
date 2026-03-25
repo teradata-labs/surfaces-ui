@@ -24,4 +24,7 @@ export type {
   McpBridgeConfig,
   McpMessage,
   McpResponseMessage,
+  ToolMapping,
+  McpAppsBridgeOptions,
 } from './types';
+export { TERADATA_MCP_TOOL_MAPPING, VANTAGE_MCP_TOOL_MAPPING } from './types';

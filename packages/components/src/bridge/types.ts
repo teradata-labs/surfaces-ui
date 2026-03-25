@@ -38,6 +38,57 @@ export interface McpRenderData {
   maxHeight?: number;
 }
 
+/**
+ * Maps logical tool names used by surfaces-ui components to the actual MCP tool
+ * names registered on the connected server. Allows the same components to work
+ * with different Teradata backends without code changes.
+ *
+ * Use one of the provided presets (`TERADATA_MCP_TOOL_MAPPING`, `VANTAGE_MCP_TOOL_MAPPING`)
+ * or supply your own.
+ */
+export interface ToolMapping {
+  /** Maps the internal `execute_sql` call to the server's SQL execution tool. */
+  executeSQL: string;
+  /** Maps `get_last_result`. Omit if the server has no equivalent. */
+  getLastResult?: string;
+  /** Maps `get_tables`. Omit if the server has no equivalent. */
+  getTables?: string;
+  /** Maps `get_databases`. Omit if the server has no equivalent. */
+  getDatabases?: string;
+  /** Maps `get_columns`. Omit if the server has no equivalent. */
+  getColumns?: string;
+}
+
+/**
+ * Targets the community `teradata-mcp-server` (https://github.com/Teradata/teradata-mcp-server).
+ * This is the default mapping used by `McpAppsBridge`.
+ */
+export const TERADATA_MCP_TOOL_MAPPING: ToolMapping = {
+  executeSQL: 'base_readQuery',
+  getTables: 'base_tableList',
+  getDatabases: 'base_databaseList',
+  getColumns: 'base_columnDescription',
+  // no getLastResult — teradata-mcp-server has no equivalent
+};
+
+/**
+ * Targets the legacy `vantage-mcp` server. Use this if you are running the
+ * older Teradata backend that exposes `teradata_execute_sql`.
+ */
+export const VANTAGE_MCP_TOOL_MAPPING: ToolMapping = {
+  executeSQL: 'teradata_execute_sql',
+  getLastResult: 'teradata_get_last_result',
+};
+
+/** Options for constructing a McpAppsBridge instance. */
+export interface McpAppsBridgeOptions {
+  /**
+   * Tool name mapping to use. Defaults to `TERADATA_MCP_TOOL_MAPPING`.
+   * Pass `VANTAGE_MCP_TOOL_MAPPING` to target the older vantage-mcp server.
+   */
+  toolMapping?: ToolMapping;
+}
+
 /** Configuration for the MCP Bridge instance. */
 export interface McpBridgeConfig {
   /** Origin to validate incoming postMessage events against. Use '*' to allow any origin. */

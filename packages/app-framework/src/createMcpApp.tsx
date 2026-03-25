@@ -23,10 +23,11 @@ export function createMcpApp(
     rootId = 'root',
     theme: themeOpts = {},
     bridge: externalBridge,
+    toolMapping,
   } = options;
 
   // Create or reuse bridge
-  const bridge = externalBridge ?? new McpAppsBridge();
+  const bridge = externalBridge ?? new McpAppsBridge({ toolMapping });
 
   // Find root element
   const container = document.getElementById(rootId);

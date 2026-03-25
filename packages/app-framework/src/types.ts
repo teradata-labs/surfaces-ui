@@ -1,6 +1,6 @@
-import type { BridgeLike } from '@surfacesui/components';
+import type { BridgeLike, ToolMapping } from '@surfacesui/components';
 
-export type { BridgeLike };
+export type { BridgeLike, ToolMapping };
 
 export interface McpAppThemeOptions {
   /** Theme mode. Default: 'system' */
@@ -24,6 +24,15 @@ export interface McpAppOptions {
   theme?: McpAppThemeOptions;
   /** Custom bridge instance (overrides auto-created McpAppsBridge). */
   bridge?: BridgeLike;
+  /**
+   * Tool name mapping for the auto-created McpAppsBridge. Controls which MCP
+   * server tools the app calls for logical operations like `execute_sql`.
+   *
+   * Defaults to `TERADATA_MCP_TOOL_MAPPING` (targets teradata-mcp-server).
+   * Pass `VANTAGE_MCP_TOOL_MAPPING` for the legacy vantage-mcp server.
+   * Ignored when a custom `bridge` is provided.
+   */
+  toolMapping?: ToolMapping;
 }
 
 export interface McpAppHandle {

@@ -389,6 +389,107 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 });
 ```
 
+## Connecting the Teradata MCP Server
+
+The SQL Editor and other surfaces-ui apps are designed to work out-of-the-box alongside the community [`teradata-mcp-server`](https://github.com/Teradata/teradata-mcp-server). Run both as separate servers in Claude Desktop — no custom wiring required.
+
+### Claude Desktop Configuration
+
+Add both servers to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "surfaces-ui": {
+      "command": "npx",
+      "args": ["@surfacesui/server"]
+    },
+    "teradata": {
+      "command": "uvx",
+      "args": ["teradata-mcp-server"],
+      "env": {
+        "DATABASE_URI": "teradata://<USER>:<PASS>@<HOST>:1025/<DATABASE>"
+      }
+    }
+  }
+}
+```
+
+When the SQL Editor app calls `base_readQuery`, Claude Desktop routes it to the teradata server automatically.
+
+### How It Works
+
+The SQL Editor never calls REST APIs. Inside the HTML app, tool calls flow through `McpAppsBridge`, which maps logical operation names to the actual tool names registered on the connected MCP server:
+
+| App calls (logical) | Maps to (teradata-mcp-server) |
+|---------------------|-------------------------------|
+| `execute_sql`       | `base_readQuery`              |
+| `get_tables`        | `base_tableList`              |
+| `get_databases`     | `base_databaseList`           |
+| `get_columns`       | `base_columnDescription`      |
+| `get_last_result`   | _(not supported — no-ops)_    |
+
+### `base_readQuery` Tool Contract
+
+The SQL Editor calls `base_readQuery` when the user executes a query.
+
+**Input** (sent by the app):
+```json
+{ "sql": "SELECT TOP 10 * FROM my_table" }
+```
+
+**Output** (returned by teradata-mcp-server):
+```json
+{
+  "data": [
+    { "id": 1, "name": "Alice" },
+    { "id": 2, "name": "Bob" }
+  ],
+  "columns": ["id", "name"],
+  "row_count": 2,
+  "metadata": { "tool_name": "base_readQuery", "sql": "SELECT TOP 10 * FROM my_table" }
+}
+```
+
+The bridge normalizes this to the internal `SQLResult` format before the component renders it.
+
+### Using the Legacy vantage-mcp Server
+
+If you are still running the older `vantage-mcp` server (which uses `teradata_execute_sql`), pass `VANTAGE_MCP_TOOL_MAPPING` when constructing the bridge or bootstrapping your app:
+
+```ts
+import { VANTAGE_MCP_TOOL_MAPPING } from '@surfacesui/components';
+import { createMcpApp } from '@surfacesui/app-framework';
+
+createMcpApp(MyApp, {
+  toolMapping: VANTAGE_MCP_TOOL_MAPPING,
+});
+```
+
+Or directly on the bridge:
+
+```ts
+import { McpAppsBridge, VANTAGE_MCP_TOOL_MAPPING } from '@surfacesui/components';
+
+const bridge = new McpAppsBridge({ toolMapping: VANTAGE_MCP_TOOL_MAPPING });
+```
+
+### Custom Tool Mapping
+
+Supply your own mapping to target any backend:
+
+```ts
+import type { ToolMapping } from '@surfacesui/components';
+
+const MY_MAPPING: ToolMapping = {
+  executeSQL: 'run_query',
+  getTables: 'list_tables',
+  getDatabases: 'list_databases',
+};
+
+createMcpApp(MyApp, { toolMapping: MY_MAPPING });
+```
+
 ## Types
 
 ```ts
