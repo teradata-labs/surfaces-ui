@@ -30,8 +30,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.2(prettier@3.8.1)
       vite-plugin-singlefile:
-        specifier: ^2.3.0
-        version: 2.3.0(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
+        specifier: ^2.3.2
+        version: 2.3.2(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
 
   packages/app-framework:
     dependencies:
@@ -42,8 +42,8 @@ importers:
         specifier: ^4.2.3
         version: 4.3.0(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
       vite-plugin-singlefile:
-        specifier: ^2.3.0
-        version: 2.3.0(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
+        specifier: ^2.3.2
+        version: 2.3.2(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
     devDependencies:
       '@surfacesui/components':
         specifier: workspace:*
@@ -122,11 +122,11 @@ importers:
         specifier: ^6.39.13
         version: 6.40.0
       '@json-render/core':
-        specifier: ^0.8.0
-        version: 0.8.0(zod@4.3.6)
+        specifier: ^0.15.0
+        version: 0.15.0(zod@4.3.6)
       '@json-render/react':
-        specifier: ^0.8.0
-        version: 0.8.0(react@19.2.4)(zod@4.3.6)
+        specifier: ^0.15.0
+        version: 0.15.0(react@19.2.4)(zod@4.3.6)
       '@modelcontextprotocol/ext-apps':
         specifier: ^1.0.1
         version: 1.3.1(@modelcontextprotocol/sdk@1.28.0(zod@4.3.6))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6)
@@ -294,8 +294,8 @@ importers:
         specifier: ^4.5.4
         version: 4.5.4(@types/node@25.5.0)(rollup@4.59.0)(typescript@5.9.3)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
       vite-plugin-singlefile:
-        specifier: 2.3.0
-        version: 2.3.0(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
+        specifier: 2.3.2
+        version: 2.3.2(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
       vitest:
         specifier: ^4.0.18
         version: 4.1.1(@types/node@25.5.0)(jsdom@29.0.1)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
@@ -953,13 +953,13 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@json-render/core@0.8.0':
-    resolution: {integrity: sha512-EdUJtjogqt+e9vG9DodIaPYTHDpuEKCe+C27zEtP9fKlL6bWacA8X3lpGtxf6WkswarIhdrhUxeqR9ZAqs+7HQ==}
+  '@json-render/core@0.15.0':
+    resolution: {integrity: sha512-ej5fx6C2Gp5iSit+HyyFh6QenKRIAO9xvFlxal6uzQQTpOJzJlXPsNROL2JT5QjY/iLgLaf4RJohdP1mWSYDNQ==}
     peerDependencies:
       zod: ^4.0.0
 
-  '@json-render/react@0.8.0':
-    resolution: {integrity: sha512-uL3gwnAk6FDz7uiypQYdmTn6LOl7453Bt7UihYHgq8rDz92i0m1DQjE3HVnTTpnSpu60YR58mRKgTHHCCdC03g==}
+  '@json-render/react@0.15.0':
+    resolution: {integrity: sha512-2vfevZ3zRQNqVN6Y/WPFDkOe9/LPpUwDS+W4ViQQRJGO2j1wl0RbfMQtiiPai/bWQkJq0aantoQWIbh1/o8Cew==}
     peerDependencies:
       react: ^19.2.3
 
@@ -3889,12 +3889,12 @@ packages:
       vite:
         optional: true
 
-  vite-plugin-singlefile@2.3.0:
-    resolution: {integrity: sha512-DAcHzYypM0CasNLSz/WG0VdKOCxGHErfrjOoyIPiNxTPTGmO6rRD/te93n1YL/s+miXq66ipF1brMBikf99c6A==}
+  vite-plugin-singlefile@2.3.2:
+    resolution: {integrity: sha512-b8SxCi/gG7K298oJDcKOuZeU6gf6wIcCJAaEqUmmZXdjfuONlkyNyWZC3tEbN6QockRCNUd3it9eGTtpHGoYmg==}
     engines: {node: '>18.0.0'}
     peerDependencies:
-      rollup: ^4.44.1
-      vite: ^5.4.11 || ^6.0.0 || ^7.0.0
+      rollup: ^4.59.0
+      vite: ^5.4.11 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
   vite@8.0.2:
     resolution: {integrity: sha512-1gFhNi+bHhRE/qKZOJXACm6tX4bA3Isy9KuKF15AgSRuRazNBOJfdDemPBU16/mpMxApDPrWvZ08DcLPEoRnuA==}
@@ -4886,13 +4886,13 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@json-render/core@0.8.0(zod@4.3.6)':
+  '@json-render/core@0.15.0(zod@4.3.6)':
     dependencies:
       zod: 4.3.6
 
-  '@json-render/react@0.8.0(react@19.2.4)(zod@4.3.6)':
+  '@json-render/react@0.15.0(react@19.2.4)(zod@4.3.6)':
     dependencies:
-      '@json-render/core': 0.8.0(zod@4.3.6)
+      '@json-render/core': 0.15.0(zod@4.3.6)
       react: 19.2.4
     transitivePeerDependencies:
       - zod
@@ -7853,7 +7853,7 @@ snapshots:
       - rollup
       - supports-color
 
-  vite-plugin-singlefile@2.3.0(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)):
+  vite-plugin-singlefile@2.3.2(rollup@4.59.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)):
     dependencies:
       micromatch: 4.0.8
       rollup: 4.59.0
