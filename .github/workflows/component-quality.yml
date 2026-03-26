@@ -110,6 +110,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Build packages for testing
+        run: |
+          pnpm --filter @surfacesui/components build
+          pnpm --filter @surfacesui/mcp-adapter build
+
       - name: Run component tests with coverage
         run: pnpm --filter @surfacesui/components test:coverage
 
