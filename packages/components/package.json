@@ -4,13 +4,12 @@
   "private": false,
   "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js"
     },
     "./theme/tokens.css": "./src/theme/tokens.css",
     "./tailwind-preset": "./src/theme/tailwind-preset.ts"
