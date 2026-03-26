@@ -4,13 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  zod: ^3.25.0
+
 importers:
 
   .:
     devDependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.80.0
-        version: 0.80.0(zod@4.3.6)
+        version: 0.80.0(zod@3.25.76)
       '@aws-sdk/client-bedrock-runtime':
         specifier: ^3.1005.0
         version: 3.1016.0
@@ -22,7 +25,7 @@ importers:
         version: 17.3.1
       openai:
         specifier: ^6.25.0
-        version: 6.32.0(zod@4.3.6)
+        version: 6.32.0(zod@3.25.76)
       prettier:
         specifier: ^3.7.0
         version: 3.8.1
@@ -135,16 +138,16 @@ importers:
         version: 6.40.0
       '@json-render/core':
         specifier: ^0.8.0
-        version: 0.8.0(zod@4.3.6)
+        version: 0.8.0(zod@3.25.76)
       '@json-render/react':
         specifier: ^0.8.0
-        version: 0.8.0(react@19.2.4)(zod@4.3.6)
+        version: 0.8.0(react@19.2.4)(zod@3.25.76)
       '@lezer/highlight':
         specifier: ^1.2.3
         version: 1.2.3
       '@modelcontextprotocol/ext-apps':
         specifier: ^1.0.1
-        version: 1.3.1(@modelcontextprotocol/sdk@1.28.0(zod@4.3.6))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6)
+        version: 1.3.1(@modelcontextprotocol/sdk@1.28.0(zod@3.25.76))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@3.25.76)
       '@radix-ui/react-checkbox':
         specifier: ^1.3.3
         version: 1.3.3(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -230,8 +233,8 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
       zod:
-        specifier: ^4.3.6
-        version: 4.3.6
+        specifier: ^3.25.0
+        version: 3.25.76
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -392,7 +395,7 @@ packages:
     resolution: {integrity: sha512-WeXLn7zNVk3yjeshn+xZHvld6AoFUOR3Sep6pSoHho5YbSi6HwcirqgPA5ccFuW8QTVJAAU7N8uQQC6Wa9TG+g==}
     hasBin: true
     peerDependencies:
-      zod: ^3.25.0 || ^4.0.0
+      zod: ^3.25.0
     peerDependenciesMeta:
       zod:
         optional: true
@@ -1010,7 +1013,7 @@ packages:
   '@json-render/core@0.8.0':
     resolution: {integrity: sha512-EdUJtjogqt+e9vG9DodIaPYTHDpuEKCe+C27zEtP9fKlL6bWacA8X3lpGtxf6WkswarIhdrhUxeqR9ZAqs+7HQ==}
     peerDependencies:
-      zod: ^4.0.0
+      zod: ^3.25.0
 
   '@json-render/react@0.8.0':
     resolution: {integrity: sha512-uL3gwnAk6FDz7uiypQYdmTn6LOl7453Bt7UihYHgq8rDz92i0m1DQjE3HVnTTpnSpu60YR58mRKgTHHCCdC03g==}
@@ -1064,7 +1067,7 @@ packages:
       '@modelcontextprotocol/sdk': ^1.24.0
       react: ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
-      zod: ^3.25.0 || ^4.0.0
+      zod: ^3.25.0
     peerDependenciesMeta:
       react:
         optional: true
@@ -1076,7 +1079,7 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       '@cfworker/json-schema': ^4.1.1
-      zod: ^3.25 || ^4.0
+      zod: ^3.25.0
     peerDependenciesMeta:
       '@cfworker/json-schema':
         optional: true
@@ -3728,7 +3731,7 @@ packages:
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
-      zod: ^3.25 || ^4.0
+      zod: ^3.25.0
     peerDependenciesMeta:
       ws:
         optional: true
@@ -4541,13 +4544,16 @@ packages:
   zod-to-json-schema@3.25.1:
     resolution: {integrity: sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==}
     peerDependencies:
-      zod: ^3.25 || ^4
+      zod: ^3.25.0
 
   zod-validation-error@4.0.2:
     resolution: {integrity: sha512-Q6/nZLe6jxuU80qb/4uJ4t5v2VEZ44lzQjPDhYJNztRQ4wyWc6VF3D3Kb/fAuPetZQnhS3hnajCf9CsWesghLQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      zod: ^3.25.0 || ^4.0.0
+      zod: ^3.25.0
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
   zod@4.3.6:
     resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
@@ -4579,11 +4585,11 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
-  '@anthropic-ai/sdk@0.80.0(zod@4.3.6)':
+  '@anthropic-ai/sdk@0.80.0(zod@3.25.76)':
     dependencies:
       json-schema-to-ts: 3.1.1
     optionalDependencies:
-      zod: 4.3.6
+      zod: 3.25.76
 
   '@asamuzakjp/css-color@5.0.1':
     dependencies:
@@ -5456,13 +5462,13 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@json-render/core@0.8.0(zod@4.3.6)':
+  '@json-render/core@0.8.0(zod@3.25.76)':
     dependencies:
-      zod: 4.3.6
+      zod: 3.25.76
 
-  '@json-render/react@0.8.0(react@19.2.4)(zod@4.3.6)':
+  '@json-render/react@0.8.0(react@19.2.4)(zod@3.25.76)':
     dependencies:
-      '@json-render/core': 0.8.0(zod@4.3.6)
+      '@json-render/core': 0.8.0(zod@3.25.76)
       react: 19.2.4
     transitivePeerDependencies:
       - zod
@@ -5544,13 +5550,35 @@ snapshots:
 
   '@microsoft/tsdoc@0.16.0': {}
 
-  '@modelcontextprotocol/ext-apps@1.3.1(@modelcontextprotocol/sdk@1.28.0(zod@4.3.6))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6)':
+  '@modelcontextprotocol/ext-apps@1.3.1(@modelcontextprotocol/sdk@1.28.0(zod@3.25.76))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@3.25.76)':
     dependencies:
-      '@modelcontextprotocol/sdk': 1.28.0(zod@4.3.6)
-      zod: 4.3.6
+      '@modelcontextprotocol/sdk': 1.28.0(zod@3.25.76)
+      zod: 3.25.76
     optionalDependencies:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
+
+  '@modelcontextprotocol/sdk@1.28.0(zod@3.25.76)':
+    dependencies:
+      '@hono/node-server': 1.19.9(hono@4.11.8)
+      ajv: 8.17.1
+      ajv-formats: 3.0.1(ajv@8.17.1)
+      content-type: 1.0.5
+      cors: 2.8.6
+      cross-spawn: 7.0.6
+      eventsource: 3.0.7
+      eventsource-parser: 3.0.6
+      express: 5.2.1
+      express-rate-limit: 8.2.1(express@5.2.1)
+      hono: 4.11.8
+      jose: 6.1.3
+      json-schema-typed: 8.0.2
+      pkce-challenge: 5.0.1
+      raw-body: 3.0.2
+      zod: 3.25.76
+      zod-to-json-schema: 3.25.1(zod@3.25.76)
+    transitivePeerDependencies:
+      - supports-color
 
   '@modelcontextprotocol/sdk@1.28.0(zod@4.3.6)':
     dependencies:
@@ -7435,8 +7463,8 @@ snapshots:
       '@babel/parser': 7.29.0
       eslint: 10.1.0(jiti@2.6.1)
       hermes-parser: 0.25.1
-      zod: 4.3.6
-      zod-validation-error: 4.0.2(zod@4.3.6)
+      zod: 3.25.76
+      zod-validation-error: 4.0.2(zod@3.25.76)
     transitivePeerDependencies:
       - supports-color
 
@@ -8538,9 +8566,9 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openai@6.32.0(zod@4.3.6):
+  openai@6.32.0(zod@3.25.76):
     optionalDependencies:
-      zod: 4.3.6
+      zod: 3.25.76
 
   optionator@0.9.4:
     dependencies:
@@ -9324,13 +9352,19 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
+  zod-to-json-schema@3.25.1(zod@3.25.76):
+    dependencies:
+      zod: 3.25.76
+
   zod-to-json-schema@3.25.1(zod@4.3.6):
     dependencies:
       zod: 4.3.6
 
-  zod-validation-error@4.0.2(zod@4.3.6):
+  zod-validation-error@4.0.2(zod@3.25.76):
     dependencies:
-      zod: 4.3.6
+      zod: 3.25.76
+
+  zod@3.25.76: {}
 
   zod@4.3.6: {}
 
