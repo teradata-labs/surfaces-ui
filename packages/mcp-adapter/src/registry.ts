@@ -11,11 +11,26 @@
  */
 
 export const SURFACES_APPS = {
-  "test-tiny": {
-    name: "Test Tiny App",
-    description: "Minimal test app for debugging MCP resource loading",
+  "react-test": {
+    name: "React Test",
+    description:
+      "Minimal React test app to verify MCP widget rendering",
     mimeType: "text/html;profile=mcp-app" as const,
-    filename: "test-tiny.html",
+    filename: "react-test.html",
+  },
+  "pure-html-test": {
+    name: "Pure HTML Test",
+    description:
+      "Ultra-minimal pure HTML test (no React, no bundler) to verify MCP rendering",
+    mimeType: "text/html;profile=mcp-app" as const,
+    filename: "pure-html-test.html",
+  },
+  "simple-test": {
+    name: "Simple Test",
+    description:
+      "Minimal test app to verify MCP rendering is working",
+    mimeType: "text/html;profile=mcp-app" as const,
+    filename: "simple-test.html",
   },
   "sql-editor-cdn": {
     name: "SQL Editor",
@@ -37,6 +52,20 @@ export const SURFACES_APPS = {
       "Interactive dashboard renderer for Claude-generated dashboard specs",
     mimeType: "text/html;profile=mcp-app" as const,
     filename: "dashboard-viewer.html",
+  },
+  "component-gallery": {
+    name: "Component Gallery",
+    description:
+      "Curated showcase of core SurfacesUI components optimized for MCP rendering with live interactive examples",
+    mimeType: "text/html;profile=mcp-app" as const,
+    filename: "component-gallery.html",
+  },
+  "test-viewer": {
+    name: "Test Viewer",
+    description:
+      "Test copy of dashboard-viewer to verify rendering works",
+    mimeType: "text/html;profile=mcp-app" as const,
+    filename: "test-viewer.html",
   },
 } as const;
 

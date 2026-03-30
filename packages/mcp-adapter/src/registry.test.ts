@@ -34,10 +34,12 @@ describe("SURFACES_APPS registry", () => {
 
   it("AppId type covers all keys", () => {
     const ids: AppId[] = [
-      "test-tiny",
+      "pure-html-test",
+      "simple-test",
       "sql-editor-cdn",
       "json-render-cdn",
       "dashboard-viewer",
+      "component-gallery",
     ];
     expect(ids).toHaveLength(Object.keys(SURFACES_APPS).length);
   });

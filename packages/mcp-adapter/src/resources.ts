@@ -13,7 +13,7 @@ import {
 import type { SurfacesResource, SurfacesResourceContent } from "./types.js";
 
 /** URI scheme for surfaces-ui resources. */
-const URI_PREFIX = "ui://";
+const URI_PREFIX = "ui://surfaces-ui/";
 
 /**
  * Resolve the directory containing built HTML app bundles.

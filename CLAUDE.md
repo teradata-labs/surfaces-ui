@@ -15,6 +15,29 @@ Reusable React component library served as pre-built HTML bundles via MCP. Three
 
 ### MCP Apps Communication (CRITICAL)
 **See MCP-APPS-COMMUNICATION.md for complete details.**
+**See MCP-APPS-TESTING.md for testing checklist and requirements.**
+
+**⚠️ REQUIRED: All MCP Apps MUST use McpBridgeProvider to render in Claude Desktop.**
+
+```tsx
+import { McpAppsBridge } from '../bridge/McpAppsBridge';
+import { McpBridgeProvider } from '../bridge/McpBridgeProvider';
+
+// Create bridge instance BEFORE component (at module level)
+const bridge = new McpAppsBridge();
+bridge.connect();
+
+// Wrap app with McpBridgeProvider
+createRoot(root).render(
+  <McpBridgeProvider bridge={bridge}>
+    <ThemeProvider persistTheme density="comfortable">
+      <MyApp />
+    </ThemeProvider>
+  </McpBridgeProvider>
+);
+```
+
+**Why:** McpBridgeProvider blocks rendering until the bridge connects, ensuring proper synchronization with Claude Desktop. Without it, apps will not render (only show automated message).
 
 MCP Apps receive data via postMessage, NOT via URL parameters:
 ```typescript
@@ -126,6 +149,7 @@ src/components/[name]/
 
 ## Never Forget
 
+- **ALL MCP Apps MUST use McpBridgeProvider** - Without it, apps won't render in Claude Desktop (see MCP-APPS-TESTING.md)
 - Components communicate via MCP Bridge, not REST
 - All styling through CSS custom properties + Tailwind tokens
 - 400-line component limit enforced by all agents

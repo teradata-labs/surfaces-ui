@@ -70,15 +70,69 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
-      name: "test_tiny_ui",
-      description: "Test tiny UI (debugging tool)",
+      name: "show_react_test",
+      description: "Show a minimal React test widget to verify MCP rendering",
+      inputSchema: {
+        type: "object",
+        properties: {
+          message: {
+            type: "string",
+            description: "Test message to display",
+          },
+        },
+        required: ["message"],
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://surfaces-ui/react-test",
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    {
+      name: "show_pure_html_test",
+      description: "Show a pure HTML test (no React, no bundler) to verify basic MCP rendering",
+      inputSchema: {
+        type: "object",
+        properties: {
+          testMessage: {
+            type: "string",
+            description: "Test message to display in the app",
+          },
+        },
+        required: ["testMessage"],
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://surfaces-ui/pure-html-test",
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    {
+      name: "show_simple_test",
+      description: "Show a minimal test app to verify MCP rendering",
       inputSchema: {
         type: "object",
         properties: {},
       },
       _meta: {
         ui: {
-          resourceUri: "ui://test-tiny",
+          resourceUri: "ui://surfaces-ui/simple-test",
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    {
+      name: "show_component_gallery",
+      description: "Show the Component Gallery - a curated showcase of core SurfacesUI components with live interactive examples, optimized for MCP rendering",
+      inputSchema: {
+        type: "object",
+        properties: {},
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://surfaces-ui/component-gallery",
           visibility: ["model", "app"],
         },
       },
@@ -97,7 +151,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "ui://sql-editor-cdn",
+          resourceUri: "ui://surfaces-ui/sql-editor-cdn",
           visibility: ["model", "app"],
         },
       },
@@ -120,7 +174,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "ui://json-render-cdn",
+          resourceUri: "ui://surfaces-ui/json-render-cdn",
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    {
+      name: "show_test_viewer",
+      description: "Show test viewer (exact copy of dashboard-viewer) to verify rendering works",
+      inputSchema: {
+        type: "object",
+        properties: {
+          spec: {
+            type: "object",
+            description: "Dashboard spec object",
+            additionalProperties: true,
+          },
+        },
+        required: ["spec"],
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://surfaces-ui/test-viewer",
           visibility: ["model", "app"],
         },
       },
@@ -156,7 +231,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
       _meta: {
         ui: {
-          resourceUri: "ui://dashboard-viewer",
+          resourceUri: "ui://surfaces-ui/dashboard-viewer",
           visibility: ["model", "app"],
         },
       },
@@ -185,17 +260,65 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
   console.error(`[DEBUG] Tool called: ${name}, args: ${JSON.stringify(args)}`);
 
-  if (name === "test_tiny_ui") {
+  if (name === "show_react_test") {
     return {
       _meta: {
         ui: {
-          resourceUri: "ui://test-tiny",
+          resourceUri: `ui://surfaces-ui/react-test?v=${Date.now()}`,
         },
       },
       content: [
         {
           type: "text",
-          text: "Opening test tiny UI...",
+          text: "Opening React test widget...",
+        },
+      ],
+    };
+  }
+
+  if (name === "show_pure_html_test") {
+    return {
+      _meta: {
+        ui: {
+          resourceUri: `ui://surfaces-ui/pure-html-test?v=${Date.now()}`,
+        },
+      },
+      content: [
+        {
+          type: "text",
+          text: "Opening pure HTML test app...",
+        },
+      ],
+    };
+  }
+
+  if (name === "show_simple_test") {
+    return {
+      _meta: {
+        ui: {
+          resourceUri: "ui://surfaces-ui/simple-test",
+        },
+      },
+      content: [
+        {
+          type: "text",
+          text: "Opening simple test app...",
+        },
+      ],
+    };
+  }
+
+  if (name === "show_component_gallery") {
+    return {
+      _meta: {
+        ui: {
+          resourceUri: "ui://surfaces-ui/component-gallery",
+        },
+      },
+      content: [
+        {
+          type: "text",
+          text: "Opening Component Gallery...",
         },
       ],
     };
@@ -206,8 +329,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const initialQuery = args?.initialQuery;
     const resourceUri =
       typeof initialQuery === "string" && initialQuery.length > 0
-        ? `ui://sql-editor-cdn?sql=${encodeURIComponent(initialQuery)}`
-        : "ui://sql-editor-cdn";
+        ? `ui://surfaces-ui/sql-editor-cdn?sql=${encodeURIComponent(initialQuery)}`
+        : "ui://surfaces-ui/sql-editor-cdn";
 
     return {
       _meta: {
@@ -234,13 +357,41 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       _meta: {
         ui: {
-          resourceUri: `ui://json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
+          resourceUri: `ui://surfaces-ui/json-render-cdn?prompt=${encodeURIComponent(prompt)}`,
         },
       },
       content: [
         {
           type: "text",
           text: `Generating UI component: "${prompt.substring(0, 100)}..."`,
+        },
+      ],
+    };
+  }
+
+  if (name === "show_test_viewer") {
+    const spec = args?.spec;
+
+    if (!spec || typeof spec !== "object") {
+      throw new Error("Missing required parameter: spec (must be a json-render spec object)");
+    }
+
+    console.error(`[DEBUG] show_test_viewer called with spec:`, JSON.stringify(spec).substring(0, 200));
+
+    const specJson = JSON.stringify(spec);
+    const specBase64 = Buffer.from(specJson).toString('base64url');
+    console.error(`[DEBUG] Encoded spec to base64url, length: ${specBase64.length}`);
+
+    return {
+      _meta: {
+        ui: {
+          resourceUri: `ui://surfaces-ui/test-viewer?v=2#${specBase64}`,
+        },
+      },
+      content: [
+        {
+          type: "text",
+          text: "Opening test viewer (copy of dashboard-viewer)...",
         },
       ],
     };
@@ -266,7 +417,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       _meta: {
         ui: {
           // Add ?v=2 to bust Claude Desktop's cache
-          resourceUri: `ui://dashboard-viewer?v=2#${specBase64}`,
+          resourceUri: `ui://surfaces-ui/dashboard-viewer?v=2#${specBase64}`,
         },
       },
       content: [
