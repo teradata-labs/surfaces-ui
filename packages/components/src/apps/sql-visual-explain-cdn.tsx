@@ -7,7 +7,7 @@
 
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ReactFlow, ReactFlowProvider, Background, Controls, useReactFlow, type NodeTypes } from '@xyflow/react';
+import { ReactFlow, ReactFlowProvider, Background, Controls, useReactFlow, type NodeTypes, type Node } from '@xyflow/react';
 import { McpAppsBridge } from '../bridge/McpAppsBridge';
 import { McpBridgeProvider } from '../bridge/McpBridgeProvider';
 import { ThemeProvider } from '../theme/ThemeProvider';
@@ -25,7 +25,6 @@ import { teradataStepsToExplainNode } from './sql-visual-explain/teradata-to-flo
 import { planToNodes, planToEdges } from './sql-visual-explain/plan-to-flow';
 import { classifyCost, findMaxCost } from './sql-visual-explain/cost-utils';
 import type { TeradataQuery } from './sql-visual-explain/teradata-types';
-import type { ExplainNode } from './sql-visual-explain/types';
 import '@xyflow/react/dist/style.css';
 import '../theme/tokens.css';
 
@@ -104,7 +103,7 @@ function FlowVisualization({ query }: { query: TeradataQuery }) {
     return classifyCost(selectedNode, maxCost);
   }, [selectedNode, explainTree]);
 
-  const handleNodeClick = React.useCallback((_event: React.MouseEvent, node: any) => {
+  const handleNodeClick = React.useCallback((_event: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
   }, []);
 

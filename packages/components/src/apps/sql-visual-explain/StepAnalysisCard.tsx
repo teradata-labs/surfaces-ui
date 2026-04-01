@@ -5,7 +5,6 @@
 
 import * as React from 'react';
 import { Lock, Sigma, ArrowUpDown, CornerDownLeft, Database } from 'lucide-react';
-import { Badge } from '../../primitives/badge';
 import { cn } from '@/lib/utils';
 import type { TeradataStep, StepType, ConfidenceLevel } from './teradata-types';
 import { executePromptAction, buildExplainStepPrompt, buildOptimizeStepPrompt } from './send-prompt-utils';

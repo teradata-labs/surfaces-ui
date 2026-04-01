@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import { defineRegistry, type ComponentContext, useStateValue } from '@json-render/react';
+import { type ComponentContext, useStateValue } from '@json-render/react';
 import { uiCatalog } from '../catalog/ui-registry';
 import { WorkflowNode } from './sql-visual-explain/WorkflowNode';
 import { StepAnalysisCard } from './sql-visual-explain/StepAnalysisCard';
@@ -31,7 +31,7 @@ function TopBar(ctx: ComponentContext<typeof uiCatalog, never>) {
   console.log('[TopBar] Queries from props:', queries);
 
   const [currentQueryIndex, setCurrentQueryIndex] = React.useState(0);
-  const [activeStepIndex, setActiveStepIndex] = React.useState<number | null>(null);
+  const [_activeStepIndex, setActiveStepIndex] = React.useState<number | null>(null);
   const allQueries = useStateValue<TeradataQuery[]>('/queries') || [];
   console.log('[TopBar] All queries from state:', allQueries);
   const currentQuery = allQueries[currentQueryIndex];
@@ -145,7 +145,7 @@ function WorkflowColumn(ctx: ComponentContext<typeof uiCatalog, never>) {
 /**
  * AnalysisPanel - Right panel showing step analysis
  */
-function AnalysisPanel(ctx: ComponentContext<typeof uiCatalog, never>) {
+function AnalysisPanel(_ctx: ComponentContext<typeof uiCatalog, never>) {
   const queries = useStateValue<TeradataQuery[]>('/queries');
   const currentQueryIndex = useStateValue<number>('/currentQueryIndex') || 0;
   const activeStepIndex = useStateValue<number | null>('/activeStepIndex');
@@ -265,6 +265,6 @@ export const visualExplainRegistry = {
     WorkflowColumn,
     AnalysisPanel,
     SQLEditorPanel,
-  } as any,
-  actions: {} as any,
+  },
+  actions: {},
 };

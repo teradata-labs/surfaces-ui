@@ -72,7 +72,7 @@ export function queryToSpec(query: TeradataQuery, queryIndex: number = 0): Spec 
     },
   };
 
-  return spec as any;
+  return spec;
 }
 
 /**
@@ -153,5 +153,5 @@ export function queriesToSpec(queries: TeradataQuery[]): Spec {
     },
   };
 
-  return spec as any;
+  return spec;
 }

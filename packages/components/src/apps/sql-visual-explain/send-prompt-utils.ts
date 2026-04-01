@@ -7,11 +7,15 @@
 
 import type { TeradataStep, TeradataQuery } from './teradata-types';
 
+interface WindowWithSendPrompt extends Window {
+  sendPrompt?: (prompt: string) => void;
+}
+
 /**
  * Check if sendPrompt is available (Claude Desktop artifact feature)
  */
 export function isSendPromptAvailable(): boolean {
-  return typeof (window as any).sendPrompt === 'function';
+  return typeof (window as WindowWithSendPrompt).sendPrompt === 'function';
 }
 
 /**
@@ -20,7 +24,7 @@ export function isSendPromptAvailable(): boolean {
 export async function executePromptAction(prompt: string): Promise<void> {
   if (isSendPromptAvailable()) {
     // Claude Desktop: Native integration
-    (window as any).sendPrompt(prompt);
+    (window as WindowWithSendPrompt).sendPrompt?.(prompt);
   } else {
     // Other clients: Copy to clipboard
     try {

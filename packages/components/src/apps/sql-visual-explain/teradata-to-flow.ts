@@ -63,7 +63,7 @@ function parseTime(time: string | undefined): number {
  * Convert Teradata steps to ExplainNode tree
  * Steps are flat, so we create a sequential tree (each step is a child of the previous)
  */
-export function teradataStepsToExplainNode(steps: TeradataStep[], queryName: string = 'Query'): ExplainNode {
+export function teradataStepsToExplainNode(steps: TeradataStep[], _queryName: string = 'Query'): ExplainNode {
   if (steps.length === 0) {
     // Return a placeholder node
     return {

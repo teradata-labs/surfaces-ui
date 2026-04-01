@@ -50,8 +50,6 @@ function parseStep(block: string): TeradataStep {
  * Detect step type from keywords
  */
 function detectStepType(block: string): StepType {
-  const lower = block.toLowerCase();
-
   if (/lock|first.*lock/i.test(block)) return 'lock';
   if (/sum step|aggregate/i.test(block)) return 'agg';
   if (/sort|order/i.test(block)) return 'sort';
@@ -67,8 +65,6 @@ function detectStepType(block: string): StepType {
  * Extract human-readable label
  */
 function extractLabel(block: string): string {
-  const lower = block.toLowerCase();
-
   if (/lock/i.test(block)) return 'Access lock';
   if (/sum step|aggregate/i.test(block)) {
     if (/all-amps/i.test(block)) return 'All-AMPs aggregate';

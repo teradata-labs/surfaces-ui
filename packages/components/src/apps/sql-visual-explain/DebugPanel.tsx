@@ -8,7 +8,7 @@ import * as React from 'react';
 interface LogEntry {
   id: number;
   timestamp: Date;
-  args: any[];
+  args: unknown[];
 }
 
 export function DebugPanel() {
@@ -19,7 +19,7 @@ export function DebugPanel() {
   React.useEffect(() => {
     // Intercept console.log
     const originalLog = console.log;
-    console.log = (...args: any[]) => {
+    console.log = (...args: unknown[]) => {
       // Call original
       originalLog(...args);
 

@@ -23,7 +23,6 @@ import { Input } from '../primitives/input';
 import { Checkbox } from '../primitives/checkbox';
 import { Switch } from '../primitives/switch';
 import { Progress } from '../primitives/progress';
-import { Separator } from '../primitives/separator';
 import { Alert } from '../primitives/alert';
 import { Typography } from '../primitives/typography';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../primitives/tabs';
@@ -37,7 +36,7 @@ class ErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback?: React.ReactNode },
   { hasError: boolean; error?: Error }
 > {
-  constructor(props: any) {
+  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
