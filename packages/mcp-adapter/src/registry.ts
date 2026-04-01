@@ -67,6 +67,13 @@ export const SURFACES_APPS = {
     mimeType: "text/html;profile=mcp-app" as const,
     filename: "test-viewer.html",
   },
+  "sql-visual-explain-cdn": {
+    name: "SQL Visual EXPLAIN",
+    description:
+      "Interactive Teradata EXPLAIN plan visualizer with workflow-style step display and deep-dive analysis",
+    mimeType: "text/html;profile=mcp-app" as const,
+    filename: "sql-visual-explain-cdn.html",
+  },
 } as const;
 
 /**

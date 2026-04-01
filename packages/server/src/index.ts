@@ -236,6 +236,36 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         },
       },
     },
+    {
+      name: "show_sql_visual_explain",
+      description: "Show interactive Teradata EXPLAIN plan visualization. " +
+        "Visualizes query execution plans with step-by-step analysis and optimizer insights. " +
+        "To use: Run EXPLAIN on a Teradata query, then pass both the SQL and EXPLAIN output text to this tool.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sql: {
+            type: "string",
+            description: "The SQL query text",
+          },
+          explainText: {
+            type: "string",
+            description: "Raw EXPLAIN output text from Teradata",
+          },
+          queryName: {
+            type: "string",
+            description: "Optional descriptive name for the query (e.g., 'Customer Revenue Analysis')",
+          },
+        },
+        required: ["sql", "explainText"],
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://surfaces-ui/sql-visual-explain-cdn",
+          visibility: ["model", "app"],
+        },
+      },
+    },
   ],
 }));
 
@@ -426,6 +456,39 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           text: title
             ? `Opening dashboard: ${title}`
             : "Opening interactive dashboard...",
+        },
+      ],
+    };
+  }
+
+  if (name === "show_sql_visual_explain") {
+    // Type guards for required parameters
+    const sql = args?.sql;
+    const explainText = args?.explainText;
+    const queryName = args?.queryName;
+
+    if (typeof sql !== "string" || sql.length === 0) {
+      throw new Error("Missing required parameter: sql (must be non-empty string)");
+    }
+
+    if (typeof explainText !== "string" || explainText.length === 0) {
+      throw new Error("Missing required parameter: explainText (must be non-empty string)");
+    }
+
+    console.error(`[DEBUG] show_sql_visual_explain called with sql length: ${sql.length}, explainText length: ${explainText.length}`);
+
+    return {
+      _meta: {
+        ui: {
+          resourceUri: `ui://surfaces-ui/sql-visual-explain-cdn?v=${Date.now()}`,
+        },
+      },
+      content: [
+        {
+          type: "text",
+          text: queryName
+            ? `Opening Visual EXPLAIN for: ${queryName}`
+            : "Opening interactive EXPLAIN plan visualization...",
         },
       ],
     };

@@ -19,7 +19,7 @@ import { resolve } from 'path';
 
 // Determine which app to build based on APP env var
 const app = process.env.APP || 'sql-editor-cdn';
-const validApps = ['react-test', 'pure-html-test', 'simple-test', 'sql-editor-cdn', 'json-render-cdn', 'dashboard-viewer', 'test-viewer', 'component-gallery', 'showcase', 'demo-loom', 'demo-spacing', 'catalog-demo', 'kitchen-sink', 'demo-docs', 'playground', 'ai-playground', 'sql-visual-explain'];
+const validApps = ['react-test', 'pure-html-test', 'simple-test', 'sql-editor-cdn', 'json-render-cdn', 'dashboard-viewer', 'test-viewer', 'component-gallery', 'showcase', 'demo-loom', 'demo-spacing', 'catalog-demo', 'kitchen-sink', 'demo-docs', 'playground', 'ai-playground', 'sql-visual-explain', 'sql-visual-explain-cdn'];
 
 if (!validApps.includes(app)) {
   throw new Error(`Invalid APP="${app}". Must be one of: ${validApps.join(', ')}`);
