@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pure HTML Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            height: 600px;
+            overflow: auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #10b981;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .info-box {
+            background: #f9fafb;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 16px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #357ae8;
+        }
+
+        .test-button {
+            background: #667eea;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .test-button:hover {
+            background: #5568d3;
+        }
+
+        #output {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 6px;
+            display: none;
+            color: #166534;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="status">✓ WIDGET LOADED</div>
+
+        <div class="header">
+            <div class="icon">✓</div>
+            <div>
+                <h1>Pure HTML Widget Test</h1>
+                <p style="color: #6b7280; margin-top: 4px; font-size: 14px;">MCP Apps rendering verification</p>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <p><strong>✅ Status:</strong> If you can see this card, the MCP widget is rendering correctly!</p>
+            <p><strong>🕐 Time:</strong> <span id="time"></span></p>
+            <p><strong>🌐 Browser:</strong> <span id="browser"></span></p>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h2 style="font-size: 18px; margin-bottom: 12px; color: #1a1a1a;">Interactive Tests</h2>
+            <button class="test-button" onclick="handleClick()">Click Counter</button>
+            <a href="https://google.com" target="_blank" class="button">🔗 Open Google.com</a>
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <script>
+        // MCP Apps handshake - notify parent we're ready
+        if (window.parent !== window) {
+            console.log('[PureHTMLTest] Notifying parent: ready');
+            window.parent.postMessage({ type: 'app-ready' }, '*');
+        }
+
+        // Update time
+        document.getElementById('time').textContent = new Date().toLocaleTimeString();
+
+        // Update browser info
+        document.getElementById('browser').textContent = navigator.userAgent.substring(0, 80) + '...';
+
+        // Button click handler
+        let clickCount = 0;
+        function handleClick() {
+            clickCount++;
+            const output = document.getElementById('output');
+            output.style.display = 'block';
+            output.innerHTML = `
+                <div><strong>✓ Success!</strong> Button clicked ${clickCount} time${clickCount !== 1 ? 's' : ''}</div>
+                <div style="margin-top: 4px; font-size: 13px;">Timestamp: ${new Date().toLocaleString()}</div>
+            `;
+        }
+
+        // Listen for messages from parent (MCP Apps protocol)
+        window.addEventListener('message', function(event) {
+            console.log('[PureHTMLTest] Received message:', event.data);
+
+            // Handle tool-input notifications
+            if (event.data?.method === 'ui/notifications/tool-input') {
+                const testMessage = event.data.params?.arguments?.testMessage;
+                if (testMessage) {
+                    console.log('[PureHTMLTest] Received testMessage:', testMessage);
+                    // Could display the message in the UI if needed
+                }
+            }
+        });
+
+        // Log for debugging
+        console.log('✓ Pure HTML Test - Widget loaded successfully');
+        console.log('Document ready state:', document.readyState);
+        console.log('Window location:', window.location.href);
+        console.log('Body height:', document.body.offsetHeight);
+    </script>
+</body>
+</html>

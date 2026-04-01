@@ -48,3 +48,63 @@ describe('IconButton', () => {
     expect(screen.getByRole('button').className).toContain('custom-class');
   });
 });
+
+describe('IconButton toggle mode', () => {
+  it('sets aria-pressed when pressed prop is provided', () => {
+    render(<IconButton aria-label="Favorite" pressed={false}>❤️</IconButton>);
+    expect(screen.getByRole('button').getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('sets aria-pressed=true when pressed is true', () => {
+    render(<IconButton aria-label="Favorite" pressed={true}>❤️</IconButton>);
+    expect(screen.getByRole('button').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('does not set aria-pressed without toggle props', () => {
+    render(<IconButton aria-label="Edit">✏️</IconButton>);
+    expect(screen.getByRole('button').hasAttribute('aria-pressed')).toBe(false);
+  });
+
+  it('calls onPressedChange when clicked in toggle mode', async () => {
+    const user = userEvent.setup();
+    const onPressedChange = vi.fn();
+    render(
+      <IconButton aria-label="Favorite" pressed={false} onPressedChange={onPressedChange}>
+        ❤️
+      </IconButton>
+    );
+    await user.click(screen.getByRole('button'));
+    expect(onPressedChange).toHaveBeenCalledWith(true);
+  });
+
+  it('calls onPressedChange with false when already pressed', async () => {
+    const user = userEvent.setup();
+    const onPressedChange = vi.fn();
+    render(
+      <IconButton aria-label="Favorite" pressed={true} onPressedChange={onPressedChange}>
+        ❤️
+      </IconButton>
+    );
+    await user.click(screen.getByRole('button'));
+    expect(onPressedChange).toHaveBeenCalledWith(false);
+  });
+
+  it('applies active styling when pressed is true', () => {
+    render(<IconButton aria-label="Favorite" pressed={true}>❤️</IconButton>);
+    expect(screen.getByRole('button').className).toContain('bg-secondary-container');
+  });
+
+  it('calls both onClick and onPressedChange', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    const onPressedChange = vi.fn();
+    render(
+      <IconButton aria-label="Favorite" pressed={false} onClick={onClick} onPressedChange={onPressedChange}>
+        ❤️
+      </IconButton>
+    );
+    await user.click(screen.getByRole('button'));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onPressedChange).toHaveBeenCalledWith(true);
+  });
+});

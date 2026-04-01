@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual EXPLAIN — Teradata Query Analyzer</title>
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f5;
+    --bg-tertiary: #f0efe9;
+    --bg-info: #e6f1fb;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6a63;
+    --text-tertiary: #9c9a92;
+    --text-info: #185fa5;
+    --border-tertiary: rgba(0,0,0,0.10);
+    --border-secondary: rgba(0,0,0,0.18);
+    --border-primary: rgba(0,0,0,0.28);
+    --border-info: #378add;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1c;
+      --bg-secondary: #252523;
+      --bg-tertiary: #2c2c2a;
+      --bg-info: #0c2540;
+      --text-primary: #e8e6dc;
+      --text-secondary: #9c9a92;
+      --text-tertiary: #6b6a63;
+      --text-info: #85b7eb;
+      --border-tertiary: rgba(255,255,255,0.10);
+      --border-secondary: rgba(255,255,255,0.18);
+      --border-primary: rgba(255,255,255,0.28);
+      --border-info: #378add;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── App shell ── */
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--bg-primary);
+    border-left: 0.5px solid var(--border-tertiary);
+    border-right: 0.5px solid var(--border-tertiary);
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid var(--border-tertiary);
+    background: var(--bg-primary);
+    flex-shrink: 0;
+  }
+  .topbar-brand {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .topbar-brand .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #378add;
+  }
+  .topbar-divider {
+    width: 0.5px;
+    height: 16px;
+    background: var(--border-secondary);
+    margin: 0 4px;
+  }
+  .topbar select {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+  }
+  .topbar select:hover { border-color: var(--border-primary); }
+  .topbar-actions { margin-left: auto; display: flex; gap: 6px; }
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: background .12s;
+  }
+  .btn:hover { background: var(--bg-secondary); }
+  .btn.primary {
+    background: var(--bg-info);
+    color: var(--text-info);
+    border-color: var(--border-info);
+  }
+  .btn.primary:hover { opacity: .85; }
+
+  /* ── Main 2-col layout ── */
+  .main {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Workflow column ── */
+  .workflow-col {
+    border-right: 0.5px solid var(--border-tertiary);
+    padding: 14px 12px;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+  }
+  .col-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: 12px;
+    padding-left: 2px;
+  }
+  .node-wrap { display: flex; flex-direction: column; align-items: center; }
+  .node {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-primary);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: border-color .12s, background .12s;
+    user-select: none;
+  }
+  .node:hover { background: var(--bg-tertiary); border-color: var(--border-primary); }
+  .node.active {
+    border-color: var(--border-info);
+    background: var(--bg-info);
+  }
+  .node-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .node.active .node-icon { background: rgba(55,138,221,.15); }
+  .node-text { min-width: 0; }
+  .node-label { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .node-sub { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .node.active .node-sub { color: var(--text-info); }
+  .connector {
+    width: 1px; height: 20px;
+    background: var(--border-secondary);
+    margin: 0 auto;
+    position: relative;
+  }
+  .connector::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: -3px;
+    width: 7px; height: 7px;
+    border-right: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border-secondary);
+    transform: rotate(45deg);
+  }
+
+  /* ── Right column ── */
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Analysis panel ── */
+  .analysis-panel {
+    flex: 1;
+    padding: 14px 16px;
+    overflow-y: auto;
+  }
+  .analysis-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-tertiary);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .card-title { font-size: 14px; font-weight: 500; }
+  .badge {
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 10px; font-weight: 500;
+  }
+  .badge-lock   { background: #f1efe8; color: #5f5e5a; }
+  .badge-scan   { background: #e6f1fb; color: #185fa5; }
+  .badge-agg    { background: #eeedfe; color: #534ab7; }
+  .badge-sort   { background: #e1f5ee; color: #0f6e56; }
+  .badge-return { background: #eaf3de; color: #3b6d11; }
+  .badge-none   { background: #fcebeb; color: #a32d2d; }
+  .badge-low    { background: #faeeda; color: #854f0b; }
+  .badge-mod    { background: #e1f5ee; color: #0f6e56; }
+  .badge-high   { background: #eaf3de; color: #3b6d11; }
+
+  .metrics {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 14px;
+  }
+  .metric {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+  }
+  .metric-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+  .metric-value { font-size: 14px; font-weight: 500; }
+  .metric-value.sm { font-size: 12px; }
+
+  .section-title {
+    font-size: 11px; font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .obs-list { margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .obs {
+    font-size: 12px; color: var(--text-primary);
+    padding: 5px 8px;
+    border-left: 2px solid var(--border-secondary);
+    background: var(--bg-secondary);
+    border-radius: 0 4px 4px 0;
+  }
+  .obs.warn { border-left-color: #ba7517; background: rgba(250,238,218,.35); }
+  .obs.info { border-left-color: #185fa5; background: rgba(230,241,251,.35); }
+  .obs.ok   { border-left-color: #0f6e56; background: rgba(225,245,238,.35); }
+
+  .rewrite-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 8px;
+    background: rgba(238,237,254,.5);
+    border-radius: var(--radius-md);
+    color: #534ab7;
+    margin-bottom: 4px;
+  }
+
+  .cta-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .cta-btn {
+    font-family: var(--font-sans);
+    font-size: 12px; padding: 5px 10px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer; white-space: nowrap;
+    transition: background .12s;
+  }
+  .cta-btn:hover { background: var(--bg-secondary); }
+
+  .empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 200px; gap: 8px;
+    color: var(--text-tertiary);
+  }
+  .empty-icon { font-size: 28px; opacity: .4; }
+  .empty-text { font-size: 13px; }
+
+  /* ── SQL Editor (collapsible, bottom) ── */
+  .sql-section {
+    border-top: 0.5px solid var(--border-tertiary);
+    background: var(--bg-primary);
+    flex-shrink: 0;
+  }
+  details.sql-details { }
+  details.sql-details[open] { }
+  .sql-summary {
+    list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--bg-secondary);
+    font-size: 13px; font-weight: 500;
+  }
+  .sql-summary::-webkit-details-marker { display: none; }
+  .sql-summary:hover { background: var(--bg-tertiary); }
+  .summary-left { display: flex; align-items: center; gap: 7px; color: var(--text-primary); }
+  .summary-meta { font-size: 11px; color: var(--text-tertiary); font-weight: 400; }
+  .chevron { font-size: 11px; color: var(--text-secondary); transition: transform .18s; }
+  details.sql-details[open] .chevron { transform: rotate(180deg); }
+
+  .editor-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .sql-wrap {
+    position: relative;
+    border: 0.5px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-primary);
+  }
+  .sql-highlight {
+    font-family: var(--font-mono);
+    font-size: 12px; line-height: 1.65;
+    padding: 10px 12px;
+    position: absolute; top: 0; left: 0; right: 0;
+    pointer-events: none;
+    white-space: pre-wrap; word-wrap: break-word;
+    color: transparent;
+    z-index: 1;
+  }
+  .sql-highlight mark {
+    background: rgba(239,159,39,.28);
+    color: transparent;
+    border-radius: 2px;
+    padding: 1px 0;
+  }
+  textarea.sql-textarea {
+    font-family: var(--font-mono);
+    font-size: 12px; line-height: 1.65;
+    padding: 10px 12px;
+    width: 100%; min-height: 100px;
+    border: none; outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    resize: vertical;
+    position: relative; z-index: 2;
+    caret-color: var(--text-primary);
+  }
+
+  .editor-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .editor-btn {
+    font-family: var(--font-sans);
+    font-size: 12px; padding: 5px 10px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .editor-btn:hover { background: var(--bg-secondary); }
+
+  /* ── Raw EXPLAIN nested collapsible ── */
+  details.raw-details {
+    border: 0.5px solid var(--border-tertiary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .raw-summary {
+    list-style: none;
+    font-size: 12px; padding: 6px 10px;
+    background: var(--bg-secondary);
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between;
+    color: var(--text-secondary);
+    user-select: none;
+  }
+  .raw-summary::-webkit-details-marker { display: none; }
+  .raw-pre {
+    font-family: var(--font-mono);
+    font-size: 11px; line-height: 1.55;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    white-space: pre-wrap; word-break: break-word;
+    color: var(--text-secondary);
+    max-height: 150px; overflow-y: auto;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-secondary); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="dot"></div>
+      Visual EXPLAIN
+    </div>
+    <div class="topbar-divider"></div>
+    <select id="query-select" onchange="loadQuery(this.value)">
+      <option value="0">Survival by class &amp; gender</option>
+      <option value="1">Age group bucketing</option>
+      <option value="2">Family size analysis</option>
+    </select>
+    <div class="topbar-actions">
+      <button class="btn" onclick="copySql()">⎘ Copy SQL</button>
+      <button class="btn primary" onclick="runExplain()">▶ Run EXPLAIN ↗</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+
+    <!-- Workflow column -->
+    <div class="workflow-col">
+      <div class="col-label">Execution plan</div>
+      <div id="workflow-nodes"></div>
+    </div>
+
+    <!-- Right column: analysis + SQL editor -->
+    <div class="right-col">
+
+      <!-- Analysis panel -->
+      <div class="analysis-panel">
+        <div id="analysis-panel-content"></div>
+      </div>
+
+      <!-- SQL Editor — collapsible, bottom -->
+      <div class="sql-section">
+        <details class="sql-details" id="sql-details">
+          <summary class="sql-summary">
+            <span class="summary-left">
+              &#128221; SQL editor
+              <span class="summary-meta" id="sql-meta">3 queries loaded</span>
+            </span>
+            <span class="chevron">&#9660;</span>
+          </summary>
+          <div class="editor-body">
+            <div class="sql-wrap">
+              <div class="sql-highlight" id="sql-highlight"></div>
+              <textarea class="sql-textarea" id="sql-textarea"
+                spellcheck="false"
+                oninput="onSqlEdit()"
+                rows="6"></textarea>
+            </div>
+            <div class="editor-btns">
+              <button class="editor-btn" onclick="optimizeSQL()">Optimize ↗</button>
+              <button class="editor-btn" onclick="rewriteCTE()">Rewrite as CTE ↗</button>
+              <button class="editor-btn" onclick="collectStats()">Collect STATS ↗</button>
+              <button class="editor-btn" onclick="copySql()">Copy</button>
+            </div>
+            <details class="raw-details">
+              <summary class="raw-summary">
+                <span>Raw EXPLAIN output</span>
+                <span class="chevron" style="font-size:10px">&#9660;</span>
+              </summary>
+              <pre class="raw-pre" id="raw-pre"></pre>
+            </details>
+          </div>
+        </details>
+      </div>
+
+    </div><!-- /right-col -->
+  </div><!-- /main -->
+</div><!-- /app-shell -->
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const QUERIES = [
+  {
+    name: "Survival by class & gender",
+    sql: `SELECT\n  pclass,\n  sex,\n  COUNT(*) AS total,\n  SUM(survived) AS survived,\n  CAST(SUM(survived) AS FLOAT) / COUNT(*) * 100 AS survival_rate_pct,\n  AVG(CAST(fare AS FLOAT)) AS avg_fare\nFROM DEMO_TitanicSurvival.Passenger_Data\nGROUP BY pclass, sex\nORDER BY pclass, sex`,
+    raw: `1) First, we lock DEMO_TitanicSurvival_db.Passenger_Data in view\n   DEMO_TitanicSurvival.Passenger_Data in TD_MAP2 for access.\n2) Next, we do an all-AMPs SUM step in TD_MAP2 to aggregate from\n   DEMO_TitanicSurvival_db.Passenger_Data by way of an all-rows scan\n   with no residual conditions, grouping by field1 (pclass, sex).\n   Spool 3 estimated with no confidence: 756 rows (40,824 bytes). 0.01s.\n3) All-AMPs RETRIEVE from Spool 3 into Spool 1, SORT by pclass, sex.\n   Spool 1 estimated with no confidence: 756 rows (52,164 bytes). 0.01s.\n4) END TRANSACTION. Total estimated time: 0.02 seconds.`,
+    steps: [
+      { type:'lock', label:'Access lock', sub:'Passenger_Data', confidence:'', scanType:'Table lock', rows:'', bytes:'', time:'', obs:['View DEMO_TitanicSurvival resolves to DEMO_TitanicSurvival_db'], rewrites:[] },
+      { type:'agg', label:'All-AMPs aggregate', sub:'GROUP BY pclass, sex', confidence:'none', scanType:'All-rows scan', rows:'756', bytes:'40,824', time:'0.01s', obs:['No residual conditions — full 891-row table scan','No statistics on pclass or sex — optimizer guessed 756 rows (actual: 6)'], rewrites:[] },
+      { type:'sort', label:'Retrieve + sort', sub:'ORDER BY pclass, sex', confidence:'none', scanType:'Spool sort', rows:'756', bytes:'52,164', time:'0.01s', obs:['Sort on raw column pair — correct choice for 6 output groups'] },
+      { type:'return', label:'Return results', sub:'→ client', confidence:'', scanType:'', rows:'', bytes:'', time:'0.02s total', obs:['Total estimated time: 0.02s'], rewrites:[] }
+    ],
+    highlights: { lock:'DEMO_TitanicSurvival.Passenger_Data', agg:'GROUP BY pclass, sex', sort:'ORDER BY pclass, sex', return:'SELECT' }
+  },
+  {
+    name: "Age group bucketing",
+    sql: `SELECT\n  CASE\n    WHEN age IS NULL THEN 'Unknown'\n    WHEN age < 13 THEN 'Child (0-12)'\n    WHEN age < 18 THEN 'Teen (13-17)'\n    WHEN age < 35 THEN 'Young Adult (18-34)'\n    WHEN age < 60 THEN 'Middle Age (35-59)'\n    ELSE 'Senior (60+)'\n  END AS age_group,\n  COUNT(*) AS total,\n  SUM(survived) AS survived,\n  CAST(SUM(survived) AS FLOAT) / COUNT(*) * 100 AS survival_rate_pct\nFROM DEMO_TitanicSurvival.Passenger_Data\nGROUP BY 1\nORDER BY survival_rate_pct DESC`,
+    raw: `1) Lock DEMO_TitanicSurvival_db.Passenger_Data in view for access.\n2) All-AMPs SUM step, all-rows scan, grouping by CASE WHEN age IS NULL\n   THEN 'Unknown' WHEN age <= 12 THEN 'Child (0-12)' ...\n   Spool 3 estimated with LOW confidence: 6 rows (426 bytes). 0.01s.\n3) RETRIEVE from Spool 3, SORT by ((SUM(Field_2)(FLOAT))/(COUNT(1)(INTEGER)))*100.\n   Spool 1 estimated with LOW confidence: 6 rows (348 bytes). 0.01s.\n4) END TRANSACTION. Total estimated time: 0.02 seconds.`,
+    steps: [
+      { type:'lock', label:'Access lock', sub:'Passenger_Data', confidence:'', scanType:'Table lock', rows:'', bytes:'', time:'', obs:['View resolves to DEMO_TitanicSurvival_db.Passenger_Data'], rewrites:[] },
+      { type:'agg', label:'All-AMPs aggregate', sub:'GROUP BY CASE(age)', confidence:'low', scanType:'All-rows scan', rows:'6', bytes:'426', time:'0.01s', obs:['Low confidence — optimizer inferred 6 groups from CASE branch count','19.9% of age values are NULL — handled correctly by WHEN age IS NULL'], rewrites:["age < 13 → age <= 12 (integer boundary optimization)"] },
+      { type:'sort', label:'Retrieve + sort', sub:'ORDER BY computed expr', confidence:'low', scanType:'Spool sort', rows:'6', bytes:'348', time:'0.01s', obs:["survived aliased as 'Field_2' internally — GROUP BY 1 ordinal creates anonymous field","Sort on computed expression (SUM/COUNT)*100"] },
+      { type:'return', label:'Return results', sub:'→ client', confidence:'', scanType:'', rows:'', bytes:'', time:'0.02s total', obs:['Total estimated time: 0.02s'], rewrites:[] }
+    ],
+    highlights: { lock:'DEMO_TitanicSurvival.Passenger_Data', agg:'GROUP BY 1', sort:'ORDER BY survival_rate_pct DESC', return:'SELECT' }
+  },
+  {
+    name: "Family size analysis",
+    sql: `SELECT\n  CASE WHEN sibsp + parch = 0 THEN 'Alone'\n       WHEN sibsp + parch <= 3 THEN 'Small Family (1-3)'\n       ELSE 'Large Family (4+)'\n  END AS family_size,\n  COUNT(*) AS total,\n  SUM(survived) AS survived,\n  CAST(SUM(survived) AS FLOAT) / COUNT(*) * 100 AS survival_rate_pct\nFROM DEMO_TitanicSurvival.Passenger_Data\nGROUP BY 1\nORDER BY survival_rate_pct DESC`,
+    raw: `1) Lock DEMO_TitanicSurvival_db.Passenger_Data in view for access.\n2) All-AMPs SUM step, all-rows scan, grouping by CASE WHEN\n   (sibsp + parch) = 0 THEN 'Alone' WHEN (sibsp + parch) <= 3\n   THEN 'Small Family (1-3)' ELSE 'Large Family (4+)' END.\n   Spool 3 estimated with LOW confidence: 3 rows (207 bytes). 0.01s.\n3) RETRIEVE from Spool 3, SORT by ((SUM(Field_2)(FLOAT))/(COUNT(1)(INTEGER)))*100.\n   Spool 1 estimated with LOW confidence: 3 rows (171 bytes). 0.01s.\n4) END TRANSACTION. Total estimated time: 0.02 seconds.`,
+    steps: [
+      { type:'lock', label:'Access lock', sub:'Passenger_Data', confidence:'', scanType:'Table lock', rows:'', bytes:'', time:'', obs:['View resolves to DEMO_TitanicSurvival_db.Passenger_Data'], rewrites:[] },
+      { type:'agg', label:'All-AMPs aggregate', sub:'GROUP BY CASE(sibsp+parch)', confidence:'low', scanType:'All-rows scan', rows:'3', bytes:'207', time:'0.01s', obs:['sibsp + parch arithmetic evaluated TWICE per row — once per CASE branch','At 500M rows this redundancy becomes significant CPU cost'], rewrites:[] },
+      { type:'sort', label:'Retrieve + sort', sub:'ORDER BY computed expr', confidence:'low', scanType:'Spool sort', rows:'3', bytes:'171', time:'0.01s', obs:["survived aliased as 'Field_2' — same GROUP BY 1 ordinal pattern as query 2"] },
+      { type:'return', label:'Return results', sub:'→ client', confidence:'', scanType:'', rows:'', bytes:'', time:'0.02s total', obs:['Total estimated time: 0.02s'], rewrites:[] }
+    ],
+    highlights: { lock:'DEMO_TitanicSurvival.Passenger_Data', agg:'GROUP BY 1', sort:'ORDER BY survival_rate_pct DESC', return:'SELECT' }
+  }
+];
+
+const TYPE_META = {
+  lock:   { icon:'🔒', badgeClass:'badge-lock',   label:'Lock'      },
+  agg:    { icon:'Σ',  badgeClass:'badge-agg',    label:'Aggregate' },
+  sort:   { icon:'↕',  badgeClass:'badge-sort',   label:'Sort'      },
+  return: { icon:'↩',  badgeClass:'badge-return', label:'Return'    }
+};
+const CONF_META = {
+  none: { cls:'badge-none', txt:'No confidence' },
+  low:  { cls:'badge-low',  txt:'Low confidence' },
+  mod:  { cls:'badge-mod',  txt:'Moderate' },
+  high: { cls:'badge-high', txt:'High confidence' },
+  '':   null
+};
+
+let currentQuery = 0;
+let activeStep = null;
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function loadQuery(idx) {
+  currentQuery = parseInt(idx);
+  activeStep = null;
+  render();
+}
+
+function render() {
+  const q = QUERIES[currentQuery];
+  document.getElementById('sql-textarea').value = q.sql;
+  document.getElementById('raw-pre').textContent = q.raw;
+  renderNodes(q);
+  renderAnalysis(null);
+  updateHighlight();
+  syncTextareaHeight();
+}
+
+function renderNodes(q) {
+  const el = document.getElementById('workflow-nodes');
+  el.innerHTML = q.steps.map((s, i) => {
+    const m = TYPE_META[s.type] || TYPE_META.lock;
+    const active = activeStep === i ? 'active' : '';
+    const connector = i < q.steps.length - 1 ? '<div class="connector"></div>' : '';
+    return `
+      <div class="node-wrap">
+        <div class="node ${active}" onclick="selectStep(${i})">
+          <div class="node-icon">${m.icon}</div>
+          <div class="node-text">
+            <div class="node-label">Step ${i+1}: ${s.label}</div>
+            <div class="node-sub">${s.sub}</div>
+          </div>
+        </div>
+        ${connector}
+      </div>`;
+  }).join('');
+}
+
+function renderAnalysis(idx) {
+  const el = document.getElementById('analysis-panel-content');
+  if (idx === null) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">↑</div><div class="empty-text">Select a step to see analysis</div></div>`;
+    return;
+  }
+  const q = QUERIES[currentQuery];
+  const s = q.steps[idx];
+  const tm = TYPE_META[s.type] || TYPE_META.lock;
+  const cm = CONF_META[s.confidence];
+
+  const metricsHtml = (s.rows || s.bytes || s.time || s.scanType) ? `
+    <div class="metrics">
+      ${s.rows     ? `<div class="metric"><div class="metric-label">Spool rows</div><div class="metric-value">${s.rows}</div></div>` : ''}
+      ${s.bytes    ? `<div class="metric"><div class="metric-label">Spool size</div><div class="metric-value">${s.bytes} B</div></div>` : ''}
+      ${s.time     ? `<div class="metric"><div class="metric-label">Est. time</div><div class="metric-value">${s.time}</div></div>` : ''}
+      ${s.scanType ? `<div class="metric"><div class="metric-label">Scan type</div><div class="metric-value sm">${s.scanType}</div></div>` : ''}
+    </div>` : '';
+
+  const rewritesHtml = s.rewrites && s.rewrites.length ? `
+    <div class="section-title" style="margin-bottom:6px">Optimizer rewrites</div>
+    ${s.rewrites.map(r => `<div class="rewrite-item">&#9432; ${r}</div>`).join('')}
+    <div style="height:10px"></div>` : '';
+
+  const obsHtml = s.obs && s.obs.length ? `
+    <div class="section-title">Observations</div>
+    <div class="obs-list">
+      ${s.obs.map((o, oi) => {
+        let cls = '';
+        if (s.confidence === 'none' && oi === 1) cls = 'warn';
+        else if (s.rewrites && s.rewrites.length && oi === 0) cls = 'info';
+        return `<div class="obs ${cls}">${o}</div>`;
+      }).join('')}
+    </div>` : '';
+
+  el.innerHTML = `
+    <div class="analysis-card">
+      <div class="card-header">
+        <span style="font-size:18px;line-height:1">${tm.icon}</span>
+        <span class="card-title">Step ${idx+1} — ${s.label}</span>
+        <span class="badge ${tm.badgeClass}">${tm.label}</span>
+        ${cm ? `<span class="badge ${cm.cls}">${cm.txt}</span>` : ''}
+      </div>
+      ${metricsHtml}
+      ${rewritesHtml}
+      ${obsHtml}
+      <div class="cta-row">
+        <button class="cta-btn" onclick="explainStep(${idx})">Explain this step ↗</button>
+        <button class="cta-btn" onclick="optimizeStep(${idx})">Optimize ↗</button>
+        <button class="cta-btn" onclick="compareAll()">Compare all steps ↗</button>
+      </div>
+    </div>`;
+}
+
+function selectStep(idx) {
+  activeStep = idx;
+  renderNodes(QUERIES[currentQuery]);
+  renderAnalysis(idx);
+  updateHighlight();
+}
+
+// ── SQL highlight overlay ──────────────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function updateHighlight() {
+  const q = QUERIES[currentQuery];
+  const sql = document.getElementById('sql-textarea').value;
+  const esc = escHtml(sql);
+  if (activeStep === null) {
+    document.getElementById('sql-highlight').innerHTML = esc;
+    return;
+  }
+  const s = q.steps[activeStep];
+  const hl = q.highlights[s.type] || '';
+  if (!hl) { document.getElementById('sql-highlight').innerHTML = esc; return; }
+  const hlEsc = escHtml(hl);
+  document.getElementById('sql-highlight').innerHTML = esc.replace(hlEsc, `<mark>${hlEsc}</mark>`);
+}
+function onSqlEdit() { updateHighlight(); syncTextareaHeight(); }
+function syncTextareaHeight() {
+  const ta = document.getElementById('sql-textarea');
+  const hl = document.getElementById('sql-highlight');
+  hl.style.minHeight = ta.offsetHeight + 'px';
+}
+
+// ── sendPrompt shim (works in Claude artifact env; falls back to alert) ──────
+function sp(msg) {
+  if (typeof sendPrompt === 'function') sendPrompt(msg);
+  else { console.log('[sendPrompt]', msg); alert('sendPrompt:\n\n' + msg.substring(0, 200) + '...'); }
+}
+
+function runExplain() {
+  const sql = document.getElementById('sql-textarea').value.trim();
+  sp(`Run EXPLAIN on this SQL using the Teradata MCP server (teradata-community:base_readQuery) and break down each step:\n\n${sql}`);
+}
+function optimizeSQL() {
+  const sql = document.getElementById('sql-textarea').value.trim();
+  sp(`Optimize this Teradata SQL. Identify anti-patterns, missing statistics, and rewrite recommendations:\n\n${sql}`);
+}
+function rewriteCTE() {
+  const sql = document.getElementById('sql-textarea').value.trim();
+  sp(`Rewrite this Teradata SQL using a CTE to eliminate GROUP BY ordinal references and reduce repeated expression evaluation:\n\n${sql}`);
+}
+function collectStats() {
+  const sql = document.getElementById('sql-textarea').value.trim();
+  sp(`What COLLECT STATISTICS statements should I run before executing this query on Teradata? Base your answer on the columns used in GROUP BY, ORDER BY, WHERE, and JOIN:\n\n${sql}`);
+}
+function copySql() {
+  const sql = document.getElementById('sql-textarea').value;
+  navigator.clipboard.writeText(sql).catch(() => {});
+}
+function explainStep(idx) {
+  const q = QUERIES[currentQuery];
+  const s = q.steps[idx];
+  sp(`Explain step ${idx+1} of this Teradata EXPLAIN plan in detail and what it means for performance:\n\nStep type: ${s.label}\nConfidence: ${s.confidence || 'N/A'}\nObservations: ${(s.obs||[]).join('; ')}\n\nFull EXPLAIN:\n${q.raw}`);
+}
+function optimizeStep(idx) {
+  const q = QUERIES[currentQuery];
+  const s = q.steps[idx];
+  sp(`How can I optimize the "${s.label}" step in this Teradata query?\nFocus on: ${(s.obs||[]).join(', ')}\n\nSQL:\n${q.sql}`);
+}
+function compareAll() {
+  const q = QUERIES[currentQuery];
+  sp(`Analyze the full execution plan for this Teradata query. Compare all ${q.steps.length} steps, identify the most expensive step, and give me 3 concrete optimization recommendations:\n\nSQL:\n${q.sql}\n\nFull EXPLAIN:\n${q.raw}`);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

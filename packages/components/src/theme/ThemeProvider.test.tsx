@@ -39,14 +39,14 @@ describe('ThemeProvider - Density', () => {
     vi.unstubAllGlobals();
   });
 
-  it('defaults to comfortable density', () => {
+  it('defaults to compact density', () => {
     localStorageMock.getItem.mockReturnValue(null);
     render(
       <ThemeProvider>
         <DensityConsumer />
       </ThemeProvider>
     );
-    expect(screen.getByTestId('density-value')).toHaveTextContent('comfortable');
+    expect(screen.getByTestId('density-value')).toHaveTextContent('compact');
   });
 
   it('accepts initial density prop', () => {
@@ -117,8 +117,8 @@ describe('ThemeProvider - Density', () => {
       </ThemeProvider>
     );
 
-    // Initially comfortable
-    expect(screen.getByTestId('density-value')).toHaveTextContent('comfortable');
+    // Initially compact
+    expect(screen.getByTestId('density-value')).toHaveTextContent('compact');
 
     // Change to spacious
     act(() => {

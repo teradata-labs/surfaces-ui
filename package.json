@@ -28,7 +28,10 @@
       "esbuild",
       "@modelcontextprotocol/ext-apps",
       "@swc/core"
-    ]
+    ],
+    "overrides": {
+      "zod": "^3.25.0"
+    }
   },
   "packageManager": "pnpm@10.11.0",
   "engines": {

@@ -28,7 +28,7 @@ export interface ThemeConfig {
 interface ThemeProviderProps {
   /** The desired theme mode. Defaults to 'system'. */
   theme?: ThemeMode;
-  /** The desired density mode. Defaults to 'comfortable'. */
+  /** The desired density mode. Defaults to 'compact'. */
   density?: DensityMode;
   /** Optional CSS custom-property overrides applied to the wrapper element. */
   tokenOverrides?: Record<string, string>;
@@ -43,7 +43,7 @@ interface ThemeProviderProps {
 
 /* ── Context ───────────────────────────────────────────────────────── */
 
-const ThemeContext = createContext<ThemeConfig | undefined>(undefined);
+export const ThemeContext = createContext<ThemeConfig | undefined>(undefined);
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
 
@@ -94,7 +94,7 @@ export function ThemeProvider({
         return stored;
       }
     }
-    return 'comfortable';
+    return 'compact';
   });
 
   const setTheme = useCallback(

@@ -5,7 +5,6 @@
  */
 import type * as echarts from 'echarts';
 import type { ChartType } from './types';
-import { DEFAULT_CHART_COLORS } from './types';
 
 /**
  * Detect the system theme (dark/light) for ECharts
@@ -65,6 +64,8 @@ export function detectBestAxes(
 /**
  * Generate ECharts option for a simple chart (no grouping/stacking)
  * For advanced configs, use generateAdvancedChartOption
+ *
+ * NOTE: Does NOT set explicit colors - allows ECharts theme to control colors
  */
 export function generateChartOption(
   data: Record<string, unknown>[],
@@ -72,7 +73,7 @@ export function generateChartOption(
   yAxis: string,
   type: ChartType = 'bar',
   showDataLabels = false,
-  colors: string[] = DEFAULT_CHART_COLORS
+  _colors?: string[]
 ): echarts.EChartsOption {
   if (!data.length) return {};
 
@@ -140,7 +141,7 @@ export function generateChartOption(
             parseFloat(String(row[yAxis])) || 0,
           ]),
           symbolSize: 8,
-          itemStyle: { color: colors[0] },
+          // Let theme control colors
         }],
       };
 
@@ -175,7 +176,7 @@ export function generateChartOption(
           data: yData,
           areaStyle: {},
           smooth: true,
-          itemStyle: { color: colors[0] },
+          // Let theme control colors
         }],
       };
 
@@ -189,7 +190,7 @@ export function generateChartOption(
           type: 'line',
           data: yData,
           smooth: true,
-          itemStyle: { color: colors[0] },
+          // Let theme control colors
         }],
       };
 
@@ -203,9 +204,9 @@ export function generateChartOption(
           name: yAxis,
           type: 'bar',
           data: yData,
-          itemStyle: { color: colors[0] },
           barWidth: '60%',
           label: showDataLabels ? { show: true, position: 'top' as const } : undefined,
+          // Let theme control colors
         }],
       };
   }

@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Gen Onboarding Console</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --accent: #f77f00;
+    --accent2: #e5a612;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --success: #3fb950;
+    --error: #f85149;
+    --warn: #d29922;
+    --info: #58a6ff;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo h1 {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .sidebar-logo p {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .nav-section {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 4px 16px 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    text-transform: none;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(247,127,0,0.08); }
+  .nav-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .session-status {
+    margin: 8px 16px;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .session-status .label { color: var(--muted); }
+  .session-status .value { color: var(--success); word-break: break-all; margin-top: 2px; font-size: 9px; }
+  .session-status .value.none { color: var(--muted); }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── TOPBAR ── */
+  #topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  #topbar h2 { font-size: 14px; font-weight: 700; flex: 1; }
+  .status-pill {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+    background: rgba(63,185,80,0.15);
+    color: var(--success);
+    border: 1px solid rgba(63,185,80,0.3);
+  }
+  .status-pill.disconnected { background: rgba(125,133,144,0.15); color: var(--muted); border-color: rgba(125,133,144,0.3); }
+
+  /* ── BODY SPLIT ── */
+  #body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── PANELS ── */
+  #config-panel, #response-panel {
+    width: 300px;
+    min-width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  #response-panel { border-right: none; border-left: 1px solid var(--border); }
+
+  .panel-title {
+    padding: 12px 16px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
+  /* ── FORM ── */
+  #operations {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 700;
+    border-bottom: 1px solid transparent;
+    transition: background 0.15s;
+  }
+  .card-header:hover { background: rgba(255,255,255,0.03); }
+  .card-header.open { border-bottom-color: var(--border); }
+  .card-header .badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge.req { background: rgba(247,127,0,0.2); color: var(--accent); }
+  .badge.opt { background: rgba(125,133,144,0.15); color: var(--muted); }
+  .card-body { padding: 12px 14px; display: none; }
+  .card-body.open { display: block; }
+  .card-chevron { margin-left: auto; color: var(--muted); font-size: 10px; transition: transform 0.2s; }
+  .card-chevron.open { transform: rotate(180deg); }
+
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 7px 10px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+  .field input[type=file] { padding: 5px 10px; cursor: pointer; }
+  .field select option { background: var(--surface2); }
+  .field textarea { resize: vertical; min-height: 70px; }
+
+  .field-row { display: flex; gap: 8px; }
+  .field-row .field { flex: 1; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+  .btn-danger { background: rgba(248,81,73,0.15); color: var(--error); border-color: rgba(248,81,73,0.4); }
+  .btn-danger:hover { background: rgba(248,81,73,0.25); }
+  .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+  .info-box {
+    background: rgba(88,166,255,0.08);
+    border: 1px solid rgba(88,166,255,0.2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    color: var(--info);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  /* ── CONFIG PANEL ── */
+  .config-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .config-section:last-child { border-bottom: none; }
+  .config-section h3 { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+  /* ── RESPONSE PANEL ── */
+  #response-panel { width: 340px; min-width: 300px; }
+  .response-area {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+  }
+  .response-item {
+    margin-bottom: 12px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .response-meta {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface2);
+  }
+  .response-meta .endpoint { flex: 1; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .response-meta .code { font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .code-2xx { background: rgba(63,185,80,0.2); color: var(--success); }
+  .code-4xx { background: rgba(248,81,73,0.2); color: var(--error); }
+  .code-5xx { background: rgba(210,153,34,0.2); color: var(--warn); }
+  .code-loading { background: rgba(88,166,255,0.2); color: var(--info); }
+
+  .response-body {
+    padding: 10px 12px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: var(--bg);
+    max-height: 260px;
+    overflow-y: auto;
+    line-height: 1.6;
+    color: #cdd9e5;
+  }
+
+  .clear-btn {
+    width: 100%;
+    padding: 8px;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .clear-btn:hover { color: var(--error); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .tag-required::after { content: " *"; color: var(--accent); }
+
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .checkbox-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+  .checkbox-row label { font-size: 12px; color: var(--muted); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <h1>SQL Gen</h1>
+    <p>Onboarding Console</p>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Config</div>
+    <div class="nav-item active" onclick="showSection('credentials')">
+      <span class="nav-icon">🔑</span> Credentials
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">A · VectorStore</div>
+    <div class="nav-item" onclick="showSection('health')">
+      <span class="nav-icon">❤️</span> Health Check
+    </div>
+    <div class="nav-item" onclick="showSection('session')">
+      <span class="nav-icon">🔗</span> Session
+    </div>
+    <div class="nav-item" onclick="showSection('patterns')">
+      <span class="nav-icon">📐</span> Patterns
+    </div>
+    <div class="nav-item" onclick="showSection('vectorstore')">
+      <span class="nav-icon">🗄️</span> VectorStore
+    </div>
+    <div class="nav-item" onclick="showSection('permissions')">
+      <span class="nav-icon">🛡️</span> Permissions
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">B · SQL Gen</div>
+    <div class="nav-item" onclick="showSection('files')">
+      <span class="nav-icon">📁</span> File Upload
+    </div>
+    <div class="nav-item" onclick="showSection('scripts')">
+      <span class="nav-icon">⚙️</span> Index Scripts
+    </div>
+    <div class="nav-item" onclick="showSection('autotaxonomy')">
+      <span class="nav-icon">🌿</span> AutoTaxonomy
+    </div>
+    <div class="nav-item" onclick="showSection('status')">
+      <span class="nav-icon">📊</span> Status
+    </div>
+    <div class="nav-item" onclick="showSection('userprofiles')">
+      <span class="nav-icon">👤</span> User Profiles
+    </div>
+    <div class="nav-item" onclick="showSection('tabledesc')">
+      <span class="nav-icon">📋</span> Table Descriptions
+    </div>
+    <div class="nav-item" onclick="showSection('coldesc')">
+      <span class="nav-icon">🔢</span> Column Descriptions
+    </div>
+    <div class="nav-item" onclick="showSection('acronyms')">
+      <span class="nav-icon">🔤</span> Acronyms
+    </div>
+    <div class="nav-item" onclick="showSection('initialize')">
+      <span class="nav-icon">🚀</span> Initialize
+    </div>
+  </div>
+
+  <div style="padding:12px 16px; margin-top:auto; border-top:1px solid var(--border)">
+    <div class="session-status">
+      <div class="label">Session ID</div>
+      <div class="value none" id="sidebar-session">Not connected</div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <h2 id="topbar-title">Credentials</h2>
+    <span class="status-pill disconnected" id="conn-pill">Disconnected</span>
+  </div>
+
+  <!-- BODY -->
+  <div id="body">
+    <!-- CONFIG LEFT PANEL -->
+    <div id="config-panel">
+      <div class="panel-title">Connection Config</div>
+      <div class="config-section">
+        <h3>API Server (VectorStore)</h3>
+        <div class="field"><label>Base URL</label>
+          <input id="cfg-vs-url" type="text" value="http://52.41.140.150:8003/sql-gen/api/v1/" placeholder="http://host:port/sql-gen/api/v1/" />
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>API Server (SQL Gen)</h3>
+        <div class="field"><label>VM URL</label>
+          <input id="cfg-vm" type="text" value="http://52.41.140.150:8005" placeholder="http://host:port" />
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>Database</h3>
+        <div class="field"><label>DB Hostname</label>
+          <input id="cfg-hostname" type="text" placeholder="100.80.31.103" />
+        </div>
+        <div class="field"><label>Database Name</label>
+          <input id="cfg-database" type="text" placeholder="customer360" />
+        </div>
+        <div class="field"><label>VectorStore Name</label>
+          <input id="cfg-vectorstore" type="text" placeholder="customer360" />
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>Auth Credentials</h3>
+        <div class="field"><label>Username</label>
+          <input id="cfg-username" type="text" placeholder="dbc" />
+        </div>
+        <div class="field"><label>Password</label>
+          <input id="cfg-password" type="password" placeholder="••••••••" />
+        </div>
+      </div>
+      <div style="padding: 12px 14px;">
+        <button class="btn btn-primary" onclick="saveConfig()" style="width:100%">💾 Save Config</button>
+      </div>
+    </div>
+
+    <!-- OPERATIONS CENTER -->
+    <div id="operations">
+
+      <!-- CREDENTIALS (intro) -->
+      <div class="section active" id="sec-credentials">
+        <div class="info-box">
+          👋 <strong>Welcome to the SQL Gen Onboarding Console.</strong><br><br>
+          Fill in your connection details in the left panel, then navigate through the sections to onboard your environment.<br><br>
+          <strong>Recommended flow:</strong><br>
+          1. Set credentials (left panel)<br>
+          2. Health Check → Connect (Session)<br>
+          3. Create VectorStore → Wait for READY<br>
+          4. Disconnect session<br>
+          5. Upload Table &amp; Column Descriptions<br>
+          6. Run Index Scripts → Monitor Status<br>
+          7. Upload metadata files (optional)<br>
+          8. Initialize SQL Gen<br>
+        </div>
+      </div>
+
+      <!-- HEALTH -->
+      <div class="section" id="sec-health">
+        <div class="info-box">Check if the API service is reachable before proceeding.</div>
+        <div class="card">
+          <div class="card-header open">
+            <span>A1 · Health Check</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Calls <code style="font-size:10px;">/health</code> — no auth required.</p>
+            <button class="btn btn-primary" onclick="doHealthCheck()">🏥 Check Health</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SESSION -->
+      <div class="section" id="sec-session">
+        <div class="info-box">A DB session is required for all VectorStore operations. Connect first, then disconnect after VS work is done.</div>
+        <div class="card">
+          <div class="card-header open">
+            <span>A2 · Connect</span>
+            <span class="badge req">REQUIRED</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Creates a DB session using credentials from config panel.</p>
+            <button class="btn btn-primary" onclick="doConnect()">🔗 Connect</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header open">
+            <span>A15 · Disconnect</span>
+            <span class="badge req">REQUIRED</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Ends the current DB session.</p>
+            <button class="btn btn-danger" onclick="doDisconnect()">🔌 Disconnect</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PATTERNS -->
+      <div class="section" id="sec-patterns">
+        <div class="info-box">Patterns define naming conventions for tables (e.g. <code>customer360.customer360_%_VW</code>). Required for VS creation.</div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A3 · List Patterns</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doGetPatterns()">📋 Get Patterns</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A4 · Create Pattern</span>
+            <span class="badge opt">POST</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Pattern Name</label>
+              <input id="pat-name" type="text" placeholder="demo_customer360" />
+            </div>
+            <div class="field"><label class="tag-required">Pattern String</label>
+              <input id="pat-string" type="text" placeholder="demo_customer360.customer360_%_VW" />
+            </div>
+            <button class="btn btn-primary" onclick="doCreatePattern()">➕ Create Pattern</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A5 · Get Objects for Pattern</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Pattern Name</label>
+              <input id="pat-get-name" type="text" placeholder="demo_customer360" />
+            </div>
+            <button class="btn btn-primary" onclick="doGetPatternObjects()">🔍 Get Objects</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VECTORSTORE -->
+      <div class="section" id="sec-vectorstore">
+        <div class="info-box">VectorStore must be READY before running SQL Gen scripts. Requires an active session.</div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A6 · Create VectorStore</span>
+            <span class="badge req">REQUIRED</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label>Embeddings Model</label>
+              <input id="vs-model" type="text" value="amazon.titan-embed-text-v2:0" />
+            </div>
+            <div class="field"><label>Search Algorithm</label>
+              <select id="vs-algorithm">
+                <option value="VECTORDISTANCE">VECTORDISTANCE</option>
+                <option value="HNSW">HNSW</option>
+              </select>
+            </div>
+            <div class="field"><label>Top K</label>
+              <input id="vs-topk" type="number" value="10" />
+            </div>
+            <div class="field"><label>Include Patterns (comma-separated)</label>
+              <input id="vs-include-patterns" type="text" placeholder="demo_customer360" />
+            </div>
+            <div class="field"><label>Target Database</label>
+              <input id="vs-target-db" type="text" placeholder="Same as cfg database" />
+            </div>
+            <button class="btn btn-primary" onclick="doCreateVS()">🗄️ Create VectorStore</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A7 · Get VS Status</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doVSStatus()">📡 Get Status</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A8 · Get VS Details</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doVSDetails()">🔍 Get Details</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A9 · Update VectorStore</span>
+            <span class="badge opt">PATCH</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label>Alter Operation</label>
+              <select id="vs-alter-op">
+                <option value="DELETE">DELETE (remove objects)</option>
+                <option value="ADD">ADD (add objects)</option>
+              </select>
+            </div>
+            <div class="field"><label>Include Objects (comma-separated)</label>
+              <input id="vs-update-objects" type="text" placeholder="db.table_name" />
+            </div>
+            <div class="field"><label>New Search Algorithm (optional)</label>
+              <select id="vs-new-algorithm">
+                <option value="">— no change —</option>
+                <option value="VECTORDISTANCE">VECTORDISTANCE</option>
+                <option value="HNSW">HNSW</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="doUpdateVS()">♻️ Update VS</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A14 · List All VectorStores</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doListVS()">📋 List VectorStores</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A10 · Delete VectorStore</span>
+            <span class="badge opt">DELETE</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="info-box" style="background:rgba(248,81,73,0.08); border-color:rgba(248,81,73,0.2); color:var(--error);">⚠️ This permanently destroys the VectorStore.</div>
+            <button class="btn btn-danger" onclick="doDeleteVS()">🗑️ Delete VectorStore</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERMISSIONS -->
+      <div class="section" id="sec-permissions">
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A11 · Modify Permissions</span>
+            <span class="badge opt">PUT</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Target Username</label>
+              <input id="perm-user" type="text" placeholder="alice" />
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Action</label>
+                <select id="perm-action">
+                  <option value="GRANT">GRANT</option>
+                  <option value="REVOKE">REVOKE</option>
+                </select>
+              </div>
+              <div class="field"><label>Permission</label>
+                <select id="perm-level">
+                  <option value="USER">USER</option>
+                  <option value="ADMIN">ADMIN</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="doModifyPermissions()">🛡️ Apply</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A12 · Get Permissions</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doGetPermissions()">🔍 Get Permissions</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>A13 · Get VS Object List</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doVSObjectList()">📋 Get Objects</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILES -->
+      <div class="section" id="sec-files">
+        <div class="info-box">Upload optional metadata files: synonyms, taxonomy for disambiguation, and autotaxonomy (after curation).</div>
+        <div class="card">
+          <div class="card-header open" onclick="toggleCard(this)">
+            <span>B1 · Upload Metadata Files</span>
+            <span class="badge opt">POST</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <div class="field"><label>Synonyms File (.csv / .xlsx)</label>
+              <input id="file-synonyms" type="file" accept=".csv,.xlsx" />
+            </div>
+            <div class="field"><label>Taxonomy Disambiguation File (.json)</label>
+              <input id="file-taxonomy" type="file" accept=".json" />
+            </div>
+            <div class="field"><label>AutoTaxonomy File (.json)</label>
+              <input id="file-autotaxonomy" type="file" accept=".json" />
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="file-replace" checked />
+              <label for="file-replace">Replace existing files</label>
+            </div>
+            <button class="btn btn-primary" onclick="doUploadFiles()">⬆️ Upload Files</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INDEX SCRIPTS -->
+      <div class="section" id="sec-scripts">
+        <div class="info-box">Triggers FeatureIndex, FeatureIndexDescription, and IndexColumnUniqueness simultaneously. These run in background — monitor via Status page.</div>
+        <div class="card">
+          <div class="card-header open" onclick="toggleCard(this)">
+            <span>B2 · Run Index Scripts</span>
+            <span class="badge req">REQUIRED</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">Uses credentials from config panel. Scripts run asynchronously in background threads.</p>
+            <button class="btn btn-primary" onclick="doRunIndexScripts()">⚙️ Run Index Scripts</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUTOTAXONOMY -->
+      <div class="section" id="sec-autotaxonomy">
+        <div class="info-box">AutoTaxonomy generates a taxonomy JSON file from your column descriptions. Download → curate → re-upload via File Upload.</div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B3.1 · Run AutoTaxonomy</span>
+            <span class="badge opt">POST</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Table Pattern</label>
+              <input id="at-pattern" type="text" placeholder="customer360_%_VW" />
+            </div>
+            <button class="btn btn-primary" onclick="doRunAutoTaxonomy()">🌿 Run AutoTaxonomy</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B3.2 · Download AutoTaxonomy File</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Downloads the generated JSON file for review and curation.</p>
+            <button class="btn btn-primary" onclick="doDownloadAutoTaxonomy()">⬇️ Download JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS -->
+      <div class="section" id="sec-status">
+        <div class="info-box">Monitor the status of all scripts: FeatureIndex, FeatureIndexDescription, IndexColumnUniqueness, AutoTaxonomy, InitializeSqlGen.</div>
+        <div class="card">
+          <div class="card-header open" onclick="toggleCard(this)">
+            <span>B4 · Get SQL Gen Status</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <button class="btn btn-primary" onclick="doGetSQLGenStatus()">📊 Get Status</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- USER PROFILES -->
+      <div class="section" id="sec-userprofiles">
+        <div class="info-box">User profiles map DB usernames to real identities, enabling "my" / "I" context in queries.</div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B5.1 · Upload User Profiles</span>
+            <span class="badge opt">POST</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Profiles File (.xlsx / .csv)</label>
+              <input id="up-file" type="file" accept=".xlsx,.csv" />
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="up-replace" checked />
+              <label for="up-replace">Replace existing profiles</label>
+            </div>
+            <button class="btn btn-primary" onclick="doUploadUserProfiles()">⬆️ Upload Profiles</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B5.2 · Delete User Profile</span>
+            <span class="badge opt">DELETE</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Username to Delete</label>
+              <input id="del-profile-user" type="text" placeholder="alice" />
+            </div>
+            <button class="btn btn-danger" onclick="doDeleteUserProfile()">🗑️ Delete Profile</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B5.3 · List User Profiles</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doListUserProfiles()">📋 List Profiles</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B5.4 · Insert User Profile</span>
+            <span class="badge opt">POST</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Username</label>
+              <input id="ins-username" type="text" placeholder="new_user" />
+            </div>
+            <div class="field"><label class="tag-required">QLID</label>
+              <input id="ins-qlid" type="text" placeholder="JD123456" />
+            </div>
+            <div class="field"><label class="tag-required">Role Name</label>
+              <input id="ins-role" type="text" placeholder="Contract Manager" />
+            </div>
+            <div class="field"><label class="tag-required">Full Name</label>
+              <input id="ins-name" type="text" placeholder="Doe, Jane" />
+            </div>
+            <button class="btn btn-primary" onclick="doInsertUserProfile()">➕ Insert Profile</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B5.5 · Update User Profile</span>
+            <span class="badge opt">PUT</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label class="tag-required">Current Username</label>
+              <input id="upd-current" type="text" placeholder="old_user" />
+            </div>
+            <div class="field"><label>New Username</label>
+              <input id="upd-new-user" type="text" placeholder="new_user (optional)" />
+            </div>
+            <div class="field"><label>New QLID</label>
+              <input id="upd-qlid" type="text" placeholder="(optional)" />
+            </div>
+            <div class="field"><label>New Role Name</label>
+              <input id="upd-role" type="text" placeholder="(optional)" />
+            </div>
+            <div class="field"><label>New Full Name</label>
+              <input id="upd-name" type="text" placeholder="(optional)" />
+            </div>
+            <button class="btn btn-primary" onclick="doUpdateUserProfile()">✏️ Update Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE DESCRIPTIONS -->
+      <div class="section" id="sec-tabledesc">
+        <div class="info-box">Table descriptions (comments) are <strong>required</strong>. File format: database_name | table_name | table_comment.</div>
+        <div class="card">
+          <div class="card-header open" onclick="toggleCard(this)">
+            <span>B6.1 · Upload Table Descriptions</span>
+            <span class="badge req">REQUIRED</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <div class="field"><label class="tag-required">File (.xlsx / .csv)</label>
+              <input id="td-file" type="file" accept=".xlsx,.csv" />
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="td-replace" checked />
+              <label for="td-replace">Replace existing descriptions</label>
+            </div>
+            <button class="btn btn-primary" onclick="doUploadTableDesc()">⬆️ Upload</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B6.2 · Delete Table Descriptions</span>
+            <span class="badge opt">DELETE</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-danger" onclick="doDeleteTableDesc()">🗑️ Delete All</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B6.3 · List Table Descriptions</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doListTableDesc()">📋 List</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN DESCRIPTIONS -->
+      <div class="section" id="sec-coldesc">
+        <div class="info-box">Column descriptions (comments) are <strong>required</strong>. File format: database_name | table_name | column_name | column_comment.</div>
+        <div class="card">
+          <div class="card-header open" onclick="toggleCard(this)">
+            <span>B7.1 · Upload Column Descriptions</span>
+            <span class="badge req">REQUIRED</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <div class="field"><label class="tag-required">File (.xlsx / .csv)</label>
+              <input id="cd-file" type="file" accept=".xlsx,.csv" />
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="cd-replace" checked />
+              <label for="cd-replace">Replace existing descriptions</label>
+            </div>
+            <button class="btn btn-primary" onclick="doUploadColDesc()">⬆️ Upload</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B7.2 · Delete Column Descriptions</span>
+            <span class="badge opt">DELETE</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-danger" onclick="doDeleteColDesc()">🗑️ Delete All</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B7.3 · List Column Descriptions</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doListColDesc()">📋 List</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACRONYMS -->
+      <div class="section" id="sec-acronyms">
+        <div class="info-box">Acronyms help SQL Gen understand domain-specific abbreviations. File format: acronym | description | vs_name (optional).</div>
+        <div class="card">
+          <div class="card-header open" onclick="toggleCard(this)">
+            <span>B8.1 · Upload Acronyms</span>
+            <span class="badge opt">POST</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <div class="field"><label class="tag-required">File (.xlsx / .csv)</label>
+              <input id="acr-file" type="file" accept=".xlsx,.csv" />
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="acr-replace" checked />
+              <label for="acr-replace">Replace existing acronyms</label>
+            </div>
+            <button class="btn btn-primary" onclick="doUploadAcronyms()">⬆️ Upload</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B8.2 · Delete Acronyms</span>
+            <span class="badge opt">DELETE</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-danger" onclick="doDeleteAcronyms()">🗑️ Delete All</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" onclick="toggleCard(this)">
+            <span>B8.3 · List Acronyms</span>
+            <span class="badge opt">GET</span>
+            <span class="card-chevron">▾</span>
+          </div>
+          <div class="card-body">
+            <button class="btn btn-primary" onclick="doListAcronyms()">📋 List</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INITIALIZE -->
+      <div class="section" id="sec-initialize">
+        <div class="info-box">🚀 Run this <strong>last</strong>, after all scripts and files are complete. Loads all metadata and enables operational mode.</div>
+        <div class="card">
+          <div class="card-header open" onclick="toggleCard(this)">
+            <span>B9 · Initialize SQL Gen</span>
+            <span class="badge req">REQUIRED</span>
+            <span class="card-chevron open">▾</span>
+          </div>
+          <div class="card-body open">
+            <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">Runs asynchronously. Check status via the Status page after triggering.</p>
+            <button class="btn btn-primary" onclick="doInitializeSQLGen()">🚀 Initialize SQL Gen</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /operations -->
+
+    <!-- RESPONSE PANEL -->
+    <div id="response-panel">
+      <div class="panel-title">Response Log</div>
+      <div class="response-area" id="response-area">
+        <div style="color:var(--muted); font-size:11px; font-family:'JetBrains Mono',monospace; text-align:center; margin-top:40px;">
+          Responses will appear here
+        </div>
+      </div>
+      <button class="clear-btn" onclick="clearResponses()">Clear Log</button>
+    </div>
+  </div><!-- /body -->
+</div><!-- /main -->
+
+<script>
+// ── STATE ──
+let sessionId = null;
+const cfg = () => ({
+  vsUrl: document.getElementById('cfg-vs-url').value.replace(/\/$/, ''),
+  vm: document.getElementById('cfg-vm').value.replace(/\/$/, ''),
+  hostname: document.getElementById('cfg-hostname').value,
+  database: document.getElementById('cfg-database').value,
+  vectorstore: document.getElementById('cfg-vectorstore').value,
+  username: document.getElementById('cfg-username').value,
+  password: document.getElementById('cfg-password').value,
+});
+
+function basicAuth(u, p) {
+  return 'Basic ' + btoa(u + ':' + p);
+}
+
+function saveConfig() {
+  log('⚙️ Config saved', null, null);
+}
+
+// ── NAVIGATION ──
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  const titles = {
+    credentials: 'Welcome', health: 'A1 · Health Check', session: 'Session Management',
+    patterns: 'Patterns', vectorstore: 'VectorStore', permissions: 'Permissions',
+    files: 'B1 · File Upload', scripts: 'B2 · Index Scripts', autotaxonomy: 'B3 · AutoTaxonomy',
+    status: 'B4 · SQL Gen Status', userprofiles: 'B5 · User Profiles',
+    tabledesc: 'B6 · Table Descriptions', coldesc: 'B7 · Column Descriptions',
+    acronyms: 'B8 · Acronyms', initialize: 'B9 · Initialize SQL Gen'
+  };
+  document.getElementById('topbar-title').textContent = titles[id] || id;
+}
+
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.card-chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+}
+
+// ── RESPONSE LOG ──
+function log(endpoint, status, data, isError = false) {
+  const area = document.getElementById('response-area');
+  const existing = area.querySelector('[data-placeholder]');
+  if (existing) existing.remove();
+
+  const codeClass = status === null ? 'code-loading'
+    : status >= 200 && status < 300 ? 'code-2xx'
+    : status >= 400 && status < 500 ? 'code-4xx'
+    : 'code-5xx';
+
+  const item = document.createElement('div');
+  item.className = 'response-item';
+
+  const meta = document.createElement('div');
+  meta.className = 'response-meta';
+  meta.innerHTML = `<span class="endpoint">${endpoint}</span>${status !== null ? `<span class="code ${codeClass}">${status}</span>` : '<span class="code code-loading">...</span>'}`;
+
+  const body = document.createElement('div');
+  body.className = 'response-body';
+  body.textContent = data ? (typeof data === 'string' ? data : JSON.stringify(data, null, 2)) : '⏳ Request sent...';
+
+  item.appendChild(meta);
+  item.appendChild(body);
+  area.insertBefore(item, area.firstChild);
+  return { meta, body };
+}
+
+function clearResponses() {
+  document.getElementById('response-area').innerHTML =
+    '<div style="color:var(--muted); font-size:11px; font-family:\'JetBrains Mono\',monospace; text-align:center; margin-top:40px;">Responses will appear here</div>';
+}
+
+async function apiFetch(label, url, options = {}) {
+  const { meta, body } = log(label, null, null);
+  try {
+    const res = await fetch(url, { ...options, mode: 'cors' });
+    let data;
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('application/json')) data = await res.json();
+    else if (ct.includes('application/octet-stream') || ct.includes('application/force-download') || res.headers.get('content-disposition')) {
+      // File download
+      const blob = await res.blob();
+      const dlUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = dlUrl;
+      a.download = 'autotaxonomy.json';
+      a.click();
+      data = { message: 'File downloaded successfully.' };
+    } else {
+      data = await res.text();
+      try { data = JSON.parse(data); } catch {}
+    }
+    const codeClass = res.status >= 200 && res.status < 300 ? 'code-2xx' : res.status >= 400 && res.status < 500 ? 'code-4xx' : 'code-5xx';
+    meta.innerHTML = `<span class="endpoint">${label}</span><span class="code ${codeClass}">${res.status}</span>`;
+    body.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    return { status: res.status, data, headers: res.headers };
+  } catch (e) {
+    meta.innerHTML = `<span class="endpoint">${label}</span><span class="code code-5xx">ERR</span>`;
+    body.textContent = e.message + '\n\nNote: If this is a CORS error, ensure the API server allows cross-origin requests, or serve this file from a web server on the same host.';
+    return { status: 0, data: null };
+  }
+}
+
+function updateSessionUI() {
+  const el = document.getElementById('sidebar-session');
+  const pill = document.getElementById('conn-pill');
+  if (sessionId) {
+    el.textContent = sessionId.substring(0, 20) + '...';
+    el.className = 'value';
+    pill.textContent = 'Connected';
+    pill.className = 'status-pill';
+  } else {
+    el.textContent = 'Not connected';
+    el.className = 'value none';
+    pill.textContent = 'Disconnected';
+    pill.className = 'status-pill disconnected';
+  }
+}
+
+// ── A. VECTORSTORE ──
+async function doHealthCheck() {
+  const c = cfg();
+  await apiFetch('GET /health', `${c.vsUrl}/health`);
+}
+
+async function doConnect() {
+  const c = cfg();
+  const res = await apiFetch('POST /session', `${c.vsUrl}/session`, {
+    method: 'POST',
+    headers: {
+      'Authorization': basicAuth(c.username, c.password),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ database_name: c.database }),
+    credentials: 'include',
+  });
+  if (res.data && typeof res.data === 'string') {
+    sessionId = res.data.replace(/^"|"$/g, '');
+  } else if (res.data && res.data.session_id) {
+    sessionId = res.data.session_id;
+  }
+  // Try to parse from cookie info if available
+  updateSessionUI();
+}
+
+async function doDisconnect() {
+  const c = cfg();
+  await apiFetch('DELETE /session', `${c.vsUrl}/session`, {
+    method: 'DELETE',
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+  sessionId = null;
+  updateSessionUI();
+}
+
+async function doGetPatterns() {
+  const c = cfg();
+  await apiFetch('GET /patterns', `${c.vsUrl}/patterns`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doCreatePattern() {
+  const c = cfg();
+  const name = document.getElementById('pat-name').value;
+  const str = document.getElementById('pat-string').value;
+  const url = `${c.vsUrl}/patterns/${name}?pattern_string=${encodeURIComponent(str)}&log_level=1`;
+  await apiFetch(`POST /patterns/${name}`, url, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doGetPatternObjects() {
+  const c = cfg();
+  const name = document.getElementById('pat-get-name').value;
+  await apiFetch(`GET /patterns/${name}`, `${c.vsUrl}/patterns/${name}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+function vsUrl(c) {
+  return `${c.vsUrl}/vectorstores/${c.vectorstore}?log_level=1`;
+}
+
+async function doCreateVS() {
+  const c = cfg();
+  const vsParams = {
+    embeddings_model: document.getElementById('vs-model').value,
+    search_algorithm: document.getElementById('vs-algorithm').value,
+    top_k: parseInt(document.getElementById('vs-topk').value),
+  };
+  const patterns = document.getElementById('vs-include-patterns').value.split(',').map(s => s.trim()).filter(Boolean);
+  const targetDb = document.getElementById('vs-target-db').value || c.database;
+  const vsIndex = { target_database: targetDb };
+  if (patterns.length) vsIndex.include_patterns = patterns;
+
+  const form = new FormData();
+  form.append('vs_parameters', JSON.stringify(vsParams));
+  form.append('vs_index', JSON.stringify(vsIndex));
+
+  await apiFetch('POST /vectorstores', vsUrl(c), {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    body: form,
+    credentials: 'include',
+  });
+}
+
+async function doVSStatus() {
+  const c = cfg();
+  await apiFetch('GET /vectorstores (status)', vsUrl(c), {
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doVSDetails() {
+  const c = cfg();
+  await apiFetch('GET /vectorstores (details)', `${c.vsUrl}/vectorstores/${c.vectorstore}?get_details=true&log_level=1`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doUpdateVS() {
+  const c = cfg();
+  const alterOp = document.getElementById('vs-alter-op').value;
+  const objects = document.getElementById('vs-update-objects').value.split(',').map(s => s.trim()).filter(Boolean);
+  const newAlgo = document.getElementById('vs-new-algorithm').value;
+
+  const vsParams = {};
+  if (newAlgo) vsParams.search_algorithm = newAlgo;
+  const vsIndex = { include_objects: objects, alter_operation: alterOp };
+
+  const form = new FormData();
+  form.append('vs_parameters', JSON.stringify(vsParams));
+  form.append('vs_index', JSON.stringify(vsIndex));
+
+  await apiFetch('PATCH /vectorstores', vsUrl(c), {
+    method: 'PATCH',
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    body: form,
+    credentials: 'include',
+  });
+}
+
+async function doListVS() {
+  const c = cfg();
+  await apiFetch('GET /vectorstores (list)', `${c.vsUrl}/vectorstores`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doDeleteVS() {
+  if (!confirm('Delete VectorStore? This cannot be undone.')) return;
+  const c = cfg();
+  await apiFetch('DELETE /vectorstores', vsUrl(c), {
+    method: 'DELETE',
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doModifyPermissions() {
+  const c = cfg();
+  const user = document.getElementById('perm-user').value;
+  const action = document.getElementById('perm-action').value;
+  const level = document.getElementById('perm-level').value;
+  const url = `${c.vsUrl}/permissions/${c.vectorstore}?user_name=${user}&action=${action}&permission=${level}`;
+  await apiFetch('PUT /permissions', url, {
+    method: 'PUT',
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doGetPermissions() {
+  const c = cfg();
+  await apiFetch('GET /permissions', `${c.vsUrl}/permissions/${c.vectorstore}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+async function doVSObjectList() {
+  const c = cfg();
+  await apiFetch('GET /vectorstores (objects)', vsUrl(c) + '&get_object_list=true', {
+    headers: { 'Authorization': basicAuth(c.username, c.password) },
+    credentials: 'include',
+  });
+}
+
+// ── B. SQL GEN ──
+function sqlGenParams(c) {
+  return new URLSearchParams({ hostname: c.hostname, database: c.database, vectorstore: c.vectorstore });
+}
+
+async function doUploadFiles() {
+  const c = cfg();
+  const form = new FormData();
+  const synonymsFile = document.getElementById('file-synonyms').files[0];
+  const taxonomyFile = document.getElementById('file-taxonomy').files[0];
+  const atFile = document.getElementById('file-autotaxonomy').files[0];
+  if (synonymsFile) form.append('synonyms_file', synonymsFile);
+  if (taxonomyFile) form.append('taxonomy_disambiguation_file', taxonomyFile);
+  if (atFile) form.append('autotaxonomy_file', atFile);
+
+  if (!synonymsFile && !taxonomyFile && !atFile) {
+    alert('Please select at least one file to upload.');
+    return;
+  }
+
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, vectorstore: c.vectorstore, replace_existing: document.getElementById('file-replace').checked });
+  await apiFetch('POST /files', `${c.vm}/sql-gen/api/v1/files?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+    body: form,
+  });
+}
+
+async function doRunIndexScripts() {
+  const c = cfg();
+  const params = sqlGenParams(c);
+  await apiFetch('POST /indexing-scripts', `${c.vm}/sql-gen/api/v1/indexing-scripts?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doRunAutoTaxonomy() {
+  const c = cfg();
+  const pattern = document.getElementById('at-pattern').value;
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, vectorstore: c.vectorstore, table_pattern: pattern });
+  await apiFetch('POST /autotaxonomy-script', `${c.vm}/sql-gen/api/v1/autotaxonomy-script?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doDownloadAutoTaxonomy() {
+  const c = cfg();
+  const params = sqlGenParams(c);
+  await apiFetch('GET /autotaxonomy-file', `${c.vm}/sql-gen/api/v1/autotaxonomy-file?${params}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doGetSQLGenStatus() {
+  const c = cfg();
+  const params = sqlGenParams(c);
+  await apiFetch('GET /status', `${c.vm}/sql-gen/api/v1/status?${params}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doUploadUserProfiles() {
+  const c = cfg();
+  const file = document.getElementById('up-file').files[0];
+  if (!file) { alert('Please select a file.'); return; }
+  const form = new FormData();
+  form.append('user_profiles_file', file);
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, vectorstore: c.vectorstore, replace_existing: document.getElementById('up-replace').checked });
+  await apiFetch('POST /user-profiles', `${c.vm}/sql-gen/api/v1/user-profiles?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+    body: form,
+  });
+}
+
+async function doDeleteUserProfile() {
+  const c = cfg();
+  const user = document.getElementById('del-profile-user').value;
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, username: user });
+  await apiFetch('DELETE /user-profile', `${c.vm}/sql-gen/api/v1/user-profile?${params}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doListUserProfiles() {
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('GET /user-profiles', `${c.vm}/sql-gen/api/v1/user-profiles?${params}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doInsertUserProfile() {
+  const c = cfg();
+  const params = new URLSearchParams({
+    hostname: c.hostname, database: c.database,
+    username: document.getElementById('ins-username').value,
+    acct_team_member_qlid: document.getElementById('ins-qlid').value,
+    acct_team_member_role_name: document.getElementById('ins-role').value,
+    acct_team_member_name: document.getElementById('ins-name').value,
+  });
+  await apiFetch('POST /user-profile', `${c.vm}/sql-gen/api/v1/user-profile?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doUpdateUserProfile() {
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, current_username: document.getElementById('upd-current').value });
+  const nu = document.getElementById('upd-new-user').value; if (nu) params.append('new_username', nu);
+  const nq = document.getElementById('upd-qlid').value; if (nq) params.append('new_acct_team_member_qlid', nq);
+  const nr = document.getElementById('upd-role').value; if (nr) params.append('new_acct_team_member_role_name', nr);
+  const nn = document.getElementById('upd-name').value; if (nn) params.append('new_acct_team_member_name', nn);
+  await apiFetch('PUT /user-profile', `${c.vm}/sql-gen/api/v1/user-profile?${params}`, {
+    method: 'PUT',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doUploadTableDesc() {
+  const c = cfg();
+  const file = document.getElementById('td-file').files[0];
+  if (!file) { alert('Please select a file.'); return; }
+  const form = new FormData();
+  form.append('table_description_file', file);
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, replace_existing: document.getElementById('td-replace').checked });
+  await apiFetch('POST /table-descriptions', `${c.vm}/sql-gen/api/v1/table-descriptions?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+    body: form,
+  });
+}
+
+async function doDeleteTableDesc() {
+  if (!confirm('Delete all table descriptions?')) return;
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('DELETE /table-descriptions', `${c.vm}/sql-gen/api/v1/table-descriptions?${params}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doListTableDesc() {
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('GET /table-descriptions', `${c.vm}/sql-gen/api/v1/table-descriptions?${params}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doUploadColDesc() {
+  const c = cfg();
+  const file = document.getElementById('cd-file').files[0];
+  if (!file) { alert('Please select a file.'); return; }
+  const form = new FormData();
+  form.append('column_description_file', file);
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, replace_existing: document.getElementById('cd-replace').checked });
+  await apiFetch('POST /column-descriptions', `${c.vm}/sql-gen/api/v1/column-descriptions?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+    body: form,
+  });
+}
+
+async function doDeleteColDesc() {
+  if (!confirm('Delete all column descriptions?')) return;
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('DELETE /column-descriptions', `${c.vm}/sql-gen/api/v1/column-descriptions?${params}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doListColDesc() {
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('GET /column-descriptions', `${c.vm}/sql-gen/api/v1/column-descriptions?${params}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doUploadAcronyms() {
+  const c = cfg();
+  const file = document.getElementById('acr-file').files[0];
+  if (!file) { alert('Please select a file.'); return; }
+  const form = new FormData();
+  form.append('acronyms_file', file);
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database, replace_existing: document.getElementById('acr-replace').checked });
+  await apiFetch('POST /acronyms', `${c.vm}/sql-gen/api/v1/acronyms?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+    body: form,
+  });
+}
+
+async function doDeleteAcronyms() {
+  if (!confirm('Delete all acronyms?')) return;
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('DELETE /acronyms', `${c.vm}/sql-gen/api/v1/acronyms?${params}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doListAcronyms() {
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('GET /acronyms', `${c.vm}/sql-gen/api/v1/acronyms?${params}`, {
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+
+async function doInitializeSQLGen() {
+  const c = cfg();
+  const params = new URLSearchParams({ hostname: c.hostname, database: c.database });
+  await apiFetch('POST /sql-gen-initialization', `${c.vm}/sql-gen/api/v1/sql-gen-initialization?${params}`, {
+    method: 'POST',
+    headers: { 'Authorization': basicAuth(c.username, c.password), 'accept': 'application/json' },
+  });
+}
+</script>
+</body>
+</html>

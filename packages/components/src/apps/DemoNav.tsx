@@ -5,6 +5,10 @@
  * Shows list of available demos with current demo highlighted.
  */
 import * as React from 'react';
+import { Logo } from './Logo';
+import { IconButton } from '../molecules/icon-button';
+import { Button } from '../primitives/button';
+import { Menu, X, ChevronRight } from 'lucide-react';
 
 export interface DemoItem {
   id: string;
@@ -14,6 +18,12 @@ export interface DemoItem {
 }
 
 export const DEMO_ITEMS: DemoItem[] = [
+  {
+    id: 'docs',
+    title: 'Documentation',
+    description: 'Complete guide to all available demos',
+    path: '/src/apps/demo-docs.html',
+  },
   {
     id: 'spacing',
     title: 'Spacing Utilities',
@@ -33,10 +43,22 @@ export const DEMO_ITEMS: DemoItem[] = [
     path: '/src/apps/showcase.html',
   },
   {
+    id: 'playground',
+    title: 'Component Playground',
+    description: 'Interactive props, variations & docs',
+    path: '/src/apps/playground.html',
+  },
+  {
     id: 'kitchen-sink',
     title: 'Kitchen Sink',
     description: 'All SurfacesUI primitives and molecules',
     path: '/src/apps/kitchen-sink.html',
+  },
+  {
+    id: 'ai-playground',
+    title: 'AI Playground',
+    description: 'Generate pages with any LLM',
+    path: '/src/apps/ai-playground.html',
   },
   {
     id: 'loom',
@@ -44,74 +66,70 @@ export const DEMO_ITEMS: DemoItem[] = [
     description: 'Bridge integration with Loom server',
     path: '/src/apps/demo-loom.html',
   },
+  {
+    id: 'sql-visual-explain',
+    title: 'SQL Visual Explain',
+    description: 'Interactive query plan visualization',
+    path: '/src/apps/sql-visual-explain.html',
+  },
 ];
+
+export interface SubMenuItem {
+  id: string;
+  label: string;
+  onClick?: () => void;
+}
 
 interface DemoNavProps {
   currentDemo: string;
+  subMenuItems?: SubMenuItem[];
+  activeSubItem?: string;
 }
 
-export function DemoNav({ currentDemo }: DemoNavProps) {
+export function DemoNav({ currentDemo, subMenuItems, activeSubItem }: DemoNavProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isSubMenuOpen, setIsSubMenuOpen] = React.useState(true);
 
   return (
     <>
       {/* Mobile Toggle Button */}
-      <button
+      <IconButton
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed bottom-4 right-4 z-50 bg-primary text-primary-foreground rounded-full p-3 shadow-lg hover:bg-primary/90 transition-colors"
+        variant="filled"
+        size="lg"
+        className="lg:hidden fixed bottom-4 right-4 z-50 shadow-lg"
         aria-label="Toggle demo navigation"
       >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
+        <Menu className="h-6 w-6" />
+      </IconButton>
 
       {/* Navigation Panel */}
       <nav
         className={`
-          fixed lg:sticky top-0 left-0 h-screen w-64 bg-surface-container-lowest border-r border-border
+          fixed lg:sticky top-0 left-0 h-screen w-64 bg-surface-container-lowest
           flex flex-col z-40 transform transition-transform duration-200 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         {/* Header */}
-        <div className="border-b border-border px-4 py-5">
+        <div className="px-4 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-                SurfacesUI
-              </p>
-              <h2 className="mt-0.5 text-base font-bold">Demos</h2>
+              <Logo height={28} />
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xs text-muted-foreground">v0.1.0</span>
+                <h2 className="text-base font-bold">Demos</h2>
+              </div>
             </div>
-            <button
+            <IconButton
               onClick={() => setIsOpen(false)}
-              className="lg:hidden text-muted-foreground hover:text-foreground"
+              variant="standard"
+              size="sm"
+              className="lg:hidden"
               aria-label="Close navigation"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+              <X className="h-5 w-5" />
+            </IconButton>
           </div>
         </div>
 
@@ -119,42 +137,70 @@ export function DemoNav({ currentDemo }: DemoNavProps) {
         <div className="flex-1 overflow-y-auto px-2 py-3">
           {DEMO_ITEMS.map((demo) => {
             const isActive = currentDemo === demo.id;
+            const hasSubMenu = isActive && subMenuItems && subMenuItems.length > 0;
+
             return (
-              <a
-                key={demo.id}
-                href={demo.path}
-                className={`
-                  block mb-1 rounded-lg px-3 py-2.5 text-sm transition-colors
-                  ${
-                    isActive
-                      ? 'bg-secondary-container text-secondary-container-foreground font-medium'
-                      : 'text-muted-foreground hover:bg-secondary-container/10 hover:text-foreground'
-                  }
-                `}
-              >
-                <div className="font-medium">{demo.title}</div>
+              <div key={demo.id}>
+                {/* Parent Item */}
                 <div
-                  className={`text-xs mt-0.5 ${
-                    isActive
-                      ? 'text-secondary-container-foreground/70'
-                      : 'text-muted-foreground'
-                  }`}
+                  className={`
+                    flex items-center mb-1 rounded-lg transition-colors
+                    ${
+                      isActive
+                        ? 'bg-secondary-container text-secondary-container-foreground font-medium'
+                        : 'text-muted-foreground hover:bg-secondary-container/10 hover:text-foreground'
+                    }
+                  `}
                 >
-                  {demo.description}
+                  <a
+                    href={demo.path}
+                    className="flex-1 px-3 py-2.5 text-sm"
+                  >
+                    <div className="font-medium">{demo.title}</div>
+                    <div
+                      className={`text-xs mt-0.5 ${
+                        isActive
+                          ? 'text-secondary-container-foreground/70'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      {demo.description}
+                    </div>
+                  </a>
+
+                  {/* Collapse button - only show if has submenu */}
+                  {hasSubMenu && (
+                    <IconButton
+                      onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
+                      variant="standard"
+                      size="sm"
+                      className="px-2"
+                      aria-label={isSubMenuOpen ? 'Collapse navigation' : 'Expand navigation'}
+                    >
+                      <ChevronRight className={`h-4 w-4 transition-transform ${isSubMenuOpen ? 'rotate-90' : ''}`} />
+                    </IconButton>
+                  )}
                 </div>
-              </a>
+
+                {/* Submenu */}
+                {hasSubMenu && isSubMenuOpen && (
+                  <div className="ml-4 mb-2 space-y-0.5">
+                    {subMenuItems.map((item) => (
+                      <Button
+                        key={item.id}
+                        onClick={item.onClick}
+                        variant={activeSubItem === item.id ? 'tonal' : 'text'}
+                        size="sm"
+                        className="w-full justify-start text-xs h-auto py-1.5"
+                      >
+                        {item.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-border px-4 py-3">
-          <p className="text-xs text-muted-foreground">
-            SurfacesUI Demo Gallery
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Component library showcase
-          </p>
         </div>
       </nav>
 

@@ -33,7 +33,17 @@ describe("SURFACES_APPS registry", () => {
   });
 
   it("AppId type covers all keys", () => {
-    const ids: AppId[] = ["sql-editor-cdn", "json-render-cdn"];
+    const ids: AppId[] = [
+      "react-test",
+      "pure-html-test",
+      "simple-test",
+      "sql-editor-cdn",
+      "json-render-cdn",
+      "dashboard-viewer",
+      "component-gallery",
+      "test-viewer",
+      "sql-visual-explain-cdn",
+    ];
     expect(ids).toHaveLength(Object.keys(SURFACES_APPS).length);
   });
 });

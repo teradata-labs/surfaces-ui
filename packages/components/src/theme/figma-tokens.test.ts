@@ -200,7 +200,7 @@ describe('mapFigmaVariablesToSurfaces', () => {
     expect(result.dark.background).toMatch(/^\d+ \d+% \d+%$/);
   });
 
-  it('skips non-color variables', () => {
+  it('skips non-color variables by default', () => {
     const variables: FigmaVariable[] = [
       {
         id: '1',
@@ -213,6 +213,88 @@ describe('mapFigmaVariablesToSurfaces', () => {
     const result = mapFigmaVariablesToSurfaces(variables);
 
     expect(Object.keys(result.root)).toHaveLength(0);
+    expect(result.components).toBeUndefined();
+  });
+
+  it('includes FLOAT variables when includeFloats is true', () => {
+    const variables: FigmaVariable[] = [
+      {
+        id: '1',
+        name: 'components/button-height',
+        resolvedType: 'FLOAT',
+        valuesByMode: { light: 36 },
+      },
+      {
+        id: '2',
+        name: 'components/chip-height',
+        resolvedType: 'FLOAT',
+        valuesByMode: { light: 32 },
+      },
+    ];
+
+    const result = mapFigmaVariablesToSurfaces(variables, { includeFloats: true });
+
+    expect(result.components).toBeDefined();
+    expect(result.components!['button-height']).toBe('36px');
+    expect(result.components!['chip-height']).toBe('32px');
+  });
+
+  it('applies custom float unit', () => {
+    const variables: FigmaVariable[] = [
+      {
+        id: '1',
+        name: 'spacing/md',
+        resolvedType: 'FLOAT',
+        valuesByMode: { light: 1 },
+      },
+    ];
+
+    const result = mapFigmaVariablesToSurfaces(variables, {
+      includeFloats: true,
+      floatUnit: 'rem',
+    });
+
+    expect(result.components!['md']).toBe('1rem');
+  });
+
+  it('applies custom float mapping', () => {
+    const variables: FigmaVariable[] = [
+      {
+        id: '1',
+        name: 'components/button-height',
+        resolvedType: 'FLOAT',
+        valuesByMode: { light: 36 },
+      },
+    ];
+
+    const result = mapFigmaVariablesToSurfaces(variables, {
+      includeFloats: true,
+      floatMapping: { 'button-height': 'su-button-height' },
+    });
+
+    expect(result.components!['su-button-height']).toBe('36px');
+  });
+
+  it('handles mixed COLOR and FLOAT variables', () => {
+    const variables: FigmaVariable[] = [
+      {
+        id: '1',
+        name: 'colors/primary',
+        resolvedType: 'COLOR',
+        valuesByMode: { light: '#3053f4' },
+      },
+      {
+        id: '2',
+        name: 'components/button-height',
+        resolvedType: 'FLOAT',
+        valuesByMode: { light: 36 },
+      },
+    ];
+
+    const result = mapFigmaVariablesToSurfaces(variables, { includeFloats: true });
+
+    expect(result.root.primary).toMatch(/^\d+ \d+% \d+%$/);
+    expect(result.components!['button-height']).toBe('36px');
   });
 });
 
@@ -231,6 +313,38 @@ describe('generateSurfacesCSS', () => {
     expect(css).toContain(':root {');
     expect(css).toContain('--background: 0 0% 100%;');
     expect(css).toContain('--foreground: 222 84% 5%;');
+  });
+
+  it('generates CSS for component tokens', () => {
+    const tokens: SurfacesTokens = {
+      root: {},
+      dark: {},
+      components: {
+        'su-button-height': '36px',
+        'su-chip-height': '32px',
+      },
+    };
+
+    const css = generateSurfacesCSS(tokens);
+
+    expect(css).toContain('/* Component tokens */');
+    expect(css).toContain('--su-button-height: 36px;');
+    expect(css).toContain('--su-chip-height: 32px;');
+  });
+
+  it('generates CSS for elevation tokens', () => {
+    const tokens: SurfacesTokens = {
+      root: {},
+      dark: {},
+      elevation: {
+        'elevation-1': '0 1px 3px rgba(0,0,0,0.15)',
+      },
+    };
+
+    const css = generateSurfacesCSS(tokens);
+
+    expect(css).toContain('/* Elevation tokens */');
+    expect(css).toContain('--elevation-1: 0 1px 3px rgba(0,0,0,0.15);');
   });
 
   it('generates CSS for dark tokens', () => {

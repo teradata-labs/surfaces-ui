@@ -83,3 +83,42 @@ describe('RadioGroup', () => {
     expect(document.activeElement).toBe(screen.getByLabelText('Option A'));
   });
 });
+
+describe('RadioGroupItem custom icon', () => {
+  it('renders custom icon when selected', () => {
+    render(
+      <RadioGroup defaultValue="a" aria-label="Options">
+        <RadioGroupItem
+          value="a"
+          aria-label="Option A"
+          icon={<span data-testid="custom-radio-icon">✓</span>}
+        />
+      </RadioGroup>
+    );
+    expect(screen.getByTestId('custom-radio-icon')).toBeDefined();
+  });
+
+  it('renders default filled circle when no custom icon and selected', () => {
+    const { container } = render(
+      <RadioGroup defaultValue="a" aria-label="Options">
+        <RadioGroupItem value="a" aria-label="Option A" />
+      </RadioGroup>
+    );
+    // Default indicator is a div with w-3 h-3 rounded-full bg-primary
+    const indicator = container.querySelector('.bg-primary.rounded-full');
+    expect(indicator).not.toBeNull();
+  });
+
+  it('does not render icon when not selected', () => {
+    render(
+      <RadioGroup aria-label="Options">
+        <RadioGroupItem
+          value="a"
+          aria-label="Option A"
+          icon={<span data-testid="custom-radio-icon">✓</span>}
+        />
+      </RadioGroup>
+    );
+    expect(screen.queryByTestId('custom-radio-icon')).toBeNull();
+  });
+});

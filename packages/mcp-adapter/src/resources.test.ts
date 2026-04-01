@@ -19,15 +19,20 @@ const {
 } = await import("./resources.js");
 
 describe("getSurfacesResources", () => {
-  it("returns one resource per registered app", () => {
+  it("returns resources for apps, stylesheets, and docs", () => {
     const resources = getSurfacesResources();
-    expect(resources).toHaveLength(Object.keys(SURFACES_APPS).length);
+    // Should have apps + stylesheets + docs
+    const expectedCount =
+      Object.keys(SURFACES_APPS).length +
+      2 + // SURFACES_STYLESHEETS (tokens, components)
+      1;  // SURFACES_DOCS (react-components)
+    expect(resources).toHaveLength(expectedCount);
   });
 
-  it("uses the surfaces-ui/apps/ path-based URI format", () => {
+  it("uses the ui:// URI scheme format", () => {
     const resources = getSurfacesResources();
     for (const r of resources) {
-      expect(r.uri).toMatch(/^surfaces-ui\/apps\//);
+      expect(r.uri).toMatch(/^ui:\/\//);
     }
   });
 
@@ -38,15 +43,20 @@ describe("getSurfacesResources", () => {
       expect(r.name.length).toBeGreaterThan(0);
       expect(typeof r.description).toBe("string");
       expect(r.description.length).toBeGreaterThan(0);
-      expect(r.mimeType).toBe("text/html;profile=mcp-app");
+      // MimeType can be HTML, CSS, or Markdown
+      expect(["text/html;profile=mcp-app", "text/css", "text/markdown"]).toContain(r.mimeType);
     }
   });
 
   it("maps URIs to app IDs correctly", () => {
     const resources = getSurfacesResources();
     const uris = resources.map((r) => r.uri);
-    expect(uris).toContain("surfaces-ui/apps/sql-editor-cdn");
-    expect(uris).toContain("surfaces-ui/apps/json-render-cdn");
+    expect(uris).toContain("ui://surfaces-ui/pure-html-test");
+    expect(uris).toContain("ui://surfaces-ui/simple-test");
+    expect(uris).toContain("ui://surfaces-ui/sql-editor-cdn");
+    expect(uris).toContain("ui://surfaces-ui/json-render-cdn");
+    expect(uris).toContain("ui://surfaces-ui/dashboard-viewer");
+    expect(uris).toContain("ui://surfaces-ui/component-gallery");
   });
 });
 
@@ -57,57 +67,59 @@ describe("readSurfacesResource", () => {
 
   it("returns content for a valid URI", () => {
     const content = readSurfacesResource(
-      "surfaces-ui/apps/sql-editor-cdn",
+      "ui://surfaces-ui/sql-editor-cdn",
     );
-    expect(content.uri).toBe("surfaces-ui/apps/sql-editor-cdn");
+    expect(content.uri).toBe("ui://surfaces-ui/sql-editor-cdn");
     expect(content.mimeType).toBe("text/html;profile=mcp-app");
     expect(content.text).toContain("<!DOCTYPE html>");
   });
 
-  it("throws for an unknown app ID", () => {
+  it("throws for an unknown resource ID", () => {
     expect(() =>
-      readSurfacesResource("surfaces-ui/apps/nonexistent"),
-    ).toThrow('Unknown surfaces-ui app: "nonexistent"');
+      readSurfacesResource("ui://surfaces-ui/nonexistent"),
+    ).toThrow('Unknown surfaces-ui resource: "nonexistent"');
   });
 
   it("throws for path traversal attempts", () => {
     expect(() =>
-      readSurfacesResource("surfaces-ui/apps/../../etc/passwd"),
-    ).toThrow('Unknown surfaces-ui app: "../../etc/passwd"');
+      readSurfacesResource("ui://surfaces-ui/../../etc/passwd"),
+    ).toThrow('Unknown surfaces-ui resource: "../../etc/passwd"');
   });
 
   it("throws for prototype pollution keys", () => {
     expect(() =>
-      readSurfacesResource("surfaces-ui/apps/__proto__"),
-    ).toThrow('Unknown surfaces-ui app: "__proto__"');
+      readSurfacesResource("ui://surfaces-ui/__proto__"),
+    ).toThrow('Unknown surfaces-ui resource: "__proto__"');
 
     expect(() =>
-      readSurfacesResource("surfaces-ui/apps/constructor"),
-    ).toThrow('Unknown surfaces-ui app: "constructor"');
+      readSurfacesResource("ui://surfaces-ui/constructor"),
+    ).toThrow('Unknown surfaces-ui resource: "constructor"');
   });
 
-  it("throws a helpful error when HTML bundle is missing", () => {
+  it("throws a helpful error when resource file is missing", () => {
     vi.mocked(readFileSync).mockImplementationOnce(() => {
       throw new Error("ENOENT: no such file or directory");
     });
 
     expect(() =>
-      readSurfacesResource("surfaces-ui/apps/sql-editor-cdn"),
-    ).toThrow('HTML bundle for "sql-editor-cdn" not found');
+      readSurfacesResource("ui://surfaces-ui/sql-editor-cdn"),
+    ).toThrow('Resource file "sql-editor-cdn.html" for "sql-editor-cdn" not found');
   });
 });
 
 describe("isSurfacesUri", () => {
-  it("returns true for path-based surfaces-ui/apps/ URIs", () => {
-    expect(isSurfacesUri("surfaces-ui/apps/sql-editor-cdn")).toBe(true);
-    expect(isSurfacesUri("surfaces-ui/apps/json-render-cdn")).toBe(true);
+  it("returns true for ui://surfaces-ui/ scheme URIs", () => {
+    expect(isSurfacesUri("ui://surfaces-ui/sql-editor-cdn")).toBe(true);
+    expect(isSurfacesUri("ui://surfaces-ui/json-render-cdn")).toBe(true);
+    expect(isSurfacesUri("ui://surfaces-ui/dashboard-viewer")).toBe(true);
   });
 
   it("returns false for non-surfaces URIs", () => {
     expect(isSurfacesUri("file:///tmp/test.html")).toBe(false);
     expect(isSurfacesUri("https://example.com")).toBe(false);
-    expect(isSurfacesUri("ui://sql-editor")).toBe(false);
     expect(isSurfacesUri("surfaces-ui://apps/old-format")).toBe(false);
+    expect(isSurfacesUri("surfaces-ui/apps/sql-editor")).toBe(false);
+    expect(isSurfacesUri("ui://other-server/sql-editor")).toBe(false);
     expect(isSurfacesUri("")).toBe(false);
   });
 });
@@ -125,13 +137,22 @@ describe("validateBundles", () => {
     expect(missing).toEqual([]);
   });
 
-  it("returns app IDs for missing bundles", async () => {
+  it("returns resource IDs for missing files", async () => {
     const { existsSync } = await import("node:fs");
     vi.mocked(existsSync).mockReturnValue(false);
 
     const missing = validateBundles();
+    // Should include missing apps, stylesheets, and docs
     expect(missing).toContain("sql-editor-cdn");
     expect(missing).toContain("json-render-cdn");
-    expect(missing).toHaveLength(Object.keys(SURFACES_APPS).length);
+    expect(missing).toContain("styles/tokens");
+    expect(missing).toContain("styles/components");
+    expect(missing).toContain("docs/react-components");
+    // Total count: apps + stylesheets + docs
+    const expectedCount =
+      Object.keys(SURFACES_APPS).length +
+      2 + // SURFACES_STYLESHEETS
+      1;  // SURFACES_DOCS
+    expect(missing).toHaveLength(expectedCount);
   });
 });

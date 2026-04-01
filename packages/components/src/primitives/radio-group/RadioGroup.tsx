@@ -9,6 +9,8 @@ export interface RadioGroupProps
 
 export interface RadioGroupItemProps
   extends React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> {
+  /** Custom icon to display when selected (replaces default filled circle) */
+  icon?: React.ReactNode;
   className?: string;
 }
 
@@ -27,7 +29,7 @@ RadioGroup.displayName = 'RadioGroup';
 const RadioGroupItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
   RadioGroupItemProps
->(({ className, ...props }, ref) => (
+>(({ className, icon, ...props }, ref) => (
   <RadioGroupPrimitive.Item
     ref={ref}
     className={cn(
@@ -45,8 +47,8 @@ const RadioGroupItem = React.forwardRef<
     )}
     {...props}
   >
-    <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-      <div className="w-3 h-3 rounded-full bg-primary" />
+    <RadioGroupPrimitive.Indicator className="flex items-center justify-center text-primary">
+      {icon || <div className="w-3 h-3 rounded-full bg-primary" />}
     </RadioGroupPrimitive.Indicator>
   </RadioGroupPrimitive.Item>
 ));

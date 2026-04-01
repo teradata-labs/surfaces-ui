@@ -63,6 +63,23 @@ export function DataTable({
     );
   }
 
+  // Get column widths
+  const getColumnWidth = (col: string) => {
+    const colLower = col.toLowerCase();
+    if (colLower.includes('id') || colLower.includes('sessions') || colLower === 'type') {
+      return '10%';
+    } else if (colLower === 'status') {
+      return '12%';
+    } else if (colLower === 'name') {
+      return '18%';
+    } else if (colLower.includes('description')) {
+      return '50%';
+    } else if (colLower.includes('uri')) {
+      return '30%';
+    }
+    return 'auto';
+  };
+
   // Non-virtual rendering for small datasets
   if (!virtualScrolling || data.length <= 100) {
     return (
@@ -71,16 +88,22 @@ export function DataTable({
       >
         <div className="overflow-auto" style={{ maxHeight: `${height}px` }}>
           <table
-            className="w-full text-xs"
+            className="w-full text-xs table-fixed"
             role="grid"
             aria-rowcount={data.length + 1}
             aria-colcount={columns.length + (showRowNumbers ? 1 : 0)}
           >
+            <colgroup>
+              {showRowNumbers && <col style={{ width: '48px' }} />}
+              {columns.map((col) => (
+                <col key={col} style={{ width: getColumnWidth(col) }} />
+              ))}
+            </colgroup>
             <thead className="bg-muted sticky top-0 z-10">
               <tr aria-rowindex={1}>
                 {showRowNumbers && (
                   <th
-                    className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted w-12"
+                    className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted"
                     aria-colindex={1}
                   >
                     #
@@ -129,16 +152,22 @@ export function DataTable({
         style={{ height: `${height}px` }}
       >
         <table
-          className="w-full text-xs"
+          className="w-full text-xs table-fixed"
           role="grid"
           aria-rowcount={data.length + 1}
           aria-colcount={columns.length + (showRowNumbers ? 1 : 0)}
         >
+          <colgroup>
+            {showRowNumbers && <col style={{ width: '48px' }} />}
+            {columns.map((col) => (
+              <col key={col} style={{ width: getColumnWidth(col) }} />
+            ))}
+          </colgroup>
           <thead className="bg-muted sticky top-0 z-10">
             <tr aria-rowindex={1}>
               {showRowNumbers && (
                 <th
-                  className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted w-12"
+                  className="px-3 py-1.5 text-right font-medium text-muted-foreground border-b border-border bg-muted"
                   aria-colindex={1}
                 >
                   #

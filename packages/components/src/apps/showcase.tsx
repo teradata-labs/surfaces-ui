@@ -10,9 +10,11 @@
 
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ThemeProvider } from '../theme/ThemeProvider';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeWrapper } from './ThemeWrapper';
 import { SurfacesRenderer } from '../catalog/renderer';
+import { Button } from '../primitives/button';
+import { Card, CardHeader, CardContent } from '../primitives/card';
+import { Badge } from '../primitives/badge';
 import '../theme/tokens.css';
 
 const { useState } = React;
@@ -215,141 +217,102 @@ function getExamplePrompt(componentName: string): string {
   return prompts[componentName] || 'Generate a UI component';
 }
 
-function Showcase() {
+// Wrapper with submenu
+function ShowcaseApp() {
   const [selectedComponent, setSelectedComponent] = useState('sqlResultsDisplay');
-  const [showJson, setShowJson] = useState(false);
-  const [filterCategory, setFilterCategory] = useState('all');
 
-  const currentComponent = componentSpecs[selectedComponent as keyof typeof componentSpecs];
-  const categories = ['all', 'Organism', 'Molecule', 'Primitive'];
-
-  const filteredComponents = Object.entries(componentSpecs).filter(
-    ([_, comp]) => filterCategory === 'all' || comp.category === filterCategory
-  );
+  // Generate submenu items
+  const subMenuItems = Object.entries(componentSpecs).map(([key, comp]) => ({
+    id: key,
+    label: comp.name,
+    onClick: () => setSelectedComponent(key),
+  }));
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">SurfacesUI Component Showcase</h1>
-              <p className="text-sm text-muted-foreground">
-                8 components powered by json-render
-              </p>
+    <ThemeWrapper
+      title="Component Showcase"
+      description="8 components powered by json-render"
+      showDemoNav={true}
+      currentDemo="showcase"
+      subMenuItems={subMenuItems}
+      activeSubItem={selectedComponent}
+    >
+      <ShowcaseContent selectedComponent={selectedComponent} />
+    </ThemeWrapper>
+  );
+}
+
+// Content component
+function ShowcaseContent({ selectedComponent }: { selectedComponent: string }) {
+  const [showJson, setShowJson] = useState(false);
+  const currentComponent = componentSpecs[selectedComponent as keyof typeof componentSpecs];
+
+  return (
+    <div className="space-y-6">
+      {/* Controls */}
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowJson(!showJson)}
+        >
+          {showJson ? 'Hide JSON' : 'Show JSON'}
+        </Button>
+      </div>
+
+      {/* Main Content */}
+      <div className="space-y-6">
+        {/* Component Info */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold">{currentComponent.name}</h2>
+              <Badge variant="outline">{currentComponent.category}</Badge>
             </div>
-            <div className="flex gap-2 items-center">
-              <ThemeToggle />
-              <button
-                onClick={() => setShowJson(!showJson)}
-                className="px-3 py-1.5 text-sm rounded border hover:bg-accent"
-              >
-                {showJson ? 'Hide JSON' : 'Show JSON'}
-              </button>
+            <p className="text-muted-foreground mt-2">{currentComponent.description}</p>
+          </CardHeader>
+          <CardContent>
+            {/* Component Preview */}
+            <div className="border border-su-outline-variant rounded-lg p-4 bg-background">
+              <SurfacesRenderer
+                spec={currentComponent.spec}
+                initialState={{ data: currentComponent.data }}
+              />
             </div>
-          </div>
-        </div>
-      </header>
+          </CardContent>
+        </Card>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-4">
-              {/* Category Filter */}
-              <div>
-                <h3 className="text-sm font-semibold mb-2">Category</h3>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setFilterCategory(cat)}
-                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                        filterCategory === cat
-                          ? 'bg-secondary-container text-secondary-container-foreground'
-                          : 'border border-su-outline text-on-surface-variant hover:bg-secondary-container/10'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {/* JSON Spec (conditional) */}
+        {showJson && (
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold">JSON Specification</h3>
+            </CardHeader>
+            <CardContent>
+              <pre className="bg-muted p-4 rounded text-xs overflow-auto max-h-96">
+                {JSON.stringify(currentComponent.spec, null, 2)}
+              </pre>
+            </CardContent>
+          </Card>
+        )}
 
-              {/* Component List */}
-              <div>
-                <h3 className="text-sm font-semibold mb-2">
-                  Components ({filteredComponents.length})
-                </h3>
-                <nav className="space-y-1">
-                  {filteredComponents.map(([key, comp]) => (
-                    <button
-                      key={key}
-                      onClick={() => setSelectedComponent(key)}
-                      className={`w-full text-left px-3 py-2 text-sm rounded-full transition-colors ${
-                        selectedComponent === key
-                          ? 'bg-secondary-container text-secondary-container-foreground font-medium'
-                          : 'text-on-surface-variant hover:bg-secondary-container/10'
-                      }`}
-                    >
-                      <div>{comp.name}</div>
-                      <div className={`text-xs ${selectedComponent === key ? 'text-secondary-container-foreground/70' : 'text-on-surface-variant/70'}`}>{comp.category}</div>
-                    </button>
-                  ))}
-                </nav>
-              </div>
+        {/* Usage Info */}
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-semibold">Usage</h3>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Generate this component with natural language:
+            </p>
+            <div className="bg-muted p-3 rounded font-mono text-sm">
+              "{getExamplePrompt(currentComponent.name)}"
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Component Info */}
-            <div className="bg-card rounded-lg border border-su-outline-variant p-6">
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <h2 className="text-2xl font-bold">{currentComponent.name}</h2>
-                  <span className="px-2 py-0.5 text-xs rounded-full border border-su-outline text-on-surface-variant">
-                    {currentComponent.category}
-                  </span>
-                </div>
-                <p className="text-muted-foreground">{currentComponent.description}</p>
-              </div>
-
-              {/* Component Preview */}
-              <div className="border border-su-outline-variant rounded-lg p-4 bg-background">
-                <SurfacesRenderer
-                  spec={currentComponent.spec}
-                  initialState={{ data: currentComponent.data }}
-                />
-              </div>
-            </div>
-
-            {/* JSON Spec (conditional) */}
-            {showJson && (
-              <div className="bg-card rounded-lg border border-su-outline-variant p-6">
-                <h3 className="text-lg font-semibold mb-3">JSON Specification</h3>
-                <pre className="bg-muted p-4 rounded text-xs overflow-auto max-h-96">
-                  {JSON.stringify(currentComponent.spec, null, 2)}
-                </pre>
-              </div>
-            )}
-
-            {/* Usage Info */}
-            <div className="bg-card rounded-lg border border-su-outline-variant p-6">
-              <h3 className="text-lg font-semibold mb-3">Usage</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Generate this component with natural language:
-              </p>
-              <div className="bg-muted p-3 rounded font-mono text-sm">
-                "{getExamplePrompt(currentComponent.name)}"
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                → Use with vantage-mcp or surfaces-ui MCP server
-              </p>
-            </div>
-          </div>
-        </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              → Use with vantage-mcp or surfaces-ui MCP server
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
@@ -358,9 +321,5 @@ function Showcase() {
 // Mount application
 const root = document.getElementById('root');
 if (root) {
-  createRoot(root).render(
-    <ThemeProvider persistTheme>
-      <Showcase />
-    </ThemeProvider>
-  );
+  createRoot(root).render(<ShowcaseApp />);
 }

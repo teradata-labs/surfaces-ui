@@ -4,13 +4,29 @@ import { cn } from '../../lib/utils';
 
 export interface CheckboxProps
   extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
+  /** Custom icon to display when checked (replaces default checkmark) */
+  icon?: React.ReactNode;
+  /** Custom icon to display when indeterminate (replaces default dash) */
+  indeterminateIcon?: React.ReactNode;
   className?: string;
 }
+
+const defaultCheck = (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const defaultDash = (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+    <line x1="2" y1="6" x2="10" y2="6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   CheckboxProps
->(({ className, ...props }, ref) => (
+>(({ className, icon, indeterminateIcon, ...props }, ref) => (
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
@@ -30,24 +46,9 @@ const Checkbox = React.forwardRef<
     {...props}
   >
     <CheckboxPrimitive.Indicator className="flex items-center justify-center text-primary-foreground">
-      {props.checked === 'indeterminate' ? (
-        // Dash for indeterminate
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <line x1="2" y1="6" x2="10" y2="6" stroke="white" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      ) : (
-        // Checkmark
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <polyline
-            points="2,6 5,9 10,3"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
-        </svg>
-      )}
+      {props.checked === 'indeterminate'
+        ? (indeterminateIcon || defaultDash)
+        : (icon || defaultCheck)}
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));

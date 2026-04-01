@@ -9,12 +9,18 @@
 import * as React from 'react';
 import * as echarts from 'echarts';
 import { registerEChartsThemes } from '../../components/charts/echart-themes';
+import { chartThemes } from '../../theme/chart-themes';
 import { cn } from '../../lib/utils';
 import { generateChartOption, getSystemTheme, detectBestAxes } from './utils';
 import type { ChartProps } from './types';
 
-// Register themes on module load (idempotent)
+// Register original themes on module load (idempotent)
 registerEChartsThemes(echarts);
+
+// Also register new chart themes from theme directory
+Object.entries(chartThemes).forEach(([key, theme]) => {
+  echarts.registerTheme(key, theme);
+});
 
 export function Chart({
   data,
@@ -28,6 +34,7 @@ export function Chart({
 }: ChartProps) {
   const chartRef = React.useRef<HTMLDivElement>(null);
   const chartInstance = React.useRef<echarts.ECharts | null>(null);
+  const [initCount, setInitCount] = React.useState(0);
 
   // Determine axes - use provided or auto-detect
   const columns = React.useMemo(() => {
@@ -56,26 +63,51 @@ export function Chart({
   React.useEffect(() => {
     if (!chartRef.current) return;
 
+    console.log('[Chart] ========================================');
+    console.log('[Chart] Initializing with theme:', theme);
+    console.log('[Chart] Theme type:', typeof theme);
+    console.log('[Chart] Theme prop:', themeProp);
+    console.log('[Chart] Data length:', data.length);
+
+    // Check if theme is registered
+    const registeredThemes = Object.keys(chartThemes);
+    console.log('[Chart] Available themes:', registeredThemes);
+    console.log('[Chart] Theme is registered:', registeredThemes.includes(String(theme)));
+
     // Dispose existing instance (theme change requires re-init)
     if (chartInstance.current) {
+      console.log('[Chart] Disposing existing instance');
       chartInstance.current.dispose();
     }
 
+    // Create instance with theme
+    console.log('[Chart] Calling echarts.init with theme string:', theme);
     chartInstance.current = echarts.init(chartRef.current, theme);
+    console.log('[Chart] ECharts instance created:', chartInstance.current);
+    console.log('[Chart] ========================================');
+
+    // Trigger re-render to apply options to new instance
+    setInitCount(prev => prev + 1);
 
     return () => {
       chartInstance.current?.dispose();
       chartInstance.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
-  // Update chart options when data or config changes
+  // Update chart options when data or config changes OR when chart re-initializes
   React.useEffect(() => {
-    if (!chartInstance.current || !data.length) return;
+    if (!chartInstance.current || !data.length) {
+      console.log('[Chart] Skipping option update - instance:', !!chartInstance.current, 'data length:', data.length);
+      return;
+    }
 
+    console.log('[Chart] Generating chart option with:', { xAxis, yAxis, type, dataLength: data.length });
     const option = generateChartOption(data, xAxis, yAxis, type, showDataLabels);
+    console.log('[Chart] Setting option:', option);
     chartInstance.current.setOption(option, { notMerge: true });
-  }, [data, xAxis, yAxis, type, showDataLabels]);
+  }, [data, xAxis, yAxis, type, showDataLabels, initCount]);
 
   // Handle resize
   React.useEffect(() => {

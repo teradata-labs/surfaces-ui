@@ -1,6 +1,11 @@
 // Theme
 export { ThemeProvider, useTheme } from './theme/ThemeProvider';
-export type { ThemeConfig } from './theme/ThemeProvider';
+export type { ThemeConfig, DensityMode } from './theme/ThemeProvider';
+
+// Hooks
+export { useDensity } from './hooks/use-density';
+export { useAutoLayout, getLayoutedElements } from './hooks/use-auto-layout';
+export type { LayoutConfig, LayoutDirection } from './hooks/use-auto-layout';
 
 // Figma Design Tokens
 export {
@@ -40,9 +45,10 @@ export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 export { Badge, badgeVariants, NotificationBadge } from './primitives/badge';
 export type { BadgeProps, NotificationBadgeProps } from './primitives/badge';
 export { Alert, AlertTitle, AlertDescription } from './primitives/alert';
-export type { AlertProps } from './primitives/alert';
+export type { AlertProps, AlertVariant, AlertMode } from './primitives/alert';
 export {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -53,10 +59,17 @@ export {
 export { ScrollArea, ScrollBar } from './primitives/scroll-area';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './primitives/tabs';
 export { Label } from './primitives/label';
-export { Input } from './primitives/input';
+export { Input, inputVariants } from './primitives/input';
+export type { InputProps } from './primitives/input';
 export { Separator } from './primitives/separator';
 export { ViewModeToggle } from './primitives/view-mode-toggle';
 export type { ViewModeOption, ViewModeToggleProps } from './primitives/view-mode-toggle';
+
+// Flow primitives
+export { FlowHandle } from './primitives/flow-handle';
+export type { FlowHandleProps } from './primitives/flow-handle';
+export { FlowNode } from './primitives/flow-node';
+export type { FlowNodeProps, FlowNodeVariant } from './primitives/flow-node';
 
 // New primitives
 export { Switch } from './primitives/switch';
@@ -131,6 +144,68 @@ export { FormField } from './molecules/form-field';
 export type { FormFieldProps } from './molecules/form-field';
 export { IconButton, iconButtonVariants } from './molecules/icon-button';
 export type { IconButtonProps } from './molecules/icon-button';
+export { ActionRibbon } from './molecules/action-ribbon';
+export type { ActionRibbonProps, ActionRibbonState } from './molecules/action-ribbon';
+export { Snackbar } from './molecules/snackbar';
+export type { SnackbarProps, SnackbarVariant } from './molecules/snackbar';
+export { CodeSnippet } from './molecules/code-snippet';
+export type { CodeSnippetProps } from './molecules/code-snippet';
+
+// New primitives (extended)
+export { Slider } from './primitives/slider';
+export type { SliderProps } from './primitives/slider';
+export { Typography } from './primitives/typography';
+export type { TypographyProps, TypographyVariant } from './primitives/typography';
+export { Icon } from './primitives/icon';
+export type { IconProps, IconSize } from './primitives/icon';
+export { ListItem } from './primitives/list-item';
+export type { ListItemProps, ListItemLines } from './primitives/list-item';
+export { TextLockup } from './molecules/text-lockup';
+export type { TextLockupProps, TextLockupSize } from './molecules/text-lockup';
+export { IconLockup } from './molecules/icon-lockup';
+export type { IconLockupProps, IconLockupLayout } from './molecules/icon-lockup';
+export { Menu } from './molecules/menu';
+export type { MenuProps, MenuItemProps } from './molecules/menu';
+export { Toolbar, ToolbarSeparator } from './molecules/toolbar';
+export type { ToolbarProps, ToolbarSeparatorProps } from './molecules/toolbar';
+export { StatusDialog } from './molecules/status-dialog';
+export type { StatusDialogProps, StatusDialogStatus } from './molecules/status-dialog';
+export { NodePalette } from './molecules/node-palette';
+export type { NodePaletteProps, PaletteItem, PaletteCategory } from './molecules/node-palette';
+export { AgentNode } from './molecules/agent-node';
+export type { AgentNodeData, AgentStatus } from './molecules/agent-node';
+
+// Organisms
+export { SideSheet, SideSheetHeader, SideSheetContent, SideSheetFooter } from './organisms/side-sheet';
+export type { SideSheetProps, SideSheetHeaderProps, SideSheetContentProps, SideSheetFooterProps } from './organisms/side-sheet';
+export { FullScreenDialog } from './organisms/full-screen-dialog';
+export type { FullScreenDialogProps } from './organisms/full-screen-dialog';
+export { FocusedPage } from './organisms/focused-page';
+export type { FocusedPageProps, BreadcrumbItem } from './organisms/focused-page';
+export { TreeList, TreeListItem } from './organisms/tree-list';
+export type { TreeListProps, TreeListItemProps, TreeNode } from './organisms/tree-list';
+export { OnboardingCards, OnboardingCardItem } from './organisms/onboarding-cards';
+export type { OnboardingCardsProps, OnboardingCard, OnboardingCardState } from './organisms/onboarding-cards';
+export { NotebookCell, CellErrorAlert, CellCodeMirror } from './organisms/notebook-cell';
+export type { NotebookCellProps, NotebookCellType, NotebookCellStatus, NotebookCellError, CellCodeMirrorProps } from './organisms/notebook-cell';
+
+// Flow organisms
+export { FlowCanvas } from './organisms/flow-canvas';
+export type { FlowCanvasProps } from './organisms/flow-canvas';
+export { FlowEditor } from './organisms/flow-editor';
+export type { FlowEditorProps } from './organisms/flow-editor';
+export { AgentFlowView } from './organisms/agent-flow-view';
+export type { AgentFlowViewProps, AgentStep } from './organisms/agent-flow-view';
+
+// Table Core (shared foundation)
+export { TableCell, TableHeader, useVirtualTable } from './primitives/table-core';
+export type { TableDensity, SortState, SortDirection, CellAlignment, BaseColumnDef } from './primitives/table-core';
+export { DENSITY_HEIGHTS } from './primitives/table-core';
+
+// Data Table (Covalent organism)
+export { DataTable } from './organisms/data-table';
+export { DataTableRow } from './organisms/data-table';
+export type { DataTableProps, DataTableColumn, ColumnType, RowAction } from './organisms/data-table';
 
 // Utility
 export { cn } from './lib/utils';
@@ -154,6 +229,12 @@ export {
   generateComponentPrompt,
   generateComponentExample,
   generateSpecExample,
+  getFullSystemPrompt,
+  COMPONENT_SCHEMAS,
+  getSchemaByName,
+  getSchemasByCategory,
+  getAvailableSchemas,
+  generateComponentCatalogPrompt,
   CatalogDemo,
   chartSpec,
   dataTableSpec,
@@ -171,4 +252,31 @@ export type {
   ChartWithControlsSchemaProps as CatalogChartWithControlsProps,
   SQLResultsDisplaySchemaProps as CatalogSQLResultsDisplayProps,
   SurfacesRendererProps,
+  ComponentSchema,
+  PropDefinition,
+  UsageGuidance,
+  UsagePattern,
 } from './catalog';
+
+// Figma Component Map
+export {
+  COMPONENT_MAP,
+  getComponentsByStatus,
+  getComponentsByCategory,
+  getComponentsByLevel,
+  figmaToReact,
+  reactToFigma,
+  getComponentCatalog,
+} from './figma';
+export type { ComponentMapEntry, AtomicLevel, ComponentStatus, ComponentCategory } from './figma';
+
+// Covalent Variable Map
+export {
+  COLOR_VARIABLE_MAP,
+  COMPONENT_VARIABLE_MAP,
+  TYPOGRAPHY_VARIABLE_MAP,
+  ELEVATION_MAP,
+  resolveColorVariable,
+  resolveComponentVariable,
+  getAllMappings,
+} from './theme/covalent-variable-map';

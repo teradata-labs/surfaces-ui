@@ -13,6 +13,54 @@ Reusable React component library served as pre-built HTML bundles via MCP. Three
 
 ## Key Patterns
 
+### MCP Apps Communication (CRITICAL)
+**See MCP-APPS-COMMUNICATION.md for complete details.**
+**See MCP-APPS-TESTING.md for testing checklist and requirements.**
+
+**⚠️ REQUIRED: All MCP Apps MUST use McpBridgeProvider to render in Claude Desktop.**
+
+```tsx
+import { McpAppsBridge } from '../bridge/McpAppsBridge';
+import { McpBridgeProvider } from '../bridge/McpBridgeProvider';
+
+// Create bridge instance BEFORE component (at module level)
+const bridge = new McpAppsBridge();
+bridge.connect();
+
+// Wrap app with McpBridgeProvider
+createRoot(root).render(
+  <McpBridgeProvider bridge={bridge}>
+    <ThemeProvider persistTheme density="comfortable">
+      <MyApp />
+    </ThemeProvider>
+  </McpBridgeProvider>
+);
+```
+
+**Why:** McpBridgeProvider blocks rendering until the bridge connects, ensuring proper synchronization with Claude Desktop. Without it, apps will not render (only show automated message).
+
+MCP Apps receive data via postMessage, NOT via URL parameters:
+```typescript
+// CORRECT: Listen for tool-input notifications
+window.addEventListener('message', (event: MessageEvent) => {
+  if (event.data?.method === 'ui/notifications/tool-input') {
+    const args = event.data.params.arguments;
+    // Use args.spec, args.title, etc.
+  }
+});
+
+// WRONG: URL params and hash are stripped by Claude Desktop
+const params = new URLSearchParams(window.location.search); // Always empty!
+const hash = window.location.hash; // Always empty!
+```
+
+**Debug pattern**: Use `MCPDebugPanel` component (see MCP-APPS-COMMUNICATION.md) since DevTools aren't accessible in Claude Desktop:
+```tsx
+import { MCPDebugPanel } from './MCPDebugPanel';
+const ENABLE_DEBUG = true; // Toggle for development
+{ENABLE_DEBUG && <MCPDebugPanel />}
+```
+
 ### MCP Bridge (NOT direct API calls)
 Components NEVER call REST APIs directly. All data flows through the MCP Bridge:
 ```tsx
@@ -101,6 +149,7 @@ src/components/[name]/
 
 ## Never Forget
 
+- **ALL MCP Apps MUST use McpBridgeProvider** - Without it, apps won't render in Claude Desktop (see MCP-APPS-TESTING.md)
 - Components communicate via MCP Bridge, not REST
 - All styling through CSS custom properties + Tailwind tokens
 - 400-line component limit enforced by all agents

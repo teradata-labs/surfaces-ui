@@ -7,7 +7,15 @@ export { createMcpActionHandlers, type McpActionState } from './actions';
 export { registry } from './registry';
 export { SurfacesRenderer, type SurfacesRendererProps } from './renderer';
 export { aiSystemPrompt, getCatalogPrompt } from './prompt';
-export { generateCatalogPrompt, generateComponentPrompt, generateComponentExample, generateSpecExample } from './prompts';
+export { generateCatalogPrompt, generateComponentPrompt, generateComponentExample, generateSpecExample, getFullSystemPrompt } from './prompts';
+export {
+  COMPONENT_SCHEMAS,
+  getSchemaByName,
+  getSchemasByCategory,
+  getAvailableSchemas,
+  generateComponentCatalogPrompt,
+} from './component-schemas';
+export type { ComponentSchema, PropDefinition, UsageGuidance, UsagePattern } from './component-schemas';
 export {
   validateGeneratedSpec,
   attemptAutoFix,

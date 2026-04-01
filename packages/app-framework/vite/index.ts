@@ -53,6 +53,17 @@ export function defineAppConfig(options: AppConfigOptions = {}): UserConfig {
       ...devProxyPlugins,
       ...extraPlugins,
     ],
+    resolve: {
+      alias: [
+        // In dev mode, resolve workspace packages from source to avoid CJS interop issues
+        { find: '@surfacesui/components/theme/tokens.css', replacement: new URL('../../../components/src/theme/tokens.css', import.meta.url).pathname },
+        { find: '@surfacesui/components', replacement: new URL('../../../components/src/index.ts', import.meta.url).pathname },
+        { find: '@surfacesui/app-framework/tokens.css', replacement: new URL('../../src/tokens.css', import.meta.url).pathname },
+        { find: '@surfacesui/app-framework', replacement: new URL('../../src/index.ts', import.meta.url).pathname },
+        // Resolve @/ alias used in components source
+        { find: '@', replacement: new URL('../../../components/src', import.meta.url).pathname },
+      ],
+    },
     build: {
       outDir,
       emptyOutDir: true,

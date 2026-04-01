@@ -19,6 +19,7 @@ import {
   SQLResultsDisplaySchema,
 } from './schema';
 import type { z } from 'zod';
+import { generateComponentCatalogPrompt } from './component-schemas';
 
 // Component definitions for prompt generation
 const componentDefinitions = {
@@ -335,4 +336,36 @@ export function generateAllExamples(): Record<ComponentName, PromptExample[]> {
  */
 export function getExamplesForComponent(componentName: ComponentName): PromptExample[] {
   return PROMPT_EXAMPLES[componentName] || [];
+}
+
+/**
+ * Generate a full AI system prompt combining data visualization catalog
+ * and the complete SurfacesUI component library schemas.
+ *
+ * Use this as the system prompt when AI agents need to scaffold
+ * complete UIs (pages, dashboards, forms) - not just data viz.
+ */
+export function getFullSystemPrompt(options: { includeExamples?: boolean } = {}): string {
+  let prompt = `# SurfacesUI Component Library\n\n`;
+  prompt += `You are generating UI specifications for SurfacesUI, a React component library `;
+  prompt += `designed for data analytics, AI/ML dashboards, and enterprise applications.\n\n`;
+  prompt += `## Design System Rules\n\n`;
+  prompt += `- All colors use CSS custom properties (e.g., --primary, --background)\n`;
+  prompt += `- Spacing follows a 4px base scale: 4, 8, 12, 16, 24, 32, 48\n`;
+  prompt += `- Typography uses the Covalent type scale (headline-1 through caption)\n`;
+  prompt += `- Components support light and dark themes automatically\n`;
+  prompt += `- All interactive elements must meet WCAG AA contrast requirements\n\n`;
+
+  // Full component catalog with AI metadata
+  prompt += generateComponentCatalogPrompt();
+
+  prompt += `\n---\n\n`;
+
+  // Data visualization catalog (json-render components)
+  prompt += `# Data Visualization Components (json-render)\n\n`;
+  prompt += `These components use the json-render spec format for data-driven UIs.\n`;
+  prompt += `Data is injected via state provider, not specified inline.\n\n`;
+  prompt += generateCatalogPrompt(options);
+
+  return prompt;
 }
