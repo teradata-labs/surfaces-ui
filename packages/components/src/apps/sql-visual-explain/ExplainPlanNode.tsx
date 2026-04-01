@@ -8,14 +8,7 @@
 
 import * as React from 'react';
 import { Position } from '@xyflow/react';
-import {
-  Table2,
-  GitMerge,
-  ArrowUpDown,
-  Layers,
-  Search,
-  Hash,
-} from 'lucide-react';
+import { Table2, GitMerge, ArrowUpDown, Layers, Search, Hash } from 'lucide-react';
 import { FlowHandle } from '../../primitives/flow-handle';
 import { Badge } from '../../primitives/badge';
 import { cn } from '../../lib/utils';
@@ -32,10 +25,10 @@ const OP_ICONS: Record<string, React.ElementType> = {
   'Hash Join': GitMerge,
   'Merge Join': GitMerge,
   'Nested Loop': GitMerge,
-  'Sort': ArrowUpDown,
-  'HashAggregate': Layers,
-  'Aggregate': Layers,
-  'Hash': Hash,
+  Sort: ArrowUpDown,
+  HashAggregate: Layers,
+  Aggregate: Layers,
+  Hash: Hash,
 };
 
 function getOpIcon(nodeType: string): React.ElementType {
@@ -67,38 +60,38 @@ const defaultStyle = { header: 'bg-positive/10', border: 'border-positive/30' };
 
 export function ExplainPlanNode({ data }: ExplainPlanNodeProps) {
   const { explainNode: node, costLevel, variant } = data;
-  const styles = (variant in variantStyles
-    ? variantStyles[variant as keyof typeof variantStyles]
-    : defaultStyle) as { header: string; border: string };
+  const styles = (
+    variant in variantStyles ? variantStyles[variant as keyof typeof variantStyles] : defaultStyle
+  ) as { header: string; border: string };
   const Icon = getOpIcon(node.nodeType);
 
   return (
-    <div className="explain-plan-node">
+    <div className="p-2" style={{ pointerEvents: 'all' }}>
       <FlowHandle type="target" position={Position.Top} />
       <FlowHandle type="source" position={Position.Bottom} />
 
       <div
         className={cn(
-          'w-[260px] rounded-lg border bg-surface shadow-sm hover:shadow-md transition-shadow cursor-pointer',
+          'bg-card w-[280px] cursor-grab rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing',
           styles.border,
         )}
       >
         {/* Header */}
-        <div className={cn('px-3 py-2 rounded-t-lg', styles.header)}>
+        <div className={cn('rounded-lg px-4 py-3', styles.header)}>
           <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-foreground shrink-0" />
-            <h4 className="text-xs font-semibold text-foreground truncate flex-1">
+            <Icon className="text-foreground h-4 w-4 shrink-0" />
+            <h4 className="text-foreground flex-1 truncate text-xs font-semibold">
               {node.nodeType}
             </h4>
             <Badge
               variant="secondary"
-              className={cn('text-[10px] px-1.5 py-0 font-medium', costBadgeStyles[costLevel])}
+              className={cn('px-1.5 py-0 text-[10px] font-medium', costBadgeStyles[costLevel])}
             >
               {costLevel}
             </Badge>
           </div>
           {node.relationName && (
-            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+            <p className="text-muted-foreground mt-0.5 truncate text-[11px]">
               {node.schemaName ? `${node.schemaName}.` : ''}
               {node.relationName}
               {node.alias && node.alias !== node.relationName ? ` (${node.alias})` : ''}
@@ -107,18 +100,18 @@ export function ExplainPlanNode({ data }: ExplainPlanNodeProps) {
         </div>
 
         {/* Metrics */}
-        <div className="px-3 py-2 space-y-1">
+        <div className="space-y-2 px-4 py-3 mt-2">
           <div className="flex justify-between text-[11px]">
             <span className="text-muted-foreground">Cost</span>
-            <span className="font-mono text-foreground">{formatCost(node.totalCost)}</span>
+            <span className="text-foreground font-mono">{formatCost(node.totalCost)}</span>
           </div>
           <div className="flex justify-between text-[11px]">
             <span className="text-muted-foreground">Time</span>
-            <span className="font-mono text-foreground">{formatTime(node.actualTotalTime)}</span>
+            <span className="text-foreground font-mono">{formatTime(node.actualTotalTime)}</span>
           </div>
           <div className="flex justify-between text-[11px]">
             <span className="text-muted-foreground">Rows</span>
-            <span className="font-mono text-foreground">
+            <span className="text-foreground font-mono">
               {formatRows(node.actualRows)}
               {node.actualRows !== node.planRows && (
                 <span className="text-muted-foreground/60 ml-1">

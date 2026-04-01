@@ -1,64 +1,200 @@
 /**
  * SQL Visual EXPLAIN - MCP App
  *
- * Interactive Teradata EXPLAIN plan visualizer.
- * Direct React implementation (no json-render).
+ * Interactive Teradata EXPLAIN plan visualizer using ReactFlow canvas.
+ * Shows execution plan as a visual flow diagram with detailed node panel.
  */
-
-// Script entry point
-console.log('[SQL Visual EXPLAIN] ========== SCRIPT ENTRY POINT ==========');
 
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
+import { ReactFlow, ReactFlowProvider, Background, Controls, useReactFlow, type NodeTypes } from '@xyflow/react';
 import { McpAppsBridge } from '../bridge/McpAppsBridge';
 import { McpBridgeProvider } from '../bridge/McpBridgeProvider';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { ChartThemeProvider } from '../theme/ChartThemeProvider';
-import { ThemeToggle } from './ThemeToggle';
-import { ChartThemeSelector } from './ChartThemeSelector';
-import { Logo } from './Logo';
-import { AlertCircle, Copy, Play } from 'lucide-react';
+import { Button } from '../primitives/button';
+import { EmptyState } from '../molecules/empty-state/EmptyState';
+import { AlertCircle, Copy, Play, Network } from 'lucide-react';
 import { TERADATA_SAMPLE_QUERIES } from './sql-visual-explain/teradata-sample-data';
-import { isSendPromptAvailable, executePromptAction, buildRunExplainPrompt } from './sql-visual-explain/send-prompt-utils';
-import { WorkflowNode } from './sql-visual-explain/WorkflowNode';
-import { StepAnalysisCard } from './sql-visual-explain/StepAnalysisCard';
+import { executePromptAction, buildRunExplainPrompt } from './sql-visual-explain/send-prompt-utils';
+import { ExplainPlanNode } from './sql-visual-explain/ExplainPlanNode';
+import { NodeDetailPanel } from './sql-visual-explain/NodeDetailPanel';
 import { SQLEditor } from './sql-visual-explain/SQLEditor';
+import { AppHeader } from './sql-visual-explain/AppHeader';
+import { teradataStepsToExplainNode } from './sql-visual-explain/teradata-to-flow';
+import { planToNodes, planToEdges } from './sql-visual-explain/plan-to-flow';
+import { classifyCost, findMaxCost } from './sql-visual-explain/cost-utils';
 import type { TeradataQuery } from './sql-visual-explain/teradata-types';
-import { MCPDebugPanel } from './MCPDebugPanel';
+import type { ExplainNode } from './sql-visual-explain/types';
+import '@xyflow/react/dist/style.css';
 import '../theme/tokens.css';
-
-// Toggle debug panel for development
-const ENABLE_DEBUG = false;
 
 // Create the MCP Apps bridge instance
 const bridge = new McpAppsBridge();
 bridge.connect();
 
+// ReactFlow node types - temporarily use default for testing
+const nodeTypes: NodeTypes = {
+  explainPlanNode: ExplainPlanNode,
+};
+
+function FlowVisualization({ query }: { query: TeradataQuery }) {
+  const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
+
+  // Convert Teradata steps to ExplainNode tree
+  const explainTree = React.useMemo(() => {
+    return teradataStepsToExplainNode(query.steps, query.name);
+  }, [query]);
+
+  // Convert to ReactFlow nodes and edges - POSITION THEM HERE
+  const { nodes, edges } = React.useMemo(() => {
+    const flowNodes = planToNodes(explainTree);
+    const flowEdges = planToEdges(explainTree);
+
+    // Position nodes directly in useMemo (top-to-bottom layout)
+    // Nodes are 260px wide with 3 metrics rows (~120px tall total)
+    const positionedNodes = flowNodes.map((node, idx) => ({
+      ...node,
+      position: {
+        x: 30,
+        y: 10 + (idx * 140), // 140px spacing to account for increased padding
+      },
+      draggable: true, // Enable dragging per node
+    }));
+
+    // Make edges dashed and animated with neutral color
+    const styledEdges = flowEdges.map(edge => ({
+      ...edge,
+      animated: true,
+      style: {
+        stroke: 'hsl(var(--muted-foreground))',
+        strokeWidth: 1.5,
+        strokeDasharray: '5,5',
+      },
+    }));
+
+    console.log('[FlowVisualization] Created', positionedNodes.length, 'positioned nodes');
+    console.log('[FlowVisualization] Created', styledEdges.length, 'styled edges');
+
+    return { nodes: positionedNodes, edges: styledEdges };
+  }, [explainTree]);
+
+  // Fit view to show all nodes on mount
+  const { fitView } = useReactFlow();
+
+  React.useEffect(() => {
+    if (nodes.length > 0) {
+      // Delay to ensure nodes are rendered before fitting
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 300 });
+      }, 100);
+    }
+  }, [nodes.length, fitView]);
+
+  // Get selected node data
+  const selectedNode = React.useMemo(() => {
+    if (!selectedNodeId) return null;
+    const node = nodes.find((n) => n.id === selectedNodeId);
+    return node?.data.explainNode || null;
+  }, [selectedNodeId, nodes]);
+
+  const selectedCostLevel = React.useMemo(() => {
+    if (!selectedNode) return null;
+    const maxCost = findMaxCost(explainTree);
+    return classifyCost(selectedNode, maxCost);
+  }, [selectedNode, explainTree]);
+
+  const handleNodeClick = React.useCallback((_event: React.MouseEvent, node: any) => {
+    setSelectedNodeId(node.id);
+  }, []);
+
+  const handlePaneClick = React.useCallback(() => {
+    setSelectedNodeId(null);
+  }, []);
+
+  return (
+    <div className="flex-1 flex overflow-hidden">
+      {/* ReactFlow Canvas - fixed 550px height for styled nodes with padding */}
+      <div style={{ width: '100%', height: '550px' }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
+          minZoom={0.3}
+          maxZoom={1.5}
+          panOnDrag={true} // Enable panning - ReactFlow handles node drag vs pane pan automatically
+          zoomOnScroll={true}
+          nodesDraggable={true}
+          elementsSelectable={true}
+          selectNodesOnDrag={false} // Don't select nodes while dragging for better UX
+          proOptions={{ hideAttribution: true }}
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+          }}
+        >
+          <Background />
+          <Controls />
+        </ReactFlow>
+
+        {/* Empty state if no nodes */}
+        {nodes.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <EmptyState
+              icon={<Network />}
+              title="No execution plan"
+              description="Load a query to see the visual EXPLAIN plan"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Detail Panel */}
+      {selectedNode && selectedCostLevel && (
+        <NodeDetailPanel
+          node={selectedNode}
+          costLevel={selectedCostLevel}
+          onClose={() => setSelectedNodeId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 function SqlVisualExplainCDN() {
   const [queries, setQueries] = React.useState<TeradataQuery[]>([]);
   const [currentQueryIndex, setCurrentQueryIndex] = React.useState(0);
-  const [activeStepIndex, setActiveStepIndex] = React.useState<number | null>(null);
   const [status, setStatus] = React.useState<'loading' | 'no-data' | 'ready'>('loading');
   const dataReceivedRef = React.useRef(false);
 
+  // Panel visibility state with localStorage persistence
+  const [showSQLEditor, setShowSQLEditor] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem('sql-visual-explain:showSQLEditor');
+      return saved !== null ? JSON.parse(saved) : false; // Default to hidden for more canvas space
+    } catch {
+      return false;
+    }
+  });
+
   const currentQuery = queries[currentQueryIndex];
 
+  // Save panel visibility to localStorage
   React.useEffect(() => {
-    console.log('[SqlVisualExplainCDN] ===== COMPONENT MOUNTED =====');
+    localStorage.setItem('sql-visual-explain:showSQLEditor', JSON.stringify(showSQLEditor));
+  }, [showSQLEditor]);
 
+  // MCP message handling and data loading
+  React.useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log('[SqlVisualExplainCDN] Message received:', event.data?.method);
-
       // Listen for tool-input notification from Claude Desktop
       if (event.data?.method === 'ui/notifications/tool-input') {
-        console.log('[SqlVisualExplainCDN] ✓ Tool-input notification received');
         dataReceivedRef.current = true;
         const args = event.data.params.arguments;
 
         // Parse arguments - expecting sql + explainText
         if (args.sql && args.explainText) {
-          console.log('[SqlVisualExplainCDN] Received SQL and EXPLAIN text');
-          // For now, just load sample data
           // TODO: Parse args.explainText using parseExplain()
           setQueries(TERADATA_SAMPLE_QUERIES);
           setStatus('ready');
@@ -67,22 +203,17 @@ function SqlVisualExplainCDN() {
     };
 
     window.addEventListener('message', handleMessage);
-    console.log('[SqlVisualExplainCDN] ✓ Message listener attached');
 
     // Notify parent we're ready
     if (window.parent !== window) {
-      console.log('[SqlVisualExplainCDN] Notifying parent: ready');
       window.parent.postMessage({ type: 'sql-visual-explain-ready' }, '*');
     }
 
     // Load sample data IMMEDIATELY
-    console.log('[SqlVisualExplainCDN] Loading sample Teradata queries IMMEDIATELY...');
     setQueries(TERADATA_SAMPLE_QUERIES);
     setStatus('ready');
-    console.log('[SqlVisualExplainCDN] ✓ Sample data loaded');
 
     return () => {
-      console.log('[SqlVisualExplainCDN] Cleanup: removing listeners');
       window.removeEventListener('message', handleMessage);
     };
   }, []);
@@ -90,11 +221,6 @@ function SqlVisualExplainCDN() {
   // Handlers
   const handleQueryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCurrentQueryIndex(parseInt(e.target.value, 10));
-    setActiveStepIndex(null);
-  };
-
-  const handleStepClick = (index: number) => {
-    setActiveStepIndex(index);
   };
 
   const handleCopySQL = async () => {
@@ -112,6 +238,7 @@ function SqlVisualExplainCDN() {
       executePromptAction(buildRunExplainPrompt(currentQuery.sql));
     }
   };
+
 
   // Loading state
   if (status === 'loading') {
@@ -140,33 +267,29 @@ function SqlVisualExplainCDN() {
 
   // Ready - render UI
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <ReactFlowProvider>
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo height={32} />
-            <div className="text-sm text-muted-foreground">SQL Visual EXPLAIN</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ChartThemeSelector />
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      {/* Header with Layout Menu */}
+      <AppHeader
+        onToggleSQLEditor={() => setShowSQLEditor(!showSQLEditor)}
+        showSQLEditor={showSQLEditor}
+      />
 
-      {/* TopBar - Query selector */}
+      {/* TopBar - Query selector and actions */}
       <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-border bg-card">
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-info" />
           <span className="text-sm font-medium text-foreground">Visual EXPLAIN</span>
         </div>
+
         <div className="w-px h-4 bg-border mx-1" />
+
+        {/* Query selector */}
         <select
           value={currentQueryIndex}
           onChange={handleQueryChange}
-          className="text-sm px-2.5 py-1 border border-border rounded-lg bg-muted text-foreground cursor-pointer hover:border-border-strong outline-none"
+          className="text-sm px-2.5 py-1 border border-border rounded-lg bg-muted text-foreground cursor-pointer hover:border-border-strong outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
         >
           {queries.map((q, idx) => (
             <option key={idx} value={idx}>
@@ -174,105 +297,66 @@ function SqlVisualExplainCDN() {
             </option>
           ))}
         </select>
+
+        {/* Action buttons */}
         <div className="ml-auto flex gap-2">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleCopySQL}
-            className="text-xs px-3 py-1.5 border border-border bg-card rounded-lg hover:bg-muted transition-colors flex items-center gap-1.5"
           >
             <Copy className="h-3 w-3" />
-            Copy SQL
-          </button>
-          <button
+            <span className="ml-1.5">Copy SQL</span>
+          </Button>
+
+          <Button
+            variant="tonal"
+            size="sm"
             onClick={handleRunExplain}
-            className="text-xs px-3 py-1.5 border border-info bg-info-light text-info-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1.5"
           >
             <Play className="h-3 w-3" />
-            Run EXPLAIN
-          </button>
+            <span className="ml-1.5">Run EXPLAIN</span>
+          </Button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden">
-
-        {/* Left: Workflow Column */}
-        <div className="w-[210px] border-r border-border bg-muted p-3 overflow-y-auto">
-          <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-3 px-0.5">
-            Execution plan
-          </div>
-          <div className="flex flex-col items-center space-y-0">
-            {currentQuery?.steps.map((step, idx) => (
-              <WorkflowNode
-                key={idx}
-                type={step.type}
-                label={step.label}
-                sub={step.sub}
-                active={activeStepIndex === idx}
-                onClick={() => handleStepClick(idx)}
-                showConnector={idx < currentQuery.steps.length - 1}
-              />
-            ))}
-          </div>
+      {/* Main Content - ReactFlow Canvas */}
+      <main className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
+        {/* Canvas takes all available space */}
+        <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+          {currentQuery && <FlowVisualization query={currentQuery} />}
         </div>
 
-        {/* Right: Main Column */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-
-          {/* Analysis Panel */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            {activeStepIndex === null || !currentQuery ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center text-muted-foreground">
-                  <div className="text-3xl mb-2 opacity-40">←</div>
-                  <div className="text-sm">Select a step to see analysis</div>
-                </div>
-              </div>
-            ) : currentQuery.steps[activeStepIndex] ? (
-              <StepAnalysisCard
-                step={currentQuery.steps[activeStepIndex]!}
-                stepIndex={activeStepIndex}
-                rawExplain={currentQuery.raw}
-                sql={currentQuery.sql}
-                onCompareAll={() => {}}
-              />
-            ) : null}
-          </div>
-
-          {/* SQL Editor */}
-          {currentQuery && (
+        {/* SQL Editor - Conditional, fixed height */}
+        {showSQLEditor && currentQuery && (
+          <div className="flex-shrink-0">
             <SQLEditor
               sql={currentQuery.sql}
               rawExplain={currentQuery.raw}
               highlights={currentQuery.highlights}
-              activeStepType={activeStepIndex !== null && currentQuery.steps[activeStepIndex] ? currentQuery.steps[activeStepIndex].type : undefined}
+              activeStepType={undefined} // Not used in canvas view
               queryCount={queries.length}
             />
-          )}
-        </div>
+          </div>
+        )}
       </main>
     </div>
+    </ReactFlowProvider>
   );
 }
 
 // Render
 const root = document.getElementById('root');
 if (root) {
-  console.log('[SQL Visual EXPLAIN] Starting React render...');
-
   createRoot(root).render(
-    <>
-      {ENABLE_DEBUG && <MCPDebugPanel />}
-      <McpBridgeProvider bridge={bridge}>
-        <ThemeProvider persistTheme density="comfortable">
-          <ChartThemeProvider persistTheme>
-            <SqlVisualExplainCDN />
-          </ChartThemeProvider>
-        </ThemeProvider>
-      </McpBridgeProvider>
-    </>,
+    <McpBridgeProvider bridge={bridge}>
+      <ThemeProvider persistTheme density="comfortable">
+        <ChartThemeProvider persistTheme>
+          <SqlVisualExplainCDN />
+        </ChartThemeProvider>
+      </ThemeProvider>
+    </McpBridgeProvider>,
   );
-
-  console.log('[SQL Visual EXPLAIN] React render initiated successfully');
 } else {
   document.body.innerHTML =
     '<div style="color:red;padding:40px">ERROR: Root element not found</div>';

@@ -28,7 +28,7 @@ export function planToNodes(root: ExplainNode): Node<ExplainNodeData>[] {
     nodes.push({
       id: node.id,
       type: 'explainPlanNode',
-      position: { x: 0, y: 0 }, // positioned by useAutoLayout
+      position: { x: 0, y: 0 }, // positioned by caller
       data: {
         explainNode: node,
         costLevel,
