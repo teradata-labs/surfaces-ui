@@ -49,15 +49,8 @@ export interface SQLEditorExtendedProps extends SQLEditorProps {
   context?: 'web' | 'mcp-apps';
   /** Custom actions for the results toolbar */
   customActions?: SQLResultsAction[];
-}
-
-// Type for the last result response from vantage-mcp
-interface LastResultResponse {
-  query?: string;
-  output?: string;
-  success?: boolean;
-  error?: string;
-  timestamp?: string;
+  /** Pre-fetched query results to display on mount (Claude-driven path via postMessage) */
+  initialResults?: SQLResult | null;
 }
 
 // Type for persisted state in localStorage
@@ -86,6 +79,7 @@ export function SQLEditor({
   teradataBaseUrl,
   context = 'web',
   customActions,
+  initialResults = null,
 }: SQLEditorExtendedProps) {
   // Load persisted state on mount
   const loadPersistedState = React.useCallback((): Partial<PersistedState> | null => {
@@ -114,11 +108,17 @@ export function SQLEditor({
   const persistedState = loadPersistedState();
 
   const [code, setCode] = React.useState(persistedState?.code || initialCode);
-  const [result, setResult] = React.useState<SQLResult | null>(persistedState?.result || null);
+  const [result, setResult] = React.useState<SQLResult | null>(
+    initialResults ?? persistedState?.result ?? null
+  );
   const [error, setError] = React.useState<string | null>(persistedState?.error || null);
   const [resultsConfig, setResultsConfig] = React.useState<SQLResultsConfig | undefined>(undefined);
-  const [editorOpen, setEditorOpen] = React.useState(persistedState?.editorOpen ?? true);
-  const [resultsOpen, setResultsOpen] = React.useState(persistedState?.resultsOpen ?? false);
+  const [editorOpen, setEditorOpen] = React.useState(
+    initialResults ? false : (persistedState?.editorOpen ?? true)
+  );
+  const [resultsOpen, setResultsOpen] = React.useState(
+    initialResults ? true : (persistedState?.resultsOpen ?? false)
+  );
 
   const {
     data: mcpResult,
@@ -129,118 +129,18 @@ export function SQLEditor({
     enabled: false,
   });
 
-  // Fetch last result from vantage-mcp when in MCP Apps context
-  // This shows Claude's query results in the UI automatically
-  // Note: 'get_last_result' is mapped to 'teradata_get_last_result' by the bridge
-  const {
-    data: lastResultData,
-    refetch: fetchLastResult,
-  } = useMcpTool<LastResultResponse>('get_last_result', {}, {
-    enabled: false,
-  });
-
-  // Fetch last result on mount in MCP Apps context with polling
-  // Polls every 500ms for up to 5 seconds to handle the timing issue where
-  // Claude Desktop loads the UI before executing the SQL query
+  // When initialResults prop changes (e.g. new postMessage arrives), update state
   React.useEffect(() => {
-    if (context !== 'mcp-apps') return;
-
-    let cancelled = false;
-    let attempts = 0;
-    const maxAttempts = 10;
-    const pollInterval = 500;
-
-    const pollForResult = async () => {
-      if (cancelled || attempts >= maxAttempts) return;
-
-      attempts++;
-      await fetchLastResult();
-
-      // Schedule another poll if we haven't cancelled or exceeded max attempts
-      setTimeout(() => {
-        if (!cancelled && attempts < maxAttempts) {
-          pollForResult();
-        }
-      }, pollInterval);
-    };
-
-    // Start polling after small delay to ensure bridge is connected
-    const initialTimer = setTimeout(pollForResult, 200);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(initialTimer);
-    };
-  }, [context, fetchLastResult]);
-
-  // Process last result when received
-  // This takes precedence over persisted state - fresh data from the thread
-  React.useEffect(() => {
-    if (lastResultData && lastResultData.query && lastResultData.output) {
-      // Update code with the last executed query from thread context
-      setCode(lastResultData.query);
-      onCodeChange?.(lastResultData.query);
-
-      // Parse the output to extract result data
-      try {
-        const parsed = JSON.parse(lastResultData.output);
-        // Transform vantage-mcp format { columns, rows } to SQLResult format
-        if (parsed.columns && parsed.rows) {
-          const columns = parsed.columns as string[];
-          const rows = parsed.rows as unknown[][];
-          const data = rows.map((row) => {
-            const rowObj: Record<string, unknown> = {};
-            columns.forEach((col, i) => {
-              rowObj[col] = i < row.length ? row[i] : null;
-            });
-            return rowObj;
-          });
-          setResult({
-            success: true,
-            columns,
-            data,
-            row_count: data.length,
-          });
-          // Auto-collapse editor and expand results when results arrive
-          setEditorOpen(false);
-          setResultsOpen(true);
-        } else if (parsed.success !== undefined) {
-          // Already in SQLResult format
-          setResult(parsed);
-          // Auto-collapse editor and expand results when results arrive
-          setEditorOpen(false);
-          setResultsOpen(true);
-        }
-      } catch {
-        // If output is not JSON, show as success message
-        if (lastResultData.success) {
-          setResult({
-            success: true,
-            columns: [],
-            data: [],
-            row_count: 0,
-            message: lastResultData.output,
-          });
-          // Auto-collapse editor and expand results when results arrive
-          setEditorOpen(false);
-          setResultsOpen(true);
-        }
-      }
-
-      if (!lastResultData.success && lastResultData.error) {
-        setError(lastResultData.error);
-      }
-
-      // Clear persisted state since we have fresh data from the thread
+    if (initialResults) {
+      setResult(initialResults);
+      setError(null);
+      setEditorOpen(false);
+      setResultsOpen(true);
       if (context === 'mcp-apps' && typeof window !== 'undefined') {
-        try {
-          localStorage.removeItem(STORAGE_KEY);
-        } catch (err) {
-          console.warn('Failed to clear persisted state:', err);
-        }
+        try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
       }
     }
-  }, [lastResultData, onCodeChange, context]);
+  }, [initialResults, context]);
 
   React.useEffect(() => {
     setCode(initialCode);

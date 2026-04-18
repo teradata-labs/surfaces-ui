@@ -85,13 +85,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "open_sql_editor",
-      description: "Open the interactive SQL editor UI",
+      description: "Open the interactive SQL editor UI. " +
+        "To show pre-fetched Teradata query results immediately, pass the raw output from base_readQuery as queryResults. " +
+        "Example workflow: call base_readQuery to execute SQL, then call open_sql_editor with { initialQuery: <sql>, queryResults: <base_readQuery result> }.",
       inputSchema: {
         type: "object",
         properties: {
           initialQuery: {
             type: "string",
-            description: "Optional initial SQL query to populate the editor",
+            description: "Optional SQL query to pre-populate the editor",
+          },
+          queryResults: {
+            type: "object",
+            description: "Optional pre-fetched query results from base_readQuery to display immediately. " +
+              "Shape: { sql?: string, columns: string[], rows: unknown[][] }",
+            properties: {
+              sql: { type: "string", description: "The SQL query that produced these results" },
+              columns: { type: "array", items: { type: "string" }, description: "Column names" },
+              rows: { type: "array", description: "Array of row arrays" },
+            },
           },
         },
       },
@@ -202,23 +214,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "open_sql_editor") {
-    // Type guard for initialQuery
-    const initialQuery = args?.initialQuery;
-    const resourceUri =
-      typeof initialQuery === "string" && initialQuery.length > 0
-        ? `ui://sql-editor-cdn?sql=${encodeURIComponent(initialQuery)}`
-        : "ui://sql-editor-cdn";
+    // initialQuery and queryResults are forwarded to the app via
+    // ui/notifications/tool-input postMessage by Claude Desktop automatically.
+    // Do NOT encode data in the URI — Claude Desktop strips query params/hash.
+    const queryResults = args?.queryResults as { rows?: unknown[] } | undefined;
+    const rowCount = queryResults?.rows?.length ?? 0;
 
     return {
       _meta: {
         ui: {
-          resourceUri,
+          resourceUri: "ui://sql-editor-cdn",
         },
       },
       content: [
         {
           type: "text",
-          text: "Opening SQL Editor...",
+          text: rowCount > 0
+            ? `Opening SQL Editor with ${rowCount} result rows...`
+            : "Opening SQL Editor...",
         },
       ],
     };

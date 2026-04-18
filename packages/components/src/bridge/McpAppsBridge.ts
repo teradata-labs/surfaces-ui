@@ -137,28 +137,26 @@ export class McpAppsBridge {
   }
 
   /**
-   * Map tool names and arguments from surfacesui conventions to vantage-mcp conventions.
+   * Map tool names and arguments from surfacesui conventions to teradata-mcp-server conventions.
    * This allows the same components to work with different backends.
    */
   private mapToolCall(toolName: string, args?: Record<string, unknown>): { name: string; arguments: Record<string, unknown> } {
-    // Map execute_sql -> teradata_execute_sql, query -> sql
+    // Map execute_sql -> base_readQuery (teradata-mcp-server), query -> sql
     if (toolName === 'execute_sql') {
       const mappedArgs: Record<string, unknown> = {};
       if (args?.query !== undefined) {
         mappedArgs.sql = args.query;
       }
-      // Pass through other args
+      if (args?.persist !== undefined) {
+        mappedArgs.persist = args.persist;
+      }
+      // Pass through other args except 'query' and 'persist' (already handled)
       for (const [key, value] of Object.entries(args ?? {})) {
-        if (key !== 'query') {
+        if (key !== 'query' && key !== 'persist') {
           mappedArgs[key] = value;
         }
       }
-      return { name: 'teradata_execute_sql', arguments: mappedArgs };
-    }
-
-    // Map get_last_result -> teradata_get_last_result (used by UI to fetch Claude's results)
-    if (toolName === 'get_last_result') {
-      return { name: 'teradata_get_last_result', arguments: args ?? {} };
+      return { name: 'base_readQuery', arguments: mappedArgs };
     }
 
     // Default: pass through unchanged
