@@ -14,7 +14,7 @@
     "unregister:loom": "pnpm --filter @surfacesui/components unregister:loom"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.80.0",
+    "@anthropic-ai/sdk": "^0.90.0",
     "@aws-sdk/client-bedrock-runtime": "^3.1005.0",
     "@google/generative-ai": "^0.24.1",
     "dotenv": "^17.3.1",
