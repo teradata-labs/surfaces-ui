@@ -42,8 +42,8 @@ export interface SurfacesRendererProps {
   tokenOverrides?: Record<string, string>;
   /** Whether the spec is currently streaming/loading */
   loading?: boolean;
-  /** Callback fired when state changes */
-  onStateChange?: (path: string, value: unknown) => void;
+  /** Callback fired when state changes. Receives all changed entries from a single set/update. */
+  onStateChange?: (changes: Array<{ path: string; value: unknown }>) => void;
 }
 
 /* ── Component ─────────────────────────────────────────────────────── */
