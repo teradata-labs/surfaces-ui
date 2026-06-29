@@ -76,9 +76,20 @@ export function SurfacesRenderer({
     };
   }, [bridge, handlers]);
 
+  // @json-render/react v2+ changed StateProvider's onStateChange to accept batched changes.
+  // Adapt the public (path, value) signature to the new [{path, value}[]] signature.
+  const adaptedOnStateChange = useMemo(
+    () =>
+      onStateChange
+        ? (changes: { path: string; value: unknown }[]) =>
+            changes.forEach(({ path, value }) => onStateChange(path, value))
+        : undefined,
+    [onStateChange]
+  );
+
   // Core renderer content (without McpBridgeProvider)
   const rendererContent = (
-    <StateProvider initialState={initialState} onStateChange={onStateChange}>
+    <StateProvider initialState={initialState} onStateChange={adaptedOnStateChange}>
       <ActionProvider handlers={mergedHandlers}>
         <VisibilityProvider>
           <Renderer spec={spec} registry={registry} loading={loading} />
