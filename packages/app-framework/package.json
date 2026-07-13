@@ -38,7 +38,7 @@
     "react-dom": "^19.0.0",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.0.0",
+    "typescript": "^7.0.2",
     "vite": "^8.0.2",
     "vitest": "^4.0.18",
     "@surfacesui/components": "workspace:*"
