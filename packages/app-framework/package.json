@@ -24,7 +24,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@vitejs/plugin-react-swc": "^4.2.3",
+    "@vitejs/plugin-react-swc": "^4.3.3",
     "@tailwindcss/vite": "^4.2.1",
     "vite-plugin-singlefile": "^2.3.3"
   },
