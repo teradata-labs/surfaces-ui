@@ -90,7 +90,7 @@
     "@types/dagre": "^0.7.54",
     "@types/jest-axe": "^3.5.9",
     "@types/node": "^26.1.0",
-    "@types/react": "^19.0.0",
+    "@types/react": "^19.3.0",
     "@types/react-dom": "^19.0.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@vitejs/plugin-react-swc": "^4.2.3",
@@ -103,7 +103,7 @@
     "jest-axe": "^10.0.0",
     "jsdom": "^29.0.1",
     "postcss": "^8.4.0",
-    "react": "^19.0.0",
+    "react": "^19.3.0",
     "react-dom": "^19.0.0",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4.2.1",
@@ -117,7 +117,7 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "react": "^19.0.0",
+    "react": "^19.3.0",
     "react-dom": "^19.0.0"
   },
   "publishConfig": {
