@@ -31,10 +31,10 @@
   "devDependencies": {
     "@testing-library/react": "^16.0.0",
     "@types/node": "^26.1.0",
-    "@types/react": "^19.0.0",
+    "@types/react": "^19.3.0",
     "@types/react-dom": "^19.0.0",
     "jsdom": "^29.0.1",
-    "react": "^19.0.0",
+    "react": "^19.3.0",
     "react-dom": "^19.0.0",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4.2.1",
@@ -44,7 +44,7 @@
     "@surfacesui/components": "workspace:*"
   },
   "peerDependencies": {
-    "react": "^19.0.0",
+    "react": "^19.3.0",
     "react-dom": "^19.0.0",
     "@surfacesui/components": "workspace:*",
     "vite": "^6.0.0 || ^7.0.0",

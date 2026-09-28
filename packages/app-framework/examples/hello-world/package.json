@@ -10,7 +10,7 @@
   "dependencies": {
     "@surfacesui/app-framework": "workspace:*",
     "@surfacesui/components": "workspace:*",
-    "react": "^19.0.0",
+    "react": "^19.3.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
