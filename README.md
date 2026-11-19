@@ -6,7 +6,7 @@ Tables that stay fast at any size, charts that follow Tufte and Few, pivots, SQL
 
 ![The Surfaces UI home page: a retail dashboard of headline numbers, a sparkline, sorted bars and a line chart, drawn live on a desktop window and an iPhone](docs/images/home.png)
 
-**[Try it in your browser](https://josh-schoen.github.io/surfaces-ui/)**: the playground with DuckDB running in the page over six sample models. Nothing to install, and nothing leaves the browser. The guides and recipes are there too, under **[Docs](https://josh-schoen.github.io/surfaces-ui/#docs)**.
+**[Try it in your browser](https://upgraded-bassoon-nkkgz3m.pages.github.io/)**: the playground with DuckDB running in the page over six sample models. Nothing to install, and nothing leaves the browser. The guides and recipes are there too, under **[Docs](https://upgraded-bassoon-nkkgz3m.pages.github.io/#docs)**.
 
 ### Watch: four short walkthroughs
 
