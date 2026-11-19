@@ -1,0 +1,54 @@
+{
+  "name": "@surfaces-ui/chat",
+  "version": "0.0.0",
+  "description": "Chat thread components for Surfaces UI: streaming replies, tool steps, approvals and inline agent-drawn components",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./app-components": {
+      "types": "./dist/appComponents.d.ts",
+      "default": "./dist/appComponents.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.17.0",
+    "@surfaces-ui/agent": "workspace:*",
+    "@surfaces-ui/components": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/spec": "workspace:*",
+    "@surfaces-ui/state": "workspace:*",
+    "@surfaces-ui/trace": "workspace:*"
+  },
+  "devDependencies": {
+    "@surfaces-ui/data": "workspace:*",
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^31.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "@surfaces-ui/engine-service",
+  "version": "0.0.0",
+  "description": "QueryService, CatalogService and SourceService over engine adapters, in Node or a browser",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.17.0",
+    "@connectrpc/connect": "^2.3.0",
+    "@surfaces-ui/client-connect": "workspace:*",
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/engine": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/sql": "workspace:*",
+    "apache-arrow": "^21.2.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

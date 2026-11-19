@@ -1,0 +1,1 @@
+Here's the relationship diagram. Drag one column onto another to make a join, and it refuses joins that can't work. It pans and zooms, and every action also has a button or a key, so it works without a mouse. Pipelines draw the same way: datasets, their data-quality rules, and runs. The server defines what a pipeline runs. The browser can only press go.

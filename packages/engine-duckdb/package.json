@@ -1,0 +1,38 @@
+{
+  "name": "@surfaces-ui/engine-duckdb",
+  "version": "0.0.0",
+  "description": "DuckDB engine adapter (Node, ADBC)",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@apache-arrow/adbc-driver-manager": "^0.25.0",
+    "@bufbuild/protobuf": "^2.17.0",
+    "@duckdb/node-bindings": "2.0.0-r.1",
+    "@surfaces-ui/engine": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "apache-arrow": "^21.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

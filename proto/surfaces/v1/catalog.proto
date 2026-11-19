@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+// CatalogService describes what a source holds. The schema explorer and the
+// SQL editor's autocomplete read from it. Listing is lazy and paged so large
+// catalogs stay responsive.
+service CatalogService {
+  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse);
+  rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
+  rpc ListTables(ListTablesRequest) returns (ListTablesResponse);
+  rpc DescribeTable(DescribeTableRequest) returns (DescribeTableResponse);
+  // ListSnapshots returns Iceberg snapshots or Delta versions of a table.
+  rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse);
+}
+
+// TableKind says what sort of relation a table is.
+enum TableKind {
+  TABLE_KIND_UNSPECIFIED = 0;
+  TABLE_KIND_TABLE = 1;
+  TABLE_KIND_VIEW = 2;
+  TABLE_KIND_MATERIALIZED_VIEW = 3;
+  TABLE_KIND_EXTERNAL = 4;
+}
+
+// TableFormat is the storage format behind a table, when known.
+enum TableFormat {
+  TABLE_FORMAT_UNSPECIFIED = 0;
+  TABLE_FORMAT_NATIVE = 1;
+  TABLE_FORMAT_PARQUET = 2;
+  TABLE_FORMAT_CSV = 3;
+  TABLE_FORMAT_JSON = 4;
+  TABLE_FORMAT_ICEBERG = 5;
+  TABLE_FORMAT_DELTA = 6;
+}
+
+// TableRef names one table.
+message TableRef {
+  string catalog = 1;
+  string schema = 2;
+  string table = 3;
+}
+
+message Catalog {
+  string name = 1;
+  string comment = 2;
+}
+
+message Schema {
+  string catalog = 1;
+  string name = 2;
+  string comment = 3;
+}
+
+message TableSummary {
+  TableRef ref = 1;
+  TableKind kind = 2;
+  TableFormat format = 3;
+  string comment = 4;
+}
+
+message Column {
+  string name = 1;
+  // The engine's own type name, e.g. DECIMAL(18,2).
+  string native_type = 2;
+  // Arrow type name the column arrives as, e.g. decimal128(18,2).
+  string arrow_type = 3;
+  bool nullable = 4;
+  string comment = 5;
+  uint32 ordinal = 6;
+  bool partition_key = 7;
+  // Part of the primary key or, on Teradata, the primary index.
+  bool primary_key = 8;
+  ColumnStats stats = 9;
+}
+
+message ColumnStats {
+  optional uint64 distinct_count = 1;
+  optional uint64 null_count = 2;
+  optional string min = 3;
+  optional string max = 4;
+}
+
+message TableDetail {
+  TableSummary summary = 1;
+  repeated Column columns = 2;
+  optional uint64 row_count = 3;
+  optional uint64 size_bytes = 4;
+  // Where the data lives for file-backed tables.
+  string location = 5;
+  // Free-form engine details (Teradata index kind, Iceberg spec ID, ...).
+  map<string, string> properties = 6;
+  // References this table declares to other tables' keys. Declared, not
+  // guessed: inferred joins come from discovery and are labelled so.
+  repeated ForeignKey foreign_keys = 7;
+}
+
+// Columns of one table that refer to the key of another.
+message ForeignKey {
+  // In this table, in key order.
+  repeated string columns = 1;
+  TableRef references = 2;
+  // In the referenced table, matching `columns` one for one.
+  repeated string referenced_columns = 3;
+}
+
+message TableSnapshot {
+  // Iceberg snapshot ID or Delta version, as a string.
+  string id = 1;
+  // ISO 8601 commit time.
+  string committed_at = 2;
+  // append, overwrite, delete, ...
+  string operation = 3;
+  map<string, string> summary = 4;
+}
+
+message ListCatalogsRequest {
+  string source_id = 1;
+}
+
+message ListCatalogsResponse {
+  repeated Catalog catalogs = 1;
+}
+
+message ListSchemasRequest {
+  string source_id = 1;
+  string catalog = 2;
+  uint32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListSchemasResponse {
+  repeated Schema schemas = 1;
+  string next_page_token = 2;
+}
+
+message ListTablesRequest {
+  string source_id = 1;
+  string catalog = 2;
+  string schema = 3;
+  // Case-insensitive substring match on the table name.
+  string search = 4;
+  uint32 page_size = 5;
+  string page_token = 6;
+}
+
+message ListTablesResponse {
+  repeated TableSummary tables = 1;
+  string next_page_token = 2;
+}
+
+message DescribeTableRequest {
+  string source_id = 1;
+  TableRef ref = 2;
+  bool include_stats = 3;
+}
+
+message DescribeTableResponse {
+  TableDetail table = 1;
+}
+
+message ListSnapshotsRequest {
+  string source_id = 1;
+  TableRef ref = 2;
+  uint32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListSnapshotsResponse {
+  repeated TableSnapshot snapshots = 1;
+  string next_page_token = 2;
+}

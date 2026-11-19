@@ -1,0 +1,41 @@
+{
+  "name": "surfaces-ui",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "gen": "buf lint && buf generate",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "e2e": "pnpm --filter @surfaces-ui/e2e e2e",
+    "dev": "pnpm --filter @surfaces-ui/playground dev",
+    "serve": "pnpm --filter @surfaces-ui/dev-server... --filter @surfaces-ui/mcp build && node packages/dev-server/dist/cli.js",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "docs:gen": "pnpm --filter @surfaces-ui/spec... --filter @surfaces-ui/chat... --filter @surfaces-ui/devtools... build && node scripts/generate-docs.mjs",
+    "changeset": "changeset",
+    "version-packages": "changeset version && pnpm install --lockfile-only",
+    "release": "pnpm build && pnpm test && node scripts/check-release.mjs && changeset publish",
+    "check:release": "node scripts/check-release.mjs"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@bufbuild/buf": "^1.75.0",
+    "@bufbuild/protoc-gen-es": "^2.17.0",
+    "@changesets/cli": "^3.0.3",
+    "@surfaces-ui/agent": "workspace:*",
+    "@surfaces-ui/agent-anthropic": "workspace:*",
+    "@surfaces-ui/agent-openai": "workspace:*",
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/dev-server": "workspace:*",
+    "@surfaces-ui/mcp": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/spec": "workspace:*",
+    "turbo": "^2.11.11",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,292 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+import "google/protobuf/struct.proto";
+import "surfaces/v1/query.proto";
+
+// ViewService stores the documents that make up apps: an App holds Pages, a
+// Page holds Panels, and each Panel binds a catalog component to a query.
+// The same document renders as hand-written React, as an A2UI surface from an
+// agent, or as an MCP App.
+service ViewService {
+  rpc ListApps(ListAppsRequest) returns (ListAppsResponse);
+  rpc GetApp(GetAppRequest) returns (GetAppResponse);
+  // SaveApp stores a new version of the app document.
+  rpc SaveApp(SaveAppRequest) returns (SaveAppResponse);
+  rpc DeleteApp(DeleteAppRequest) returns (DeleteAppResponse);
+  rpc ListAppVersions(ListAppVersionsRequest) returns (ListAppVersionsResponse);
+  // CreateSnapshot freezes a page with its results so it replays without
+  // the source.
+  rpc CreateSnapshot(CreateSnapshotRequest) returns (CreateSnapshotResponse);
+  rpc GetSnapshot(GetSnapshotRequest) returns (GetSnapshotResponse);
+
+  // Saved surfaces: one page document each (a chart, a dashboard, a form,
+  // a pipeline graph, an explorer), versioned. The document is the same
+  // PageDocument that @surfaces-ui/spec draws and edits.
+  rpc ListSurfaces(ListSurfacesRequest) returns (ListSurfacesResponse);
+  // GetSurface returns the latest version, or the one asked for.
+  rpc GetSurface(GetSurfaceRequest) returns (GetSurfaceResponse);
+  // SaveSurface stores a new version. It fails if expected_version is not
+  // the latest, so two editors do not overwrite each other.
+  rpc SaveSurface(SaveSurfaceRequest) returns (SaveSurfaceResponse);
+  rpc DeleteSurface(DeleteSurfaceRequest) returns (DeleteSurfaceResponse);
+  rpc ListSurfaceVersions(ListSurfaceVersionsRequest) returns (ListSurfaceVersionsResponse);
+}
+
+message App {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  repeated Page pages = 4;
+  // Theme document, as defined by @surfaces-ui/tokens.
+  google.protobuf.Struct theme = 5;
+  uint32 version = 6;
+  // ISO 8601.
+  string updated_at = 7;
+}
+
+message Page {
+  string id = 1;
+  string title = 2;
+  repeated Panel panels = 3;
+  Layout layout = 4;
+  // Page-level filters applied to every panel that has the column.
+  repeated Filter filters = 5;
+}
+
+// Layout places panels on a grid. Drag and drop edits these rectangles.
+message Layout {
+  uint32 columns = 1;
+  repeated LayoutItem items = 2;
+}
+
+message LayoutItem {
+  string panel_id = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  uint32 w = 4;
+  uint32 h = 5;
+}
+
+message Panel {
+  string id = 1;
+  string title = 2;
+  // Catalog component name, e.g. DataGrid, Chart, StatCard, Markdown.
+  string component = 3;
+  // Component props, validated against the catalog.
+  google.protobuf.Struct props = 4;
+  // The data behind the panel, when it has any.
+  DataBinding binding = 5;
+}
+
+message DataBinding {
+  string source_id = 1;
+  ViewQuery query = 2;
+  TimeTravel time_travel = 3;
+}
+
+// Snapshot is a frozen page: the document plus the results each panel showed.
+message Snapshot {
+  string id = 1;
+  string app_id = 2;
+  uint32 app_version = 3;
+  Page page = 4;
+  repeated PanelResult results = 5;
+  // ISO 8601.
+  string created_at = 6;
+}
+
+message PanelResult {
+  string panel_id = 1;
+  // Arrow IPC stream holding the rows the panel displayed.
+  bytes arrow_ipc = 2;
+  string executed_sql = 3;
+  // Table snapshot or version the data was read at, when the source has one.
+  TimeTravel read_at = 4;
+  // ISO 8601 time the query ran.
+  string as_of = 5;
+}
+
+message AppSummary {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  uint32 version = 4;
+  string updated_at = 5;
+}
+
+message AppVersion {
+  uint32 version = 1;
+  string saved_at = 2;
+  string note = 3;
+}
+
+message ListAppsRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListAppsResponse {
+  repeated AppSummary apps = 1;
+  string next_page_token = 2;
+}
+
+message GetAppRequest {
+  string id = 1;
+  // 0 returns the latest version.
+  uint32 version = 2;
+}
+
+message GetAppResponse {
+  App app = 1;
+}
+
+message SaveAppRequest {
+  App app = 1;
+  // Version the edit was based on; the save fails if it is stale.
+  uint32 expected_version = 2;
+  string note = 3;
+}
+
+message SaveAppResponse {
+  App app = 1;
+}
+
+message DeleteAppRequest {
+  string id = 1;
+}
+
+message DeleteAppResponse {}
+
+message ListAppVersionsRequest {
+  string id = 1;
+}
+
+message ListAppVersionsResponse {
+  repeated AppVersion versions = 1;
+}
+
+message CreateSnapshotRequest {
+  string app_id = 1;
+  string page_id = 2;
+  // Results as the client displayed them. Empty asks the server to re-run.
+  repeated PanelResult results = 3;
+}
+
+message CreateSnapshotResponse {
+  Snapshot snapshot = 1;
+}
+
+message GetSnapshotRequest {
+  string id = 1;
+}
+
+message GetSnapshotResponse {
+  Snapshot snapshot = 1;
+}
+
+// SurfaceKind is what a saved surface is for. It is chosen by a person (a
+// guess is offered from the document) and is used to group and find them.
+enum SurfaceKind {
+  SURFACE_KIND_UNSPECIFIED = 0;
+  SURFACE_KIND_CHART = 1;
+  SURFACE_KIND_DASHBOARD = 2;
+  SURFACE_KIND_FORM = 3;
+  // A pipeline or other graph of steps.
+  SURFACE_KIND_DAG = 4;
+  // Rows: grids, results, a workbench.
+  SURFACE_KIND_DATA_EXPLORER = 5;
+  // Names, descriptions and relationships: a catalog, a model, a browser.
+  SURFACE_KIND_METADATA_EXPLORER = 6;
+  SURFACE_KIND_OTHER = 7;
+  // A conversation with an agent: the thread and what was drawn in it. The
+  // document is a ConversationDocument as defined by @surfaces-ui/chat.
+  SURFACE_KIND_CONVERSATION = 8;
+}
+
+message SavedSurface {
+  string id = 1;
+  SurfaceKind kind = 2;
+  string title = 3;
+  string description = 4;
+  // A PageDocument as defined by @surfaces-ui/spec, or for a conversation a
+  // ConversationDocument as defined by @surfaces-ui/chat.
+  google.protobuf.Struct document = 5;
+  repeated string tags = 6;
+  uint32 version = 7;
+  // ISO 8601.
+  string updated_at = 8;
+  // Who saved this version: a person's name, or empty.
+  string saved_by = 9;
+  // When an agent proposed the document, which one. A person still saved it.
+  string generated_by = 10;
+}
+
+message SurfaceSummary {
+  string id = 1;
+  SurfaceKind kind = 2;
+  string title = 3;
+  string description = 4;
+  repeated string tags = 5;
+  uint32 version = 6;
+  string updated_at = 7;
+}
+
+message SurfaceVersion {
+  uint32 version = 1;
+  string saved_at = 2;
+  string note = 3;
+  string saved_by = 4;
+}
+
+message ListSurfacesRequest {
+  // Unspecified lists every kind.
+  SurfaceKind kind = 1;
+  // Only surfaces carrying every one of these tags.
+  repeated string tags = 2;
+  uint32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListSurfacesResponse {
+  repeated SurfaceSummary surfaces = 1;
+  string next_page_token = 2;
+}
+
+message GetSurfaceRequest {
+  string id = 1;
+  // 0 returns the latest version.
+  uint32 version = 2;
+}
+
+message GetSurfaceResponse {
+  SavedSurface surface = 1;
+}
+
+message SaveSurfaceRequest {
+  // An empty id creates a new surface and the response carries its id.
+  SavedSurface surface = 1;
+  // The version the edit was based on; 0 for a new surface.
+  uint32 expected_version = 2;
+  string note = 3;
+}
+
+message SaveSurfaceResponse {
+  SavedSurface surface = 1;
+}
+
+message DeleteSurfaceRequest {
+  string id = 1;
+}
+
+message DeleteSurfaceResponse {}
+
+message ListSurfaceVersionsRequest {
+  string id = 1;
+}
+
+message ListSurfaceVersionsResponse {
+  // Newest first.
+  repeated SurfaceVersion versions = 1;
+}

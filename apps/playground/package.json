@@ -1,0 +1,51 @@
+{
+  "name": "@surfaces-ui/playground",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5210",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.17.0",
+    "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/core": "^2.4.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.4",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "@surfaces-ui/agent": "workspace:*",
+    "@surfaces-ui/agent-loom": "workspace:*",
+    "@surfaces-ui/agent-openai": "workspace:*",
+    "@surfaces-ui/chat": "workspace:*",
+    "@surfaces-ui/client-connect": "workspace:*",
+    "@surfaces-ui/components": "workspace:*",
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/datasource-duckdb-wasm": "workspace:*",
+    "@surfaces-ui/devtools": "workspace:*",
+    "@surfaces-ui/discovery": "workspace:*",
+    "@surfaces-ui/engine": "workspace:*",
+    "@surfaces-ui/engine-service": "workspace:*",
+    "@surfaces-ui/mcp": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/seeds": "workspace:*",
+    "@surfaces-ui/spec": "workspace:*",
+    "@surfaces-ui/sql": "workspace:*",
+    "@surfaces-ui/state": "workspace:*",
+    "@surfaces-ui/tokens": "workspace:*",
+    "@surfaces-ui/trace": "workspace:*",
+    "apache-arrow": "^21.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite": "^8.3.8"
+  }
+}

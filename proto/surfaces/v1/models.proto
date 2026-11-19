@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+// ModelService says which model each agent backend on a server uses and lets
+// a person choose another. It never carries a key or any other secret: keys
+// stay in the server's environment, and a backend only says whether the one
+// it needs is set and under which name.
+service ModelService {
+  // ListModelBackends returns every backend the server can run, with the
+  // model it uses now and the models it offers.
+  rpc ListModelBackends(ListModelBackendsRequest) returns (ListModelBackendsResponse);
+  // SetModel chooses the model one backend uses from its next turn. A model
+  // the backend does not offer is refused, unless it accepts any id.
+  rpc SetModel(SetModelRequest) returns (SetModelResponse);
+}
+
+enum ModelProvider {
+  MODEL_PROVIDER_UNSPECIFIED = 0;
+  MODEL_PROVIDER_ANTHROPIC = 1;
+  MODEL_PROVIDER_OPENAI = 2;
+  // An OpenAI-compatible server on this machine, such as Ollama.
+  MODEL_PROVIDER_LOCAL = 3;
+  // A Loom server, which runs its own model.
+  MODEL_PROVIDER_LOOM = 4;
+}
+
+message ModelOption {
+  string id = 1;
+  // How a person reads it, e.g. "Claude Opus 5.5".
+  string label = 2;
+  string description = 3;
+}
+
+message ModelBackend {
+  // Stable key, e.g. "claude" or "loom-test".
+  string id = 1;
+  string label = 2;
+  ModelProvider provider = 3;
+  // One line on where it runs.
+  string description = 4;
+  // The model it uses now.
+  string model = 5;
+  // The models a person may choose. Empty with any_model set means any id.
+  repeated ModelOption models = 6;
+  // True when a person may type a model id that is not listed.
+  bool any_model = 7;
+  // True when this backend answers the server's AgentService turns.
+  bool active = 8;
+  // Whether the backend can run: false when its key is not set or its
+  // server does not answer. `reason` says why.
+  bool available = 9;
+  string reason = 10;
+  // The environment variable the key is read from, when one is needed
+  // (never its value), and whether it is set.
+  string key_env = 11;
+  bool key_set = 12;
+  // What changing the model does, e.g. "Restarts the test Loom".
+  string change_note = 13;
+}
+
+message ListModelBackendsRequest {}
+
+message ListModelBackendsResponse {
+  repeated ModelBackend backends = 1;
+}
+
+message SetModelRequest {
+  string backend_id = 1;
+  string model = 2;
+  // Also make this backend the one that answers AgentService turns.
+  bool make_active = 3;
+}
+
+message SetModelResponse {
+  ModelBackend backend = 1;
+}

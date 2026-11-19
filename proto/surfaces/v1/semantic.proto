@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+import "surfaces/v1/discovery.proto";
+import "surfaces/v1/query.proto";
+
+// SemanticService keeps a project's semantic models. A semantic model says
+// what the rows of one read-only query are about and how they are broken
+// down and measured: its dimensions, its measures (an aggregate over a
+// column) and its metrics (arithmetic over measures). Explorers and reports
+// take their fields from it, so a metric is defined once and means the same
+// thing everywhere it is used.
+//
+// Nothing here runs or changes data. A model's SQL is a read-only query that
+// goes through QueryService like any other, and its metrics become
+// ViewQuery.aggregates and ViewQuery.derived when they are shown.
+service SemanticService {
+  rpc ListSemanticModels(ListSemanticModelsRequest) returns (ListSemanticModelsResponse);
+  rpc GetSemanticModel(GetSemanticModelRequest) returns (GetSemanticModelResponse);
+  // Refused when expected_version is not the latest (ABORTED), or when the
+  // model does not check: names that clash, a metric over a name that is not
+  // a measure, SQL that is not a single read-only query (INVALID_ARGUMENT).
+  rpc SaveSemanticModel(SaveSemanticModelRequest) returns (SaveSemanticModelResponse);
+  rpc DeleteSemanticModel(DeleteSemanticModelRequest) returns (DeleteSemanticModelResponse);
+  rpc ListSemanticModelVersions(ListSemanticModelVersionsRequest) returns (ListSemanticModelVersionsResponse);
+}
+
+enum DimensionKind {
+  DIMENSION_KIND_UNSPECIFIED = 0;
+  // Text, codes, flags: grouped by value.
+  DIMENSION_KIND_CATEGORY = 1;
+  // A date or time, grouped into buckets of `grain`.
+  DIMENSION_KIND_TIME = 2;
+}
+
+// A way to break the rows down.
+message Dimension {
+  // Its name in the model and in calculations: letters, digits and
+  // underscores, starting with a letter. Unique across the model's
+  // dimensions, measures and metrics.
+  string name = 1;
+  string label = 2;
+  string column = 3;
+  DimensionKind kind = 4;
+  // Time dimensions: the bucket to start from (day, week, month, quarter, year).
+  string grain = 5;
+  string description = 6;
+  // Who defined it: a person's name, an agent's model, or "generated from the columns".
+  string defined_by = 7;
+}
+
+// An aggregate over a column. Without a column, a count of rows.
+message Measure {
+  string name = 1;
+  string label = 2;
+  string column = 3;
+  AggregateFunction aggregate = 4;
+  // How its value is written: number, compact, currency or percent.
+  string format = 5;
+  string description = 6;
+  string defined_by = 7;
+}
+
+// Arithmetic over the model's measures: `refunded / revenue`. Worked out by
+// the engine from the measures' aggregates, never from rows or cells.
+message Metric {
+  string name = 1;
+  string label = 2;
+  // Measure names, numbers, + - * / and parentheses.
+  string expression = 3;
+  string format = 4;
+  string description = 5;
+  string defined_by = 6;
+}
+
+message SemanticModel {
+  // Lowercase letters, digits and underscores. Unique in the project.
+  string name = 1;
+  string label = 2;
+  string description = 3;
+  // The source its query runs on.
+  string source_id = 4;
+  // One read-only query: a table, or a join of several.
+  string sql = 5;
+  // The columns that make a row unique, when it has them.
+  repeated string primary_key = 6;
+  repeated Dimension dimensions = 7;
+  repeated Measure measures = 8;
+  repeated Metric metrics = 9;
+  // Set by the store.
+  uint32 version = 10;
+  string updated_at = 11;
+  string saved_by = 12;
+  // What one row is, in a sentence: "One order line." A new model must say,
+  // and must name a primary_key the engine finds unique over the query, so
+  // its sums count each thing once.
+  string grain = 13;
+  // When the query was built from tables and joins rather than written: the
+  // tables, the first being the one whose rows the model's rows are, and the
+  // joins that add detail to each row. `sql` is generated from them, and an
+  // editor reopens them to change the joins. Empty for a written query.
+  repeated string tables = 14;
+  repeated SemanticJoin joins = 15;
+  // When the rows are a dataset a pipeline builds: which one. `sql` then
+  // reads that dataset's table, and the grain and key come from the
+  // dataset, where they are checked after every build. Shown with when it
+  // was last built, how its checks went and what it reads.
+  SemanticDataset dataset = 16;
+}
+
+// A pipeline's dataset that a model's rows come from.
+message SemanticDataset {
+  string pipeline_id = 1;
+  string dataset = 2;
+}
+
+// Two of a model's tables joined on matching columns.
+message SemanticJoin {
+  string left = 1;
+  string right = 2;
+  repeated JoinKey keys = 3;
+  // Who made it: a person, an agent, "declared by the source" for a foreign
+  // key the table declares, or "inferred from names" for a guess no one has
+  // confirmed.
+  string defined_by = 4;
+  // Which rows the join keeps, read from `left` to `right`. Unspecified is
+  // an inner join, which is what models saved before this field ran.
+  JoinType type = 5;
+}
+
+message SemanticModelSummary {
+  string name = 1;
+  string label = 2;
+  string description = 3;
+  string source_id = 4;
+  uint32 dimension_count = 5;
+  uint32 measure_count = 6;
+  uint32 metric_count = 7;
+  uint32 version = 8;
+  string updated_at = 9;
+}
+
+message SemanticModelVersion {
+  uint32 version = 1;
+  string saved_at = 2;
+  string saved_by = 3;
+  string note = 4;
+}
+
+message ListSemanticModelsRequest {
+  // Only the models over this source. Empty lists every one.
+  string source_id = 1;
+}
+
+message ListSemanticModelsResponse {
+  repeated SemanticModelSummary models = 1;
+}
+
+message GetSemanticModelRequest {
+  string name = 1;
+  // 0 for the latest.
+  uint32 version = 2;
+}
+
+message GetSemanticModelResponse {
+  SemanticModel model = 1;
+}
+
+message SaveSemanticModelRequest {
+  SemanticModel model = 1;
+  // The version the edit started from; 0 for a new model.
+  uint32 expected_version = 2;
+  // What changed, in a few words.
+  string note = 3;
+}
+
+message SaveSemanticModelResponse {
+  SemanticModel model = 1;
+}
+
+message DeleteSemanticModelRequest {
+  string name = 1;
+}
+
+message DeleteSemanticModelResponse {}
+
+message ListSemanticModelVersionsRequest {
+  string name = 1;
+}
+
+message ListSemanticModelVersionsResponse {
+  // Newest first.
+  repeated SemanticModelVersion versions = 1;
+}

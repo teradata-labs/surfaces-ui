@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+import "google/protobuf/struct.proto";
+
+// FormService takes what a person entered in a form and stores it. It is
+// separate from QueryService because it writes. Forms and where they write
+// are defined on the server; a client names a form and sends values. It
+// never sends SQL, a table name or a path, and every value is checked
+// against the field it claims to fill before it is bound as a parameter.
+service FormService {
+  rpc ListForms(ListFormsRequest) returns (ListFormsResponse);
+  rpc GetForm(GetFormRequest) returns (GetFormResponse);
+  // Submit checks the values and stores them. A value that does not fit its
+  // field rejects the whole submission, with a reason per field.
+  rpc Submit(SubmitRequest) returns (SubmitResponse);
+  // ListSubmissions returns what was stored, newest first.
+  rpc ListSubmissions(ListSubmissionsRequest) returns (ListSubmissionsResponse);
+}
+
+// FieldType is the kind of value a field holds.
+enum FieldType {
+  FIELD_TYPE_UNSPECIFIED = 0;
+  FIELD_TYPE_TEXT = 1;
+  FIELD_TYPE_NUMBER = 2;
+  FIELD_TYPE_INTEGER = 3;
+  FIELD_TYPE_BOOLEAN = 4;
+  // ISO 8601 date, YYYY-MM-DD.
+  FIELD_TYPE_DATE = 5;
+  // ISO 8601 date and time, stored in UTC.
+  FIELD_TYPE_DATETIME = 6;
+  // One of `options`.
+  FIELD_TYPE_CHOICE = 7;
+}
+
+message FormField {
+  // The column it is stored in.
+  string name = 1;
+  string label = 2;
+  FieldType type = 3;
+  bool required = 4;
+  // For CHOICE, the allowed values.
+  repeated string options = 5;
+  // For NUMBER and INTEGER.
+  optional double min = 6;
+  optional double max = 7;
+  // For TEXT: the longest allowed, and a regular expression it must match.
+  optional uint32 max_length = 8;
+  string pattern = 9;
+  string help = 10;
+}
+
+message FormDefinition {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  repeated FormField fields = 4;
+  // The source whose table receives submissions, shown so a person knows
+  // where the data goes. The table itself is chosen by the server.
+  string target = 5;
+}
+
+message FieldError {
+  string field = 1;
+  string message = 2;
+}
+
+message Submission {
+  string id = 1;
+  string form_id = 2;
+  google.protobuf.Struct values = 3;
+  // ISO 8601.
+  string submitted_at = 4;
+  // The surface it was sent from, when there was one.
+  string surface_id = 5;
+}
+
+message ListFormsRequest {}
+
+message ListFormsResponse {
+  repeated FormDefinition forms = 1;
+}
+
+message GetFormRequest {
+  string id = 1;
+}
+
+message GetFormResponse {
+  FormDefinition form = 1;
+}
+
+message SubmitRequest {
+  string form_id = 1;
+  google.protobuf.Struct values = 2;
+  string surface_id = 3;
+  // The same key sent twice stores one submission.
+  string idempotency_key = 4;
+}
+
+message SubmitResponse {
+  // Set when the submission was stored.
+  Submission submission = 1;
+  // Set when it was not; nothing was stored.
+  repeated FieldError field_errors = 2;
+  string message = 3;
+}
+
+message ListSubmissionsRequest {
+  string form_id = 1;
+  uint32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListSubmissionsResponse {
+  repeated Submission submissions = 1;
+  string next_page_token = 2;
+}

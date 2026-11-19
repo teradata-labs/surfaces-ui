@@ -1,0 +1,62 @@
+{
+  "name": "@surfaces-ui/mcp",
+  "version": "0.0.0",
+  "description": "MCP Apps delivery for Surfaces UI: tools, ui:// resources and a stdio server",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
+    },
+    "./app.html": "./dist/app.html"
+  },
+  "bin": {
+    "surfaces-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.17.0",
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/core": "^2.4.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.4",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "@surfaces-ui/agent": "workspace:*",
+    "@surfaces-ui/components": "workspace:*",
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/dev-server": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/spec": "workspace:*",
+    "@surfaces-ui/tokens": "workspace:*",
+    "apache-arrow": "^21.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@surfaces-ui/discovery": "workspace:*",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite": "^8.3.8",
+    "vite-plugin-singlefile": "^2.3.4"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  background: var(--sf-color-bg);
+  color: var(--sf-color-text);
+  font-family: var(--sf-font);
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-3);
+  padding: var(--sf-space-3) var(--sf-space-4);
+  border-bottom: 1px solid var(--sf-color-border);
+}
+
+.app-header h1 {
+  margin: 0;
+  margin-inline-end: auto;
+  font-size: var(--sf-font-size-lg);
+}
+
+.app-header nav {
+  display: flex;
+  gap: var(--sf-space-2);
+}
+
+.app-theme > summary {
+  cursor: pointer;
+}
+
+.app-main {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--sf-space-4);
+}

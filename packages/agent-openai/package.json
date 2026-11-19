@@ -1,0 +1,31 @@
+{
+  "name": "@surfaces-ui/agent-openai",
+  "version": "0.0.0",
+  "description": "An AgentBackend over any OpenAI-compatible chat completions endpoint (OpenAI, Ollama, vLLM, LM Studio), for Surfaces UI chat",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@surfaces-ui/agent": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

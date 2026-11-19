@@ -1,0 +1,39 @@
+{
+  "name": "@surfaces-ui/pipelines-dbt",
+  "version": "0.0.0",
+  "description": "A dbt project as a Surfaces UI pipeline: datasets, tests, runs and semantic models read from dbt's artifacts, with dbt build only on a person's approval",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.17.0",
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

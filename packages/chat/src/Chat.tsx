@@ -1,0 +1,279 @@
+import type { AgentBackend } from "@surfaces-ui/agent";
+import type { AgentInfo } from "@surfaces-ui/proto";
+import { type DataRef, Markdown, addDataRefs, dataRefLabel, hasDataRefs, readDataRefs, sameDataRef } from "@surfaces-ui/components";
+import { type Catalog, type SurfaceAction, analyticsCatalog } from "@surfaces-ui/spec";
+import { type ComponentRenderer, type SurfaceNote, SurfaceView, lazyAnalyticsRenderers } from "@surfaces-ui/spec/react";
+import { type DragEvent, type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { ApprovalCard } from "./Approval.js";
+import { Composer } from "./ChatComposer.js";
+import type { ChatActor, ChatMessage, ChatStep, ChatThread, ChatUsage } from "./thread.js";
+import type { ChatProvider } from "./selectors.js";
+import { type ChatSettings, type UseChat, type UseChatOptions, useChat } from "./useChat.js";
+
+const count = new Intl.NumberFormat("en-US");
+const STEP_MARK: Record<ChatStep["status"], string> = { running: "…", done: "✓", failed: "!" };
+const STEP_WORD: Record<ChatStep["status"], string> = { running: "running", done: "done", failed: "failed" };
+
+export interface ToolStepsProps {
+  steps: ChatStep[];
+}
+
+/** The work an agent did for a reply, such as tool calls. Each step opens to show its detail. */
+export function ToolSteps({ steps }: ToolStepsProps) {
+  return (
+    <ul className="sf-chat-steps" aria-label="Steps">
+      {steps.map((step) => (
+        <li key={step.id} data-status={step.status}>
+          <details>
+            <summary>
+              <span className="sf-chat-step-mark" aria-hidden="true">
+                {STEP_MARK[step.status]}
+              </span>
+              <span className="sf-chat-step-title">{step.title || step.tool}</span>
+              <span className="sf-chat-step-meta">
+                {STEP_WORD[step.status]}
+                {step.durationMs > 0 ? ` · ${count.format(step.durationMs)} ms` : ""}
+              </span>
+            </summary>
+            {step.tool && <p className="sf-chat-step-tool">Tool: {step.tool}</p>}
+            {step.detail && <pre tabIndex={0}>{step.detail}</pre>}
+          </details>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export interface MessageListProps {
+  thread: ChatThread;
+  catalog: Catalog;
+  renderers: Record<string, ComponentRenderer>;
+  onAction(action: SurfaceAction): void;
+  onAnswer: UseChat["answer"];
+  /** Where each drawn surface stands and what went wrong with it, kept for the agent's next turn (`useChat`'s `report` and `problem`). */
+  onReport?: UseChat["report"];
+  onProblem?: UseChat["problem"];
+  /** Told what a person does in a drawn component as they do it, with where. For a host that keeps its own context for an agent. */
+  onContext?(note: SurfaceNote & { surfaceId: string; componentId: string }): void;
+  /** Shown when the thread is empty. */
+  empty?: string;
+}
+
+function MessageView({ message, thread, catalog, renderers, onAction, onAnswer, onReport, onProblem, onContext }: MessageListProps & { message: ChatMessage }) {
+  if (message.role === "user") {
+    return (
+      <article className="sf-chat-message" data-role="user">
+        <span className="sf-a2-visually-hidden">You said:</span>
+        <p>{message.parts.map((p) => (p.kind === "text" ? p.text : "")).join("")}</p>
+        {message.parts.map((p, i) =>
+          p.kind === "references" ? (
+            // biome-ignore lint/suspicious/noArrayIndexKey: a message's parts do not move.
+            <ul key={i} className="sf-chat-references" aria-label="Attached">
+              {p.references.map((ref) => (
+                <li key={`${ref.sourceId}/${dataRefLabel(ref)}`} className="sf-chat-reference" data-kind={ref.kind}>
+                  {dataRefLabel(ref)}
+                </li>
+              ))}
+            </ul>
+          ) : null,
+        )}
+      </article>
+    );
+  }
+  return (
+    <article className="sf-chat-message" data-role="assistant" aria-busy={message.streaming}>
+      <span className="sf-a2-visually-hidden">The agent replied:</span>
+      {message.parts.map((part, index) => {
+        switch (part.kind) {
+          case "text":
+            return <Markdown key={index} text={part.text} />;
+          case "steps":
+            return <ToolSteps key={index} steps={part.steps} />;
+          case "surface": {
+            const surface = thread.surfaces[part.surfaceId];
+            // Agent-drawn components are checked against the catalog before they are drawn.
+            const key = part.surfaceId;
+            return surface ? (
+              <SurfaceView
+                key={index}
+                surface={surface}
+                catalog={catalog}
+                renderers={renderers}
+                onAction={onAction}
+                onDataChange={(data) => onReport?.(key, { data })}
+                onControlsChange={(componentId, controls) => onReport?.(key, { componentId, controls })}
+                onContext={(componentId, note) => {
+                  onReport?.(key, { componentId, note });
+                  onContext?.({ ...note, surfaceId: key, componentId });
+                }}
+                onProblem={(problem) => onProblem?.(key, problem)}
+                className="sf-chat-surface"
+              />
+            ) : null;
+          }
+          case "approval":
+            return <ApprovalCard key={index} approval={part.approval} onAnswer={onAnswer} />;
+          case "references":
+            // Attachments belong to what a person sent; a reply has none.
+            return null;
+          default:
+            return (
+              <p key={index} className="sf-chat-error" role="alert">
+                {part.code === "CANCELLED" ? "Stopped." : part.message}
+              </p>
+            );
+        }
+      })}
+      {message.streaming && message.parts.length === 0 && <p className="sf-chat-thinking">Working…</p>}
+      {!message.streaming && message.generatedBy && <p className="sf-chat-by">Answered by {message.generatedBy}</p>}
+    </article>
+  );
+}
+
+/**
+ * The conversation so far. Replies can hold text, tool steps, approvals and
+ * components the agent drew. The list follows new content while the reader
+ * is at the bottom and stays put when they have scrolled up.
+ */
+export function MessageList(props: MessageListProps) {
+  const { thread } = props;
+  const list = useRef<HTMLDivElement>(null);
+  const pinned = useRef(true);
+  useEffect(() => {
+    const element = list.current;
+    if (element && pinned.current) element.scrollTop = element.scrollHeight;
+  }, [thread]);
+  return (
+    <div
+      ref={list}
+      className="sf-chat-list"
+      role="log"
+      aria-label="Conversation"
+      aria-live="polite"
+      tabIndex={0}
+      onScroll={(event) => {
+        const element = event.currentTarget;
+        pinned.current = element.scrollHeight - element.scrollTop - element.clientHeight < 48;
+      }}
+    >
+      {thread.messages.length === 0 && props.empty && <div className="sf-chat-empty">{props.empty}</div>}
+      {thread.messages.map((message) => (
+        <MessageView key={message.id} {...props} message={message} />
+      ))}
+    </div>
+  );
+}
+
+export interface SuggestionsProps {
+  items: string[];
+  onPick(text: string): void;
+}
+
+/** Things the person might say next, one press each. */
+export function Suggestions({ items, onPick }: SuggestionsProps) {
+  if (items.length === 0) return null;
+  return (
+    <div className="sf-chat-suggestions" role="group" aria-label="Suggestions">
+      {items.map((item) => (
+        <button key={item} type="button" className="sf-button" onClick={() => onPick(item)}>
+          {item}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** How full the agent's context is, and what the conversation has cost when known. */
+export function UsageGauge({ usage }: { usage: ChatUsage | undefined }) {
+  if (!usage || usage.contextLimit <= 0) return null;
+  const share = Math.min(1, usage.contextTokens / usage.contextLimit);
+  return (
+    <p className="sf-chat-usage">
+      <meter min={0} max={1} high={0.8} value={share} aria-label="Context used" />
+      <span>
+        {Math.round(share * 100)}% of context used
+        {usage.costUsd !== undefined ? ` · $${usage.costUsd.toFixed(2)}` : ""}
+      </span>
+    </p>
+  );
+}
+
+export interface ChatProps {
+  /** Any agent runtime behind the AgentBackend interface. */
+  agent: AgentBackend;
+  /** The catalog agent-drawn components are checked against. Defaults to the analytics catalog. */
+  catalog?: Catalog;
+  renderers?: Record<string, ComponentRenderer>;
+  agentId?: string;
+  /** Limit the agent to the data in this saved context pack. */
+  contextPackId?: string;
+  /** Who is using the chat, from the host's sign-in; recorded on approval answers and surface events. */
+  user?: ChatActor;
+  /** Where to keep the conversation across reloads (`browserStorage()` from `@surfaces-ui/state`, or your own). */
+  storage?: UseChatOptions["storage"];
+  storageKey?: string;
+  /** Tables and columns attached to the message being written, when the host holds them (see `Composer`). */
+  references?: DataRef[];
+  onReferencesChange?(references: DataRef[]): void;
+  /** The thread to open with: a saved or written conversation. Read once. */
+  initialThread?: ChatThread;
+  /** Told the thread after every change, so a host can save it or build from what was drawn. */
+  onThreadChange?(thread: ChatThread): void;
+  /**
+   * Told what a person does in a drawn component as they do it (a view
+   * added, a field changed, a filter set). The chat already keeps these and
+   * gives them to the agent with its next turn; this is for a host that
+   * wants them too.
+   */
+  onContext?: MessageListProps["onContext"];
+  /** Offered before the first message. */
+  starters?: string[];
+  placeholder?: string;
+  /** The agent, model, skills and connectors a person chose, sent with each turn; with `onSettingsChange` the composer offers them. */
+  settings?: ChatSettings;
+  onSettingsChange?(settings: ChatSettings): void;
+  /** What the agent offers (`DescribeAgents`), for the composer's menus. */
+  agents?: AgentInfo[];
+  /** Where models run, when the host can reach several: the Model menu groups models by provider. */
+  providers?: ChatProvider[];
+  onManageProviders?(): void;
+  /** Shown when the thread is empty. */
+  empty?: string;
+  /** Height of the whole chat. A number is px. Defaults to 640. */
+  height?: number | string;
+  className?: string;
+}
+
+/**
+ * A complete chat: the conversation, suggestions and the composer. Agent
+ * replies stream in as Markdown, with tool steps, approvals and any catalog
+ * component (charts, tables, pivots, model diagrams, decision cards) drawn
+ * inline. Data components need a DataSourceProvider above the chat.
+ */
+export function Chat(props: ChatProps) {
+  const catalog = props.catalog ?? analyticsCatalog;
+  const renderers = props.renderers ?? lazyAnalyticsRenderers;
+  const chat = useChat(props.agent, { catalog, agentId: props.agentId, contextPackId: props.contextPackId, user: props.user, storage: props.storage, storageKey: props.storageKey, initial: props.initialThread, settings: props.settings });
+  const { thread } = chat;
+  // Told on a change of thread only: a host passing a new function each render must not be told again (and set state in a loop).
+  const onThreadChange = useRef(props.onThreadChange);
+  onThreadChange.current = props.onThreadChange;
+  useEffect(() => onThreadChange.current?.(thread), [thread]);
+  const suggestions = thread.messages.length === 0 ? (props.starters ?? []) : thread.status === "idle" ? thread.suggestions : [];
+  return (
+    <section className={["sf-chat", props.className].filter(Boolean).join(" ")} style={{ height: props.height ?? 640 }} aria-label="Chat">
+      <MessageList thread={thread} catalog={catalog} renderers={renderers} onAction={chat.act} onAnswer={chat.answer} onReport={chat.report} onProblem={chat.problem} onContext={props.onContext} empty={props.empty} />
+      <Suggestions items={suggestions} onPick={(text) => chat.send(text)} />
+      <Composer
+        agents={props.agents}
+        settings={props.settings}
+        onSettingsChange={props.onSettingsChange}
+        providers={props.providers}
+        onManageProviders={props.onManageProviders}
+        references={props.references}
+        onReferencesChange={props.onReferencesChange}
+        onSend={chat.send} onStop={chat.stop} streaming={thread.status === "streaming"} placeholder={thread.status === "waiting" ? "Answer above, or type to say something else" : props.placeholder} />
+      <UsageGauge usage={thread.usage} />
+    </section>
+  );
+}

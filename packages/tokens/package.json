@@ -1,0 +1,30 @@
+{
+  "name": "@surfaces-ui/tokens",
+  "version": "0.0.0",
+  "description": "Theme contract, presets and CSS variable output for Surfaces UI",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

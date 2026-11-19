@@ -1,0 +1,361 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+import "google/protobuf/struct.proto";
+import "surfaces/v1/discovery.proto";
+import "surfaces/v1/models.proto";
+
+// AgentService is a conversation with an agent. One Send is one turn: the
+// person says or does something, and the agent answers with a stream of
+// events. Any agent runtime can sit behind it (Loom, or a consumer's own).
+service AgentService {
+  rpc Send(SendRequest) returns (stream SendResponse);
+  // DescribeAgents says what a chat may offer a person: the agents, and for
+  // each the models, skills and tool connectors it can use. A turn may only
+  // name what is listed here; the backend refuses anything else.
+  rpc DescribeAgents(DescribeAgentsRequest) returns (DescribeAgentsResponse);
+}
+
+message DescribeAgentsRequest {}
+
+message DescribeAgentsResponse {
+  repeated AgentInfo agents = 1;
+}
+
+message AgentInfo {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // The agent a chat starts with.
+  bool is_default = 4;
+  // The model it uses when a turn names none.
+  string default_model = 5;
+  // The models a turn may name. Empty means only the default.
+  repeated ModelOption models = 6;
+  repeated Skill skills = 7;
+  repeated ToolConnector connectors = 8;
+}
+
+// Skill is a named set of instructions an agent can work with, such as
+// chart standards or a team's naming rules. A person turns it on or off for
+// a conversation.
+message Skill {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // On unless the person turns it off.
+  bool default_on = 4;
+}
+
+enum ConnectorStatus {
+  CONNECTOR_STATUS_UNSPECIFIED = 0;
+  CONNECTOR_STATUS_CONNECTED = 1;
+  // It needs a person to sign in before it can be used; see sign_in_url.
+  CONNECTOR_STATUS_NEEDS_SIGN_IN = 2;
+  CONNECTOR_STATUS_UNAVAILABLE = 3;
+}
+
+// ToolConnector is a set of tools an agent may call, such as an MCP server.
+// It never carries a credential: only whether it is connected.
+message ToolConnector {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  ConnectorStatus status = 4;
+  // Why it cannot be used, when it cannot.
+  string reason = 5;
+  // Where a person signs in, when status is NEEDS_SIGN_IN. http or https.
+  string sign_in_url = 6;
+  // Its tools ask a person before they act.
+  bool requires_approval = 7;
+  bool default_on = 8;
+}
+
+// StepStatus is the state of one unit of agent work, such as a tool call.
+enum StepStatus {
+  STEP_STATUS_UNSPECIFIED = 0;
+  STEP_STATUS_RUNNING = 1;
+  STEP_STATUS_DONE = 2;
+  STEP_STATUS_FAILED = 3;
+}
+
+// ApprovalKind says what the agent is waiting on a person for.
+enum ApprovalKind {
+  APPROVAL_KIND_UNSPECIFIED = 0;
+  // Permission to do something: allow or deny.
+  APPROVAL_KIND_PERMISSION = 1;
+  // A question with a set of answers to choose from.
+  APPROVAL_KIND_CHOICE = 2;
+  // A question answered in free text.
+  APPROVAL_KIND_INPUT = 3;
+}
+
+message SendRequest {
+  // Empty starts a new conversation; the agent returns its ID in Done.
+  string session_id = 1;
+  // Which agent to talk to, when the backend has several.
+  string agent_id = 2;
+  oneof input {
+    // What the person typed.
+    string text = 3;
+    // A control used on a surface the agent drew.
+    SurfaceActionInput action = 4;
+    // The answer to an ApprovalRequest.
+    ApprovalAnswer approval = 5;
+  }
+  // Limit the agent to the data in this saved context pack.
+  string context_pack_id = 6;
+  // Every surface the agent drew in this conversation that is still on
+  // screen, as it stands now: what a person typed, how they left each
+  // control, and what the agent said it expects back. Sent with every turn,
+  // so an agent that keeps no state of its own still sees the page.
+  repeated SurfaceState surfaces = 7;
+  // Problems with surfaces the agent drew since the last turn (A2UI
+  // client-to-server errors): components the catalog does not allow, or a
+  // reply that did not match the agent's own contract.
+  repeated SurfaceErrorInput surface_errors = 8;
+  // Data objects the person attached to this message: the tables and columns
+  // they dragged in or added from a browser, by name. They say what the
+  // message is about; they carry no data values.
+  repeated ObjectRef references = 9;
+  // The model to answer this turn, from DescribeAgents. Empty is the
+  // agent's default.
+  string model = 10;
+  // The skills and tool connectors the person turned on, by id, from
+  // DescribeAgents. Anything not listed there is refused.
+  repeated string skill_ids = 11;
+  repeated string connector_ids = 12;
+  // True when the person set skill_ids and connector_ids; false keeps each
+  // one's default_on, so a client that knows nothing of them is unchanged.
+  bool choices_set = 13;
+}
+
+// SurfaceActionInput is an A2UI client-to-server action.
+message SurfaceActionInput {
+  string name = 1;
+  string surface_id = 2;
+  string source_component_id = 3;
+  // ISO 8601.
+  string timestamp = 4;
+  // What the component and the agent's action put in the event. When the
+  // surface declared a ResponseContract for this event, it has been checked
+  // against it before sending.
+  google.protobuf.Struct context = 5;
+  // The surface's whole data model, when it was created with sendDataModel.
+  google.protobuf.Struct data_model = 6;
+  // Who used the control, as the host identified them. A backend must still
+  // check it against its own session.
+  Actor actor = 7;
+}
+
+// SurfaceState is one agent-drawn surface as it stands on the client.
+message SurfaceState {
+  string surface_id = 1;
+  // The data model, including what a person typed into inputs.
+  google.protobuf.Struct data_model = 2;
+  // Control state a person changed, per component ID, in the shape of that
+  // component's catalog props (sorts, filters, columns, view). An agent can
+  // send these back in updateComponents to set the controls itself.
+  map<string, google.protobuf.Struct> controls = 3;
+  // What the agent declared it expects back from this surface.
+  repeated ResponseContract expects = 4;
+  // What a person did in this surface since the agent's last turn, oldest
+  // first: context for the turn, told once. None of it started a turn.
+  repeated SurfaceActivity activity = 5;
+}
+
+// SurfaceActivity is one thing a person did in a surface: added a view,
+// changed a field, set a filter, picked a file. It sets the agent's context
+// (what the person is doing and looking at) without asking it for anything.
+message SurfaceActivity {
+  // The component it happened in.
+  string component_id = 1;
+  // What kind of thing, as a dotted word: "view.added", "field.changed",
+  // "filter.changed", "point.selected".
+  string kind = 2;
+  // The same in a sentence, as the page told the person.
+  string summary = 3;
+  // What it was about, as plain data: a pill, a tile's shelves, a filter
+  // list. Names and settings; a value appears only where the person chose
+  // it (a filter's value, the bar they clicked).
+  google.protobuf.Struct subject = 4;
+  // ISO 8601.
+  string at = 5;
+}
+
+// ResponseContract is the signature of a reply an agent expects from a
+// surface: the event name and a JSON Schema (draft 2020-12) its context must
+// match. An agent declares it in createSurface (`expects`); the client
+// refuses to send an event that does not match and reports a
+// SurfaceErrorInput instead, so the agent always gets what it asked for.
+message ResponseContract {
+  // The action event name, as in the component's action.
+  string event = 1;
+  // JSON Schema for SurfaceActionInput.context.
+  google.protobuf.Struct schema = 2;
+}
+
+// SurfaceErrorInput is an A2UI client-to-server error.
+message SurfaceErrorInput {
+  string surface_id = 1;
+  // VALIDATION_FAILED, INVALID_MESSAGE, UNKNOWN_SURFACE, CONTRACT_FAILED or
+  // UNDECLARED_EVENT.
+  string code = 2;
+  // JSON pointer to what was wrong, from the surface's components.
+  string path = 3;
+  string message = 4;
+}
+
+message ApprovalAnswer {
+  // The ApprovalRequest being answered.
+  string id = 1;
+  // For permissions: whether it is allowed.
+  bool allow = 2;
+  // For choices and input: the answer.
+  string answer = 3;
+  // Who answered, as the host identified them. Empty when the host did not
+  // say. A backend that needs to know must check this against its own
+  // session, not trust it.
+  Actor decided_by = 4;
+  // When the person answered, ISO 8601.
+  string decided_at = 5;
+  // Why, in the person's own words. Required by the request's
+  // `reason_required`.
+  string reason = 6;
+  // The digest of what the person approved: the request's own digest, or,
+  // when they edited it, the digest of their edited version. A backend
+  // compares it with what it is about to run (`approvalDigest`).
+  string digest = 7;
+  // The SQL as the person edited it, when the request was `editable`.
+  optional string edited_sql = 8;
+  // The subject as the person edited it, when the request was `editable`.
+  google.protobuf.Struct edited_subject = 9;
+}
+
+// Actor is a person or service that made a decision.
+message Actor {
+  // A stable ID from the host's own sign-in.
+  string id = 1;
+  // How to show them.
+  string name = 2;
+}
+
+// ApprovalRisk is how much care an approval needs.
+enum ApprovalRisk {
+  APPROVAL_RISK_UNSPECIFIED = 0;
+  APPROVAL_RISK_LOW = 1;
+  // Changes data or reaches outside the read-only path.
+  APPROVAL_RISK_HIGH = 2;
+  // Removes or replaces data that cannot be got back. The person types a
+  // confirmation word before the approve button works.
+  APPROVAL_RISK_IRREVERSIBLE = 3;
+}
+
+// ApprovalRecord is a decision already made on a request that needs more
+// than one person.
+message ApprovalRecord {
+  Actor decided_by = 1;
+  string decided_at = 2;
+  bool allow = 3;
+  string reason = 4;
+}
+
+// SendResponse is one event in a turn's stream.
+message SendResponse {
+  oneof event {
+    TextDelta text = 1;
+    Step step = 2;
+    // One A2UI server-to-client message, drawn inline in the conversation.
+    google.protobuf.Struct surface = 3;
+    ApprovalRequest approval = 4;
+    Usage usage = 5;
+    Suggestions suggestions = 6;
+    AgentError error = 7;
+    Done done = 8;
+  }
+}
+
+message TextDelta {
+  // Text to append to the reply, as Markdown.
+  string delta = 1;
+}
+
+// Step reports work the agent is doing. Events with the same id update the
+// same step.
+message Step {
+  string id = 1;
+  // Short description, e.g. "Query orders".
+  string title = 2;
+  StepStatus status = 3;
+  // Tool name, when the step is a tool call.
+  string tool = 4;
+  // More to show when the step is opened: the SQL run, an error message.
+  string detail = 5;
+  uint64 duration_ms = 6;
+}
+
+// ApprovalRequest pauses the turn until a person answers with a new Send.
+message ApprovalRequest {
+  string id = 1;
+  ApprovalKind kind = 2;
+  // What is being asked, in a sentence.
+  string title = 3;
+  // Why, or what will happen.
+  string detail = 4;
+  // SQL the agent wants to run, when that is what needs approval.
+  string sql = 5;
+  // Answers to offer, for a choice.
+  repeated string options = 6;
+  // What exactly is being approved, as structured data (a plan, a set of
+  // steps, a config), shown to the person as JSON.
+  google.protobuf.Struct subject = 7;
+  // "sha256:<hex>" of the canonical JSON of {sql, subject}
+  // (`approvalDigest`). The client recomputes it from what it shows and
+  // refuses to offer approval when they differ, then sends it back in the
+  // answer, so a backend can check that what runs is what was seen.
+  string digest = 8;
+  // After this time (ISO 8601) the request cannot be approved; the agent
+  // must ask again against the data as it then is.
+  string expires_at = 9;
+  ApprovalRisk risk = 10;
+  // The person may change the SQL or subject before approving. The answer
+  // then carries their version and its digest.
+  bool editable = 11;
+  // The person must give a reason to answer.
+  bool reason_required = 12;
+  // How many different people must allow it. 0 or 1 means one.
+  uint32 approvals_required = 13;
+  // Decisions already made, for a request that needs more than one person.
+  repeated ApprovalRecord approvals = 14;
+  // What the request was based on, for the person to see (for example "orders
+  // as of snapshot 3"). A backend refuses a stale answer itself.
+  string basis = 15;
+}
+
+message Usage {
+  uint64 input_tokens = 1;
+  uint64 output_tokens = 2;
+  // Tokens in the context window now, and its size.
+  uint64 context_tokens = 3;
+  uint64 context_limit = 4;
+  // Cost of the conversation so far in US dollars, when known.
+  optional double cost_usd = 5;
+}
+
+message Suggestions {
+  // Things the person might say next.
+  repeated string items = 1;
+}
+
+message AgentError {
+  // Stable code, e.g. UNAVAILABLE, CANCELLED, FAILED.
+  string code = 1;
+  string message = 2;
+}
+
+message Done {
+  string session_id = 1;
+  // The model or agent that answered. Shown to the person.
+  string generated_by = 2;
+}

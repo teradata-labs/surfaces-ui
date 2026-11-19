@@ -1,0 +1,168 @@
+{
+ "semantic_models": [
+  {
+   "name": "orders",
+   "description": "Orders and what they were worth.",
+   "label": "Orders",
+   "node_relation": {
+    "alias": "orders",
+    "schema_name": "analytics",
+    "database": "warehouse",
+    "relation_name": "\"warehouse\".\"analytics\".\"orders\""
+   },
+   "defaults": {
+    "agg_time_dimension": "ordered_at"
+   },
+   "entities": [
+    {
+     "name": "order",
+     "type": "primary",
+     "expr": "order_id"
+    },
+    {
+     "name": "customer",
+     "type": "foreign",
+     "expr": "customer_id"
+    }
+   ],
+   "dimensions": [
+    {
+     "name": "ordered_at",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "day"
+     },
+     "label": "Ordered"
+    },
+    {
+     "name": "status",
+     "type": "categorical",
+     "description": "Where the order is."
+    },
+    {
+     "name": "is_large",
+     "type": "categorical",
+     "expr": "amount > 100"
+    }
+   ],
+   "measures": [
+    {
+     "name": "order_total",
+     "agg": "sum",
+     "expr": "amount",
+     "description": "Money taken.",
+     "label": "Order total"
+    },
+    {
+     "name": "order_count",
+     "agg": "count",
+     "expr": "order_id"
+    },
+    {
+     "name": "customers_with_orders",
+     "agg": "count_distinct",
+     "expr": "customer_id"
+    },
+    {
+     "name": "median_order",
+     "agg": "median",
+     "expr": "amount"
+    },
+    {
+     "name": "p90_order",
+     "agg": "percentile",
+     "expr": "amount",
+     "agg_params": {
+      "percentile": 0.9
+     }
+    }
+   ]
+  }
+ ],
+ "metrics": [
+  {
+   "name": "revenue",
+   "label": "Revenue",
+   "type": "simple",
+   "type_params": {
+    "measure": {
+     "name": "order_total"
+    }
+   },
+   "description": "Money taken."
+  },
+  {
+   "name": "orders",
+   "label": "Orders",
+   "type": "simple",
+   "type_params": {
+    "measure": {
+     "name": "order_count"
+    }
+   }
+  },
+  {
+   "name": "customers",
+   "type": "simple",
+   "type_params": {
+    "measure": {
+     "name": "customers_with_orders"
+    }
+   }
+  },
+  {
+   "name": "average_order_value",
+   "label": "Average order value",
+   "type": "ratio",
+   "type_params": {
+    "numerator": {
+     "name": "revenue"
+    },
+    "denominator": {
+     "name": "orders"
+    }
+   }
+  },
+  {
+   "name": "revenue_per_customer",
+   "type": "derived",
+   "type_params": {
+    "expr": "revenue / customers",
+    "metrics": [
+     {
+      "name": "revenue"
+     },
+     {
+      "name": "customers"
+     }
+    ]
+   }
+  },
+  {
+   "name": "large_revenue",
+   "type": "simple",
+   "type_params": {
+    "measure": {
+     "name": "order_total"
+    }
+   },
+   "filter": {
+    "where_filters": [
+     {
+      "where_sql_template": "{{ Dimension('order__is_large') }}"
+     }
+    ]
+   }
+  },
+  {
+   "name": "cumulative_revenue",
+   "type": "cumulative",
+   "type_params": {
+    "measure": {
+     "name": "order_total"
+    }
+   }
+  }
+ ],
+ "project_configuration": {}
+}

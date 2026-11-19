@@ -1,0 +1,12 @@
+{
+  "name": "surfaces-ui",
+  "owner": { "name": "Surfaces UI" },
+  "metadata": { "description": "Plugins for agentic data and analytics work with Surfaces UI." },
+  "plugins": [
+    {
+      "name": "surfaces-analytics",
+      "source": "./plugins/surfaces-analytics",
+      "description": "Chart and dashboard standards, human-in-the-loop patterns, connecting, cleaning, personal data, transformations, and accessible, responsive UI."
+    }
+  ]
+}

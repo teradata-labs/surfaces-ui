@@ -1,0 +1,40 @@
+{
+  "name": "@surfaces-ui/recipes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runnable recipes: each is source, a test, and the prose in docs/recipes generated from them",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.8.0",
+    "@bufbuild/protobuf": "^2.17.0",
+    "@connectrpc/connect-node": "^2.3.0",
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/core": "^2.4.0",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "@surfaces-ui/agent": "workspace:*",
+    "@surfaces-ui/agent-anthropic": "workspace:*",
+    "@surfaces-ui/chat": "workspace:*",
+    "@surfaces-ui/client-connect": "workspace:*",
+    "@surfaces-ui/components": "workspace:*",
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/dev-server": "workspace:*",
+    "@surfaces-ui/mcp": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/spec": "workspace:*",
+    "@surfaces-ui/state": "workspace:*",
+    "apache-arrow": "^21.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^31.0.0"
+  }
+}

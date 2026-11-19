@@ -1,0 +1,38 @@
+{
+  "name": "@surfaces-ui/seeds",
+  "version": "0.0.0",
+  "description": "Six synthetic industry data models (retail, healthcare, fraud, telco churn, transportation, manufacturing): generator SQL, descriptions, keys, forms, pipelines and starter surfaces",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./data/*": "./data/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "data"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/spec": "workspace:*"
+  },
+  "devDependencies": {
+    "@duckdb/node-bindings": "2.0.0-r.1",
+    "@types/node": "^26.6.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

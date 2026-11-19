@@ -1,0 +1,57 @@
+{
+  "name": "@surfaces-ui/dev-server",
+  "version": "0.0.0",
+  "description": "Local Connect server for Surfaces UI data sources",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.17.0",
+    "@connectrpc/connect": "^2.3.0",
+    "@connectrpc/connect-node": "^2.3.0",
+    "@surfaces-ui/agent": "workspace:*",
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/discovery": "workspace:*",
+    "@surfaces-ui/engine": "workspace:*",
+    "@surfaces-ui/engine-datafusion": "workspace:*",
+    "@surfaces-ui/engine-duckdb": "workspace:*",
+    "@surfaces-ui/engine-service": "workspace:*",
+    "@surfaces-ui/engine-teradata": "workspace:*",
+    "@surfaces-ui/pipelines": "workspace:*",
+    "@surfaces-ui/pipelines-dbt": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/seeds": "workspace:*",
+    "@surfaces-ui/sql": "workspace:*",
+    "apache-arrow": "^21.2.0"
+  },
+  "devDependencies": {
+    "@surfaces-ui/client-connect": "workspace:*",
+    "@types/node": "^26.6.6"
+  },
+  "bin": {
+    "surfaces-dev": "./dist/cli.js",
+    "surfaces-pipelines": "./dist/pipelines-cli.js"
+  },
+  "optionalDependencies": {
+    "@surfaces-ui/embedder-local": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

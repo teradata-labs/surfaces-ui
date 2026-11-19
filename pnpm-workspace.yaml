@@ -1,0 +1,9 @@
+packages:
+  - packages/*
+  - apps/*
+onlyBuiltDependencies:
+  - esbuild
+  - onnxruntime-node
+  - sharp
+  - protobufjs
+  - '@bufbuild/buf'

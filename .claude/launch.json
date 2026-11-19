@@ -1,0 +1,33 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "playground",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@surfaces-ui/playground",
+        "dev"
+      ],
+      "port": 5210
+    },
+    {
+      "name": "data",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "packages/dev-server/dist/cli.js"
+      ],
+      "port": 5220
+    },
+    {
+      "name": "data-s3",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "SURFACES_S3_ENDPOINT=127.0.0.1:9100",
+        "node",
+        "packages/dev-server/dist/cli.js"
+      ],
+      "port": 5220
+    }
+  ]
+}

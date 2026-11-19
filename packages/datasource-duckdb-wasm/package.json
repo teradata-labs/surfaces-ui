@@ -1,0 +1,44 @@
+{
+  "name": "@surfaces-ui/datasource-duckdb-wasm",
+  "version": "0.0.0",
+  "description": "A DataSource that runs DuckDB in the browser (WebAssembly): real SQL over Parquet with no server",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@surfaces-ui/data": "workspace:*",
+    "@surfaces-ui/engine": "workspace:*",
+    "@surfaces-ui/engine-service": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/sql": "workspace:*",
+    "apache-arrow": "^21.2.0"
+  },
+  "peerDependencies": {
+    "@duckdb/duckdb-wasm": "1.33.1-dev57.0"
+  },
+  "devDependencies": {
+    "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
+    "@surfaces-ui/seeds": "workspace:*",
+    "@types/node": "^26.6.6",
+    "@surfaces-ui/engine-duckdb": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

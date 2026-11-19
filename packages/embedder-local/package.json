@@ -1,0 +1,34 @@
+{
+  "name": "@surfaces-ui/embedder-local",
+  "version": "0.0.0",
+  "description": "Local embedding model for semantic search; the model is downloaded on first use to a cache outside the repo",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
+    "@surfaces-ui/discovery": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

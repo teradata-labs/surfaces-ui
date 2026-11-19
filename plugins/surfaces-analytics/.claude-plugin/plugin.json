@@ -1,0 +1,6 @@
+{
+  "name": "surfaces-analytics",
+  "version": "0.1.0",
+  "description": "Skills for agentic data and analytics work with Surfaces UI: chart and dashboard standards after Tufte and Few, human-in-the-loop patterns, connecting and onboarding, cleaning, personal data, transformations, and responsive, accessible UI.",
+  "keywords": ["analytics", "data", "charts", "dashboards", "a2ui", "accessibility", "pii"]
+}

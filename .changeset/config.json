@@ -1,0 +1,45 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@surfaces-ui/agent",
+      "@surfaces-ui/agent-anthropic",
+      "@surfaces-ui/agent-loom",
+      "@surfaces-ui/agent-openai",
+      "@surfaces-ui/chat",
+      "@surfaces-ui/client-connect",
+      "@surfaces-ui/components",
+      "@surfaces-ui/data",
+      "@surfaces-ui/datasource-duckdb-wasm",
+      "@surfaces-ui/dev-server",
+      "@surfaces-ui/devtools",
+      "@surfaces-ui/discovery",
+      "@surfaces-ui/embedder-local",
+      "@surfaces-ui/engine",
+      "@surfaces-ui/engine-datafusion",
+      "@surfaces-ui/engine-duckdb",
+      "@surfaces-ui/engine-service",
+      "@surfaces-ui/engine-teradata",
+      "@surfaces-ui/mcp",
+      "@surfaces-ui/page",
+      "@surfaces-ui/pipelines",
+      "@surfaces-ui/proto",
+      "@surfaces-ui/seeds",
+      "@surfaces-ui/spec",
+      "@surfaces-ui/sql",
+      "@surfaces-ui/state",
+      "@surfaces-ui/tokens",
+      "@surfaces-ui/trace",
+      "create-surfaces"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@surfaces-ui/playground"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+ "metadata": {
+  "dbt_version": "1.10.4",
+  "generated_at": "2026-11-14T06:00:30Z",
+  "invocation_id": "inv-1"
+ },
+ "elapsed_time": 1.1,
+ "results": [
+  {
+   "unique_id": "source.jaffle_shop.raw.orders",
+   "max_loaded_at": "2026-11-13T00:00:00Z",
+   "snapshotted_at": "2026-11-14T06:00:30Z",
+   "max_loaded_at_time_ago_in_s": 108030.0,
+   "status": "error",
+   "criteria": {
+    "warn_after": {
+     "count": 12,
+     "period": "hour"
+    },
+    "error_after": {
+     "count": 24,
+     "period": "hour"
+    }
+   },
+   "timing": [],
+   "thread_id": "Thread-1",
+   "execution_time": 0.2
+  }
+ ]
+}

@@ -1,0 +1,53 @@
+{
+ "metadata": {
+  "dbt_version": "1.10.4",
+  "generated_at": "2026-11-14T06:06:00Z"
+ },
+ "nodes": {
+  "model.jaffle_shop.orders": {
+   "unique_id": "model.jaffle_shop.orders",
+   "metadata": {
+    "type": "BASE TABLE",
+    "schema": "analytics",
+    "name": "orders"
+   },
+   "columns": {
+    "ORDER_ID": {
+     "type": "INTEGER",
+     "index": 1,
+     "name": "ORDER_ID"
+    },
+    "CUSTOMER_ID": {
+     "type": "INTEGER",
+     "index": 2,
+     "name": "CUSTOMER_ID"
+    },
+    "ORDERED_AT": {
+     "type": "TIMESTAMP",
+     "index": 3,
+     "name": "ORDERED_AT"
+    },
+    "STATUS": {
+     "type": "VARCHAR",
+     "index": 4,
+     "name": "STATUS"
+    },
+    "AMOUNT": {
+     "type": "DECIMAL(10,2)",
+     "index": 5,
+     "name": "AMOUNT"
+    }
+   },
+   "stats": {
+    "row_count": {
+     "id": "row_count",
+     "label": "Row count",
+     "value": 99,
+     "include": true
+    }
+   }
+  }
+ },
+ "sources": {},
+ "errors": null
+}

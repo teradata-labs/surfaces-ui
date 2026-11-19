@@ -1,0 +1,15 @@
+node_modules
+dist
+.turbo
+*.tsbuildinfo
+.DS_Store
+coverage
+.surfaces/
+
+# Secrets for the dev server (ANTHROPIC_API_KEY and the like). Never commit them.
+.env
+.env.local
+.env.*.local
+
+# Recording workspace for the walkthrough videos (recorders, voice clips, takes); the published videos are in docs/media/
+walkthrough/

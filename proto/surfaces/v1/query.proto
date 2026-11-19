@@ -1,0 +1,366 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+// QueryService runs read-only SQL against one engine (DuckDB, Teradata,
+// DataFusion, ...). Every engine adapter implements this same service, so the
+// UI never depends on which engine is behind it.
+service QueryService {
+  // Execute streams the result as Arrow IPC record batches.
+  rpc Execute(ExecuteRequest) returns (stream ExecuteResponse);
+  // Cancel stops a running query.
+  rpc Cancel(CancelRequest) returns (CancelResponse);
+  // Explain returns the engine's plan for a query without running it.
+  rpc Explain(ExplainRequest) returns (ExplainResponse);
+  // Count returns the number of rows a view query would produce.
+  rpc Count(CountRequest) returns (CountResponse);
+}
+
+// SortDirection orders one column.
+enum SortDirection {
+  SORT_DIRECTION_UNSPECIFIED = 0;
+  SORT_DIRECTION_ASC = 1;
+  SORT_DIRECTION_DESC = 2;
+}
+
+// NullOrder places nulls in a sort.
+enum NullOrder {
+  NULL_ORDER_UNSPECIFIED = 0;
+  NULL_ORDER_FIRST = 1;
+  NULL_ORDER_LAST = 2;
+}
+
+// FilterOperator compares a column to its values.
+enum FilterOperator {
+  FILTER_OPERATOR_UNSPECIFIED = 0;
+  FILTER_OPERATOR_EQ = 1;
+  FILTER_OPERATOR_NEQ = 2;
+  FILTER_OPERATOR_LT = 3;
+  FILTER_OPERATOR_LTE = 4;
+  FILTER_OPERATOR_GT = 5;
+  FILTER_OPERATOR_GTE = 6;
+  FILTER_OPERATOR_IN = 7;
+  FILTER_OPERATOR_NOT_IN = 8;
+  FILTER_OPERATOR_BETWEEN = 9;
+  FILTER_OPERATOR_CONTAINS = 10;
+  FILTER_OPERATOR_STARTS_WITH = 11;
+  FILTER_OPERATOR_ENDS_WITH = 12;
+  FILTER_OPERATOR_IS_NULL = 13;
+  FILTER_OPERATOR_IS_NOT_NULL = 14;
+}
+
+// RewriteMode says how the engine side applied a ViewQuery to base_sql.
+enum RewriteMode {
+  REWRITE_MODE_UNSPECIFIED = 0;
+  // base_sql ran unchanged: no filters, sorts, columns or paging were asked for.
+  REWRITE_MODE_NONE = 1;
+  // base_sql was parsed. Its WITH clause was hoisted and a trailing ORDER BY
+  // removed before it was wrapped, so the result is valid in every dialect.
+  REWRITE_MODE_PARSED = 2;
+  // base_sql could not be parsed and was wrapped as text. This can fail on
+  // engines that reject WITH or ORDER BY inside a derived table (Teradata).
+  REWRITE_MODE_WRAPPED = 3;
+}
+
+// NoticeSeverity ranks a Notice.
+enum NoticeSeverity {
+  NOTICE_SEVERITY_UNSPECIFIED = 0;
+  NOTICE_SEVERITY_INFO = 1;
+  NOTICE_SEVERITY_WARNING = 2;
+}
+
+// Notice tells the user something about how a query ran without failing it,
+// for example that paging has no stable order.
+message Notice {
+  NoticeSeverity severity = 1;
+  // Stable machine-readable code, e.g. UNSTABLE_PAGE_ORDER, REWRITE_FALLBACK.
+  string code = 2;
+  string message = 3;
+}
+
+// ResultColumn describes one result column beyond what the Arrow schema says.
+message ResultColumn {
+  string name = 1;
+  // The engine's own type name, e.g. DECIMAL(18,2) or PERIOD(DATE).
+  string native_type = 2;
+  // False when the engine cannot order by or compare this column.
+  bool sortable = 3;
+  bool filterable = 4;
+}
+
+// QueryErrorDetail is attached to a failed call as an error detail, so an
+// editor can mark the place in the SQL.
+message QueryErrorDetail {
+  // Stable code: SYNTAX, NOT_READ_ONLY, MULTIPLE_STATEMENTS, UNKNOWN_COLUMN,
+  // PERMISSION, TIMEOUT, CANCELLED, ENGINE.
+  string code = 1;
+  string message = 2;
+  // 1-based position in base_sql, when known. 0 means unknown.
+  uint32 line = 3;
+  uint32 column = 4;
+  // The engine's own error code, e.g. a Teradata error number.
+  string engine_code = 5;
+  string executed_sql = 6;
+}
+
+// Value is one typed literal used in filters and parameters. Literals are
+// always sent as values, never spliced into SQL text.
+message Value {
+  oneof kind {
+    string string_value = 1;
+    int64 int_value = 2;
+    double double_value = 3;
+    bool bool_value = 4;
+    // ISO 8601 date, time or timestamp.
+    string temporal_value = 5;
+    // Decimal as a string, to keep precision.
+    string decimal_value = 6;
+  }
+}
+
+// AggregateFunction summarises a column within each group.
+enum AggregateFunction {
+  AGGREGATE_FUNCTION_UNSPECIFIED = 0;
+  // Counts rows; with a column, counts its non-null values.
+  AGGREGATE_FUNCTION_COUNT = 1;
+  AGGREGATE_FUNCTION_COUNT_DISTINCT = 2;
+  AGGREGATE_FUNCTION_SUM = 3;
+  AGGREGATE_FUNCTION_AVG = 4;
+  AGGREGATE_FUNCTION_MIN = 5;
+  AGGREGATE_FUNCTION_MAX = 6;
+  AGGREGATE_FUNCTION_MEDIAN = 7;
+  // Sample standard deviation and variance.
+  AGGREGATE_FUNCTION_STDDEV = 8;
+  AGGREGATE_FUNCTION_VARIANCE = 9;
+  // The value below which Aggregate.percentile of the rows fall.
+  AGGREGATE_FUNCTION_PERCENTILE = 10;
+  // Distinct count that may be an estimate. Engines without one count exactly.
+  AGGREGATE_FUNCTION_APPROX_COUNT_DISTINCT = 11;
+}
+
+// TimeGrain is the size of a time bucket.
+enum TimeGrain {
+  TIME_GRAIN_UNSPECIFIED = 0;
+  TIME_GRAIN_MINUTE = 1;
+  TIME_GRAIN_HOUR = 2;
+  TIME_GRAIN_DAY = 3;
+  // Weeks start on Monday (ISO 8601).
+  TIME_GRAIN_WEEK = 4;
+  TIME_GRAIN_MONTH = 5;
+  TIME_GRAIN_QUARTER = 6;
+  TIME_GRAIN_YEAR = 7;
+}
+
+// Bucket groups rows by a rounded-down value of a column: a date or time
+// truncated to a grain, or a number rounded down to a multiple of a width.
+// It is how time series and histograms are summarised in the engine.
+message Bucket {
+  string column = 1;
+  // Name of the output column. Defaults to column.
+  string alias = 2;
+  oneof by {
+    TimeGrain grain = 3;
+    // Width of each numeric bin; must be greater than zero. The output is the
+    // lower edge of the bin.
+    double bin_width = 4;
+  }
+}
+
+// Sample keeps a random subset of rows.
+message Sample {
+  // About this many rows are kept; fewer when the result is smaller.
+  uint32 rows = 1;
+}
+
+// Aggregate is one summarised output column.
+message Aggregate {
+  AggregateFunction function = 1;
+  // Column to summarise. Empty is allowed only for COUNT, meaning all rows.
+  string column = 2;
+  // Name of the output column. Required.
+  string alias = 3;
+  // For PERCENTILE: a fraction from 0 to 1, e.g. 0.9.
+  double percentile = 4;
+}
+
+// DerivedMeasure is arithmetic over a query's aggregates, worked out by the
+// engine after grouping: a rate, a margin, a difference.
+message DerivedMeasure {
+  // Name of the output column. Required, and different from every other
+  // output of the query.
+  string alias = 1;
+  // Aggregate aliases of the same query, numbers, + - * / and parentheses,
+  // e.g. "refunded / revenue". Nothing else is accepted. A division is done
+  // in floating point, and by zero gives null.
+  string expression = 2;
+}
+
+// Sort orders the result by one column.
+message Sort {
+  string column = 1;
+  SortDirection direction = 2;
+  NullOrder nulls = 3;
+}
+
+// Filter keeps rows where a column matches.
+message Filter {
+  string column = 1;
+  FilterOperator operator = 2;
+  repeated Value values = 3;
+}
+
+// Paging selects a window of the result. Use offset paging or a keyset cursor.
+// Paging is only repeatable when the query has sorts that give a total order;
+// without one the engine adds a Notice with code UNSTABLE_PAGE_ORDER.
+message Paging {
+  uint32 limit = 1;
+  uint64 offset = 2;
+  // Opaque cursor returned by a previous ExecuteResponse; wins over offset.
+  string cursor = 3;
+}
+
+// ViewQuery is the declarative state of a grid or chart over a base query.
+// The engine side rewrites base_sql (wrapping it, then applying filters,
+// sorts and paging in the engine's dialect); the browser never sorts or
+// filters rows itself.
+message ViewQuery {
+  // The user's SQL, unchanged.
+  string base_sql = 1;
+  repeated Filter filters = 2;
+  repeated Sort sorts = 3;
+  Paging page = 4;
+  // Columns to keep, in order. Empty keeps all.
+  repeated string columns = 5;
+  // Positional parameters for base_sql.
+  repeated Value parameters = 6;
+  // Summarise instead of returning rows: one output row per distinct
+  // combination of group_by columns, with one column per aggregate. Filters
+  // apply before grouping; sorts, columns and page apply to the summarised
+  // output. This is how charts stay small over large tables.
+  repeated string group_by = 7;
+  repeated Aggregate aggregates = 8;
+  // More grouping keys, each a bucketed column. They come after group_by in
+  // the output.
+  repeated Bucket buckets = 9;
+  // Return a random sample of the filtered rows instead of all of them, for
+  // plots of raw rows. Cannot be combined with group_by, aggregates, buckets
+  // or a page offset.
+  Sample sample = 10;
+  // Measures worked out from the aggregates, one output column each, after
+  // the aggregates. Needs aggregates. They can be sorted by like any other
+  // output.
+  repeated DerivedMeasure derived = 11;
+}
+
+// TimeTravel pins table reads to a snapshot (Iceberg) or version (Delta).
+message TimeTravel {
+  oneof at {
+    string snapshot_id = 1;
+    int64 version = 2;
+    // ISO 8601 timestamp.
+    string timestamp = 3;
+  }
+  // Table to pin, as the query names it. Empty pins every table in the
+  // source that has snapshots.
+  string table = 4;
+}
+
+message ExecuteRequest {
+  // The data source to run against.
+  string source_id = 1;
+  ViewQuery query = 2;
+  // Client-chosen ID, used to cancel.
+  string query_id = 3;
+  // Upper bound on rows per Arrow batch; 0 lets the engine choose.
+  uint32 batch_rows = 4;
+  TimeTravel time_travel = 5;
+  // ISO 8601 time, e.g. when the person pressed Run. A stored result made
+  // for an earlier time is not used; base_sql runs again. Every view of the
+  // same run sends the same value, so the query runs once for all of them.
+  string not_before = 6;
+}
+
+// StoredResult says the rows came from a copy of base_sql's result that the
+// server kept, so sorting, filtering and paging did not run base_sql again.
+message StoredResult {
+  // When base_sql ran, as ISO 8601. The data is as of this time.
+  string created_at = 1;
+  // Rows base_sql returned, before filters.
+  uint64 row_count = 2;
+}
+
+// ExecuteResponse is one message in the result stream: a header first, then
+// batches, then a footer.
+message ExecuteResponse {
+  oneof part {
+    ResultHeader header = 1;
+    ResultBatch batch = 2;
+    ResultFooter footer = 3;
+  }
+}
+
+message ResultHeader {
+  // Arrow IPC schema message.
+  bytes arrow_schema = 1;
+  // SQL that produces these rows, for "show SQL". When stored is set the
+  // engine read a stored copy of base_sql's result instead of running the
+  // base_sql part of this text again.
+  string executed_sql = 2;
+  RewriteMode rewrite_mode = 3;
+  repeated Notice notices = 4;
+  // One entry per result column, in schema order.
+  repeated ResultColumn columns = 5;
+  string query_id = 6;
+  // Set when the rows were read from a stored result.
+  StoredResult stored = 7;
+}
+
+message ResultBatch {
+  // One encapsulated Arrow IPC record batch message. Appending arrow_schema
+  // and every arrow_batch in order yields a valid Arrow IPC stream.
+  bytes arrow_batch = 1;
+  uint64 row_count = 2;
+}
+
+message ResultFooter {
+  uint64 total_rows_returned = 1;
+  // Set when more rows exist after this page.
+  string next_cursor = 2;
+  bool truncated = 3;
+  uint64 elapsed_ms = 4;
+}
+
+message CancelRequest {
+  string query_id = 1;
+}
+
+message CancelResponse {
+  bool cancelled = 1;
+}
+
+message ExplainRequest {
+  string source_id = 1;
+  ViewQuery query = 2;
+}
+
+message ExplainResponse {
+  // The engine's plan text (for Teradata, the EXPLAIN output).
+  string plan_text = 1;
+  // Structured plan as JSON, when the engine offers one.
+  string plan_json = 2;
+  string executed_sql = 3;
+}
+
+message CountRequest {
+  string source_id = 1;
+  ViewQuery query = 2;
+  TimeTravel time_travel = 3;
+  // As in ExecuteRequest.
+  string not_before = 4;
+}
+
+message CountResponse {
+  uint64 row_count = 1;
+  // True when the engine returned an estimate.
+  bool estimated = 2;
+}

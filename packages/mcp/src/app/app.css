@@ -1,0 +1,45 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: transparent;
+  color: var(--sf-color-text);
+  font-family: var(--sf-font);
+  font-size: var(--sf-font-size);
+  line-height: 1.5;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sf-space-3);
+  padding: var(--sf-space-3);
+}
+
+.app-title {
+  margin: 0;
+  font-size: var(--sf-font-size-lg);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.app-note {
+  margin: 0;
+  color: var(--sf-color-muted);
+}
+
+.app-note[role="alert"] {
+  color: var(--sf-color-danger);
+}
+
+.app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-2);
+}

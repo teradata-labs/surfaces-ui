@@ -1,0 +1,523 @@
+{
+ "metadata": {
+  "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "dbt_version": "1.10.4",
+  "generated_at": "2026-11-14T06:00:00Z",
+  "project_name": "jaffle_shop",
+  "adapter_type": "duckdb",
+  "invocation_id": "inv-2"
+ },
+ "nodes": {
+  "model.jaffle_shop.stg_orders": {
+   "unique_id": "model.jaffle_shop.stg_orders",
+   "resource_type": "model",
+   "package_name": "jaffle_shop",
+   "name": "stg_orders",
+   "alias": "stg_orders",
+   "schema": "staging",
+   "database": "warehouse",
+   "relation_name": "\"warehouse\".\"staging\".\"stg_orders\"",
+   "description": "Orders as loaded, renamed.",
+   "columns": {
+    "order_id": {
+     "name": "order_id",
+     "description": "",
+     "data_type": "integer",
+     "meta": {}
+    },
+    "customer_id": {
+     "name": "customer_id",
+     "description": "",
+     "data_type": "integer",
+     "meta": {}
+    },
+    "ordered_at": {
+     "name": "ordered_at",
+     "description": "",
+     "data_type": "timestamp",
+     "meta": {}
+    },
+    "status": {
+     "name": "status",
+     "description": "",
+     "data_type": "varchar",
+     "meta": {}
+    },
+    "amount": {
+     "name": "amount",
+     "description": "",
+     "data_type": "numeric",
+     "meta": {}
+    }
+   },
+   "config": {
+    "materialized": "view",
+    "tags": [],
+    "meta": {}
+   },
+   "tags": [],
+   "meta": {},
+   "depends_on": {
+    "nodes": [
+     "source.jaffle_shop.raw.orders"
+    ]
+   },
+   "compiled_code": "select id as order_id, user_id as customer_id, order_date as ordered_at, status, amount from \"warehouse\".\"raw\".\"orders\"",
+   "raw_code": "select 1",
+   "constraints": [],
+   "original_file_path": "models/stg_orders.sql"
+  },
+  "model.jaffle_shop.stg_customers": {
+   "unique_id": "model.jaffle_shop.stg_customers",
+   "resource_type": "model",
+   "package_name": "jaffle_shop",
+   "name": "stg_customers",
+   "alias": "stg_customers",
+   "schema": "staging",
+   "database": "warehouse",
+   "relation_name": "\"warehouse\".\"staging\".\"stg_customers\"",
+   "description": "Customers as loaded.",
+   "columns": {
+    "customer_id": {
+     "name": "customer_id",
+     "description": "",
+     "data_type": "integer",
+     "meta": {}
+    },
+    "first_name": {
+     "name": "first_name",
+     "description": "",
+     "data_type": "varchar",
+     "meta": {}
+    },
+    "email": {
+     "name": "email",
+     "description": "",
+     "data_type": "varchar",
+     "meta": {}
+    }
+   },
+   "config": {
+    "materialized": "view",
+    "tags": [],
+    "meta": {}
+   },
+   "tags": [],
+   "meta": {},
+   "depends_on": {
+    "nodes": [
+     "source.jaffle_shop.raw.customers"
+    ]
+   },
+   "compiled_code": "select id as customer_id, first_name, email from \"warehouse\".\"raw\".\"customers\"",
+   "raw_code": "select 1",
+   "constraints": [],
+   "original_file_path": "models/stg_customers.sql"
+  },
+  "model.jaffle_shop.customers": {
+   "unique_id": "model.jaffle_shop.customers",
+   "resource_type": "model",
+   "package_name": "jaffle_shop",
+   "name": "customers",
+   "alias": "customers",
+   "schema": "analytics",
+   "database": "warehouse",
+   "relation_name": "\"warehouse\".\"analytics\".\"customers\"",
+   "description": "One row per customer, with their order history.",
+   "columns": {
+    "customer_id": {
+     "name": "customer_id",
+     "description": "The customer.",
+     "data_type": "integer",
+     "meta": {}
+    },
+    "first_name": {
+     "name": "first_name",
+     "description": "",
+     "data_type": "varchar",
+     "meta": {}
+    },
+    "first_order": {
+     "name": "first_order",
+     "description": "When they first ordered.",
+     "data_type": "date",
+     "meta": {}
+    },
+    "lifetime_value": {
+     "name": "lifetime_value",
+     "description": "Everything they have spent.",
+     "data_type": "numeric",
+     "meta": {}
+    }
+   },
+   "config": {
+    "materialized": "table",
+    "tags": [],
+    "meta": {
+     "owner": "Growth team"
+    }
+   },
+   "tags": [],
+   "meta": {
+    "owner": "Growth team"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.stg_customers",
+     "model.jaffle_shop.stg_orders"
+    ]
+   },
+   "compiled_code": "select c.customer_id, c.first_name, min(o.ordered_at) as first_order, sum(o.amount) as lifetime_value from \"warehouse\".\"staging\".\"stg_customers\" c left join \"warehouse\".\"staging\".\"stg_orders\" o using (customer_id) group by 1, 2",
+   "raw_code": "select 1",
+   "constraints": [],
+   "original_file_path": "models/customers.sql"
+  },
+  "model.jaffle_shop.orders": {
+   "unique_id": "model.jaffle_shop.orders",
+   "resource_type": "model",
+   "package_name": "jaffle_shop",
+   "name": "orders",
+   "alias": "orders",
+   "schema": "analytics",
+   "database": "warehouse",
+   "relation_name": "\"warehouse\".\"analytics\".\"orders\"",
+   "description": "One row per order.",
+   "columns": {
+    "order_id": {
+     "name": "order_id",
+     "description": "The order.",
+     "data_type": "integer",
+     "meta": {}
+    },
+    "customer_id": {
+     "name": "customer_id",
+     "description": "Who ordered.",
+     "data_type": "integer",
+     "meta": {}
+    },
+    "ordered_at": {
+     "name": "ordered_at",
+     "description": "When.",
+     "data_type": "timestamp",
+     "meta": {}
+    },
+    "status": {
+     "name": "status",
+     "description": "Where it is.",
+     "data_type": "varchar",
+     "meta": {}
+    },
+    "amount": {
+     "name": "amount",
+     "description": "What it cost.",
+     "data_type": "numeric",
+     "meta": {}
+    }
+   },
+   "config": {
+    "materialized": "incremental",
+    "tags": [
+     "finance"
+    ],
+    "meta": {
+     "owner": "Finance analytics",
+     "grain": "One order."
+    }
+   },
+   "tags": [
+    "finance"
+   ],
+   "meta": {
+    "owner": "Finance analytics",
+    "grain": "One order."
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.stg_orders",
+     "model.jaffle_shop.customers"
+    ]
+   },
+   "compiled_code": "select * from \"warehouse\".\"staging\".\"stg_orders\"",
+   "raw_code": "select 1",
+   "constraints": [],
+   "original_file_path": "models/orders.sql"
+  },
+  "seed.jaffle_shop.country_codes": {
+   "unique_id": "seed.jaffle_shop.country_codes",
+   "resource_type": "seed",
+   "package_name": "jaffle_shop",
+   "name": "country_codes",
+   "alias": "country_codes",
+   "schema": "analytics",
+   "database": "warehouse",
+   "relation_name": "\"warehouse\".\"analytics\".\"country_codes\"",
+   "description": "ISO country codes.",
+   "columns": {},
+   "config": {
+    "materialized": "seed",
+    "meta": {}
+   },
+   "tags": [],
+   "meta": {},
+   "depends_on": {
+    "nodes": []
+   }
+  },
+  "test.jaffle_shop.unique_orders_order_id": {
+   "unique_id": "test.jaffle_shop.unique_orders_order_id",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "unique_orders_order_id",
+   "attached_node": "model.jaffle_shop.orders",
+   "column_name": "order_id",
+   "config": {
+    "severity": "ERROR"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.orders"
+    ]
+   },
+   "description": "",
+   "test_metadata": {
+    "name": "unique",
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('x')) }}"
+    },
+    "namespace": null
+   }
+  },
+  "test.jaffle_shop.not_null_orders_order_id": {
+   "unique_id": "test.jaffle_shop.not_null_orders_order_id",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "not_null_orders_order_id",
+   "attached_node": "model.jaffle_shop.orders",
+   "column_name": "order_id",
+   "config": {
+    "severity": "ERROR"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.orders"
+    ]
+   },
+   "description": "",
+   "test_metadata": {
+    "name": "not_null",
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('x')) }}"
+    },
+    "namespace": null
+   }
+  },
+  "test.jaffle_shop.relationships_orders_customer_id__customer_id__ref_customers_": {
+   "unique_id": "test.jaffle_shop.relationships_orders_customer_id__customer_id__ref_customers_",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "relationships_orders_customer_id__customer_id__ref_customers_",
+   "attached_node": "model.jaffle_shop.orders",
+   "column_name": "customer_id",
+   "config": {
+    "severity": "ERROR"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.orders"
+    ]
+   },
+   "description": "",
+   "test_metadata": {
+    "name": "relationships",
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('x')) }}",
+     "to": "ref('customers')",
+     "field": "customer_id"
+    },
+    "namespace": null
+   }
+  },
+  "test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__returned": {
+   "unique_id": "test.jaffle_shop.accepted_values_orders_status__placed__shipped__completed__returned",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "accepted_values_orders_status__placed__shipped__completed__returned",
+   "attached_node": "model.jaffle_shop.orders",
+   "column_name": "status",
+   "config": {
+    "severity": "warn"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.orders"
+    ]
+   },
+   "description": "",
+   "test_metadata": {
+    "name": "accepted_values",
+    "kwargs": {
+     "column_name": "status",
+     "model": "{{ get_where_subquery(ref('x')) }}",
+     "values": [
+      "placed",
+      "shipped",
+      "completed",
+      "returned"
+     ]
+    },
+    "namespace": null
+   }
+  },
+  "test.jaffle_shop.unique_customers_customer_id": {
+   "unique_id": "test.jaffle_shop.unique_customers_customer_id",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "unique_customers_customer_id",
+   "attached_node": "model.jaffle_shop.customers",
+   "column_name": "customer_id",
+   "config": {
+    "severity": "ERROR"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.customers"
+    ]
+   },
+   "description": "",
+   "test_metadata": {
+    "name": "unique",
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('x')) }}"
+    },
+    "namespace": null
+   }
+  },
+  "test.jaffle_shop.not_null_customers_customer_id": {
+   "unique_id": "test.jaffle_shop.not_null_customers_customer_id",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "not_null_customers_customer_id",
+   "attached_node": "model.jaffle_shop.customers",
+   "column_name": "customer_id",
+   "config": {
+    "severity": "ERROR"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.customers"
+    ]
+   },
+   "description": "",
+   "test_metadata": {
+    "name": "not_null",
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('x')) }}"
+    },
+    "namespace": null
+   }
+  },
+  "test.jaffle_shop.assert_amount_is_positive": {
+   "unique_id": "test.jaffle_shop.assert_amount_is_positive",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "assert_amount_is_positive",
+   "attached_node": "model.jaffle_shop.orders",
+   "column_name": null,
+   "config": {
+    "severity": "ERROR"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.orders"
+    ]
+   },
+   "description": "No order has a negative amount."
+  },
+  "test.jaffle_shop.dbt_utils_expression_is_true_customers_lifetime_value_0": {
+   "unique_id": "test.jaffle_shop.dbt_utils_expression_is_true_customers_lifetime_value_0",
+   "resource_type": "test",
+   "package_name": "jaffle_shop",
+   "name": "dbt_utils_expression_is_true_customers_lifetime_value_0",
+   "attached_node": "model.jaffle_shop.customers",
+   "column_name": null,
+   "config": {
+    "severity": "ERROR"
+   },
+   "depends_on": {
+    "nodes": [
+     "model.jaffle_shop.customers"
+    ]
+   },
+   "description": "",
+   "test_metadata": {
+    "name": "expression_is_true",
+    "kwargs": {
+     "column_name": null,
+     "model": "{{ get_where_subquery(ref('x')) }}",
+     "expression": "lifetime_value >= 0"
+    },
+    "namespace": "dbt_utils"
+   }
+  }
+ },
+ "sources": {
+  "source.jaffle_shop.raw.orders": {
+   "unique_id": "source.jaffle_shop.raw.orders",
+   "resource_type": "source",
+   "package_name": "jaffle_shop",
+   "name": "orders",
+   "source_name": "raw",
+   "identifier": "orders",
+   "schema": "raw",
+   "database": "warehouse",
+   "relation_name": "\"warehouse\".\"raw\".\"orders\"",
+   "description": "Orders from the shop's database.",
+   "columns": {},
+   "loaded_at_field": "_loaded_at",
+   "freshness": {
+    "warn_after": {
+     "count": 12,
+     "period": "hour"
+    },
+    "error_after": {
+     "count": 24,
+     "period": "hour"
+    }
+   },
+   "meta": {}
+  },
+  "source.jaffle_shop.raw.customers": {
+   "unique_id": "source.jaffle_shop.raw.customers",
+   "resource_type": "source",
+   "package_name": "jaffle_shop",
+   "name": "customers",
+   "source_name": "raw",
+   "identifier": "customers",
+   "schema": "raw",
+   "database": "warehouse",
+   "relation_name": "\"warehouse\".\"raw\".\"customers\"",
+   "description": "Customers from the shop's database.",
+   "columns": {},
+   "loaded_at_field": null,
+   "freshness": {
+    "warn_after": {
+     "count": null,
+     "period": null
+    },
+    "error_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "meta": {}
+  }
+ },
+ "exposures": {},
+ "metrics": {},
+ "semantic_models": {}
+}

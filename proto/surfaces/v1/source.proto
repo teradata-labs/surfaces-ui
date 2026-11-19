@@ -1,0 +1,263 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+import "surfaces/v1/catalog.proto";
+
+// SourceService manages the data sources a server can reach. Secrets are
+// referenced by name and resolved on the server; they never travel in these
+// messages.
+service SourceService {
+  rpc ListSources(ListSourcesRequest) returns (ListSourcesResponse);
+  rpc GetSource(GetSourceRequest) returns (GetSourceResponse);
+  rpc RegisterSource(RegisterSourceRequest) returns (RegisterSourceResponse);
+  rpc RemoveSource(RemoveSourceRequest) returns (RemoveSourceResponse);
+  rpc TestSource(TestSourceRequest) returns (TestSourceResponse);
+  // ListFiles lists the folders and files in a source's storage: only the
+  // places the source is allowed to read, and only names, sizes and dates,
+  // never what a file holds. Not every source has storage to list.
+  rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+}
+
+// SourceKind is the type of system a source connects to.
+enum SourceKind {
+  SOURCE_KIND_UNSPECIFIED = 0;
+  // Local or remote files (Parquet, CSV, JSON) read by the engine.
+  SOURCE_KIND_FILES = 1;
+  SOURCE_KIND_ICEBERG = 2;
+  SOURCE_KIND_DELTA = 3;
+  SOURCE_KIND_DUCKDB = 4;
+  SOURCE_KIND_TERADATA = 5;
+  SOURCE_KIND_POSTGRES = 6;
+}
+
+// ConnectionKind is where a source's data or catalog lives.
+enum ConnectionKind {
+  CONNECTION_KIND_UNSPECIFIED = 0;
+  // Amazon S3 and S3-compatible stores (MinIO, R2).
+  CONNECTION_KIND_S3 = 1;
+  CONNECTION_KIND_GCS = 2;
+  CONNECTION_KIND_AZURE = 3;
+  // Files served over http(s).
+  CONNECTION_KIND_HTTP = 4;
+  // An Iceberg REST catalog.
+  CONNECTION_KIND_ICEBERG_REST = 5;
+  // A database file attached to the engine.
+  CONNECTION_KIND_DATABASE_FILE = 6;
+  // A Postgres database (also Supabase, Neon, RDS and others that speak its protocol).
+  CONNECTION_KIND_POSTGRES = 7;
+}
+
+// Connection describes how a source reaches data outside the server. It
+// names a secret; it never carries one.
+message Connection {
+  string name = 1;
+  ConnectionKind kind = 2;
+  // The bucket, prefix or endpoint it covers, e.g. s3://acme-lake/sales.
+  string scope = 3;
+  // Name of the server-side secret it uses. Empty for public data.
+  string credentials_secret = 4;
+  string region = 5;
+  // True when it uses the server machine's own credentials (a cloud role or profile).
+  bool ambient_credentials = 6;
+}
+
+// Engine is what executes the SQL for a source.
+enum Engine {
+  ENGINE_UNSPECIFIED = 0;
+  ENGINE_DUCKDB = 1;
+  ENGINE_DATAFUSION = 2;
+  ENGINE_TERADATA = 3;
+  ENGINE_POSTGRES = 4;
+}
+
+// SqlDialect tells the SQL rewriter which syntax to produce.
+enum SqlDialect {
+  SQL_DIALECT_UNSPECIFIED = 0;
+  SQL_DIALECT_DUCKDB = 1;
+  SQL_DIALECT_DATAFUSION = 2;
+  SQL_DIALECT_TERADATA = 3;
+  SQL_DIALECT_POSTGRES = 4;
+}
+
+// Capabilities says what a source's engine can do, so the UI can hide what
+// it cannot offer instead of failing. Set by the server; ignored on input.
+message Capabilities {
+  bool cancel = 1;
+  bool explain = 2;
+  // Explain can return a structured plan as JSON.
+  bool explain_json = 3;
+  // Tables can be read at an earlier snapshot, version or timestamp.
+  bool time_travel = 4;
+  bool keyset_paging = 5;
+  // Count returns exact numbers (false means estimates only).
+  bool exact_count = 6;
+  bool column_stats = 7;
+  // Largest batch_rows the server will honour; 0 means no limit.
+  uint32 max_batch_rows = 8;
+  // Largest number of rows one Execute may return; 0 means no limit.
+  uint64 max_result_rows = 9;
+  // The server keeps query results so paging and sorting do not re-run the
+  // query (see StoredResult).
+  bool stored_results = 10;
+}
+
+message Source {
+  string id = 1;
+  string display_name = 2;
+  SourceKind kind = 3;
+  Engine engine = 4;
+  SqlDialect dialect = 5;
+  bool read_only = 6;
+  Capabilities capabilities = 7;
+  // Set by the server; ignored on input.
+  repeated Connection connections = 8;
+  oneof config {
+    FilesConfig files = 10;
+    IcebergConfig iceberg = 11;
+    DeltaConfig delta = 12;
+    DuckDbConfig duckdb = 13;
+    TeradataConfig teradata = 14;
+    PostgresConfig postgres = 15;
+  }
+}
+
+message FilesConfig {
+  // Paths or globs: local paths, s3://, gs://, https://.
+  repeated string paths = 1;
+  // Name of a server-side secret holding object store credentials.
+  string credentials_secret = 2;
+}
+
+message IcebergConfig {
+  // rest, glue, hive or a bare metadata location.
+  string catalog_type = 1;
+  string catalog_uri = 2;
+  string warehouse = 3;
+  string credentials_secret = 4;
+}
+
+message DeltaConfig {
+  // Table root paths, or a catalog URI.
+  repeated string table_paths = 1;
+  string catalog_uri = 2;
+  string credentials_secret = 3;
+}
+
+message DuckDbConfig {
+  // Database file; empty means in-memory.
+  string database_path = 1;
+  repeated string extensions = 2;
+}
+
+message TeradataConfig {
+  string host = 1;
+  string default_database = 2;
+  // Name of a server-side secret holding the logon.
+  string credentials_secret = 3;
+  // TD2, LDAP, JWT, ...
+  string logon_mechanism = 4;
+}
+
+message PostgresConfig {
+  string host = 1;
+  uint32 port = 2;
+  string database = 3;
+  string credentials_secret = 4;
+}
+
+message ListSourcesRequest {}
+
+message ListSourcesResponse {
+  repeated Source sources = 1;
+}
+
+message GetSourceRequest {
+  string id = 1;
+}
+
+message GetSourceResponse {
+  Source source = 1;
+}
+
+message RegisterSourceRequest {
+  Source source = 1;
+}
+
+message RegisterSourceResponse {
+  Source source = 1;
+}
+
+message RemoveSourceRequest {
+  string id = 1;
+}
+
+message RemoveSourceResponse {}
+
+message TestSourceRequest {
+  oneof target {
+    string id = 1;
+    Source source = 2;
+  }
+}
+
+// SourceCheck is the result of reaching one table or catalog of a source.
+message SourceCheck {
+  // The table or catalog checked.
+  string name = 1;
+  bool ok = 2;
+  // What went wrong, in words a person can act on. Never contains a secret.
+  string message = 3;
+  uint64 elapsed_ms = 4;
+}
+
+message TestSourceResponse {
+  // True when the engine answered and every check passed.
+  bool ok = 1;
+  string message = 2;
+  uint64 elapsed_ms = 3;
+  string engine_version = 4;
+  repeated SourceCheck checks = 5;
+}
+
+// FileEntryKind is whether an entry is a folder or a file.
+enum FileEntryKind {
+  FILE_ENTRY_KIND_UNSPECIFIED = 0;
+  FILE_ENTRY_KIND_FOLDER = 1;
+  FILE_ENTRY_KIND_FILE = 2;
+}
+
+// FileEntry is one folder or file in a source's storage.
+message FileEntry {
+  // The last part of the path.
+  string name = 1;
+  // The whole path or address, as ListFiles takes it.
+  string path = 2;
+  FileEntryKind kind = 3;
+  // Files only, when the store reports it.
+  optional uint64 size_bytes = 4;
+  // ISO 8601, when the store reports it.
+  string modified_at = 5;
+  // What the entry can be read as: a file by its extension, a folder that
+  // is the root of a Delta or Iceberg table by what it holds.
+  TableFormat format = 6;
+  // The configured table that reads this entry, when there is one.
+  string table = 7;
+}
+
+message ListFilesRequest {
+  string source_id = 1;
+  // A folder's path, as an earlier listing gave it. Empty lists the places
+  // the source may read.
+  string path = 2;
+  // Zero lets the backend choose.
+  uint32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListFilesResponse {
+  repeated FileEntry entries = 1;
+  string next_page_token = 2;
+  // True when the store was not read to the end, so entries may be missing.
+  bool truncated = 3;
+}

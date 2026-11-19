@@ -1,0 +1,27 @@
+{
+  "name": "create-surfaces",
+  "version": "0.0.0",
+  "description": "Creates a Surfaces UI app: a dashboard, a chat that draws live components, and a data server with six sample datasets",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "create-surfaces": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "template"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@surfaces-ui/spec": "workspace:*",
+    "@types/node": "^26.6.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

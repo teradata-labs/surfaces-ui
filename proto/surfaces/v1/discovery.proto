@@ -1,0 +1,412 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+import "surfaces/v1/catalog.proto";
+
+// DiscoveryService finds and explains data objects: search by meaning or
+// keyword, profile an object, walk to related objects, and ask questions over
+// the catalog. Search indexes, embedding models and language models live
+// behind this service; the UI never calls them directly.
+service DiscoveryService {
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc GetObject(GetObjectRequest) returns (GetObjectResponse);
+  rpc GetRelated(GetRelatedRequest) returns (GetRelatedResponse);
+  // Describe proposes a description. Nothing is stored until
+  // SaveDescription is called with the text a person accepted or edited.
+  rpc Describe(DescribeRequest) returns (DescribeResponse);
+  rpc SaveDescription(SaveDescriptionRequest) returns (SaveDescriptionResponse);
+  // SetCertification marks an object as certified or deprecated, or clears
+  // the mark. It records a decision made by a person; a model never sets it.
+  rpc SetCertification(SetCertificationRequest) returns (SetCertificationResponse);
+  // Ask answers a question about the data, citing the objects it used.
+  rpc Ask(AskRequest) returns (stream AskResponse);
+}
+
+// ContextService stores context packs: named selections of data objects,
+// columns, join paths and notes that are rendered into text an agent reads.
+service ContextService {
+  rpc ListContextPacks(ListContextPacksRequest) returns (ListContextPacksResponse);
+  rpc GetContextPack(GetContextPackRequest) returns (GetContextPackResponse);
+  rpc SaveContextPack(SaveContextPackRequest) returns (SaveContextPackResponse);
+  rpc DeleteContextPack(DeleteContextPackRequest) returns (DeleteContextPackResponse);
+  // RenderContextPack produces exactly what an agent will receive.
+  rpc RenderContextPack(RenderContextPackRequest) returns (RenderContextPackResponse);
+}
+
+// ObjectKind is the type of thing a search can return.
+enum ObjectKind {
+  OBJECT_KIND_UNSPECIFIED = 0;
+  OBJECT_KIND_TABLE = 1;
+  OBJECT_KIND_COLUMN = 2;
+  OBJECT_KIND_SAVED_QUERY = 3;
+  OBJECT_KIND_DOCUMENT = 4;
+  // A folder or file in a source's storage, or one a person opened from
+  // their own computer. Named by `path`; never its contents.
+  OBJECT_KIND_FILE = 5;
+}
+
+// SearchMode chooses how a query is matched.
+enum SearchMode {
+  // Hybrid when the backend has embeddings, keyword otherwise.
+  SEARCH_MODE_UNSPECIFIED = 0;
+  SEARCH_MODE_KEYWORD = 1;
+  // By meaning, using embeddings.
+  SEARCH_MODE_SEMANTIC = 2;
+  SEARCH_MODE_HYBRID = 3;
+}
+
+// DescriptionOrigin says who wrote a description, so generated text is never
+// mistaken for documentation.
+enum DescriptionOrigin {
+  DESCRIPTION_ORIGIN_UNSPECIFIED = 0;
+  // From the source system's own comment.
+  DESCRIPTION_ORIGIN_SOURCE = 1;
+  // Written or edited by a person.
+  DESCRIPTION_ORIGIN_HUMAN = 2;
+  // Written by a model and accepted without edits.
+  DESCRIPTION_ORIGIN_GENERATED = 3;
+}
+
+// CertificationStatus is a steward's verdict on whether data should be used.
+enum CertificationStatus {
+  // No verdict.
+  CERTIFICATION_STATUS_UNSPECIFIED = 0;
+  // Reviewed and approved for use.
+  CERTIFICATION_STATUS_CERTIFIED = 1;
+  // Should no longer be used; the note says what to use instead.
+  CERTIFICATION_STATUS_DEPRECATED = 2;
+}
+
+// RelationKind is how two objects are connected.
+enum RelationKind {
+  RELATION_KIND_UNSPECIFIED = 0;
+  RELATION_KIND_JOIN = 1;
+  RELATION_KIND_UPSTREAM = 2;
+  RELATION_KIND_DOWNSTREAM = 3;
+  RELATION_KIND_SIMILAR = 4;
+  RELATION_KIND_USED_BY_QUERY = 5;
+}
+
+// ContextFormat is the shape of a rendered context pack.
+enum ContextFormat {
+  CONTEXT_FORMAT_UNSPECIFIED = 0;
+  CONTEXT_FORMAT_MARKDOWN = 1;
+  CONTEXT_FORMAT_JSON = 2;
+}
+
+// ObjectRef names one data object.
+message ObjectRef {
+  string source_id = 1;
+  ObjectKind kind = 2;
+  string catalog = 3;
+  string schema = 4;
+  string table = 5;
+  // Set for columns.
+  string column = 6;
+  // Set for saved queries and documents.
+  string id = 7;
+  // Set for files and folders: the path within the source's storage, or
+  // within the folder a person opened (never a path on their computer
+  // above that folder).
+  string path = 8;
+}
+
+// Certification is who vouched for an object, when and why.
+message Certification {
+  CertificationStatus status = 1;
+  // The person or team that set it.
+  string set_by = 2;
+  // ISO 8601.
+  string set_at = 3;
+  // Why, or for a deprecated object, what to use instead.
+  string note = 4;
+}
+
+// DataObject is the summary of an object shown in results and lists.
+message DataObject {
+  ObjectRef ref = 1;
+  // Display name: the table name, or table.column.
+  string name = 2;
+  string description = 3;
+  DescriptionOrigin description_origin = 4;
+  repeated string tags = 5;
+  repeated string owners = 6;
+  // For columns, the engine's type name.
+  string native_type = 7;
+  TableFormat format = 8;
+  optional uint64 row_count = 9;
+  // ISO 8601 time the data last changed, when known.
+  string updated_at = 10;
+  // Unset when nobody has certified or deprecated the object.
+  Certification certification = 11;
+}
+
+message SearchRequest {
+  string query = 1;
+  SearchMode mode = 2;
+  // Empty searches every source.
+  repeated string source_ids = 3;
+  // Empty returns every kind.
+  repeated ObjectKind kinds = 4;
+  repeated string tags = 5;
+  uint32 page_size = 6;
+  string page_token = 7;
+  // Return only objects with one of these statuses, e.g. CERTIFIED alone for
+  // "certified only". Empty returns objects whatever their status.
+  repeated CertificationStatus certification_statuses = 8;
+}
+
+message SearchHit {
+  DataObject object = 1;
+  // Relative rank within this response, 0 to 1.
+  double score = 2;
+  // Why it matched, in words a person can read.
+  repeated string reasons = 3;
+}
+
+message SearchResponse {
+  repeated SearchHit hits = 1;
+  string next_page_token = 2;
+  // The mode actually used; differs from the request when the backend has
+  // no embeddings and fell back to keyword search.
+  SearchMode mode_used = 3;
+  uint64 total = 4;
+}
+
+message TopValue {
+  string value = 1;
+  uint64 count = 2;
+}
+
+// ColumnProfile describes one column. Fields that reveal actual values
+// (min, max, top_values) are left empty when the source does not allow
+// sample values, and sample_values_withheld is set.
+message ColumnProfile {
+  string name = 1;
+  string native_type = 2;
+  string description = 3;
+  DescriptionOrigin description_origin = 4;
+  optional uint64 distinct_count = 5;
+  optional uint64 null_count = 6;
+  optional string min = 7;
+  optional string max = 8;
+  repeated TopValue top_values = 9;
+  bool sample_values_withheld = 10;
+  // True when distinct_count is an estimate.
+  bool distinct_count_estimated = 11;
+}
+
+message ObjectProfile {
+  DataObject object = 1;
+  repeated ColumnProfile columns = 2;
+  optional uint64 row_count = 3;
+  // Whether this source permits values to be shown, embedded or sent to an agent.
+  bool sample_values_allowed = 4;
+  // ISO 8601 time the statistics were computed.
+  string profiled_at = 5;
+}
+
+message GetObjectRequest {
+  ObjectRef ref = 1;
+  // Compute column statistics. Costs a few queries on the source.
+  bool include_profile = 2;
+}
+
+message GetObjectResponse {
+  ObjectProfile profile = 1;
+}
+
+message JoinKey {
+  string left_column = 1;
+  string right_column = 2;
+}
+
+// Which rows a join between a left and a right table keeps.
+enum JoinType {
+  // Read as INNER.
+  JOIN_TYPE_UNSPECIFIED = 0;
+  // Only rows that match on both sides.
+  JOIN_TYPE_INNER = 1;
+  // Every left row, with the right row's columns empty where none matches.
+  JOIN_TYPE_LEFT = 2;
+  // Every right row, with the left row's columns empty where none matches.
+  JOIN_TYPE_RIGHT = 3;
+  // Every row of both.
+  JOIN_TYPE_FULL = 4;
+}
+
+message Relation {
+  RelationKind kind = 1;
+  DataObject object = 2;
+  // For joins, the columns that match.
+  repeated JoinKey keys = 3;
+  // 0 to 1.
+  double confidence = 4;
+  string reason = 5;
+  // True when guessed from names and types, not declared by the source.
+  bool inferred = 6;
+}
+
+message GetRelatedRequest {
+  ObjectRef ref = 1;
+  // Empty returns every kind.
+  repeated RelationKind kinds = 2;
+}
+
+message GetRelatedResponse {
+  repeated Relation relations = 1;
+}
+
+message DescribeRequest {
+  ObjectRef ref = 1;
+  bool include_columns = 2;
+}
+
+message DescribeResponse {
+  string description = 1;
+  // Column name to proposed description.
+  map<string, string> column_descriptions = 2;
+  // The model that wrote it, or "placeholder" when none is configured.
+  string generated_by = 3;
+}
+
+message SaveDescriptionRequest {
+  ObjectRef ref = 1;
+  string description = 2;
+  DescriptionOrigin origin = 3;
+}
+
+message SaveDescriptionResponse {
+  DataObject object = 1;
+}
+
+message SetCertificationRequest {
+  ObjectRef ref = 1;
+  // UNSPECIFIED clears the mark.
+  CertificationStatus status = 2;
+  string set_by = 3;
+  string note = 4;
+}
+
+message SetCertificationResponse {
+  DataObject object = 1;
+}
+
+message AskRequest {
+  string question = 1;
+  repeated string source_ids = 2;
+  // Limit the answer to the objects in this pack.
+  string context_pack_id = 3;
+}
+
+// AskResponse is one message in the answer stream.
+message AskResponse {
+  oneof part {
+    string text_delta = 1;
+    Citation citation = 2;
+    AskDone done = 3;
+  }
+}
+
+message Citation {
+  DataObject object = 1;
+  string reason = 2;
+}
+
+message AskDone {
+  // The model that answered, or "placeholder" when none is configured.
+  string generated_by = 1;
+  // SQL that would answer the question, when the model offers one. It is a
+  // proposal: it runs only if a person chooses to run it.
+  string suggested_sql = 2;
+}
+
+// ContextItem is one object in a pack.
+message ContextItem {
+  ObjectRef ref = 1;
+  // Columns to include. Empty includes all.
+  repeated string columns = 2;
+  // Guidance for the agent about this object.
+  string note = 3;
+  // Include sample rows. Ignored unless the source allows sample values.
+  bool include_sample_rows = 4;
+}
+
+message JoinPath {
+  ObjectRef left = 1;
+  ObjectRef right = 2;
+  repeated JoinKey keys = 3;
+}
+
+// ContextPack is a saved, versioned selection of data context for an agent.
+message ContextPack {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated ContextItem items = 4;
+  repeated JoinPath joins = 5;
+  // Free-form guidance placed at the top of the rendered context.
+  string notes = 6;
+  // Business terms and what they mean.
+  map<string, string> definitions = 7;
+  uint32 version = 8;
+  // ISO 8601.
+  string updated_at = 9;
+}
+
+message ContextPackSummary {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  uint32 item_count = 4;
+  uint32 version = 5;
+  string updated_at = 6;
+}
+
+message ListContextPacksRequest {}
+
+message ListContextPacksResponse {
+  repeated ContextPackSummary packs = 1;
+}
+
+message GetContextPackRequest {
+  string id = 1;
+}
+
+message GetContextPackResponse {
+  ContextPack pack = 1;
+}
+
+message SaveContextPackRequest {
+  ContextPack pack = 1;
+}
+
+message SaveContextPackResponse {
+  ContextPack pack = 1;
+}
+
+message DeleteContextPackRequest {
+  string id = 1;
+}
+
+message DeleteContextPackResponse {}
+
+message RenderContextPackRequest {
+  oneof target {
+    string id = 1;
+    // Render a pack that has not been saved, for live preview.
+    ContextPack pack = 2;
+  }
+  ContextFormat format = 3;
+}
+
+message RenderContextPackResponse {
+  string text = 1;
+  // Approximate size in tokens, for budgeting.
+  uint32 token_estimate = 2;
+  // True when the text includes actual data values.
+  bool contains_sample_values = 3;
+  // Objects in the pack that could not be found.
+  repeated ObjectRef missing = 4;
+}

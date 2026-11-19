@@ -1,0 +1,387 @@
+syntax = "proto3";
+
+package surfaces.v1;
+
+import "surfaces/v1/catalog.proto";
+
+// PipelineService runs and reports on pipelines: sets of datasets built from
+// one another. It is separate from QueryService because it changes data.
+// A pipeline runs only definitions the server holds: those in its config,
+// and, where the server allows it, ones a person approved and the server
+// checked (SavePipeline). A run request never carries SQL.
+service PipelineService {
+  rpc ListPipelines(ListPipelinesRequest) returns (ListPipelinesResponse);
+  // GetPipeline returns the datasets, how they depend on one another, and
+  // each one's state from the latest run.
+  rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse);
+  rpc ListRuns(ListRunsRequest) returns (ListRunsResponse);
+  rpc GetRun(GetRunRequest) returns (GetRunResponse);
+  // StartRun begins a run and returns at once; poll GetRun for progress.
+  rpc StartRun(StartRunRequest) returns (StartRunResponse);
+  rpc CancelRun(CancelRunRequest) returns (CancelRunResponse);
+  // SavePipeline stores a new version of a pipeline a person approved. The
+  // server checks it (read-only queries, names, cycles, a dry run) and
+  // refuses a stale version. Saving builds nothing; a run is a separate call.
+  rpc SavePipeline(SavePipelineRequest) returns (SavePipelineResponse);
+  rpc ListPipelineVersions(ListPipelineVersionsRequest) returns (ListPipelineVersionsResponse);
+}
+
+// IngestService helps bring new files in. It only looks: it reports what a
+// location holds so a person can decide how to load it.
+service IngestService {
+  // InspectFiles reads the schema of files at a location the source may reach.
+  rpc InspectFiles(InspectFilesRequest) returns (InspectFilesResponse);
+}
+
+// DatasetKind is what a pipeline dataset is.
+enum DatasetKind {
+  DATASET_KIND_UNSPECIFIED = 0;
+  // A table the pipeline reads but does not build.
+  DATASET_KIND_SOURCE = 1;
+  // A table rebuilt from its query on each run.
+  DATASET_KIND_TABLE = 2;
+  // A view: its query runs when it is read.
+  DATASET_KIND_VIEW = 3;
+  // A table kept up to date from a stream. Not every backend has these.
+  DATASET_KIND_STREAMING_TABLE = 4;
+  // Somewhere outside the pipeline that data is sent.
+  DATASET_KIND_SINK = 5;
+}
+
+// RunState is where a run, or one dataset within it, has got to.
+enum RunState {
+  RUN_STATE_UNSPECIFIED = 0;
+  RUN_STATE_QUEUED = 1;
+  RUN_STATE_RUNNING = 2;
+  RUN_STATE_COMPLETED = 3;
+  RUN_STATE_FAILED = 4;
+  RUN_STATE_CANCELLED = 5;
+  // Not built because something it depends on failed.
+  RUN_STATE_SKIPPED = 6;
+}
+
+// RefreshKind is how much a run rebuilds.
+enum RefreshKind {
+  // Whatever the backend does by default: new data only, where it can.
+  REFRESH_KIND_UNSPECIFIED = 0;
+  // Recompute the chosen datasets from their inputs.
+  REFRESH_KIND_REFRESH = 1;
+  // Clear the chosen datasets and any saved progress first. Destroys data.
+  REFRESH_KIND_FULL_REFRESH = 2;
+}
+
+// ExpectationAction is what happens to a record that breaks a rule.
+enum ExpectationAction {
+  EXPECTATION_ACTION_UNSPECIFIED = 0;
+  // Kept, and counted.
+  EXPECTATION_ACTION_WARN = 1;
+  // Left out of the dataset.
+  EXPECTATION_ACTION_DROP = 2;
+  // The dataset is not built and the run fails.
+  EXPECTATION_ACTION_FAIL = 3;
+}
+
+// Expectation is a data quality rule on a dataset.
+message Expectation {
+  string name = 1;
+  // A condition every record should meet, e.g. amount >= 0.
+  string constraint = 2;
+  ExpectationAction action = 3;
+}
+
+// CheckKind is a test over a whole dataset, run after it is built.
+enum CheckKind {
+  CHECK_KIND_UNSPECIFIED = 0;
+  // No two rows share these columns.
+  CHECK_KIND_UNIQUE = 1;
+  // The column is never empty.
+  CHECK_KIND_NOT_NULL = 2;
+  // Every value of the column is found in another dataset's or table's column.
+  CHECK_KIND_RELATIONSHIPS = 3;
+  // The column holds only the listed values.
+  CHECK_KIND_ACCEPTED_VALUES = 4;
+  // The dataset has between min_rows and max_rows rows.
+  CHECK_KIND_ROW_COUNT = 5;
+}
+
+// CheckSeverity is what a failed check does.
+enum CheckSeverity {
+  CHECK_SEVERITY_UNSPECIFIED = 0;
+  // Reported; the run goes on.
+  CHECK_SEVERITY_WARN = 1;
+  // The dataset counts as failed and what reads it is not built.
+  CHECK_SEVERITY_FAIL = 2;
+}
+
+// Check is a test over a whole dataset: what a row-level expectation cannot
+// say, such as uniqueness or that every key is found elsewhere.
+message Check {
+  // Defaults to the kind and its columns, e.g. unique_order_id.
+  string name = 1;
+  CheckKind kind = 2;
+  // The column, or for UNIQUE the columns that together must not repeat.
+  repeated string columns = 3;
+  // RELATIONSHIPS: the dataset or table and column every value must be found in.
+  string to_table = 4;
+  string to_column = 5;
+  // ACCEPTED_VALUES: the values allowed. Sent to the engine as bound values.
+  repeated string values = 6;
+  // ROW_COUNT bounds; either may be left out.
+  optional uint64 min_rows = 7;
+  optional uint64 max_rows = 8;
+  // Defaults to FAIL.
+  CheckSeverity severity = 9;
+  // True when the server added it: a dataset's primary key is checked unique and not empty.
+  bool implied = 10;
+  // What it checks, in words, when no kind above says it: a test another
+  // tool runs (a dbt singular or custom test, a source's freshness). Such a
+  // check has no kind and is reported, never run, by the reference runner.
+  string description = 11;
+}
+
+// CheckResult is how a check went. It holds counts, never values.
+message CheckResult {
+  string name = 1;
+  CheckKind kind = 2;
+  CheckSeverity severity = 3;
+  // Rows that break it: repeated keys, empty values, values not found or not allowed.
+  // For ROW_COUNT, 1 when the count is out of range.
+  uint64 failed_records = 4;
+  // What was found, in a sentence: "12 order_id values repeat".
+  string summary = 5;
+  // The query that lists the rows breaking it, offered to a person and never run by the server.
+  string failing_rows_sql = 6;
+}
+
+// DatasetColumn is what a dataset says about one of its columns.
+message DatasetColumn {
+  string name = 1;
+  // The type it is meant to have, when declared.
+  string type = 2;
+  string description = 3;
+}
+
+message ExpectationResult {
+  string name = 1;
+  string constraint = 2;
+  ExpectationAction action = 3;
+  uint64 passed_records = 4;
+  uint64 failed_records = 5;
+}
+
+// Dataset is one node of a pipeline.
+message Dataset {
+  string name = 1;
+  DatasetKind kind = 2;
+  // bronze, silver or gold, when the pipeline uses layers.
+  string layer = 3;
+  string description = 4;
+  // The query that builds it. Shown for understanding; set on the server.
+  string sql = 5;
+  // Datasets and tables it reads, worked out by the server.
+  repeated string inputs = 6;
+  repeated Expectation expectations = 7;
+  // From the latest run that touched it.
+  RunState state = 8;
+  optional uint64 rows_written = 9;
+  // What one row is, in a sentence: "one row per order line".
+  string grain = 10;
+  // The columns that pick out one row. They are checked unique and not empty.
+  repeated string primary_key = 11;
+  repeated DatasetColumn columns = 12;
+  // Tests over the whole dataset, run after it is built.
+  repeated Check checks = 13;
+  repeated string tags = 14;
+  // Who answers for it.
+  string owner = 15;
+  // True when the definition names what it reads; false when the server
+  // worked it out from the query's text, which can mistake a name in it.
+  bool inputs_declared = 16;
+  // When it was last built, ISO 8601, and by which run.
+  string built_at = 17;
+  string last_run_id = 18;
+  // Where the built table is read from when that is not its name, as the
+  // source names it: "analytics.orders" for a dbt model in another schema.
+  string relation = 19;
+}
+
+message PipelineSummary {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // The source its datasets live in and can be queried through.
+  string source_id = 4;
+  uint32 dataset_count = 5;
+  // Unset when it has never run.
+  Run latest_run = 6;
+}
+
+message Pipeline {
+  PipelineSummary summary = 1;
+  repeated Dataset datasets = 2;
+  // True when the backend only recomputes whole datasets (no incremental or
+  // streaming processing), so every run is a refresh.
+  bool recompute_only = 3;
+  // This backend builds the datasets itself.
+  bool can_build = 4;
+  // SavePipeline is accepted for this pipeline.
+  bool can_save = 5;
+  // Runs are made by another tool (dbt, a scheduler) and only reported here.
+  bool external_runs = 6;
+  // The saved version, 0 for a pipeline defined in the server's config.
+  uint32 version = 7;
+}
+
+// PipelineDraft is a pipeline's whole definition, as a person approves it.
+message PipelineDraft {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string source_id = 4;
+  // Each with its query, columns, checks and expectations. `inputs` names
+  // what it reads; left empty, the server works it out from the query.
+  repeated Dataset datasets = 5;
+}
+
+message PipelineVersion {
+  uint32 version = 1;
+  // ISO 8601.
+  string saved_at = 2;
+  string approved_by = 3;
+  string note = 4;
+}
+
+message DatasetRun {
+  string name = 1;
+  RunState state = 2;
+  uint64 rows_written = 3;
+  uint64 duration_ms = 4;
+  string error_message = 5;
+  repeated ExpectationResult expectations = 6;
+  repeated CheckResult checks = 7;
+}
+
+message Run {
+  string id = 1;
+  string pipeline_id = 2;
+  RunState state = 3;
+  // ISO 8601.
+  string start_time = 4;
+  string end_time = 5;
+  // What started it: manual, schedule, ...
+  string trigger = 6;
+  RefreshKind refresh_kind = 7;
+  // The datasets asked for. Empty means all.
+  repeated string datasets = 8;
+  string error_message = 9;
+  repeated DatasetRun dataset_runs = 10;
+  // True for a run that only checked the pipeline and built nothing.
+  bool dry_run = 11;
+  // Who asked for it, as the client said: a person's name, or an agent's.
+  string started_by = 12;
+  // The pipeline version it ran.
+  uint32 version = 13;
+}
+
+message ListPipelinesRequest {}
+
+message ListPipelinesResponse {
+  repeated PipelineSummary pipelines = 1;
+}
+
+message GetPipelineRequest {
+  string id = 1;
+}
+
+message GetPipelineResponse {
+  Pipeline pipeline = 1;
+}
+
+message ListRunsRequest {
+  string pipeline_id = 1;
+  uint32 page_size = 2;
+}
+
+message ListRunsResponse {
+  // Newest first.
+  repeated Run runs = 1;
+}
+
+message GetRunRequest {
+  string pipeline_id = 1;
+  string run_id = 2;
+}
+
+message GetRunResponse {
+  Run run = 1;
+}
+
+message StartRunRequest {
+  string pipeline_id = 1;
+  RefreshKind refresh_kind = 2;
+  // Datasets to build, with everything downstream of them. Empty means all.
+  repeated string datasets = 3;
+  // Check the pipeline (names, cycles, queries) without building anything.
+  bool dry_run = 4;
+  // Must be true for a full refresh, which destroys data.
+  bool confirm_full_refresh = 5;
+  // Which datasets, as names with + marks: "orders" alone, "orders+" with
+  // what reads it, "+orders" with what it reads, "+orders+" both. Used
+  // instead of `datasets` when set.
+  repeated string select = 6;
+  // What started it, as the client says: manual, agent, cli, schedule.
+  string trigger = 7;
+  string started_by = 8;
+}
+
+message StartRunResponse {
+  Run run = 1;
+}
+
+message CancelRunRequest {
+  string pipeline_id = 1;
+  string run_id = 2;
+}
+
+message CancelRunResponse {
+  bool cancelled = 1;
+}
+
+message SavePipelineRequest {
+  PipelineDraft pipeline = 1;
+  // The version the change was made against; 0 for a new pipeline.
+  uint32 expected_version = 2;
+  // Who approved it. The server records it; who may approve is the host's rule.
+  string approved_by = 3;
+  // "sha256:<hex>" of the canonical JSON of the draft the person saw
+  // (`pipelineDigest`). The server recomputes it and refuses a draft that
+  // was changed after it was approved.
+  string approval_digest = 4;
+  string note = 5;
+}
+
+message SavePipelineResponse {
+  Pipeline pipeline = 1;
+}
+
+message ListPipelineVersionsRequest {
+  string pipeline_id = 1;
+}
+
+message ListPipelineVersionsResponse {
+  // Newest first.
+  repeated PipelineVersion versions = 1;
+}
+
+message InspectFilesRequest {
+  string source_id = 1;
+  TableFormat format = 2;
+  // A file, glob or table root. It must be somewhere the source may read.
+  string location = 3;
+}
+
+message InspectFilesResponse {
+  repeated Column columns = 1;
+  // Rows found, when cheap to know.
+  optional uint64 row_count = 2;
+}
