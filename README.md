@@ -12,19 +12,19 @@ Tables that stay fast at any size, charts that follow Tufte and Few, pivots, SQL
 
 **1. [What it is and where it goes](docs/media/1-introduction.mp4)** (1:55). Why the library exists, a dashboard made of its components, the catalog that defines each one once, and one saved page drawn as an app page, a chat reply, a side panel and an MCP frame.
 
-https://github.com/user-attachments/assets/e7dfb081-36e3-427b-bc84-1ce6fb02e688
+https://github.com/user-attachments/assets/099018d8-249d-47bf-b8c8-6e9c5cd79879
 
 **2. [Pages from configuration](docs/media/2-pages-from-configuration.mp4)** (2:42). A page written as JSON by hand in the playground: a metric, a layout, filters kept in the page's data, the catalog refusing a misspelled prop, json-render and A2UI, then the same components as replies in a chat, with an approval before anything changes.
 
-https://github.com/user-attachments/assets/612196c0-07b5-4856-aa7b-c99cbca3524d
+https://github.com/user-attachments/assets/e308fdc2-f3c2-4dc2-a03a-49f49bb02a10
 
 **3. [From a raw source to a dashboard](docs/media/3-raw-source-to-dashboard.mp4)** (4:07). One conversation, start to finish: connect the files, clean them and review personal data, run the pipeline, agree a semantic model on the join diagram, build a report and keep a dashboard. Every reply is made of the library's components reading real data, and a person approves each step.
 
-https://github.com/user-attachments/assets/85f41022-3d6e-42f4-a7f2-0e3404379e24
+https://github.com/user-attachments/assets/2d6e8ea0-0fff-4300-828b-556ab68cb5c5
 
 **4. [One design, every screen](docs/media/4-one-design-every-screen.mp4)** (1:33). Close up on the numbers and chart lines, one live dashboard on a desktop, an iPad and an iPhone, a screen narrowed from desktop to phone width as the page reflows, and the eight themes in dark and light.
 
-https://github.com/user-attachments/assets/a47bc4eb-ae0e-43c7-b75c-021574ad25c0
+https://github.com/user-attachments/assets/dd7e2b23-ead0-4925-843d-7e4a1ea63e27
 
 Open **Sample analysis** in the playground (`pnpm dev`) to play the third one yourself.
 
