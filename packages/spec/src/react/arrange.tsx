@@ -3,6 +3,7 @@ import { type PointerEvent as ReactPointerEvent, type ReactNode, useMemo, useRef
 import { analyticsCatalog } from "../analytics.js";
 import { besideMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, slideShares, stepComponentMessages } from "../arrange.js";
 import type { Catalog } from "../catalog.js";
+import { isLocked } from "../personal.js";
 import { catalogJson } from "../generate.js";
 import type { Surface, SurfaceComponent, SurfaceMessage } from "../surface.js";
 
@@ -396,7 +397,8 @@ export function useArrange(options: {
                       step(id, 1);
                       focusAgain(`${inBar(id, across ? "later" : "down")}:not([aria-disabled]), ${inBar(id, across ? "earlier" : "up")}`);
                     },
-              remove: () => latest.current.remove(id),
+              // A part the page keeps (`surfaces_locked`) shows the control greyed, so a person can see it stays.
+              remove: isLocked(component) ? false : () => latest.current.remove(id),
             })}
           />
         </div>

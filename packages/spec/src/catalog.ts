@@ -120,6 +120,20 @@ const envelopes = {
 };
 type Kind = keyof typeof envelopes;
 
+const minHeight = z.number().int().min(24).max(1600).optional().describe("The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.");
+
+/**
+ * Every component can be given room. One whose own props size it (a chart's
+ * or a grid's `height`) keeps that; every other one takes `minHeight`, which
+ * the surface applies to the component's box, so anything a person can drag
+ * taller in an editor, an agent can make taller too.
+ */
+export function withMinHeight<K extends string>(components: Record<K, ComponentDefinition>): Record<K, ComponentDefinition> {
+  return Object.fromEntries(
+    Object.entries<ComponentDefinition>(components).map(([name, definition]) => [name, "height" in definition.props || "minHeight" in definition.props ? definition : { ...definition, props: { ...definition.props, minHeight } }]),
+  ) as Record<K, ComponentDefinition>;
+}
+
 /** A catalog that also lists its component names, typed, so what is built from it (markup elements) knows them. */
 export type NamedCatalog<Name extends string> = Catalog & { names: readonly Name[] };
 
@@ -192,4 +206,26 @@ export function defineCatalog<const I extends CatalogInput>(input: I): NamedCata
     },
   };
   return { ...catalog, names: Object.keys(input.components) as (keyof I["components"] & string)[] };
+}
+
+/**
+ * A catalog built on another: everything the base draws, plus the host's own components and functions, under an
+ * id of its own. This is how an app adds its components to the analytics catalog and still has one catalog that
+ * checks every surface. Each added component is given `minHeight` like the base's, so it can be sized by hand.
+ * A name the base already has is refused: a surface must mean the same thing under either catalog.
+ */
+export function extendCatalog<const B extends Catalog, const I extends Pick<CatalogInput, "id" | "title" | "description" | "components"> & { functions?: CatalogInput["functions"] }>(
+  base: B,
+  input: I,
+): NamedCatalog<(keyof B["components"] & string) | (keyof I["components"] & string)> {
+  const taken = Object.keys(input.components).filter((name) => Object.hasOwn(base.components, name));
+  if (taken.length > 0) throw new Error(`The catalog ${base.id} already has ${taken.join(", ")}. Give ${taken.length === 1 ? "it another name" : "them other names"}.`);
+  if (input.id === base.id) throw new Error("A catalog built on another needs an id of its own.");
+  return defineCatalog({
+    id: input.id,
+    title: input.title,
+    description: input.description,
+    components: { ...base.components, ...withMinHeight(input.components) },
+    functions: { ...base.functions, ...input.functions },
+  }) as NamedCatalog<(keyof B["components"] & string) | (keyof I["components"] & string)>;
 }

@@ -19,6 +19,7 @@ export function init(...args: unknown[]): unknown {
 
 // Named parts the components register with `use`; the full build has them already.
 export const BarChart = {};
+export const GraphChart = {};
 export const LineChart = {};
 export const PieChart = {};
 export const ScatterChart = {};

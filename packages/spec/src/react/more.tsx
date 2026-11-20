@@ -32,6 +32,7 @@ import {
   QueryPlan,
   type PipelineRun,
   QueryResult,
+  NodeGraph,
   RelationshipGraph,
   SideNav,
   Workspace,
@@ -707,6 +708,27 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
       <WithDiscovery>
         {table ? <RelationshipGraph key={table} objectRef={tableRef(text(args.props.sourceId), table)} onOpen={(object) => open(object.ref?.table ?? "")} /> : null}
       </WithDiscovery>
+    );
+  },
+  NodeGraph: ({ props, component, dispatch, setData, reportContext }) => {
+    const levels = props.levels !== null && typeof props.levels === "object" ? (props.levels as Record<string, string>) : undefined;
+    return (
+      <NodeGraph
+        label={text(props.label)}
+        nodes={Array.isArray(props.nodes) ? (props.nodes as Parameters<typeof NodeGraph>[0]["nodes"]) : []}
+        links={Array.isArray(props.links) ? (props.links as Parameters<typeof NodeGraph>[0]["links"]) : []}
+        {...(text(props.selected) ? { selected: text(props.selected) } : {})}
+        {...(Array.isArray(props.groups) ? { groups: props.groups as string[] } : {})}
+        {...(levels ? { levels } : {})}
+        {...(text(props.noun) ? { noun: text(props.noun) } : {})}
+        {...(typeof props.height === "number" ? { height: props.height } : {})}
+        onSelect={(node) => {
+          // Bound to a path, the open node is written there, so anything else bound to it follows with no agent.
+          if (component.selected !== null && typeof component.selected === "object") setData(component.selected, node);
+          if (component.action != null) dispatch(component.action, { node });
+        }}
+        onContext={reportContext}
+      />
     );
   },
   AskData: ({ props }) => (
