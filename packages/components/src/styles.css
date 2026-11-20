@@ -350,6 +350,17 @@
     transform var(--sf-press-time) var(--sf-press-ease);
 }
 
+/*
+ * A link drawn as a button (somewhere to go, not something to do). An `a` is inline, so the height above does
+ * nothing to it and its words sit at the top of the box: lay it out as the box a button already is.
+ */
+a.sf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .sf-button:hover:not(:disabled) {
   background: var(--sf-color-fill-1);
 }
