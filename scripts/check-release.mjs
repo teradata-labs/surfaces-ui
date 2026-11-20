@@ -8,6 +8,10 @@ import path from "node:path";
 const root = path.resolve(import.meta.dirname, "..");
 const problems = [];
 const versions = new Set();
+const REPOSITORY = "git+https://github.com/teradata-labs/surfaces-ui.git";
+// Every published package shares one version: changesets bumps only the
+// packages in its `fixed` group together, so one left out would drift.
+const fixed = new Set(JSON.parse(fs.readFileSync(path.join(root, ".changeset", "config.json"), "utf8")).fixed?.[0] ?? []);
 
 for (const dir of fs.readdirSync(path.join(root, "packages"))) {
   const file = path.join(root, "packages", dir, "package.json");
@@ -20,6 +24,12 @@ for (const dir of fs.readdirSync(path.join(root, "packages"))) {
   if (!pkg.description) problems.push(`${at}: add a description`);
   if (!Array.isArray(pkg.files) || pkg.files.length === 0) problems.push(`${at}: list "files", so only built output is published`);
   if (pkg.publishConfig?.access !== "public") problems.push(`${at}: set publishConfig.access to "public"`);
+  // npm checks provenance against repository.url, and refuses a publish
+  // whose repository does not match the workflow that built it.
+  if (pkg.repository?.url !== REPOSITORY || pkg.repository?.directory !== at) {
+    problems.push(`${at}: set repository to { url: "${REPOSITORY}", directory: "${at}" }`);
+  }
+  if (!fixed.has(pkg.name)) problems.push(`${at}: add ${pkg.name} to the fixed group in .changeset/config.json`);
   if (!fs.existsSync(path.join(root, "packages", dir, "dist"))) problems.push(`${at}: not built (run pnpm build)`);
   for (const [name, spec] of Object.entries({ ...pkg.dependencies, ...pkg.peerDependencies })) {
     if (String(spec).startsWith("file:") || String(spec).startsWith("link:")) problems.push(`${at}: ${name} points at a local path`);
