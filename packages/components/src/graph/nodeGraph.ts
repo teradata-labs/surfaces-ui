@@ -120,7 +120,8 @@ export function buildGraphOption(input: GraphOptionInput): Record<string, unknow
             ...(groups.length > 0 && node.group !== undefined ? { category: groups.indexOf(node.group) } : {}),
             symbolSize: chosen ? size + 6 : size,
             itemStyle: { ...fill(node), ...(chosen ? { borderColor: colorOf(node.group), borderWidth: 4 } : {}) },
-            ...(chosen ? { label: { show: true, fontWeight: "bold" } } : {}),
+            // A node drawn at half strength keeps its name at full strength: the fill says the level, the text must stay readable.
+            ...(chosen || node.level === "half" ? { label: { ...(node.level === "half" ? { opacity: 1 } : {}), ...(chosen ? { show: true, fontWeight: "bold" } : {}) } } : {}),
           };
         }),
         links: links.map((link) => ({ source: link.source, target: link.target, ...(link.label ? { label: link.label } : {}) })),

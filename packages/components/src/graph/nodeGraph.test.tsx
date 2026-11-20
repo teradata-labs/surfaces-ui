@@ -53,7 +53,8 @@ describe("graph functions", () => {
     expect(drawn("line").itemStyle).toEqual({ color: "#111111" });
     expect(drawn("order").itemStyle).toMatchObject({ color: "#111111", opacity: 0.5, borderWidth: 4 });
     expect(drawn("customer").itemStyle).toEqual({ color: "rgba(0, 0, 0, 0)", borderColor: "#222222", borderWidth: 2 });
-    expect(drawn("order").label).toBeDefined();
+    expect(drawn("order").label).toEqual({ opacity: 1, show: true, fontWeight: "bold" });
+    expect(drawn("line").label).toBeUndefined();
     expect(drawn("order").symbolSize).toBeGreaterThan(drawn("store").symbolSize);
     // Asked for no motion: nothing animates, the layout included.
     expect(option.animation).toBe(false);
