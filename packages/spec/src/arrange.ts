@@ -1,6 +1,7 @@
 import { analyticsCatalog } from "./analytics.js";
 import type { Catalog } from "./catalog.js";
 import { A2UI_VERSION } from "./dynamic.js";
+import { isLocked } from "./personal.js";
 import type { Surface, SurfaceComponent, SurfaceMessage } from "./surface.js";
 
 /*
@@ -54,11 +55,14 @@ export function surfaceOutline(surface: Surface | undefined): OutlineItem[] {
  * as a child is sent again without it. A2UI has no delete, so the component
  * itself stays in the surface's store, unreached and undrawn. The root, and
  * the only thing inside a container that needs exactly one child, cannot be
- * removed this way; the reason is returned.
+ * removed this way, nor can a component marked `surfaces_locked`; the reason
+ * is returned.
  */
 export function removeComponentMessages(surface: Surface | undefined, id: string): { messages: SurfaceMessage[] } | { error: string } {
   if (!surface?.components[id]) return { error: `There is no component "${id}" on the surface.` };
   if (id === "root") return { error: "The root holds everything else, so it cannot be removed. Start a new surface instead." };
+  // A part the page's author marked as staying (`surfaces_locked`) can be moved and sized, never taken off.
+  if (isLocked(surface.components[id])) return { error: `"${id}" is part of this page and stays on it. It can still be moved and sized.` };
   const changed: SurfaceComponent[] = [];
   for (const parent of Object.values(surface.components)) {
     if (!childIds(parent).includes(id)) continue;

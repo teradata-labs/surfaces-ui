@@ -1,6 +1,6 @@
 import { THEME_REQUEST_FIELDS } from "@surfaces-ui/tokens";
 import { z } from "zod";
-import { type ComponentDefinition, type EventDefinition, defineCatalog } from "./catalog.js";
+import { type ComponentDefinition, type EventDefinition, defineCatalog, withMinHeight } from "./catalog.js";
 import { action, childId, childList, dataBinding, dynamicNumber, dynamicString } from "./dynamic.js";
 
 const tone = z.enum(["neutral", "positive", "negative", "warning"]);
@@ -180,6 +180,7 @@ const EVENTS: Record<string, Record<string, EventDefinition>> = {
   },
   DataSearch: { open: { description: "When a result is opened.", context: { table: str("table name"), column: str("column name, or empty") } } },
   RelationshipGraph: { open: { description: "When a related table is opened.", context: { table: str("table name") } } },
+  NodeGraph: { select: { description: "When a node is opened, on the graph or in the list beside it.", context: { node: str("the node's id") } } },
   ObjectDetail: { open: { description: "When a related table is opened.", context: { table: str("table name") } } },
   PipelineGraph: { select: { description: "When a node is chosen.", context: { id: str("node id"), name: str("node name") } } },
   PipelineView: {
@@ -239,17 +240,6 @@ const EVENTS: Record<string, Record<string, EventDefinition>> = {
 
 function withEvents<K extends string>(components: Record<K, ComponentDefinition>): Record<K, ComponentDefinition> {
   return Object.fromEntries(Object.entries<ComponentDefinition>(components).map(([name, definition]) => [name, EVENTS[name] ? { ...definition, events: EVENTS[name] } : definition])) as Record<K, ComponentDefinition>;
-}
-
-/**
- * Every component can be given room. One whose own props size it (a chart's
- * or a grid's `height`) keeps that; every other one takes `minHeight`, which
- * the surface applies to the component's box, so anything a person can drag
- * taller in an editor, an agent can make taller too.
- */
-const minHeight = z.number().int().min(24).max(1600).optional().describe("The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.");
-function withMinHeight<K extends string>(components: Record<K, ComponentDefinition>): Record<K, ComponentDefinition> {
-  return Object.fromEntries(Object.entries<ComponentDefinition>(components).map(([name, definition]) => [name, "height" in definition.props ? definition : { ...definition, props: { ...definition.props, minHeight } }])) as Record<K, ComponentDefinition>;
 }
 
 export const analyticsCatalog = defineCatalog({
@@ -1096,6 +1086,41 @@ export const analyticsCatalog = defineCatalog({
       description: `A small map of one table and the tables it joins with or resembles. For several tables and their columns, use ModelDiagram. ${OPENED_NOTE}`,
       props: { sourceId: dynamicString, table: dynamicString, opened: openedBinding, action: action.optional() },
       example: { id: "around", component: "RelationshipGraph", sourceId: "lake", table: "orders" },
+    },
+    NodeGraph: {
+      description:
+        "Things and the links between them, drawn as a graph with the same things listed beside it: concepts in a glossary, tables in a model, systems and what they feed. You give the nodes and links; it reads no data. `group` is what kind of thing a node is (each group takes a colour and is named in the legend); `level` is how far along it is (drawn as how full the node is). Give `selected` a data path to mark the open node and to write the node a person opens there. Past 300 nodes it shows what is around the open node and says how many it left out. For tables and their joins use ModelDiagram; for a pipeline use PipelineGraph.",
+      props: {
+        label: z.string().describe("What the graph shows, for assistive technology."),
+        nodes: z
+          .array(z.object({ id: z.string().min(1), label: z.string(), description: z.string().optional(), group: z.string().optional(), level: z.enum(["full", "half", "outline"]).optional() }))
+          .max(2000),
+        links: z.array(z.object({ source: z.string(), target: z.string(), label: z.string().optional() })).max(8000),
+        selected: z.union([z.string(), dataBinding]).optional().describe("The open node's id, or a data path that holds it and is written when a person opens a node."),
+        groups: z.array(z.string()).max(12).optional().describe("The order groups take colours and appear in the legend."),
+        levels: z.object({ full: z.string().optional(), half: z.string().optional(), outline: z.string().optional() }).optional().describe("What each level means, in words."),
+        noun: z.string().optional().describe("What a node is called: \"term\" gives \"7 terms\"."),
+        height: z.number().int().min(200).max(1200).optional(),
+        action: action.optional(),
+      },
+      example: {
+        id: "concepts",
+        component: "NodeGraph",
+        label: "Terms and how they are linked",
+        noun: "term",
+        nodes: [
+          { id: "order", label: "Order", level: "full" },
+          { id: "customer", label: "Customer", level: "half" },
+          { id: "store", label: "Store", level: "outline" },
+        ],
+        links: [
+          { source: "order", target: "customer", label: "placed by" },
+          { source: "order", target: "store", label: "taken at" },
+        ],
+        levels: { full: "Certified", half: "Partly certified", outline: "Not certified" },
+        selected: { "@path": "/term" },
+        height: 360,
+      },
     },
     AskData: {
       description: "A question box that answers from the catalog and cites the tables it used.",

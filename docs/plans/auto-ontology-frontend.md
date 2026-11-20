@@ -354,9 +354,9 @@ Until then the plan keeps every generated query in a form Surfaces already write
 - json-render: `visible`, `repeat` both ways, refusal of unsupported keys, a stated subset and a conformance test.
 - Metadata: carried (done). Still to do: `surfaces_locked` and `surfaces_roles` honoured by `useArrange` and the editor.
 - A2UI v1.0: done. Surfaces writes v1.0 and reads v0.9 (`upgradeMessage`, `upgradePage`, `upgradeSurface`); metadata is A2UI's `extensions`. Still to take from v1.0: mixed catalogs in one surface, which is what would replace `extendCatalog`, so that helper is still needed for now.
-- Layout overlays: `diffPage(base, mine)` to edits, replay with reporting, `surfaces_locked` honoured by `useArrange`.
-- `extendCatalog`, with `minHeight` applied, documented and tested.
-- `ConceptGraph` on the ECharts graph series, with its list.
+- Layout overlays: done (`personal.ts`: `layoutEdits`, `personalisePage`, `parsePersonalLayout`), with `surfaces_locked` honoured by Arrange. `surfaces_roles` is still the host's to enforce.
+- `extendCatalog`, with `minHeight` applied, documented and tested: done.
+- A graph on the ECharts graph series, with its list: done, as the catalog's `NodeGraph`. The ontology app feeds it terms and links.
 - A page theme that can name a host preset.
 - Print styles; a drill-through link action.
 - Publish the packages. Every package is at 0.0.0 with the first release still pending; until then the new repo vendors them with `create-surfaces --from-repo`, which is workable and awkward.

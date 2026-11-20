@@ -8,7 +8,7 @@ export const GROUPS: [string, string[]][] = [
   ["Layout and text", ["Text", "Row", "Column", "Grid", "Card", "Tabs", "Divider", "Badge", "KeyValue", "Stat", "Progress", "Link", "Markdown", "CodeBlock", "Table"]],
   ["Reports and exploring", ["ReportBuilder", "Explorer", "FilterBar"]],
   ["Data views", ["DataGrid", "Chart", "PivotTable", "QueryResult", "Metric", "Sparkline", "BulletGraph", "QueryPlan", "SqlEditor"]],
-  ["Discovery and modelling", ["DataSearch", "ObjectBrowser", "ObjectDetail", "RelationshipGraph", "ModelDiagram", "AskData", "ContextBuilder", "SourceList", "FileBrowser", "SemanticModelEditor"]],
+  ["Discovery and modelling", ["DataSearch", "ObjectBrowser", "ObjectDetail", "RelationshipGraph", "NodeGraph", "ModelDiagram", "AskData", "ContextBuilder", "SourceList", "FileBrowser", "SemanticModelEditor"]],
   ["Inputs and forms", ["Form", "TextField", "NumberField", "ChoicePicker", "CheckBox", "DateTimeInput", "Slider", "Button"]],
   ["Decisions and review", ["DecisionCard", "Chips", "Checklist", "SqlProposal", "PlanReview", "PiiReview", "StepFlow"]],
   ["Pipelines", ["PipelineGraph", "PipelineView", "RunHistory", "ExpectationsPanel", "SchemaDiff", "StreamMetrics", "IngestWizard"]],
