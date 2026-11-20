@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { NodeGraph } from "./NodeGraph.js";
-import { type GraphLink, type GraphNode, buildGraphOption, graphGroups, graphNeighbours, graphWindow, linkCounts } from "./nodeGraph.js";
+import { type GraphLink, type GraphNode, buildGraphOption, graphGroups, graphNeighbours, graphWindow, linkCounts } from "./model.js";
 
 afterEach(cleanup);
 

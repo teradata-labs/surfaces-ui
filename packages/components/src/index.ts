@@ -20,7 +20,7 @@ export * from "./discovery/ObjectDetail.js";
 export * from "./discovery/ContextBuilder.js";
 export * from "./discovery/RelationshipGraph.js";
 export * from "./graph/NodeGraph.js";
-export * from "./graph/nodeGraph.js";
+export * from "./graph/model.js";
 export * from "./discovery/AskData.js";
 export * from "./model/ModelDiagram.js";
 export * from "./text/Markdown.js";

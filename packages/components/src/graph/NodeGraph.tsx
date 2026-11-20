@@ -6,7 +6,7 @@ import { CanvasRenderer } from "echarts/renderers";
 import { useEffect, useId, useMemo, useRef } from "react";
 import type { ContextNote } from "../controls/context.js";
 import { useOptionalTheme } from "../theme/ThemeProvider.js";
-import { GRAPH_NODE_LIMIT, type GraphLink, type GraphNode, buildGraphOption, graphGroups, graphNeighbours, graphWindow, linkCounts } from "./nodeGraph.js";
+import { GRAPH_NODE_LIMIT, type GraphLink, type GraphNode, buildGraphOption, graphGroups, graphNeighbours, graphWindow, linkCounts } from "./model.js";
 
 echarts.use([GraphChart, TooltipComponent, LegendComponent, AriaComponent, CanvasRenderer]);
 
