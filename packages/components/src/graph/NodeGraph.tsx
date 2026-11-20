@@ -36,7 +36,8 @@ const LEVEL_SYMBOL = { full: "●", half: "◐", outline: "○" } as const;
 /**
  * Things and the links between them, drawn as a graph and listed beside it. The list does everything the canvas
  * does (find a node, open it, walk to a neighbour), so the graph is never the only way in. The layout settles and
- * stops; under reduced motion it is placed without moving. A large graph shows what is around one node and says
+ * stops; under reduced motion it is placed without moving. When the nodes change, those already drawn keep their
+ * places and the new ones grow in, so a graph can be watched as it fills. A large graph shows what is around one node and says
  * how many it left out.
  */
 export function NodeGraph({ label, nodes, links, selected, onSelect, groups, levels, noun = "node", height = 420, limit = GRAPH_NODE_LIMIT, onContext }: NodeGraphProps) {
@@ -46,7 +47,14 @@ export function NodeGraph({ label, nodes, links, selected, onSelect, groups, lev
   const shown = useMemo(() => graphWindow(nodes, links, selected, limit), [nodes, links, selected, limit]);
   const counts = useMemo(() => linkCounts(shown.links), [shown]);
   const legend = useMemo(() => graphGroups(shown.nodes, groups), [shown, groups]);
-  const colors = useMemo(() => (echartsTheme(themeDocument, mode) as { color?: string[] }).color ?? [], [themeDocument, mode]);
+  const chartTheme = useMemo(() => echartsTheme(themeDocument, mode) as { color?: string[]; textStyle?: { color?: string; fontFamily?: string }; legend?: { textStyle?: { color?: string } } }, [themeDocument, mode]);
+  const colors = useMemo(() => chartTheme.color ?? [], [chartTheme]);
+  const text = useMemo(() => {
+    const color = chartTheme.textStyle?.color;
+    const muted = chartTheme.legend?.textStyle?.color;
+    const fontFamily = chartTheme.textStyle?.fontFamily;
+    return { ...(color ? { color } : {}), ...(muted ? { muted } : {}), ...(fontFamily ? { fontFamily } : {}) };
+  }, [chartTheme]);
   const canvas = useRef<HTMLDivElement>(null);
   const chart = useRef<echarts.ECharts | undefined>(undefined);
   const noteId = useId();
@@ -84,11 +92,12 @@ export function NodeGraph({ label, nodes, links, selected, onSelect, groups, lev
   useEffect(() => {
     const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
     try {
-      chart.current?.setOption(buildGraphOption({ nodes: shown.nodes, links: shown.links, ...(selected ? { selected } : {}), ...(groups ? { groups } : {}), colors, animate: !still }), true);
+      // Merged into the graph that is there, so a node that was drawn keeps its place and a new one grows in beside it.
+      chart.current?.setOption(buildGraphOption({ nodes: shown.nodes, links: shown.links, ...(selected ? { selected } : {}), ...(groups ? { groups } : {}), colors, text, animate: !still }), { replaceMerge: ["legend", "series"] });
     } catch {
       // Where a canvas cannot be drawn on, the list beside it is the graph.
     }
-  }, [shown, selected, groups, colors]);
+  }, [shown, selected, groups, colors, text]);
 
   const current = shown.nodes.find((n) => n.id === selected);
   const around = current ? graphNeighbours(current.id, shown.links) : [];

@@ -61,6 +61,24 @@ describe("graph functions", () => {
     expect(series.force.layoutAnimation).toBe(false);
   });
 
+  it("draws names in the theme's text with no outline, keeps one series so nodes keep their places, and lights what just arrived", () => {
+    const option = buildGraphOption({
+      nodes: [{ id: "a", label: "A", fresh: true }, { id: "b", label: "B" }],
+      links: [{ source: "a", target: "b", fresh: true }],
+      colors: ["#111111"],
+      text: { color: "#eeeeee", muted: "#888888", fontFamily: "Inter" },
+      animate: true,
+    }) as { series: { id: string; label: Record<string, unknown>; lineStyle: Record<string, unknown>; data: { id: string; symbolSize: number; itemStyle: Record<string, unknown> }[]; links: { lineStyle?: Record<string, unknown> }[] }[] };
+    const series = option.series[0]!;
+    expect(series.id).toBe("graph");
+    expect(series.label).toMatchObject({ color: "#eeeeee", fontFamily: "Inter", textBorderWidth: 0 });
+    expect(series.lineStyle.color).toBe("#888888");
+    expect(series.data[0]!.itemStyle).toMatchObject({ shadowBlur: 28, shadowColor: "#111111" });
+    expect(series.data[1]!.itemStyle.shadowBlur).toBeUndefined();
+    expect(series.data[0]!.symbolSize).toBeGreaterThan(series.data[1]!.symbolSize);
+    expect(series.links[0]!.lineStyle).toMatchObject({ width: 2.5, color: "#111111" });
+  });
+
   it("has no legend for one group, and shares the last colour when groups outnumber colours", () => {
     const one = buildGraphOption({ nodes: nodes.map((n) => ({ ...n, group: "Term" })), links: [], colors: ["#111111"], animate: true }) as { legend?: unknown };
     expect(one.legend).toBeUndefined();
