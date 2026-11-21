@@ -448,7 +448,7 @@ function SurfaceTheme({ request, children }: { request: ThemeRequest; children: 
   const result = useMemo(() => applyThemeRequest(request, base), [key, base]); // eslint-disable-line react-hooks/exhaustive-deps
   const mode = result.mode ?? host?.mode ?? "system";
   return (
-    <ThemeProvider key={`${key}:${JSON.stringify(base)}:${mode}`} scope="scoped" store={null} initialTheme={result.theme} initialMode={mode}>
+    <ThemeProvider key={`${key}:${JSON.stringify(base)}:${mode}`} scope="scoped" storage={null} initialTheme={result.theme} initialMode={mode}>
       {result.problems.map((problem) => (
         <p key={problem} className="sf-surface-notice" role="note">
           {problem}

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { type MessageInitShape, create, fromJson, toJson } from "@bufbuild/protobuf";
-import { type FormSpec, type Forms, type LibraryStorage, type MemorySemanticsOptions, type Semantics, type SurfaceLibrary, formDefinitions, memoryForms, memorySemantics, memorySurfaceLibrary } from "@surfaces-ui/data";
+import { type FormSpec, type Forms, type StateStorage, type MemorySemanticsOptions, type Semantics, type SurfaceLibrary, formDefinitions, memoryForms, memorySemantics, memorySurfaceLibrary } from "@surfaces-ui/data";
 import type { PipelineStore, RunStore, SavedPipeline } from "@surfaces-ui/pipelines";
 import { ListSubmissionsResponseSchema, type Run, RunSchema, type Submission, SubmissionSchema } from "@surfaces-ui/proto";
 
@@ -11,7 +11,7 @@ const ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
  * Keeps saved surfaces as one JSON file each in a folder, every version in
  * the file, so they can be reviewed and committed like other project files.
  */
-export function fileLibraryStorage(dir: string, idPattern: RegExp = ID): LibraryStorage {
+export function fileLibraryStorage(dir: string, idPattern: RegExp = ID): StateStorage {
   return {
     load() {
       if (!fs.existsSync(dir)) return undefined;

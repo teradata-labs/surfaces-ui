@@ -10,7 +10,7 @@ import {
   PivotTable,
   QueryResult,
 } from "@surfaces-ui/components";
-import { type FilterInit, type FilterSpec, type GridColumns, type GridSort, type ResultView, type SortSpec, filtersExcept, filtersFromSpec, filtersToSpec, sortsFromSpec, sortsToSpec, toggleValueFilter } from "@surfaces-ui/components";
+import { type FilterInit, type FilterSpec, type GridColumns, type GridSort, type ResultView, type SortSpec, chosenValues, filtersExcept, filtersFromSpec, filtersToSpec, sortsFromSpec, sortsToSpec, toggleValueFilter } from "@surfaces-ui/components";
 import { type CSSProperties, type ReactNode, createElement, useEffect, useId, useState } from "react";
 import type { ComponentRenderer, RenderProps } from "./Surface.js";
 import { formRenderers } from "./forms.js";
@@ -213,8 +213,15 @@ export const analyticsRenderers: Record<string, ComponentRenderer> = {
             if (selects) {
               const next = toggleValueFilter(shared, x, point.x);
               setData(component.select, next);
-              const on = next.some((f) => f.column === x && f.op === "eq");
-              reportContext({ kind: "point.selected", summary: on ? `Clicked ${point.x} in the chart: the page is filtered to ${x} is ${point.x}.` : `Clicked ${point.x} in the chart again: the filter on ${x} is cleared.`, subject: { column: x, value: point.x, series: point.series, filters: next } });
+              const chosen = chosenValues(next, x);
+              const on = chosen.some((v) => String(v) === String(point.x));
+              reportContext({
+                kind: "point.selected",
+                summary: on
+                  ? `Clicked ${point.x} in the chart: the page is filtered to ${x} ${chosen.length === 1 ? "is" : "is one of"} ${chosen.join(", ")}.`
+                  : `Clicked ${point.x} in the chart again: ${point.x} is taken out of the filter on ${x}${chosen.length === 0 ? ", which is now cleared" : ""}.`,
+                subject: { column: x, value: point.x, series: point.series, filters: next },
+              });
             }
             if (component.action != null) dispatch(component.action, { column: x, value: String(point.x), series: point.series });
           }

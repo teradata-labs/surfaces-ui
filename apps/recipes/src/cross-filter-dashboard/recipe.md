@@ -4,7 +4,7 @@ One query feeds headline numbers, two bar charts and a table. Clicking a bar fil
 
 How it works:
 
-- `createViewState` from `@surfaces-ui/state` holds what was picked: values per column, ranges and sorts. It holds choices only; the filtering happens in the engine.
+- `createViewState` from `@surfaces-ui/state` holds what was picked as a plain filter list (`{ column, op, values }`, the form page filters and agents use) and sorts. A second click on a bar adds its value; a click on a chosen bar takes it out. It holds choices only; the filtering happens in the engine.
 - Each view gets `view.filters(ownColumn)`. The region chart gets every filter except the one on `region`, so the bar a person clicked does not filter the other bars away. Views that pick nothing get `view.filters()`, which is all of them.
 - `Chart` reports a click through `onPointClick`, and the dashboard calls `view.toggle(column, value)`. Clicking the same bar again removes it.
 - A click is never the only way. Every filter is shown as a button that removes it, and "Clear filters" removes them all. The grid's own sort is kept in the same state, through `onSortsChange` and `view.setSorts`.

@@ -28,7 +28,7 @@ function Probe() {
 }
 const draw = (list: SurfaceMessage[]) =>
   render(
-    <ThemeProvider store={null}>
+    <ThemeProvider storage={null}>
       <DataSourceProvider dataSource={dataSource}>
         <SurfaceView surface={surfaceOf(list)} catalog={analyticsCatalog} renderers={analyticsRenderers} />
         <Probe />

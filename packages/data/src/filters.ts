@@ -1,6 +1,11 @@
-import { FilterOperator } from "@surfaces-ui/proto";
-import type { GridSort } from "../grid/DataGrid.js";
-import type { FilterInit, ValueInit } from "./useRowWindow.js";
+import type { MessageInitShape } from "@bufbuild/protobuf";
+import { FilterOperator, type FilterSchema, type ValueSchema } from "@surfaces-ui/proto";
+
+// The query's own shapes, kept unexported here so that packages re-exporting this module and their own names do not clash.
+type FilterInit = MessageInitShape<typeof FilterSchema>;
+type ValueInit = MessageInitShape<typeof ValueSchema>;
+/** A sort as a grid holds it. */
+type GridSort = { column: string; desc: boolean };
 
 /**
  * The state of a view's controls as plain JSON, so that an agent, a URL or
@@ -174,14 +179,62 @@ export function joinRelative(fixed: FilterSpec[], relative: Record<string, strin
 }
 
 /**
- * What a click on a value does to a shared filter list: the column is
- * filtered to that value, a click on the value already chosen clears it,
- * and another value replaces it. Other columns' filters are left alone.
+ * Checks a filter list from an untrusted place (storage, the address bar, a
+ * saved page) and keeps only the filters that could be sent: a known
+ * operator, plain values, the right number of them, and a `since` range that
+ * means something. Anything else is left out, never guessed at.
+ */
+export function parseFilterSpecs(input: unknown): FilterSpec[] {
+  if (!Array.isArray(input)) return [];
+  const plain = (v: unknown): v is string | number | boolean => typeof v === "string" || (typeof v === "number" && Number.isFinite(v)) || typeof v === "boolean";
+  return input.flatMap((item): FilterSpec[] => {
+    if (item === null || typeof item !== "object") return [];
+    const { column, op, values } = item as { column?: unknown; op?: unknown; values?: unknown };
+    if (typeof column !== "string" || column === "" || typeof op !== "string" || !Object.hasOwn(FILTER_OPS, op)) return [];
+    if (values !== undefined && !(Array.isArray(values) && values.every(plain))) return [];
+    const spec: FilterSpec = { column, op: op as FilterOp, ...(values && values.length > 0 ? { values: [...values] } : {}) };
+    try {
+      filtersFromSpec([spec]);
+    } catch {
+      return [];
+    }
+    return [spec];
+  });
+}
+
+/** Checks a sort list from an untrusted place, as `parseFilterSpecs` does for filters. */
+export function parseSortSpecs(input: unknown): SortSpec[] {
+  if (!Array.isArray(input)) return [];
+  return input.flatMap((item): SortSpec[] => {
+    const column = item !== null && typeof item === "object" ? (item as { column?: unknown }).column : undefined;
+    if (typeof column !== "string" || column === "") return [];
+    return [(item as { desc?: unknown }).desc === true ? { column, desc: true } : { column }];
+  });
+}
+
+/** The values a column is filtered to by a click or a pick (`eq` or `in`), or none. */
+export function chosenValues(specs: FilterSpec[], column: string): (string | number | boolean)[] {
+  return specs.filter((spec) => spec.column === column && (spec.op === "eq" || spec.op === "in")).flatMap((spec) => spec.values ?? []);
+}
+
+/**
+ * What a click on a value does to a shared filter list: a value not chosen
+ * is added to the column's choice, and a value already chosen is taken out
+ * of it, so clicking two bars shows both and clicking one again clears it.
+ * One value is written `eq` and several `in`. Other filters, on this column
+ * or any other, are a person's own and are left alone.
  */
 export function toggleValueFilter(specs: FilterSpec[], column: string, value: string | number | boolean): FilterSpec[] {
-  const chosen = specs.some((spec) => spec.column === column && spec.op === "eq" && spec.values?.length === 1 && String(spec.values[0]) === String(value));
-  const others = specs.filter((spec) => !(spec.column === column && spec.op === "eq"));
-  return chosen ? others : [...others, { column, op: "eq", values: [value] }];
+  const current = chosenValues(specs, column);
+  const chosen = current.some((v) => String(v) === String(value));
+  return selectValues(specs, column, chosen ? current.filter((v) => String(v) !== String(value)) : [...current, value]);
+}
+
+/** Replaces a column's choice of values (`eq` for one, `in` for several); an empty list clears it. */
+export function selectValues(specs: FilterSpec[], column: string, values: (string | number | boolean)[]): FilterSpec[] {
+  const others = specs.filter((spec) => !(spec.column === column && (spec.op === "eq" || spec.op === "in")));
+  if (values.length === 0) return others;
+  return [...others, values.length === 1 ? { column, op: "eq", values: [values[0]!] } : { column, op: "in", values: [...values] }];
 }
 
 /** A shared filter list without the filters on one column: what a chart reads so that it never filters away the bars a person clicks. */

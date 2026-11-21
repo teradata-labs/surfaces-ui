@@ -149,7 +149,7 @@ function PreviewAppearance({ preset, mode, children }: { preset: string; mode: P
   const theme = presets.find((p) => p.name === preset) ?? page?.theme;
   const resolved = mode === "page" ? (page?.resolvedMode ?? "light") : mode;
   return (
-    <ThemeProvider key={`${preset}-${resolved}`} scope="scoped" store={null} initialTheme={theme} initialMode={resolved}>
+    <ThemeProvider key={`${preset}-${resolved}`} scope="scoped" storage={null} initialTheme={theme} initialMode={resolved}>
       <div className="catalog-preview-scope">{children}</div>
     </ThemeProvider>
   );

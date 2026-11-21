@@ -45,7 +45,8 @@ export * from "./review/StepFlow.js";
 export * from "./review/ActionReceipt.js";
 export * from "./menu/ContextMenu.js";
 export * from "./schema/ObjectInfo.js";
-export * from "./data/controls.js";
+// The plain filter form lives in @surfaces-ui/data, below every package that uses it.
+export { type FilterOp, type FilterSpec, type SortSpec, FILTER_OPS, chosenValues, filterWords, filtersExcept, filtersFromSpec, filtersToSpec, joinRelative, parseFilterSpecs, parseSortSpecs, sinceLabel, sinceStart, sortsFromSpec, sortsToSpec, selectValues, splitRelative, toggleValueFilter, valueFilter } from "@surfaces-ui/data";
 export * from "./form/Form.js";
 export * from "./workspace/layout.js";
 export * from "./workspace/icons.js";

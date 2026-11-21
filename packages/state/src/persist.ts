@@ -1,43 +1,8 @@
+import type { StateStorage } from "@surfaces-ui/data";
 import type { Store } from "./store.js";
 
-/** Where saved state lives. Implement it over any storage: the browser, a host bridge, a server. */
-export interface StateStorage {
-  load(key: string): string | null | undefined | Promise<string | null | undefined>;
-  save(key: string, value: string): void | Promise<void>;
-}
-
-/** Keeps state for the lifetime of the page. For tests, and for hosts with no storage. */
-export function memoryStorage(initial: Record<string, string> = {}): StateStorage & { data: Record<string, string> } {
-  const data = { ...initial };
-  return { data, load: (key) => data[key], save: (key, value) => void (data[key] = value) };
-}
-
-/** The browser's localStorage. Safe to create where it does not exist or is blocked: it then keeps nothing. */
-export function browserStorage(): StateStorage {
-  const storage = (() => {
-    try {
-      return typeof localStorage === "undefined" ? undefined : localStorage;
-    } catch {
-      return undefined;
-    }
-  })();
-  return {
-    load(key) {
-      try {
-        return storage?.getItem(key);
-      } catch {
-        return undefined;
-      }
-    },
-    save(key, value) {
-      try {
-        storage?.setItem(key, value);
-      } catch {
-        // Full or blocked storage must not break the page.
-      }
-    },
-  };
-}
+// One storage interface for the whole library, defined in @surfaces-ui/data and offered here too.
+export { type StateStorage, browserStorage, memoryStorage } from "@surfaces-ui/data";
 
 export interface PersistOptions<T> {
   key: string;
@@ -53,9 +18,20 @@ export interface PersistOptions<T> {
   parse?(saved: unknown): T | undefined;
   /** Wait this long after the last change before saving. Defaults to 200 ms. */
   debounceMs?: number;
-  /** What to save, when not all of the state should outlive the page. */
+  /**
+   * What to save, when not all of the state should outlive the page. What
+   * comes back on load is only that part, so it is put back with `restore`.
+   */
   select?(value: T): unknown;
+  /**
+   * Puts a saved part back into the whole state. Without it, a saved object
+   * is laid over the current value (its other fields kept), and anything
+   * else replaces the value. `parse` then checks the whole result.
+   */
+  restore?(saved: unknown, current: T): T | undefined;
 }
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
 
 const replacer = (_: string, value: unknown) => (typeof value === "bigint" ? { $bigint: String(value) } : value);
 const reviver = (_: string, value: unknown) =>
@@ -67,12 +43,16 @@ export const decodeState = (text: string): unknown => JSON.parse(text, reviver);
 
 /**
  * Loads a store's saved value and saves it again after each change. Returns
- * `ready` (resolved once the saved value has been applied) and `stop`.
+ * `ready` (resolved once the saved value has been applied, or found missing)
+ * and `stop`. A change made to the store before the saved value has loaded is
+ * newer than it, so the saved value is then not applied.
  */
 export function persist<T>(store: Store<T>, options: PersistOptions<T>): { ready: Promise<void>; stop(): void; flush(): void } {
   const { key, storage, version = 1, debounceMs = 200 } = options;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let stopped = false;
+  let loading = true;
+  let changedWhileLoading = false;
   const write = () => {
     timer = undefined;
     void storage.save(key, encodeState({ version, state: options.select ? options.select(store.get()) : store.get() }));
@@ -80,17 +60,23 @@ export function persist<T>(store: Store<T>, options: PersistOptions<T>): { ready
   const ready = (async () => {
     try {
       const text = await storage.load(key);
-      if (stopped || !text) return;
+      if (stopped || changedWhileLoading || !text) return;
       const saved = decodeState(text) as { version?: number; state?: unknown };
       const from = typeof saved?.version === "number" ? saved.version : 0;
       const raw = from === version ? saved.state : options.migrate?.(saved?.state, from);
-      const value = raw === undefined ? undefined : options.parse ? options.parse(raw) : (raw as T);
+      if (raw === undefined) return;
+      const current = store.get();
+      const whole = options.restore ? options.restore(raw, current) : options.select && isPlainObject(raw) && isPlainObject(current) ? ({ ...current, ...raw } as T) : (raw as T);
+      const value = whole === undefined ? undefined : options.parse ? options.parse(whole) : whole;
       if (value !== undefined) store.set(value);
     } catch {
       // Unreadable saved state is ignored; the store keeps its initial value.
+    } finally {
+      loading = false;
     }
   })();
   const unsubscribe = store.subscribe(() => {
+    if (loading) changedWhileLoading = true;
     if (timer) clearTimeout(timer);
     timer = setTimeout(write, debounceMs);
   });

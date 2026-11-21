@@ -1,4 +1,4 @@
-import { BulletGraph, Chart, DataGrid, Metric, Sparkline } from "@surfaces-ui/components";
+import { BulletGraph, Chart, ControlIcon, DataGrid, Metric, Sparkline, filterWords, sortsFromSpec } from "@surfaces-ui/components";
 import { type ViewStateService, createViewState } from "@surfaces-ui/state";
 import { useStore } from "@surfaces-ui/state/react";
 import { useMemo } from "react";
@@ -22,22 +22,27 @@ export function Dashboard({ sourceId, sql, view: given, ordersTarget = 100 }: Da
   const view = useMemo(() => given ?? createViewState(), [given]);
   const state = useStore(view);
   const all = view.filters();
-  const chosen = Object.entries(state.selections).flatMap(([column, values]) => values.map((value) => ({ column, value })));
+  // One chip per value chosen by a click, and one per any other filter, each with its own remove button.
+  const chips = state.filters.flatMap((filter) =>
+    filter.op === "eq" || filter.op === "in"
+      ? (filter.values ?? []).map((value) => ({ key: `${filter.column}:${value}`, label: `${filter.column}: ${String(value)}`, name: `Remove filter ${filter.column} is ${value}`, remove: () => view.toggle(filter.column, value) }))
+      : [{ key: `${filter.column}:${filter.op}`, label: filterWords(filter), name: `Remove filter ${filterWords(filter)}`, remove: () => view.setFilters(state.filters.filter((f) => f !== filter)) }],
+  );
 
   return (
     <div className="sf-container">
       {/* Every filter a click made can be removed with a button, not only by clicking the bar again. */}
       <div className="sf-filter-chips" role="group" aria-label="Filters" aria-live="polite">
-        {chosen.length === 0 ? (
+        {chips.length === 0 ? (
           <span>Click a bar to filter everything else.</span>
         ) : (
-          chosen.map(({ column, value }) => (
-            <button key={`${column}:${value}`} type="button" className="sf-button" aria-label={`Remove filter ${column} is ${value}`} onClick={() => view.toggle(column, value)}>
-              {column}: {String(value)} ×
+          chips.map((chip) => (
+            <button key={chip.key} type="button" className="sf-button" aria-label={chip.name} onClick={chip.remove}>
+              {chip.label} <ControlIcon icon="close" />
             </button>
           ))
         )}
-        <button type="button" className="sf-button" disabled={chosen.length === 0} onClick={() => view.clear()}>
+        <button type="button" className="sf-button" disabled={chips.length === 0} onClick={() => view.clear()}>
           Clear filters
         </button>
       </div>
@@ -95,7 +100,7 @@ export function Dashboard({ sourceId, sql, view: given, ordersTarget = 100 }: Da
         sourceId={sourceId}
         sql={sql}
         filters={all}
-        sorts={state.sorts}
+        sorts={sortsFromSpec(state.sorts)}
         onSortsChange={(sorts) => view.setSorts(sorts)}
         height={320}
         label="Orders"

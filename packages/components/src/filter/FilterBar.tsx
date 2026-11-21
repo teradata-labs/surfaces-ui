@@ -1,7 +1,7 @@
 import { FilterOperator } from "@surfaces-ui/proto";
 import { DataType, type Field } from "apache-arrow";
 import { type FormEvent, useEffect, useId, useState } from "react";
-import { sinceLabel } from "../data/controls.js";
+import { sinceLabel } from "@surfaces-ui/data";
 import { isNumeric } from "../data/format.js";
 import type { FilterInit, ValueInit } from "../data/useRowWindow.js";
 import { label as words } from "../locale/locale.js";

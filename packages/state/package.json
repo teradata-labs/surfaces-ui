@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.17.0",
+    "@surfaces-ui/data": "workspace:*",
     "@surfaces-ui/proto": "workspace:*"
   },
   "devDependencies": {

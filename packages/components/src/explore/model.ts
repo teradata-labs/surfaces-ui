@@ -4,7 +4,7 @@ import { SortDirection, type ViewQuerySchema } from "@surfaces-ui/proto";
 import { DataType, type Field } from "apache-arrow";
 import { AGGREGATE_FUNCTIONS, type ChartAggregate, type ChartGrain, type ChartMeasure, TIME_GRAINS } from "../chart/Chart.js";
 import { type ChartType, canTurnSideways } from "../chart/option.js";
-import { type FilterSpec, filtersFromSpec } from "../data/controls.js";
+import { type FilterSpec, filtersFromSpec } from "@surfaces-ui/data";
 import { isNumeric } from "../data/format.js";
 import { numberFormat } from "../locale/locale.js";
 

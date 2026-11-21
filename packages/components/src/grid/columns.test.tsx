@@ -3,7 +3,7 @@ import { memoryDataSource } from "@surfaces-ui/data";
 import { FilterOperator } from "@surfaces-ui/proto";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { filtersFromSpec, sortsFromSpec, valueFilter } from "../data/controls.js";
+import { filtersFromSpec, sortsFromSpec, valueFilter } from "@surfaces-ui/data";
 import { DataGrid, type GridColumns, arrangeColumns, moveColumn } from "./DataGrid.js";
 
 afterEach(cleanup);

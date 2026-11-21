@@ -4,7 +4,7 @@ import { AggregateFunction, SortDirection } from "@surfaces-ui/proto";
 import type { Field } from "apache-arrow";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { OnContext } from "../controls/context.js";
-import { type FilterSpec, filterWords, filtersFromSpec, filtersToSpec, joinRelative, splitRelative } from "../data/controls.js";
+import { type FilterSpec, filterWords, filtersFromSpec, filtersToSpec, joinRelative, splitRelative } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
 import { formatCell } from "../data/format.js";
 import { type FilterInit, messageOf } from "../data/useRowWindow.js";

@@ -3,7 +3,8 @@ import { defaultTheme, presets } from "@surfaces-ui/tokens";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ThemePicker } from "./ThemePicker.js";
-import { type ThemeState, type ThemeStore, ThemeProvider, useTheme } from "./ThemeProvider.js";
+import type { StateStorage } from "@surfaces-ui/data";
+import { type ThemeState, ThemeProvider, useTheme } from "./ThemeProvider.js";
 
 afterEach(() => {
   cleanup();
@@ -12,7 +13,7 @@ afterEach(() => {
 
 function memoryStore(initial?: ThemeState) {
   const saved: ThemeState[] = [];
-  const store: ThemeStore = { load: () => initial, save: (s) => void saved.push(s) };
+  const store: StateStorage = { load: () => (initial ? JSON.stringify(initial) : undefined), save: (_, text) => void saved.push(JSON.parse(text) as ThemeState) };
   return { store, saved };
 }
 
@@ -21,9 +22,9 @@ function Probe() {
   return <output data-testid="probe">{`${theme.name}|${mode}|${theme.radius}|${theme.light.accent}`}</output>;
 }
 
-function setup(store: ThemeStore | null = null) {
+function setup(store: StateStorage | null = null) {
   return render(
-    <ThemeProvider store={store}>
+    <ThemeProvider storage={store}>
       <ThemePicker />
       <Probe />
     </ThemeProvider>,
@@ -72,6 +73,21 @@ describe("ThemePicker", () => {
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
   });
 
+  it("keeps a choice made before the saved one loads, and ignores saved text it cannot read", async () => {
+    const sand = presets.find((p) => p.name === "Sand")!;
+    let answer: (text: string) => void = () => {};
+    const slow: StateStorage = { load: () => new Promise<string>((resolve) => (answer = resolve)), save: () => {} };
+    setup(slow);
+    fireEvent.click(screen.getByRole("radio", { name: "Dark" }));
+    answer(JSON.stringify({ theme: sand, mode: "light" }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.getByTestId("probe").textContent).toMatch(/\|dark\|/);
+
+    cleanup();
+    setup({ load: () => "{not json", save: () => {} });
+    expect(screen.getByTestId("probe").textContent).toMatch(/\|system\|/);
+  });
+
   it("changes the colours charts use and checks them as they change", () => {
     const { store, saved } = memoryStore();
     setup(store);
@@ -91,7 +107,7 @@ describe("ThemePicker", () => {
 
   it("hides controls on request", () => {
     render(
-      <ThemeProvider store={null}>
+      <ThemeProvider storage={null}>
         <ThemePicker hide={["font", "density", "radius"]} />
       </ThemeProvider>,
     );
