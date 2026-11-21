@@ -111,6 +111,21 @@ describe("ResizeHandle", () => {
     expect(onChangeEnd).toHaveBeenCalledTimes(1);
   });
 
+  it("gives up a drag when it goes away mid-drag, and stops listening", () => {
+    const onChange = vi.fn();
+    const onChangeEnd = vi.fn();
+    const { unmount } = render(<ResizeHandle edge="bottom" value={200} label="Resize" onChange={onChange} onChangeEnd={onChangeEnd} />);
+    fireEvent.pointerDown(screen.getByRole("separator"), { pointerType: "mouse", button: 0, clientX: 0, clientY: 0 });
+    fireEvent.pointerMove(window, { clientX: 0, clientY: 50 });
+    expect(onChange).toHaveBeenLastCalledWith(250);
+    unmount();
+    expect(onChange).toHaveBeenLastCalledWith(200);
+    expect(onChangeEnd).toHaveBeenCalledWith(200, { committed: false, via: "pointer" });
+    // Releasing afterwards commits nothing.
+    fireEvent.pointerUp(window, { clientX: 0, clientY: 50 });
+    expect(onChangeEnd).toHaveBeenCalledTimes(1);
+  });
+
   it("is shown all the time when asked", () => {
     render(<ResizeHandle edge="right" value={1} label="Resize" always />);
     expect(screen.getByRole("separator").hasAttribute("data-always")).toBe(true);

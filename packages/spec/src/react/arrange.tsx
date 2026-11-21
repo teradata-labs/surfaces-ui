@@ -145,7 +145,8 @@ export function useArrange(options: {
   remove(id: string): void;
   /**
    * Keeps the size handles while nobody is arranging: between a Grid's or
-   * Row's columns, and under a component whose height is set. A drag sends the
+   * Row's columns, and under a component with a height of its own (a chart or a table, say) or one
+   * whose height is set. A drag sends the
    * same messages Arrange does, as one step. Moving and removing stay inside
    * Arrange. Pass `surfaceFrame` to `SurfaceView` to draw them. Off by default.
    */
@@ -346,13 +347,15 @@ export function useArrange(options: {
   /**
    * While nobody is arranging (with `resizeWhileViewing`): only the handles,
    * on a plain box. The width handle between a Grid's or Row's columns, and
-   * the height handle under a component whose height has been set. Moving
+   * the height handle under a component with a `height` of its own (a chart, a
+   * table) or one whose height has been set, so a button or a line of text
+   * gains no handle until someone sizes it. Moving
    * and removing stay inside Arrange.
    */
   const viewFrame = (component: SurfaceComponent, drawn: ReactNode): ReactNode => {
     const place = placeOfComponent(surface, component.id);
     const prop = heightProp(String(component.component), catalog);
-    const sized = prop !== undefined && typeof component[prop] === "number";
+    const sized = prop === "height" || (prop !== undefined && typeof component[prop] === "number");
     const width = place ? widthHandle(component, place, true) : null;
     const height = sized ? heightHandle(component, true) : null;
     if (!width && !height) return drawn;

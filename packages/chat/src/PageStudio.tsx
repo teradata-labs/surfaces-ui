@@ -202,7 +202,8 @@ export interface PageStudioProps {
   arrange?: boolean;
   /**
    * With `arrange`: keeps the width handles between a Grid's or Row's columns,
-   * and the height handle under a component whose height is set, while nobody
+   * and the height handle under a component with a height of its own (a chart or
+   * a table, say) or one whose height is set, while nobody
    * is arranging. Each drag is one undo step, the same as in Arrange.
    */
   resizeWhileViewing?: boolean;

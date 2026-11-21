@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type PointerEvent as ReactPointerEvent, useRef, useState } from "react";
+import { type KeyboardEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
 import { type ResizeBounds, defaultResizeStep, dragResize, keyResize } from "./resize.js";
 
 export interface ResizeHandleProps {
@@ -18,7 +18,7 @@ export interface ResizeHandleProps {
   startFrom?(handle: HTMLElement): number;
   /** Each new value while it is dragged, and after each key. Draw the new size here. */
   onChange?(value: number): void;
-  /** When a drag is released or cancelled (Escape, or a lost pointer), and after each key: where to keep the size. `committed` is false for a cancelled drag, whose value is where it started. */
+  /** When a drag is released or cancelled (Escape, a lost pointer, or the handle going away mid-drag), and after each key: where to keep the size. `committed` is false for a cancelled drag, whose value is where it started. */
   onChangeEnd?(value: number, end: { committed: boolean; via: "pointer" | "keyboard" }): void;
   /** Enter or a double click: back to the size it had before anyone changed it. Without it, Enter does nothing. */
   onReset?(): void;
@@ -46,6 +46,9 @@ export function ResizeHandle(props: ResizeHandleProps) {
   const latest = useRef(props);
   latest.current = props;
   const [dragging, setDragging] = useState(false);
+  // A drag in progress when the handle goes away is given up, back where it started, rather than left listening on the window.
+  const giveUp = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => () => giveUp.current?.(), []);
 
   const from = (handle: HTMLElement) => value ?? props.startFrom?.(handle) ?? min ?? 0;
   const perUnit = (handle: HTMLElement) => (typeof props.unitPixels === "function" ? props.unitPixels(handle) : (props.unitPixels ?? 1));
@@ -60,12 +63,13 @@ export function ResizeHandle(props: ResizeHandleProps) {
     const origin = edge === "right" ? event.clientX : event.clientY;
     let now = start;
     setDragging(true);
-    const finish = (committed: boolean) => {
+    const finish = (committed: boolean, gone = false) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", cancel);
       window.removeEventListener("keydown", key, true);
-      setDragging(false);
+      giveUp.current = undefined;
+      if (!gone) setDragging(false);
       if (!committed) latest.current.onChange?.(start);
       latest.current.onChangeEnd?.(committed ? now : start, { committed, via: "pointer" });
     };
@@ -84,6 +88,7 @@ export function ResizeHandle(props: ResizeHandleProps) {
       e.stopPropagation();
       finish(false);
     };
+    giveUp.current = () => finish(false, true);
     window.addEventListener("pointermove", move, { passive: false });
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", cancel);

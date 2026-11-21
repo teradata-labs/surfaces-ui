@@ -21,12 +21,13 @@ const shipped: PageDocument = {
   title: "Sales",
   catalogId: analyticsCatalog.id,
   components: [
-    { id: "root", component: "Column", children: ["numbers", "table", "note"] },
+    { id: "root", component: "Column", children: ["numbers", "table", "bare", "note"] },
     { id: "numbers", component: "Grid", columns: 3, children: ["revenue", "orders", "average"] },
     { id: "revenue", component: "Metric", sourceId: "shop", sql, column: "amount", aggregate: "sum", label: "Revenue", ...locked },
     { id: "orders", component: "Metric", sourceId: "shop", sql, aggregate: "count", label: "Orders" },
     { id: "average", component: "Metric", sourceId: "shop", sql, column: "amount", aggregate: "avg", label: "Average" },
     { id: "table", component: "DataGrid", sourceId: "shop", sql, height: 260, ...locked },
+    { id: "bare", component: "DataGrid", sourceId: "shop", sql },
     { id: "note", component: "Text", text: "Figures are in euros." },
   ],
 };
@@ -66,14 +67,15 @@ describe("resizing while viewing", () => {
     expect(document.querySelector(".sf-arrange-view, .sf-arrange-frame")).toBeNull();
   });
 
-  it("keeps the width handles between columns and the height handle under a sized component, and nothing to move or remove", () => {
+  it("keeps the width handles between columns and the height handle under what has a height, and nothing to move or remove", () => {
     render(<Host viewing steps={[]} />);
     const names = screen.getAllByRole("separator").map((s) => s.getAttribute("aria-label"));
-    // Two lines between three columns (none after the last), and the table whose height is set; the note has none.
+    // Two lines between three columns (none after the last), and each table, whether or not its height is set; the note has none.
     expect(names).toEqual([
       "Resize Metric revenue and what is to its right: wider or narrower",
       "Resize Metric orders and what is to its right: wider or narrower",
       "Resize DataGrid table: taller or shorter",
+      "Resize DataGrid bare: taller or shorter",
     ]);
     expect(document.querySelector(".sf-arrange-frame, .sf-arrange-bar")).toBeNull();
     expect(screen.queryByRole("button", { name: /Remove/ })).toBeNull();
@@ -113,6 +115,19 @@ describe("resizing while viewing", () => {
     fireEvent.pointerUp(window, { clientX: 0, clientY: 104 });
     expect(steps).toHaveLength(1);
     expect(component("table")?.height).toBe(360);
+  });
+
+  it("sizes a component whose height was never set, from what is drawn", () => {
+    const steps: { title: string; messages: SurfaceMessage[] }[] = [];
+    render(<Host viewing steps={steps} />);
+    const handle = screen.getByRole("separator", { name: "Resize DataGrid bare: taller or shorter" });
+    // No height is claimed until one is set, and there is nothing to put back.
+    expect(handle.hasAttribute("aria-valuenow")).toBe(false);
+    fireEvent.keyDown(handle, { key: "Enter" });
+    expect(steps).toHaveLength(0);
+    fireEvent.keyDown(handle, { key: "ArrowDown" });
+    expect(steps).toHaveLength(1);
+    expect(typeof component("bare")?.height).toBe("number");
   });
 
   it("shows one layer at a time: Arrange's frames replace the viewing handles", () => {
