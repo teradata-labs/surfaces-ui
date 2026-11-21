@@ -2,6 +2,15 @@
   "name": "@surfaces-ui/agent-anthropic",
   "version": "0.0.0",
   "description": "An AgentBackend over Claude through the Anthropic SDK, for Surfaces UI chat",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "agent",
+    "claude",
+    "anthropic",
+    "llm"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -23,7 +32,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

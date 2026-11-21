@@ -2,6 +2,13 @@
   "name": "@surfaces-ui/seeds",
   "version": "0.0.0",
   "description": "Six synthetic industry data models (retail, healthcare, fraud, telco churn, transportation, manufacturing): generator SQL, descriptions, keys, forms, pipelines and starter surfaces",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "sample-data",
+    "parquet"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -25,7 +32,8 @@
   },
   "files": [
     "dist",
-    "data"
+    "data",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -2,6 +2,14 @@
   "name": "@surfaces-ui/discovery",
   "version": "0.0.0",
   "description": "Reference discovery backend: search, profiles, relations and context packs over any DataSource",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "search",
+    "catalog",
+    "semantic-search"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +30,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

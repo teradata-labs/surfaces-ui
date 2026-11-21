@@ -2,6 +2,11 @@
   "name": "@surfaces-ui/engine-service",
   "version": "0.0.0",
   "description": "QueryService, CatalogService and SourceService over engine adapters, in Node or a browser",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +27,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -2,6 +2,14 @@
   "name": "@surfaces-ui/tokens",
   "version": "0.0.0",
   "description": "Theme contract, presets and CSS variable output for Surfaces UI",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "theme",
+    "design-tokens",
+    "css-variables"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -25,7 +33,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

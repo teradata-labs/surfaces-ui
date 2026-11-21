@@ -2,6 +2,14 @@
   "name": "@surfaces-ui/mcp",
   "version": "0.0.0",
   "description": "MCP Apps delivery for Surfaces UI: tools, ui:// resources and a stdio server",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "mcp",
+    "model-context-protocol",
+    "mcp-apps"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -30,7 +38,8 @@
     "surfaces-mcp": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && vite build",

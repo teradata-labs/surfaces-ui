@@ -2,6 +2,13 @@
   "name": "@surfaces-ui/engine-teradata",
   "version": "0.0.0",
   "description": "Teradata engine adapter for Surfaces UI: Teradata Query Service over HTTP, or a driver connection the consumer supplies",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "teradata",
+    "sql"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +29,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

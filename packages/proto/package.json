@@ -2,6 +2,11 @@
   "name": "@surfaces-ui/proto",
   "version": "0.0.0",
   "description": "Generated protobuf contracts for Surfaces UI",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -25,7 +30,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
