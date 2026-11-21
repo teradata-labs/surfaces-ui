@@ -4,7 +4,7 @@ Stacks children top to bottom. Use it as the root of most surfaces.
 
 ## Props
 
-- `children`: value or binding
+- `children`: array of string | { componentId: string, path: string }
 - `justify` (optional): "start" | "center" | "end" | "spaceBetween" | "spaceAround" | "spaceEvenly" | "stretch"
 - `align` (optional): "start" | "center" | "end" | "stretch"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.

@@ -10,6 +10,8 @@ import {
   IngestWizard,
   Markdown,
   Metric,
+  RowList,
+  type SortSpec,
   type MetricProps,
   type ExploreState,
   Explorer,
@@ -74,14 +76,16 @@ import {
   useSemanticModel,
 } from "@surfaces-ui/components";
 import { fromJson } from "@bufbuild/protobuf";
-import { type PipelineDraft, PipelineDraftSchema, type SemanticModel } from "@surfaces-ui/proto";
+import { type PipelineDraft, PipelineDraftSchema, type SemanticModel, SortDirection } from "@surfaces-ui/proto";
 import { type Mode, type Theme, type ThemeRequest, applyThemeRequest } from "@surfaces-ui/tokens";
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
+import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 import { safeUrl } from "../functions.js";
 import type { ComponentRenderer, RenderProps } from "./Surface.js";
 import { withFilters } from "./renderers.js";
 
 const text = (value: unknown): string => (value == null ? "" : typeof value === "object" ? "" : String(value));
+/** Sorts as an agent writes them, as a query takes them. */
+const sortInits = (sorts: SortSpec[]) => sorts.map((sort) => ({ column: sort.column, direction: sort.desc === true ? SortDirection.DESC : SortDirection.ASC }));
 
 /**
  * Draws `draw` with the semantic model named in `name` once it is loaded,
@@ -529,6 +533,33 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
       currency={text(props.currency) || undefined}
     />
   )),
+  Message: ({ props }) => (
+    <div className="sf-a2-message" data-side={props.side === "end" ? "end" : "start"}>
+      <p className="sf-a2-message-who">
+        <b>{text(props.speaker)}</b>
+        {props.time != null && text(props.time) !== "" && <span>{text(props.time)}</span>}
+      </p>
+      <div className="sf-a2-message-body">
+        <Markdown text={text(props.text)} />
+      </div>
+    </div>
+  ),
+  RowList: ({ props, component, rows, reportContext }) =>
+    withFilters(props.filters, (filters) => (
+      <RowList
+        sourceId={text(props.sourceId)}
+        sql={text(props.sql)}
+        label={text(props.label) || "Rows"}
+        filters={filters}
+        sorts={Array.isArray(props.sorts) ? sortInits(props.sorts as SortSpec[]) : undefined}
+        pageSize={typeof props.pageSize === "number" ? props.pageSize : undefined}
+        rowKey={text(props.rowKey) || undefined}
+        layout={props.layout === "grid" ? "grid" : "list"}
+        onContext={reportContext}
+        // Each row is drawn by the surface itself, so the template is checked, traced and framed like any component.
+        renderRow={(row, index) => rows(component.child, [row]).map((drawn) => <Fragment key={index}>{drawn}</Fragment>)}
+      />
+    )),
   Markdown: ({ props }) => <Markdown text={text(props.text)} />,
   CodeBlock: ({ props }) => <CodeBlock code={text(props.code)} language={text(props.language) || undefined} />,
   Table: ({ props }) => {

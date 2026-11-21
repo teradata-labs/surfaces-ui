@@ -4,12 +4,14 @@ A labelled text box. The value is written to the data model at `value.path` as t
 
 ## Props
 
-- `label`: value or binding
-- `value`: object — A value read from the data model at this path.
+- `label`: string | binding | call
+- `value`: binding — A value read from the data model at this path.
 - `multiline` (optional): boolean
 - `placeholder` (optional): string
-- `help` (optional): value or binding
+- `help` (optional): string | binding | call — A sentence under the field: what to enter, or why it is asked.
 - `maxLength` (optional): integer
+- `required` (optional): boolean — Marked as required, and said to be missing once the person leaves it empty.
+- `pattern` (optional): string — A regular expression the whole text must match; a value that does not is said so beside the field.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

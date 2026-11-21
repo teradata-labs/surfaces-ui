@@ -4,8 +4,8 @@ A link to a web page. Only http and https addresses are shown as links.
 
 ## Props
 
-- `text`: value or binding
-- `url`: value or binding
+- `text`: string | binding | call
+- `url`: string | binding | call
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

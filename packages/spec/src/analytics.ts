@@ -351,7 +351,7 @@ export const analyticsCatalog = defineCatalog({
     },
     SideNav: {
       description:
-        "Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away to a narrow strip; it slides back over the content on hover, on focus or from its button. " +
+        "Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then takes no room, and a menu button at the top corner of the surface slides it back in over the content. On a narrow screen it is always folded. " +
         "An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.",
       props: {
         label: z.string().optional().describe("What the navigation is for, for assistive technology."),
@@ -378,7 +378,8 @@ export const analyticsCatalog = defineCatalog({
       example: { id: "views", component: "Tabs", tabs: [{ title: "Chart", child: "chart" }, { title: "Table", child: "table" }] },
     },
     Button: {
-      description: "A control that sends an event back to the agent or opens a link. Its label is a child Text.",
+      description:
+        'A control that sends an event back to the agent or opens a link. Its label is a child Text. To open a link, the action is a function call in place of an event: `"action": {"functionCall": {"@call": "openUrl", "args": {"url": "https://example.com/start"}}}`.',
       props: { child: childId, variant: z.enum(["default", "primary", "borderless"]).optional(), action },
       example: {
         id: "refresh",
@@ -395,29 +396,39 @@ export const analyticsCatalog = defineCatalog({
         value: dataBinding,
         multiline: z.boolean().optional(),
         placeholder: z.string().optional(),
-        help: dynamicString.optional(),
+        help: dynamicString.optional().describe("A sentence under the field: what to enter, or why it is asked."),
         maxLength: z.number().int().positive().optional(),
+        required: z.boolean().optional().describe("Marked as required, and said to be missing once the person leaves it empty."),
+        pattern: z.string().max(200).optional().describe("A regular expression the whole text must match; a value that does not is said so beside the field."),
       },
       example: { id: "note", component: "TextField", label: "Note", value: { "@path": "/review/note" }, multiline: true },
     },
     NumberField: {
       description: `A labelled number box. ${INPUT_NOTE}`,
-      props: { label: dynamicString, value: dataBinding, min: z.number().optional(), max: z.number().optional(), step: z.number().positive().optional(), help: dynamicString.optional() },
+      props: {
+        label: dynamicString,
+        value: dataBinding,
+        min: z.number().optional().describe("A number below it is said so beside the field."),
+        max: z.number().optional().describe("A number above it is said so beside the field."),
+        step: z.number().positive().optional(),
+        help: dynamicString.optional(),
+        required: z.boolean().optional().describe("Marked as required, and said to be missing once the person leaves it empty."),
+      },
       example: { id: "threshold", component: "NumberField", label: "Alert above", value: { "@path": "/threshold" }, min: 0, step: 50 },
     },
     ChoicePicker: {
       description: `Pick one of a few options: radio buttons for four or fewer, a list for more. ${INPUT_NOTE}`,
-      props: { label: dynamicString, value: dataBinding, options: z.array(z.string()).min(1).max(50), help: dynamicString.optional() },
+      props: { label: dynamicString, value: dataBinding, options: z.array(z.string()).min(1).max(50), help: dynamicString.optional(), required: z.boolean().optional().describe("Marked as required, and said to be missing once the person leaves it empty.") },
       example: { id: "region", component: "ChoicePicker", label: "Region", value: { "@path": "/region" }, options: ["Europe", "Americas", "Asia"] },
     },
     CheckBox: {
       description: `A yes-or-no box. ${INPUT_NOTE}`,
-      props: { label: dynamicString, value: dataBinding, help: dynamicString.optional() },
+      props: { label: dynamicString, value: dataBinding, help: dynamicString.optional(), required: z.boolean().optional().describe("Marked as required, and said to be missing once the person leaves it empty.") },
       example: { id: "include-returns", component: "CheckBox", label: "Include returns", value: { "@path": "/includeReturns" } },
     },
     DateTimeInput: {
       description: `A date, or a date and time (kept in UTC). ${INPUT_NOTE}`,
-      props: { label: dynamicString, value: dataBinding, mode: z.enum(["date", "datetime"]).optional(), help: dynamicString.optional() },
+      props: { label: dynamicString, value: dataBinding, mode: z.enum(["date", "datetime"]).optional(), help: dynamicString.optional(), required: z.boolean().optional().describe("Marked as required, and said to be missing once the person leaves it empty.") },
       example: { id: "from", component: "DateTimeInput", label: "From", value: { "@path": "/from" }, mode: "date" },
     },
     Slider: {
@@ -621,6 +632,38 @@ export const analyticsCatalog = defineCatalog({
         height: z.number().int().min(160).max(1200).optional(),
       },
       example: { id: "explore", component: "QueryResult", sourceId: "lake", sql: "SELECT * FROM orders" },
+    },
+    Message: {
+      description:
+        "One turn of a conversation, for a page that is laid out as a chat: who spoke, what they said (Markdown), and when. Put the turns in a Column, oldest first. " +
+        "`side: \"end\"` sets the person's own turns apart from everyone else's; the speaker is always written, so the side is never the only sign. " +
+        "Offer replies with Chips after the last turn, and take a typed one with a TextField and a Button. It shows a conversation; it does not run one.",
+      props: {
+        speaker: dynamicString.describe("Who spoke: a name or a role."),
+        text: dynamicString.describe("What they said, as Markdown."),
+        side: z.enum(["start", "end"]).optional().describe("\"end\" for the person's own turns. Defaults to \"start\"."),
+        time: dynamicString.optional().describe("When, as it should read: \"10:42\" or \"Yesterday\"."),
+      },
+      example: { id: "turn-1", component: "Message", speaker: "Assistant", text: "Which table holds the articles?", time: "10:42" },
+    },
+    RowList: {
+      description:
+        "One component drawn once for each row of a SQL query: a feed of posts, a list of cards, rows that each carry their own buttons. " +
+        "`child` is the component drawn per row, usually a Card. Inside it, and in everything it holds, a relative path reads the row's column of that name (`{ \"@path\": \"author\" }`; `formatString` with `${author}` too), " +
+        "and a Button's event carries the row's key the same way (`\"context\": { \"post_id\": { \"@path\": \"post_id\" } }`), so you learn which row was acted on. Absolute paths still read the surface's data model. " +
+        "The database sorts, filters and pages; a person asks for more rows, up to 200. An input inside a row must bind an absolute path. For plain rows in columns use DataGrid.",
+      props: {
+        sourceId: dynamicString,
+        sql: dynamicString.describe("A single read-only SELECT statement. One row of it is one item."),
+        child: childId.describe("ID of the component drawn for each row."),
+        label: z.string().describe("What the items are, for assistive technology: \"Posts\"."),
+        sorts: SORTS.optional(),
+        filters: FILTERS.optional(),
+        pageSize: z.number().int().min(1).max(100).optional().describe("Rows fetched at a time. Defaults to 20."),
+        rowKey: z.string().optional().describe("A column that tells rows apart, such as the key."),
+        layout: z.enum(["list", "grid"]).optional().describe("\"list\" stacks the rows; \"grid\" lays them out as cards, as many across as fit."),
+      },
+      example: { id: "feed", component: "RowList", sourceId: "lake", sql: "SELECT * FROM orders", child: "order-card", label: "Orders", sorts: [{ column: "ordered_at", desc: true }], rowKey: "order_id", pageSize: 10 },
     },
     Markdown: {
       description: "Formatted text: headings, lists, tables, links and code. Use it for explanations longer than a line.",

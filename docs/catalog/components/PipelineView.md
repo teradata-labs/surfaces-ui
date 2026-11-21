@@ -4,8 +4,8 @@ A pipeline the backend runs, live: its datasets and how they feed one another, i
 
 ## Props
 
-- `pipelineId`: value or binding
-- `action` (optional): value or binding
+- `pipelineId`: string | binding | call
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

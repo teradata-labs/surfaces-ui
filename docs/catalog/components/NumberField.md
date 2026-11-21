@@ -4,12 +4,13 @@ A labelled number box. The value is written to the data model at `value.path` as
 
 ## Props
 
-- `label`: value or binding
-- `value`: object — A value read from the data model at this path.
-- `min` (optional): number
-- `max` (optional): number
+- `label`: string | binding | call
+- `value`: binding — A value read from the data model at this path.
+- `min` (optional): number — A number below it is said so beside the field.
+- `max` (optional): number — A number above it is said so beside the field.
 - `step` (optional): number
-- `help` (optional): value or binding
+- `help` (optional): string | binding | call
+- `required` (optional): boolean — Marked as required, and said to be missing once the person leaves it empty.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

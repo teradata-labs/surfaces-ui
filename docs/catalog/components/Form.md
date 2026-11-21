@@ -5,12 +5,12 @@ A form that checks what a person enters and submits it. Give the fields and thei
 ## Props
 
 - `formId`: string
-- `title` (optional): value or binding
-- `description` (optional): value or binding
-- `fields`: array
-- `values` (optional): object — Where the entered values live in the data model, to prefill them or show them elsewhere.
+- `title` (optional): string | binding | call
+- `description` (optional): string | binding | call
+- `fields`: array of { name: string, label: string, type: "text" | "longtext" | "number" | "integer" | "boolean" | "date" | "datetime" | "choice", required?: boolean, options?: array of string, min?: number, max?: number, step?: number, maxLength?: integer, pattern?: string, help?: string, placeholder?: string }
+- `values` (optional): binding — Where the entered values live in the data model, to prefill them or show them elsewhere.
 - `submitLabel` (optional): string
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

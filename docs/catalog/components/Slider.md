@@ -4,12 +4,12 @@ A number chosen along a range, with its value shown in words. The value is writt
 
 ## Props
 
-- `label`: value or binding
-- `value`: object — A value read from the data model at this path.
+- `label`: string | binding | call
+- `value`: binding — A value read from the data model at this path.
 - `min`: number
 - `max`: number
 - `step` (optional): number
-- `help` (optional): value or binding
+- `help` (optional): string | binding | call
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

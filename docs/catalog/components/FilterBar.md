@@ -4,11 +4,11 @@ Filters for a whole page: active filters as removable chips and a form to add on
 
 ## Props
 
-- `sourceId`: value or binding
-- `sql`: value or binding — A single read-only SELECT statement whose columns can be filtered.
-- `filters`: object — Where the filter list is kept in the surface's data model, e.g. { path: "/filters" }.
-- `columns` (optional): array — Offer only these columns.
-- `action` (optional): value or binding
+- `sourceId`: string | binding | call
+- `sql`: string | binding | call — A single read-only SELECT statement whose columns can be filtered.
+- `filters`: binding — Where the filter list is kept in the surface's data model, e.g. { path: "/filters" }.
+- `columns` (optional): array of string — Offer only these columns.
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

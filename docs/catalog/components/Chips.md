@@ -4,9 +4,9 @@ Short choices a person can pick with one press, such as follow-up questions or t
 
 ## Props
 
-- `items`: array
-- `selected` (optional): object — Where the pressed chip's value is written in this surface's data model. The chip holding the value there is shown as pressed.
-- `action`: value or binding
+- `items`: array of (string | { label: string, value: string })
+- `selected` (optional): binding — Where the pressed chip's value is written in this surface's data model. The chip holding the value there is shown as pressed.
+- `action`: { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

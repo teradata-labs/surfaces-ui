@@ -5,10 +5,10 @@ A semantic model, to create, read and change: what one row is (the grain) and th
 ## Props
 
 - `model`: string — The semantic model to show, or with `create` the name of the one to make.
-- `create` (optional): object — Propose a new model named `model`. Its rows and fields go in `proposed`. When a model of that name exists, the proposal is shown as a change to it instead.
-- `proposed` (optional): object — A change you propose, or a new model's rows and fields. Shown as a draft for a person to read, change and save, or drop.
+- `create` (optional): { label: string, description?: string, sourceId: string } — Propose a new model named `model`. Its rows and fields go in `proposed`. When a model of that name exists, the proposal is shown as a change to it instead.
+- `proposed` (optional): { add?: array of { id: string, kind: "attribute" | "metric" | "derived", label: string, column?: string, grain?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year", aggregate?: "sum" | "avg" | "count" | "count_distinct" | "min" | "max" | "median", expression?: string, format?: "number" | "compact" | "currency" | "percent", description?: string, by?: string, model?: string }, remove?: array of string, rows?: { grain?: string, primaryKey?: array of string, tables?: array of string, joins?: array of object, sql?: string, dataset?: { pipeline: string, dataset: string } } } — A change you propose, or a new model's rows and fields. Shown as a draft for a person to read, change and save, or drop.
 - `proposedBy` (optional): string — Who proposed it: your name. Shown above the changes.
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

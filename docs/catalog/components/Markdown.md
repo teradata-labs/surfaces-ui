@@ -4,7 +4,7 @@ Formatted text: headings, lists, tables, links and code. Use it for explanations
 
 ## Props
 
-- `text`: value or binding
+- `text`: string | binding | call
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

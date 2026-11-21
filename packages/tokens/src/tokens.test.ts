@@ -9,6 +9,12 @@ import {
   rgbChannels,
   stepByContrast,
   DISTANCE_FLOOR,
+  LEGEND_FLOOR,
+  LEGEND_SLOTS,
+  RETIRED_ORDERS,
+  type HueName,
+  type SeriesOrderName,
+  currentSeries,
   SERIES_ORDER_NAMES,
   chartColors,
   checkSeries,
@@ -325,6 +331,27 @@ describe("chart colours", () => {
     }
   }
 
+  for (const order of SERIES_ORDER_NAMES) {
+    it(`${order}: any two of the first five series can be told apart, neighbours or not, and no two are blues`, () => {
+      const hues: readonly HueName[] = SERIES_ORDERS[order];
+      for (const mode of ["light", "dark"] as const) {
+        const first = hues.slice(0, LEGEND_SLOTS).map((hue) => HUES[hue][mode]);
+        for (let i = 0; i < first.length; i++) {
+          for (let j = i + 1; j < first.length; j++) expect(colorDistance(first[i]!, first[j]!), `${hues[i]} and ${hues[j]}, ${mode}`).toBeGreaterThanOrEqual(LEGEND_FLOOR);
+        }
+      }
+      // Blue, indigo and purple are one colour with red-green colour blindness and close without it.
+      expect(hues.slice(0, LEGEND_SLOTS).filter((hue) => hue === "blue" || hue === "indigo" || hue === "purple").length).toBeLessThanOrEqual(1);
+    });
+  }
+
+  it("flags two colours among the first five that are alike even when they are not neighbours", () => {
+    // What a stack of five drew before: blue first and indigo third, red second and orange fourth.
+    const issues = checkSeries([HUES.blue.dark, HUES.red.dark, HUES.indigo.dark, HUES.orange.dark, HUES.teal.dark], "#1A1A19");
+    expect(issues.filter((i) => i.severity === "error").map((i) => i.slots)).toEqual([[1, 3], [2, 4]]);
+    expect(issues[0]!.message).toMatch(/legend/);
+  });
+
   it("flags palettes whose neighbours collide or that fade into the background", () => {
     const issues = checkSeries(["#2A78D6", "#2F7FDD", "#D03B3B", "#5A8F00", "#F2E9A0"], "#FFFFFF");
     expect(issues.map((i) => [i.severity, i.slots])).toEqual([
@@ -417,9 +444,21 @@ describe("retired series orders", () => {
     const saved = { ...presets.find((p) => p.name === "Aurora")!, charts: { light: { ...chartColors("Aurora", "light"), series: old.map((h) => HUES[h].light) }, dark: { ...chartColors("Aurora", "dark"), series: old.map((h) => HUES[h].dark) } } };
     const parsed = parseTheme(saved, defaultTheme);
     expect(parsed.charts.dark.series).toEqual(chartColors("Aurora", "dark").series);
-    expect(parsed.charts.dark.series[2]).toBe(HUES.pink.dark);
+    expect(parsed.charts.dark.series[2]).toBe(HUES.magenta.dark);
     const chosen = { ...saved, charts: { light: { ...saved.charts.light, series: [HUES.blue.light, HUES.red.light] }, dark: { ...saved.charts.dark, series: [HUES.blue.dark, HUES.red.dark] } } };
     expect(parseTheme(chosen, defaultTheme).charts.dark.series).toEqual([HUES.blue.dark, HUES.red.dark]);
+  });
+});
+
+describe("retired series orders, all of them", () => {
+  it("moves every order's earlier form to its current one, in both modes", () => {
+    for (const [name, earlier] of Object.entries(RETIRED_ORDERS) as [SeriesOrderName, HueName[][]][]) {
+      for (const hues of earlier) {
+        for (const mode of ["light", "dark"] as const) {
+          expect(currentSeries(hues.map((hue) => HUES[hue][mode]), mode), `${name} ${mode}`).toEqual(chartColors(name, mode).series);
+        }
+      }
+    }
   });
 });
 

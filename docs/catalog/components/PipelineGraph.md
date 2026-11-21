@@ -4,10 +4,10 @@ A pipeline as a graph of sources, tables, views and sinks with the flows between
 
 ## Props
 
-- `nodes`: array
-- `edges`: array
+- `nodes`: array of { id: string, name: string, kind: "source" | "table" | "view" | "streamingTable" | "materializedView" | "temporaryView" | "sink", status?: "idle" | "starting" | "running" | "completed" | "failed" | "cancelled" | "skipped", layer?: "bronze" | "silver" | "gold", rowsWritten?: number, expectationsFailed?: number, checksFailed?: number }
+- `edges`: array of { from: string, to: string, flowName?: string, mode?: "streaming" | "batch" }
 - `height` (optional): integer
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 
 ## Events
 

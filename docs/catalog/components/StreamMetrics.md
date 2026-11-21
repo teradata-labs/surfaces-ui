@@ -4,7 +4,7 @@ How a streaming query is keeping up: input and processing rates, batch size and 
 
 ## Props
 
-- `progress`: array
+- `progress`: array of { timestamp: string, numInputRows: number, inputRowsPerSecond: number, processedRowsPerSecond: number, batchDurationMs: number, stateRows?: number }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

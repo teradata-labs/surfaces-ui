@@ -4,17 +4,17 @@ A chart over a SQL query. Give each measure an aggregate so the database summari
 
 ## Props
 
-- `sourceId`: value or binding
-- `sql`: value or binding — A single read-only SELECT statement.
-- `filters` (optional): value or binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
+- `sourceId`: string | binding | call
+- `sql`: string | binding | call — A single read-only SELECT statement.
+- `filters` (optional): array of { column: string, op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "in" | "not_in" | "between" | "contains" | "starts_with" | "ends_with" | "is_null" | "is_not_null" | "since", values?: array } | binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
 - `type`: "bar" | "line" | "area" | "scatter" | "pie"
 - `x`: string — Column for the x axis, or the slices of a pie.
 - `xGrain` (optional): "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year" — Group a date or time x column into buckets of this size. Use it for every time series.
 - `xBins` (optional): integer — Group a numeric x column into about this many bins, for a histogram.
-- `y`: array — One entry per series.
+- `y`: array of { column?: string, aggregate?: "sum" | "avg" | "count" | "count_distinct" | "min" | "max" | "median" | "stddev" | "variance" | "percentile", percentile?: number, expression?: string, terms?: { [name]: object }, label?: string, type?: "bar" | "line" | "area" | "scatter", axis?: "left" | "right", slot?: integer } — One entry per series.
 - `splitBy` (optional): string — Column whose values become separate series.
 - `stacked` (optional): boolean
-- `select` (optional): object — Makes the chart a filter: the path of a shared filter list (the one its `filters` and a FilterBar use). A click on a bar filters the page to that x value, a click on it again clears it, and this chart ignores filters on its own x column so the bars a person clicks stay. Only for a category x (no xGrain or xBins).
+- `select` (optional): binding — Makes the chart a filter: the path of a shared filter list (the one its `filters` and a FilterBar use). A click on a bar filters the page to that x value, a click on it again clears it, and this chart ignores filters on its own x column so the bars a person clicks stay. Only for a category x (no xGrain or xBins).
 - `sort` (optional): "value" | "x" — Order of bars. Bars over categories are sorted largest first unless you say "x". Dates, bins and numbers keep their own order.
 - `legend` (optional): "top" | "bottom" | "right" | "none" — Leave out: up to four lines are labelled at their ends, and one series needs no legend.
 - `xTitle` (optional): string
@@ -22,7 +22,7 @@ A chart over a SQL query. Give each measure an aggregate so the database summari
 - `yRightTitle` (optional): string
 - `yFormat` (optional): "number" | "compact" | "currency" | "percent" — How the left axis writes its numbers: "percent" for a rate (6%, not 0.06), "currency" for money. Labels only.
 - `height` (optional): integer
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `label` (optional): string — Accessible description of what the chart shows.
 
 ## Events

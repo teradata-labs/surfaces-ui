@@ -4,7 +4,7 @@ Switches between several children, one visible at a time.
 
 ## Props
 
-- `tabs`: array
+- `tabs`: array of { title: string | binding | call, child: string }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

@@ -4,7 +4,7 @@ Data quality rules for a pipeline with how many records passed and failed each, 
 
 ## Props
 
-- `expectations`: array
+- `expectations`: array of { name: string, dataset: string, constraint: string, action: "warn" | "drop" | "fail", passedRecords: number, failedRecords: number }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

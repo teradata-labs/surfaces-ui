@@ -4,9 +4,9 @@ Lays children out in columns that wrap onto new rows. Use it for dashboards: a r
 
 ## Props
 
-- `children`: value or binding
+- `children`: array of string | { componentId: string, path: string }
 - `columns` (optional): integer — Columns per row. Defaults to 2. Narrow screens use one.
-- `widths` (optional): array — The share of the width each column takes, one per column: [2, 1] makes the first twice as wide as the second. Used when it has one entry per column; otherwise columns are equal.
+- `widths` (optional): array of number — The share of the width each column takes, one per column: [2, 1] makes the first twice as wide as the second. Used when it has one entry per column; otherwise columns are equal.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

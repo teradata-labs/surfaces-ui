@@ -4,10 +4,10 @@ A tree of the source's catalogs, schemas, tables and columns, with the tables ea
 
 ## Props
 
-- `sourceId`: value or binding
+- `sourceId`: string | binding | call
 - `height` (optional): integer
-- `opened` (optional): object — Where the opened table's name is written in this surface's data model.
-- `action` (optional): value or binding
+- `opened` (optional): binding — Where the opened table's name is written in this surface's data model.
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 
 ## Events
 

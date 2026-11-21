@@ -4,10 +4,10 @@ Everything known about one table: description, certification, columns with stati
 
 ## Props
 
-- `sourceId`: value or binding
-- `table`: value or binding
-- `opened` (optional): object — Where the opened table's name is written in this surface's data model.
-- `action` (optional): value or binding
+- `sourceId`: string | binding | call
+- `table`: string | binding | call
+- `opened` (optional): binding — Where the opened table's name is written in this surface's data model.
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

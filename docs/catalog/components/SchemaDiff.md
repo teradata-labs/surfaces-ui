@@ -4,7 +4,7 @@ How incoming data differs from the table it loads into: new, missing and retyped
 
 ## Props
 
-- `changes`: array
+- `changes`: array of { column: string, change: "added" | "removed" | "typeChanged", before?: string, after?: string }
 - `rescuedCount` (optional): number
 - `mode` (optional): string — How new columns are treated, e.g. addNewColumns, rescue, failOnNewColumns.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.

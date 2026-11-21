@@ -4,7 +4,7 @@ Steps a person through bringing new files in: where they are, what the engine fi
 
 ## Props
 
-- `sourceId`: value or binding
+- `sourceId`: string | binding | call
 - `location` (optional): string — Where the files are, to start from.
 - `format` (optional): "parquet" | "delta" | "iceberg" | "csv" | "json"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.

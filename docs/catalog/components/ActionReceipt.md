@@ -4,16 +4,16 @@ What happened after a person approved something: the outcome, who approved it an
 
 ## Props
 
-- `title`: value or binding
+- `title`: string | binding | call
 - `outcome`: "done" | "partial" | "failed"
-- `summary` (optional): value or binding
+- `summary` (optional): string | binding | call
 - `ranAt` (optional): string — ISO time it ran.
 - `ranBy` (optional): string — What ran it: you, a pipeline, a service.
-- `approvedBy` (optional): array
+- `approvedBy` (optional): array of { by: string, at?: string, reason?: string }
 - `sql` (optional): string — What ran, for the record. Never run from the receipt.
-- `changes` (optional): array
-- `undo` (optional): object
-- `action` (optional): value or binding
+- `changes` (optional): array of { label: string, before?: string, after: string }
+- `undo` (optional): { label: string, description?: string, until?: string }
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

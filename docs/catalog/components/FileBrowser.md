@@ -4,10 +4,10 @@ A tree of folders and files: a source's storage (only the places it may read) an
 
 ## Props
 
-- `sourceId` (optional): value or binding — List this source's storage. Leave out to offer only folders on the person's computer.
+- `sourceId` (optional): string | binding | call — List this source's storage. Leave out to offer only folders on the person's computer.
 - `local` (optional): boolean — Offer "Open a folder on this computer".
 - `height` (optional): integer
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 
 ## Events
 

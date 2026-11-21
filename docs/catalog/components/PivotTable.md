@@ -4,12 +4,12 @@ A pivot table over a SQL query: row values down the side, column values across t
 
 ## Props
 
-- `sourceId`: value or binding
-- `sql`: value or binding — A single read-only SELECT statement.
-- `filters` (optional): value or binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
-- `rows`: array — Columns whose values become the rows.
-- `columns` (optional): array — Columns whose values become the columns. Choose ones with few distinct values.
-- `measures`: array
+- `sourceId`: string | binding | call
+- `sql`: string | binding | call — A single read-only SELECT statement.
+- `filters` (optional): array of { column: string, op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "in" | "not_in" | "between" | "contains" | "starts_with" | "ends_with" | "is_null" | "is_not_null" | "since", values?: array } | binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
+- `rows`: array of (string | { column: string, grain?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year", label?: string }) — Columns whose values become the rows.
+- `columns` (optional): array of (string | { column: string, grain?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year", label?: string }) — Columns whose values become the columns. Choose ones with few distinct values.
+- `measures`: array of { column?: string, aggregate: "sum" | "avg" | "count" | "count_distinct" | "min" | "max" | "median" | "stddev" | "variance" | "percentile", percentile?: number, label?: string }
 - `totals` (optional): boolean
 - `height` (optional): integer
 - `label` (optional): string — Accessible name for the table.

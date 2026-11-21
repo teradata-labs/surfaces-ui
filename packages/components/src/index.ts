@@ -27,6 +27,7 @@ export * from "./text/Markdown.js";
 export * from "./source/SourceList.js";
 export * from "./source/ConnectionBuilder.js";
 export * from "./metric/Metric.js";
+export * from "./rows/RowList.js";
 export * from "./pipeline/Pipeline.js";
 export * from "./panzoom/usePanZoom.js";
 export * from "./data/export.js";

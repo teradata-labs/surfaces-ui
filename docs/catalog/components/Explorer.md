@@ -5,16 +5,16 @@ Exploring a query with pills, as a person would in a BI tool but with nothing de
 ## Props
 
 - `model` (optional): string — The name of a semantic model (list them with list_semantic_models). Its dimensions, measures and metrics become the pills, marked as the model's, so a metric means what the model defines; its source and query are used when `sourceId` and `sql` are left out. Prefer it to writing `fields` whenever a model covers the data. A person can add a field they make to the model.
-- `sourceId` (optional): value or binding — Where the query runs. Left out with `model`, the model's.
-- `sql` (optional): value or binding — A single read-only SELECT statement: a table, or a join. Every pill is a column of it or a calculation over them. Left out with `model`, the model's.
-- `fields` (optional): array — The pills. Left out, they are generated from the query's columns.
-- `rows` (optional): array — Attributes to break down by, by pill id. The first is the x axis.
+- `sourceId` (optional): string | binding | call — Where the query runs. Left out with `model`, the model's.
+- `sql` (optional): string | binding | call — A single read-only SELECT statement: a table, or a join. Every pill is a column of it or a calculation over them. Left out with `model`, the model's.
+- `fields` (optional): array of { id: string, kind: "attribute" | "metric" | "derived", label: string, column?: string, grain?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year", aggregate?: "sum" | "avg" | "count" | "count_distinct" | "min" | "max" | "median", expression?: string, format?: "number" | "compact" | "currency" | "percent", description?: string, by?: string, model?: string } — The pills. Left out, they are generated from the query's columns.
+- `rows` (optional): array of string — Attributes to break down by, by pill id. The first is the x axis.
 - `split` (optional): string — An attribute whose values become separate series.
-- `values` (optional): array — Metrics and derived metrics to show, by pill id.
-- `filters` (optional): array
+- `values` (optional): array of string — Metrics and derived metrics to show, by pill id.
+- `filters` (optional): array of { column: string, op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "in" | "not_in" | "between" | "contains" | "starts_with" | "ends_with" | "is_null" | "is_not_null" | "since", values?: array }
 - `view` (optional): "chart" | "table"
-- `chart` (optional): object — How the chart is drawn. Left out, it is chosen from what is on the shelves.
-- `action` (optional): value or binding
+- `chart` (optional): { type?: "bar" | "line" | "area", swap?: boolean, measures?: { [name]: { type?: "bar" | "line" | "area", axis?: "left" | "right" } } } — How the chart is drawn. Left out, it is chosen from what is on the shelves.
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

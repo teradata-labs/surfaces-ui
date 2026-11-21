@@ -1,5 +1,7 @@
-import { FieldInput, Form, type FormFieldSpec, type FormProps } from "@surfaces-ui/components";
-import { useId } from "react";
+import type { JsonValue } from "@bufbuild/protobuf";
+import { FieldInput, Form, type FormFieldSpec, type FormProps, formDefinition } from "@surfaces-ui/components";
+import { checkSubmission } from "@surfaces-ui/data";
+import { useId, useState } from "react";
 import type { ComponentRenderer, RenderProps } from "./Surface.js";
 
 type FormValues = NonNullable<FormProps["values"]>;
@@ -7,15 +9,34 @@ type FormValues = NonNullable<FormProps["values"]>;
 const text = (value: unknown): string => (value == null || typeof value === "object" ? "" : String(value));
 const num = (value: unknown): number | undefined => (typeof value === "number" ? value : undefined);
 
-/** One input bound to the data model at `value.path`. */
-function input(type: FormFieldSpec["type"], extra?: (props: Record<string, unknown>) => Partial<FormFieldSpec>): ComponentRenderer {
-  return ({ props, component, setData }: RenderProps) => (
-    <FieldInput
-      field={{ name: component.id, label: text(props.label), type, help: text(props.help) || undefined, placeholder: text(props.placeholder) || undefined, ...extra?.(props) }}
-      value={props.value}
-      onChange={(value) => setData(component.value, value)}
-    />
+/**
+ * One input bound to the data model at `value.path`. It checks itself by the rules a `Form` uses (required, a
+ * range, a pattern) and says what is wrong beside the field, once the person has left it: nobody is told a field
+ * is missing while they are still on their way to it.
+ */
+function LooseInput({ type, extra, props, component, setData }: RenderProps & { type: FormFieldSpec["type"]; extra?: (props: Record<string, unknown>) => Partial<FormFieldSpec> }) {
+  const [left, setLeft] = useState(false);
+  const field: FormFieldSpec = {
+    name: component.id,
+    label: text(props.label),
+    type,
+    help: text(props.help) || undefined,
+    placeholder: text(props.placeholder) || undefined,
+    required: props.required === true || undefined,
+    ...extra?.(props),
+  };
+  // A required yes-or-no box is one that must be ticked.
+  const missing = field.type === "boolean" && field.required && props.value !== true;
+  const error = !left ? undefined : missing ? `${field.label} is required.` : checkSubmission(formDefinition("field", [{ ...field, name: "value" }]), { value: (props.value ?? null) as JsonValue }).errors[0]?.message;
+  return (
+    <div className="sf-a2-field" onBlur={() => setLeft(true)}>
+      <FieldInput field={field} value={props.value} error={error} onChange={(value) => setData(component.value, value)} />
+    </div>
   );
+}
+
+function input(type: FormFieldSpec["type"], extra?: (props: Record<string, unknown>) => Partial<FormFieldSpec>): ComponentRenderer {
+  return (args: RenderProps) => <LooseInput {...args} type={type} extra={extra} />;
 }
 
 function SliderView({ props, component, setData }: RenderProps) {
@@ -66,7 +87,7 @@ function FormView({ props, component, dispatch, setData }: RenderProps) {
 }
 
 export const formRenderers: Record<string, ComponentRenderer> = {
-  TextField: input("text", (p) => ({ type: p.multiline === true ? "longtext" : "text", maxLength: num(p.maxLength) })),
+  TextField: input("text", (p) => ({ type: p.multiline === true ? "longtext" : "text", maxLength: num(p.maxLength), pattern: text(p.pattern) || undefined })),
   NumberField: input("number", (p) => ({ min: num(p.min), max: num(p.max), step: num(p.step) })),
   ChoicePicker: input("choice", (p) => ({ options: Array.isArray(p.options) ? (p.options as unknown[]).map(text) : [] })),
   CheckBox: input("boolean"),

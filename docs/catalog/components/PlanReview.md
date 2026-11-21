@@ -4,11 +4,11 @@ A plan a person must approve before you act: cleaning steps, transformations, a 
 
 ## Props
 
-- `title`: value or binding
-- `summary` (optional): value or binding
+- `title`: string | binding | call
+- `summary` (optional): string | binding | call
 - `proposedBy` (optional): string — Your name, so the person knows who wrote the plan.
-- `steps`: array
-- `action`: value or binding
+- `steps`: array of { id: string, title: string, detail?: string, sql?: string, kind?: string, affects?: string, risk?: "low" | "medium" | "high", required?: boolean }
+- `action`: { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

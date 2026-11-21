@@ -4,13 +4,13 @@ A relationship diagram: tables as cards with their columns and lines between the
 
 ## Props
 
-- `sourceId`: value or binding
-- `tables`: array — Tables to show.
-- `joins` (optional): array
+- `sourceId`: string | binding | call
+- `tables`: array of string — Tables to show.
+- `joins` (optional): array of { left: string, right: string, keys: array of object, inferred?: boolean, declared?: boolean, type?: "inner" | "left" | "right" | "full" }
 - `rowsFrom` (optional): boolean — The first table's rows are the result's rows: it is marked, the rest are laid out as its detail, and each join says whether it adds one row or can repeat rows. Use it to show which tables can be joined without double counting.
 - `suggest` (optional): boolean — False to leave out joins the backend would guess from column names; the joins you send and those the source declares are still shown. Default true.
 - `height` (optional): integer
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 
 ## Events
 

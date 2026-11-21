@@ -17,10 +17,15 @@ export const functionCall = z
   })
   .describe("A call to one of the catalog's functions.");
 
-export const dynamicString = z.union([z.string(), dataBinding, functionCall]);
-export const dynamicNumber = z.union([z.number(), dataBinding, functionCall]);
-export const dynamicBoolean = z.union([z.boolean(), dataBinding, functionCall]);
-export const dynamicValue = z.union([z.string(), z.number(), z.boolean(), z.array(z.unknown()), dataBinding, functionCall]);
+const isRecord = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
+const DYNAMIC = 'a binding ({ "@path": "/a" }) or a function call ({ "@call": "name", "args": { … } })';
+/** What a value that fits no form of a union is told, since "Invalid input" helps nobody correct it. */
+const expected = (kind: string) => ({ error: () => `Expected ${kind}, ${DYNAMIC}.` });
+
+export const dynamicString = z.union([z.string(), dataBinding, functionCall], expected("text"));
+export const dynamicNumber = z.union([z.number(), dataBinding, functionCall], expected("a number"));
+export const dynamicBoolean = z.union([z.boolean(), dataBinding, functionCall], expected("true or false"));
+export const dynamicValue = z.union([z.string(), z.number(), z.boolean(), z.array(z.unknown()), dataBinding, functionCall], expected("text, a number, true or false, a list"));
 
 /** A binding to a place in the data model, as the protocol writes it. */
 export const binding = (path: string): { "@path": string } => ({ "@path": path });
@@ -51,17 +56,56 @@ export const accessibility = z.strictObject({
   hidden: dynamicBoolean.optional(),
 });
 
+const scalar = z.union([z.string(), z.number(), z.boolean()]);
+
+/**
+ * When a component is shown (`visibleWhen`): a place in the data model, and what must be there. With neither
+ * `equals` nor `in`, anything there will do (not nothing, empty text or false).
+ */
+export const condition = z
+  .strictObject({
+    path: z.string().describe("A place in the data model, as a binding's path is written."),
+    equals: scalar.optional().describe("Shown only while the value there is this."),
+    in: z.array(scalar).min(1).max(50).optional().describe("Shown only while the value there is one of these."),
+  })
+  .refine((value) => value.equals === undefined || value.in === undefined, { message: "Give `equals` or `in`, not both." })
+  .describe("Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen.");
+
+export type Condition = z.infer<typeof condition>;
+
+/** True when a `visibleWhen` condition holds over this data model. Anything that is not a condition holds. */
+export function conditionHolds(given: unknown, data: unknown, scope = "/"): boolean {
+  const parsed = condition.safeParse(given);
+  if (!parsed.success) return true;
+  const value = getPath(data, absolutePath(parsed.data.path, scope));
+  if (parsed.data.equals !== undefined) return value === parsed.data.equals;
+  if (parsed.data.in !== undefined) return parsed.data.in.includes(value as string);
+  return value != null && value !== "" && value !== false;
+}
+
 /** The ID of another component in the same surface. */
 export const childId = z.string().describe("ID of a child component.");
 
 /** Children: a list of component IDs, or one component repeated for each item of a data model list. */
-export const childList = z.union([z.array(z.string()), z.strictObject({ componentId: z.string(), path: z.string() })]);
+export const childList = z.union([z.array(z.string()), z.strictObject({ componentId: z.string(), path: z.string() })], {
+  error: () => "Expected a list of component ids, or { componentId, path } to repeat one component for each item of a list in the data model.",
+});
 
 /** What happens when a control is used: an event sent back to the agent, or a local function. */
-export const action = z.union([
-  z.strictObject({ event: z.strictObject({ name: z.string(), userMessage: dynamicString.optional(), context: z.record(z.string(), dynamicValue).optional() }) }),
-  z.strictObject({ functionCall }),
-]);
+export const action = z.union(
+  [
+    z.strictObject({ event: z.strictObject({ name: z.string(), userMessage: dynamicString.optional(), context: z.record(z.string(), dynamicValue).optional() }) }),
+    z.strictObject({ functionCall }),
+  ],
+  {
+    error: (issue) =>
+      isRecord(issue.input) && Object.hasOwn(issue.input, "@call")
+        ? 'In an action, a function call sits inside `functionCall`: { "functionCall": { "@call": "openUrl", "args": { "url": "https://…" } } }.'
+        : isRecord(issue.input) && Object.hasOwn(issue.input, "name")
+          ? 'In an action, an event sits inside `event`: { "event": { "name": "…", "context": { … } } }.'
+          : 'Expected { "event": { "name": "…", "context": { … } } } to send an event, or { "functionCall": { "@call": "openUrl", "args": { "url": "https://…" } } } to run a function.',
+  },
+);
 
 export type Action = z.infer<typeof action>;
 export type ChildList = z.infer<typeof childList>;

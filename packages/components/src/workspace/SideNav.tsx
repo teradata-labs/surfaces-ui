@@ -51,11 +51,15 @@ function useNarrow(): boolean {
   return narrow;
 }
 
+/** "Site navigation" for "Site", and "Main navigation" left as it is: a label that already says so is not said twice. */
+export const navigationName = (label: string) => (/\bnavigation\s*$/i.test(label) ? label.trim() : `${label.trim()} navigation`);
+
 const FOCUSABLE = 'a[href], button:not([disabled]), select:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Side navigation that can get out of the way. Pinned, it sits beside the page. Unpinned, it takes no room at all: a
- * menu button floats at the page's top corner, and pressing it slides the navigation in from the left over the whole
+ * menu button sits at the top corner of whatever holds the navigation (never the window's, so a host's own toolbar is
+ * left alone; what comes after it is told the room to leave as `--sf-sidenav-inset`), and pressing it slides the navigation in from the left over the whole
  * screen, as a dialog. Focus moves into it and stays there until it closes, on Escape, on its close button, or when an
  * item is chosen; focus then goes back to the menu button. Below `SIDENAV_NARROW` it is always folded and offers no pin.
  */
@@ -116,7 +120,7 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
     // biome-ignore lint/a11y/noStaticElementInteractions: Escape and Tab are handled here for everything inside; the controls themselves are buttons and links.
     <div className={`sf-sidenav${className ? ` ${className}` : ""}`} data-pinned={pinned} data-open={open || undefined} onKeyDown={onKey}>
       {!pinned && (
-        <button id={`${id}-open`} type="button" className="sf-sidenav-open" aria-expanded={open} aria-controls={`${id}-panel`} aria-label={`Show ${label} navigation`} onClick={() => setOpen(true)}>
+        <button id={`${id}-open`} type="button" className="sf-sidenav-open" aria-expanded={open} aria-controls={`${id}-panel`} aria-label={`Show ${navigationName(label)}`} onClick={() => setOpen(true)}>
           <ControlIcon icon="menu" />
         </button>
       )}
@@ -129,7 +133,7 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
         className="sf-sidenav-panel"
         role={pinned ? undefined : "dialog"}
         aria-modal={taking || undefined}
-        aria-label={pinned ? undefined : `${label} navigation`}
+        aria-label={pinned ? undefined : navigationName(label)}
       >
         <div className="sf-sidenav-top">
           <div className="sf-sidenav-header">{header}</div>
@@ -140,7 +144,7 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
           </button>
           )}
           {!pinned && (
-            <button type="button" className="sf-sidenav-close" aria-label={`Close ${label} navigation`} onClick={close}>
+            <button type="button" className="sf-sidenav-close" aria-label={`Close ${navigationName(label)}`} onClick={close}>
               <ControlIcon icon="close" />
             </button>
           )}

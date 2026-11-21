@@ -4,10 +4,10 @@ Asks a person to choose between options before you continue. Mark the option you
 
 ## Props
 
-- `title`: value or binding
-- `detail` (optional): value or binding
-- `options`: array
-- `action`: value or binding
+- `title`: string | binding | call
+- `detail` (optional): string | binding | call
+- `options`: array of { id: string, label: string, description?: string, recommended?: boolean }
+- `action`: { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

@@ -46,30 +46,48 @@ export type HueName = keyof typeof HUES;
 
 /**
  * Named orders of eight hues, one leading with each preset's accent. The order
- * is what keeps neighbouring series distinguishable, so these are not
- * arbitrary: each was found by trying every order that starts with its first
- * hue and keeping the one whose closest neighbours, seen with red-green colour
- * blindness, are furthest apart in both modes. Aurora also keeps blue, indigo,
+ * is what keeps series distinguishable, so these are not arbitrary. Each was
+ * found by trying every order of the series hues that starts with its first
+ * hue, and keeping the one that does best by two measures, in both modes:
+ *
+ * - Any two of the first five (`LEGEND_SLOTS`) are apart to an eye with full
+ *   colour vision, not only neighbours. A chart split five ways is read by its
+ *   legend, where the first colour is matched against the third as often as
+ *   against the second; blue and indigo, which are nearly one colour, are
+ *   never both among them.
+ * - Neighbours anywhere in the order stay apart with red-green colour
+ *   blindness too.
+ *
+ * Hue alone cannot keep every pair of five apart with red-green colour
+ * blindness (red, orange, amber and green fall together), which is why a
+ * chart also names its series and offers a table. Aurora keeps blue, indigo,
  * purple and green out of its second and third places: next to its teal they
- * read as one cool family and the first lines of a chart blur together. Moss
- * keeps teal, blue and indigo out of the same places for the same reason, next
- * to its green.
+ * read as one cool family. Moss keeps teal, blue and indigo out of the same
+ * places for the same reason, next to its green.
  */
 export const SERIES_ORDERS = {
-  Classic: ["blue", "red", "indigo", "orange", "teal", "amber", "purple", "green"],
-  Aurora: ["teal", "orange", "pink", "amber", "purple", "red", "indigo", "green"],
-  Sand: ["orange", "blue", "green", "indigo", "red", "purple", "amber", "magenta"],
-  Ink: ["indigo", "red", "blue", "orange", "teal", "amber", "purple", "green"],
-  Berry: ["magenta", "amber", "blue", "orange", "indigo", "green", "purple", "red"],
-  Moss: ["green", "purple", "amber", "blue", "red", "indigo", "orange", "teal"],
+  Classic: ["blue", "red", "teal", "amber", "magenta", "green", "indigo", "orange"],
+  Aurora: ["teal", "amber", "magenta", "red", "indigo", "green", "blue", "orange"],
+  Sand: ["orange", "teal", "purple", "green", "pink", "blue", "red", "indigo"],
+  Ink: ["indigo", "red", "teal", "amber", "magenta", "green", "blue", "orange"],
+  Berry: ["magenta", "red", "teal", "amber", "indigo", "green", "blue", "orange"],
+  Moss: ["green", "magenta", "red", "blue", "amber", "teal", "orange", "indigo"],
 } as const satisfies Record<string, readonly HueName[]>;
 
 /**
  * Orders a named order used to have. A theme saved with one of these is moved to the order's current form when it is
- * read, so a saved Aurora theme does not keep the blue that sat next to its teal.
+ * read, so a saved theme does not keep two blues among its first colours.
  */
 export const RETIRED_ORDERS: Partial<Record<SeriesOrderName, readonly HueName[][]>> = {
-  Aurora: [["teal", "orange", "blue", "red", "indigo", "amber", "purple", "green"]],
+  Classic: [["blue", "red", "indigo", "orange", "teal", "amber", "purple", "green"]],
+  Aurora: [
+    ["teal", "orange", "blue", "red", "indigo", "amber", "purple", "green"],
+    ["teal", "orange", "pink", "amber", "purple", "red", "indigo", "green"],
+  ],
+  Sand: [["orange", "blue", "green", "indigo", "red", "purple", "amber", "magenta"]],
+  Ink: [["indigo", "red", "blue", "orange", "teal", "amber", "purple", "green"]],
+  Berry: [["magenta", "amber", "blue", "orange", "indigo", "green", "purple", "red"]],
+  Moss: [["green", "purple", "amber", "blue", "red", "indigo", "orange", "teal"]],
 };
 
 /** The current form of a retired order, if `series` is one; otherwise `series` as it is. */
@@ -177,14 +195,19 @@ export const DISTANCE_FLOOR = 15;
 /** Neighbouring series closer than this look alike with red-green colour blindness. */
 export const CVD_FLOOR = 6;
 export const CVD_TARGET = 8;
+/** How many series a chart's legend is commonly read across: any two of the first this many must be apart, neighbours or not. */
+export const LEGEND_SLOTS = 5;
+/** Two of the first `LEGEND_SLOTS` colours closer than this read as one colour in a legend. */
+export const LEGEND_FLOOR = 13;
 export const MARK_CONTRAST = 3;
 
 /**
  * Checks a categorical palette against the surface it will be drawn on:
  * neighbours must be told apart by everyone, including people with red-green
- * colour blindness, and each colour should stand out from the surface.
- * Neighbours are what matter for bars, lines and stacks, where series are
- * assigned in order.
+ * colour blindness, any two of the first `LEGEND_SLOTS` must be told apart
+ * by an eye with full colour vision (a stack of five is read from its
+ * legend, where every colour is matched against every other), and each
+ * colour should stand out from the surface.
  */
 export function checkSeries(series: string[], surface: string): SeriesIssue[] {
   const issues: SeriesIssue[] = [];
@@ -196,6 +219,14 @@ export function checkSeries(series: string[], surface: string): SeriesIssue[] {
     if (seen < DISTANCE_FLOOR) issues.push({ severity: "error", slots, message: `Colours ${slots[0]} and ${slots[1]} are too alike to tell apart.` });
     else if (blind < CVD_FLOOR) issues.push({ severity: "error", slots, message: `Colours ${slots[0]} and ${slots[1]} look the same with red-green colour blindness.` });
     else if (blind < CVD_TARGET) issues.push({ severity: "warning", slots, message: `Colours ${slots[0]} and ${slots[1]} are close with red-green colour blindness; label the series.` });
+  }
+  // The first few colours are matched against each other in a legend, so they must all differ, not only in turn.
+  for (let i = 0; i < Math.min(series.length, LEGEND_SLOTS); i++) {
+    for (let j = i + 2; j < Math.min(series.length, LEGEND_SLOTS); j++) {
+      if (colorDistance(series[i]!, series[j]!) < LEGEND_FLOOR) {
+        issues.push({ severity: "error", slots: [i + 1, j + 1], message: `Colours ${i + 1} and ${j + 1} are too alike to tell apart in a legend.` });
+      }
+    }
   }
   series.forEach((color, i) => {
     if (contrast(color, surface) < MARK_CONTRAST) {

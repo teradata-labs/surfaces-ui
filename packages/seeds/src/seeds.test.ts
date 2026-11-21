@@ -176,6 +176,8 @@ for (const seed of seeds) {
       const original = await one(conn, `SELECT md5(string_agg(CAST(x AS VARCHAR), '|' ORDER BY ${t.primaryKey.join(", ")})) FROM ${t.name} x`);
       expect(await fingerprint(seed.sql())).toBe(original);
       expect(await fingerprint(seed.sql({ seed: 7 }))).not.toBe(original);
+      // The largest seed there is: its product with the multiplier does not fit 32 bits.
+      expect(await fingerprint(seed.sql({ seed: 99999 }))).not.toBe(original);
       // Builds the seed twice more; a shared CI runner takes well over the default five seconds.
     }, 60_000);
   });

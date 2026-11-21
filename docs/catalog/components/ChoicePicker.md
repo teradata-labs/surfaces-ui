@@ -4,10 +4,11 @@ Pick one of a few options: radio buttons for four or fewer, a list for more. The
 
 ## Props
 
-- `label`: value or binding
-- `value`: object — A value read from the data model at this path.
-- `options`: array
-- `help` (optional): value or binding
+- `label`: string | binding | call
+- `value`: binding — A value read from the data model at this path.
+- `options`: array of string
+- `help` (optional): string | binding | call
+- `required` (optional): boolean — Marked as required, and said to be missing once the person leaves it empty.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

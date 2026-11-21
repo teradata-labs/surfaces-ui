@@ -114,12 +114,20 @@ export const defaultLabels = {
 
   // Chart
   "chart.empty": "No data to chart.",
+  "chart.missingX": "Rows with no {x} are not drawn{detail}.",
   "chart.description": "{type} chart of {measures} by {x}",
   "chart.coloursRepeat": "{count} series share {colours} colours, so some repeat. Filter, or split by a column with fewer values.",
   "chart.advice": "{message} Better: {instead}",
   "chart.sampleNote": "Showing a random sample of {count} rows.",
   "chart.firstNote": "Showing the first {count} points.",
   "chart.largestNote": "Showing the largest {count} points.",
+
+  // RowList
+  "rows.loading": "Loading…",
+  "rows.empty": "Nothing to show.",
+  "rows.more": "Show more",
+  "rows.some": "Showing the first {count}.",
+  "rows.full": "Showing the first {count}. Filter to find others.",
 
   // Metric, Sparkline, BulletGraph
   "metric.loading": "…",

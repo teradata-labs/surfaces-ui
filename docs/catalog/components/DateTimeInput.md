@@ -4,10 +4,11 @@ A date, or a date and time (kept in UTC). The value is written to the data model
 
 ## Props
 
-- `label`: value or binding
-- `value`: object — A value read from the data model at this path.
+- `label`: string | binding | call
+- `value`: binding — A value read from the data model at this path.
 - `mode` (optional): "date" | "datetime"
-- `help` (optional): value or binding
+- `help` (optional): string | binding | call
+- `required` (optional): boolean — Marked as required, and said to be missing once the person leaves it empty.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

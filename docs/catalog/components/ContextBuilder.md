@@ -5,7 +5,7 @@ Lets a person assemble the tables, columns and notes an agent should work from, 
 ## Props
 
 - `name` (optional): string
-- `tables` (optional): array
+- `tables` (optional): array of { sourceId: string, table: string }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

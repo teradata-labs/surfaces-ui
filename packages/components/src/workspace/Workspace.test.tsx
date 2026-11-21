@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SideNav } from "./SideNav.js";
+import { SideNav, navigationName } from "./SideNav.js";
 import { Workspace } from "./Workspace.js";
 
 afterEach(cleanup);
@@ -220,6 +220,13 @@ describe("SideNav", () => {
     expect(within(nav).getByRole("link", { name: "Playground" }).getAttribute("aria-current")).toBe("page");
     fireEvent.click(within(nav).getByRole("button", { name: "Chat" }));
     expect(onSelect).toHaveBeenCalledWith("chat");
+  });
+
+  it("names its button and dialog without saying navigation twice", () => {
+    expect(navigationName("Site")).toBe("Site navigation");
+    expect(navigationName("Main navigation")).toBe("Main navigation");
+    render(<SideNav label="Main navigation" groups={groups} defaultPinned={false} />);
+    expect(screen.getByRole("button", { name: "Show Main navigation" })).toBeTruthy();
   });
 
   it("folds away to a menu button that opens it over the whole screen as a dialog, closed by Escape", () => {

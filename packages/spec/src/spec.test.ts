@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  shapeText,
   A2UI_VERSION,
   type SurfaceMessage,
   analyticsCatalog,
@@ -88,6 +89,41 @@ describe("data model", () => {
       proto: undefined,
       children: { componentId: "row", path: "/rows" },
     });
+  });
+
+  it("fills a template's gaps with the words given for a value that is not there", () => {
+    const context = { data: { store: { name: "support-articles", table: "" }, chunk: { size: 0 } }, scope: "/", functions };
+    const format = (value: string) => resolve({ "@call": "formatString", args: { value } }, context);
+    expect(format("Store ${/store/name|not named yet} from ${/store/table|a table not chosen yet}.")).toBe("Store support-articles from a table not chosen yet.");
+    expect(format("Chunks of ${/chunk/tokens | a size not set yet} tokens, ${/chunk/size|none} overlap.")).toBe("Chunks of a size not set yet tokens, 0 overlap.");
+    expect(format("[${/nothing}]")).toBe("[]");
+  });
+
+  it("reports a value that fits no form of a union as the form it came closest to", () => {
+    const button = (action: unknown) => analyticsCatalog.validateComponent({ id: "b", component: "Button", child: "c", action });
+    expect(button({ functionCall: { "@call": "openUrl", args: { url: "https://example.com" } } })).toEqual([]);
+    // What a model wrote for a link: the call without its wrapper.
+    const bare = button({ "@call": "openUrl", args: { url: "https://example.com" } });
+    expect(bare).toHaveLength(1);
+    expect(bare[0]!.path).toBe("/action");
+    expect(bare[0]!.message).toContain('{ "functionCall": { "@call": "openUrl"');
+    expect(button({ name: "go" })[0]!.message).toContain("sits inside `event`");
+    expect(button({ event: { nme: "go" } }).map((issue) => issue.path).sort()).toEqual(["/action/event", "/action/event/name"]);
+    const text = analyticsCatalog.validateComponent({ id: "t", component: "Text", text: 5 });
+    expect(text).toEqual([{ path: "/text", message: expect.stringContaining("Expected text, a binding") }]);
+    for (const issue of [...bare, ...text, ...button("go")]) expect(issue.message).not.toBe("Invalid input");
+  });
+
+  it("writes a prop's shape for a model, opening lists of objects and naming bindings", () => {
+    expect(shapeText({ type: "array", items: { type: "object", properties: { column: { type: "string" }, desc: { type: "boolean" } }, required: ["column"] } })).toBe("array of { column: string, desc?: boolean }");
+    expect(shapeText({ anyOf: [{ type: "string" }, { type: "object", properties: { "@path": { type: "string" } } }, { type: "object", properties: { "@call": { type: "string" } } }] })).toBe("string | binding | call");
+    expect(shapeText({ type: "object", properties: { a: { type: "object", properties: { b: { type: "array", items: { type: "string" } } } } } }, 1)).toBe("{ a?: object }");
+    const prompt = catalogPrompt(analyticsCatalog);
+    expect(prompt).toContain("- `sorts` (optional): array of { column: string, desc?: boolean }");
+    expect(prompt).toContain('{"functionCall":{"@call":"openUrl","args":{"url":"…"}}}');
+    expect(prompt).not.toContain("value or binding");
+    // No prop of any component is left as a bare word where its shape is known.
+    expect(prompt.split("\n").filter((line) => /^- `\w+`( \(optional\))?: array( —|$)/.test(line))).toEqual([]);
   });
 
   it("only allows web links", () => {

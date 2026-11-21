@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { A2UI_EARLIER_VERSIONS, A2UI_VERSION, accessibility, metadata } from "./dynamic.js";
+import { A2UI_EARLIER_VERSIONS, A2UI_VERSION, accessibility, condition, metadata } from "./dynamic.js";
 import { SURFACES_EXPECTS, upgradeMessage } from "./upgrade.js";
 import { type FunctionDefinition, standardFunctions } from "./functions.js";
 
@@ -89,8 +89,29 @@ export interface Catalog extends Required<CatalogInput> {
  */
 export const isComponentIssue = (issue: ValidationIssue): boolean => /^\/(updateComponents|createSurface)\/components\//.test(issue.path);
 
+type Issue = z.core.$ZodIssue;
+
+/**
+ * A value that fits none of a union's forms is reported as the problems of the form it came closest to, so
+ * `{ event: { nme: "x" } }` says the event has no `name` and not just that the action is invalid. The closest
+ * form is the one whose first problem lies deepest: it took the value's outer shape. When no form is closer than
+ * the rest (or the value is another kind of thing altogether), the union's own message says what was expected.
+ */
+function flatten(issue: Issue): Issue[] {
+  if (issue.code !== "invalid_union" || !issue.errors?.length) return [issue];
+  const rank = (branch: Issue[]) => {
+    const wrongKind = branch.some((one) => one.path.length === 0 && one.code === "invalid_type");
+    return wrongKind ? -1 : Math.min(...branch.map((one) => one.path.length));
+  };
+  const ranked = issue.errors.filter((branch) => branch.length > 0).map((branch) => ({ branch, rank: rank(branch) }));
+  const best = Math.max(...ranked.map((one) => one.rank));
+  const closest = ranked.filter((one) => one.rank === best);
+  if (best < 1 || closest.length !== 1) return [issue];
+  return closest[0]!.branch.flatMap((one) => flatten({ ...one, path: [...issue.path, ...one.path] }));
+}
+
 const issues = (error: z.ZodError, prefix = ""): ValidationIssue[] =>
-  error.issues.map((issue) => ({ path: `${prefix}/${issue.path.join("/")}`.replace(/\/$/, "") || "/", message: issue.message }));
+  error.issues.flatMap(flatten).map((issue) => ({ path: `${prefix}/${issue.path.join("/")}`.replace(/\/$/, "") || "/", message: issue.message }));
 
 const version = z.literal(A2UI_VERSION);
 const surfaceId = z.string().min(1);
@@ -154,6 +175,8 @@ export function defineCatalog<const I extends CatalogInput>(input: I): NamedCata
         "@catalogId": z.literal(input.id).optional().describe("The component's catalog. This renderer draws one catalog per surface."),
         "@accessibility": accessibility.optional(),
         "@metadata": metadata.optional().describe("Extensions by name. Never drawn, resolved or run."),
+        // Any component can wait for a value in the data model, so a form shows only the fields a choice calls for.
+        visibleWhen: condition.optional(),
         ...definition.props,
       }),
     );

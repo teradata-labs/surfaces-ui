@@ -4,9 +4,9 @@ An editor for a person to write or change SQL. The event is sent with `sql` when
 
 ## Props
 
-- `sql` (optional): value or binding
+- `sql` (optional): string | binding | call
 - `dialect` (optional): "standard" | "duckdb" | "teradata" | "postgres"
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

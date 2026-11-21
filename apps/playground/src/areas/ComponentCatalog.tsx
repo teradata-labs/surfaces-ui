@@ -1,4 +1,4 @@
-import { A2UI_VERSION, type PageDocument, type SurfaceAction, analyticsCatalog, catalogJson, pageSurface, toJsonRender, toMarkup } from "@surfaces-ui/spec";
+import { A2UI_VERSION, type PageDocument, type SurfaceAction, analyticsCatalog, catalogJson, pageSurface, shapeText, toJsonRender, toMarkup } from "@surfaces-ui/spec";
 import { type SurfaceProblem, SurfaceView, analyticsRenderers } from "@surfaces-ui/spec/react";
 import { chatAppComponents } from "@surfaces-ui/chat";
 import { appComponentDocs as devtoolsAppComponents } from "@surfaces-ui/devtools/app-components";
@@ -7,7 +7,7 @@ import { presets } from "@surfaces-ui/tokens";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { CodeInput } from "../CodeInput.js";
 import { type JsonSchema, SchemaForm } from "../SchemaForm.js";
-import { GROUPS, exampleProps } from "../catalogExamples.js";
+import { GROUPS, exampleProps, rowTemplate } from "../catalogExamples.js";
 import { AppComponentPage, startingParts } from "./AppComponentPage.js";
 import { AppDemo } from "../appDemos.js";
 import { ComponentInventory, type InventoryItem } from "./ComponentInventory.js";
@@ -66,17 +66,18 @@ function previewPage(name: string, props: Record<string, unknown>): PageDocument
     catalogId: analyticsCatalog.id,
     components: [
       { id: "root", component: name, ...props },
-      ...children.map((child) => ({ id: child, component: "Card", child: `${child}-text` })),
-      ...children.map((child) => ({ id: `${child}-text`, component: "Text", text: `Child "${child}"`, variant: "caption" })),
+      // A list of rows draws its child once per row, so its child reads the row.
+      ...((name === "RowList" ? rowTemplate(props) : undefined) ?? [
+        ...children.map((child) => ({ id: child, component: "Card", child: `${child}-text` })),
+        ...children.map((child) => ({ id: `${child}-text`, component: "Text", text: `Child "${child}"`, variant: "caption" })),
+      ]),
     ],
     data: props.value && typeof props.value === "object" && "path" in props.value ? {} : undefined,
   };
 }
 
-function typeOf(shape: { type?: string; enum?: unknown[] }): string {
-  if (Array.isArray(shape.enum)) return shape.enum.map((v) => JSON.stringify(v)).join(" | ");
-  return typeof shape.type === "string" ? shape.type : "value or binding";
-}
+/** A prop's shape as the agent's prompt writes it, so the page and the prompt never disagree. */
+const typeOf = (shape: unknown): string => shapeText(shape);
 
 /** Pipeline components need a pipeline backend; only the dev server has one. */
 function MaybePipelines({ source, children }: { source: ActiveSource; children: ReactNode }) {

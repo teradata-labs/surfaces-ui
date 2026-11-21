@@ -4,7 +4,7 @@ A heading, paragraph or caption.
 
 ## Props
 
-- `text`: value or binding
+- `text`: string | binding | call
 - `variant` (optional): "h1" | "h2" | "h3" | "h4" | "h5" | "body" | "caption"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
