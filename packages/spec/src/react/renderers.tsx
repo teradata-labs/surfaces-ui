@@ -12,6 +12,7 @@ import {
 } from "@surfaces-ui/components";
 import { type FilterInit, type FilterSpec, type GridColumns, type GridSort, type ResultView, type SortSpec, chosenValues, filtersExcept, filtersFromSpec, filtersToSpec, sortsFromSpec, sortsToSpec, toggleValueFilter } from "@surfaces-ui/components";
 import { type CSSProperties, type ReactNode, createElement, useEffect, useId, useState } from "react";
+import { basicsCatalog } from "../basics.js";
 import { type ComponentRenderer, type RenderProps, useRequiredInputs } from "./Surface.js";
 import { formRenderers } from "./forms.js";
 import { moreRenderers } from "./more.js";
@@ -307,4 +308,5 @@ export const analyticsRenderers: Record<string, ComponentRenderer> = {
   ...formRenderers,
 };
 
-
+/** The renderers of the basic components (`basicsCatalog`): the same functions `analyticsRenderers` draws them with. */
+export const basicsRenderers: Record<string, ComponentRenderer> = Object.fromEntries(basicsCatalog.names.map((name) => [name, analyticsRenderers[name]!]));
