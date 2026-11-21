@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/pipelines-dbt",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A dbt project as a Surfaces UI pipeline: datasets, tests, runs and semantic models read from dbt's artifacts, with dbt build only on a person's approval",
   "keywords": [
     "surfaces-ui",
