@@ -16,6 +16,12 @@ describe("store", () => {
     store.set((s) => ({ ...s, count: 5 }));
     expect(seen).toEqual([4]);
     expect(doubled.get()).toBe(10);
+    // A derived store can be derived again.
+    const base = createStore(2);
+    const twice = derive(derive(base, (n) => n * 2), (n) => n + 1);
+    expect(twice.get()).toBe(5);
+    base.set(3);
+    expect(twice.get()).toBe(7);
   });
 
   it("undoes and redoes without recording the travel itself", () => {

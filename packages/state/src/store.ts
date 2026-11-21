@@ -1,10 +1,14 @@
-/** A value that can be read, replaced and watched. The base of every state service here. */
-export interface Store<T> {
+/** A value that can be read and watched, but not set from outside: what `derive` gives, and what `useStore` reads. */
+export interface ReadableStore<T> {
   get(): T;
-  /** Replaces the value, or computes the next one from the current one. Setting an identical value notifies nobody. */
-  set(next: T | ((current: T) => T)): void;
   /** Calls `listener` after each change. Returns a function that stops it. */
   subscribe(listener: (value: T, previous: T) => void): () => void;
+}
+
+/** A value that can be read, replaced and watched. The base of every state service here. */
+export interface Store<T> extends ReadableStore<T> {
+  /** Replaces the value, or computes the next one from the current one. Setting an identical value notifies nobody. */
+  set(next: T | ((current: T) => T)): void;
 }
 
 /**
@@ -30,8 +34,8 @@ export function createStore<T>(initial: T): Store<T> {
   };
 }
 
-/** A read-only store computed from another. It updates only when the computed value changes. */
-export function derive<T, U>(source: Store<T>, compute: (value: T) => U, equal: (a: U, b: U) => boolean = Object.is): Pick<Store<U>, "get" | "subscribe"> {
+/** A read-only store computed from another (a store, or another derived one). It updates only when the computed value changes. */
+export function derive<T, U>(source: ReadableStore<T>, compute: (value: T) => U, equal: (a: U, b: U) => boolean = Object.is): ReadableStore<U> {
   let current = compute(source.get());
   const listeners = new Set<(value: U, previous: U) => void>();
   let stop: (() => void) | undefined;
