@@ -2510,6 +2510,22 @@ select.schema-mode {
   background: var(--sf-color-bg-2);
 }
 
+/* The ResizeHandle demo: two panes side by side, the handle on the first one's right edge, in the gap between them. */
+.app-demo-split {
+  display: grid;
+  gap: var(--sf-space-4);
+  min-height: 10rem;
+}
+.app-demo-pane {
+  position: relative;
+  min-width: 0;
+  padding: var(--sf-space-4);
+  border: 1px solid var(--sf-color-edge, transparent);
+  border-radius: var(--sf-radius);
+  background: var(--sf-color-bg-2);
+}
+.app-demo-pane > .sf-resize-handle { --sf-resize-offset: var(--sf-space-2); }
+
 /* One surface layer: a card inside a card, a panel or a tile gives up its fill and is grouped by space. */
 :is(.card, .gallery-card, .models-card, .analysis-surface, .app-demo-tile, .sf-workspace-panel, .sf-a2-card) :is(.card, .models-card, .schema-group, .composer-component, .pattern-event) {
   border-color: transparent;

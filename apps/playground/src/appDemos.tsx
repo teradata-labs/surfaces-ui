@@ -11,6 +11,8 @@ import {
   NavBar,
   type NavBarProps,
   ObjectInfo,
+  ResizeHandle,
+  type ResizeHandleProps,
   ThemePicker,
   standardControls,
 } from "@surfaces-ui/components";
@@ -224,6 +226,46 @@ function ItemControlsDemo({ props, log }: DemoProps) {
   );
 }
 
+/** Two panes side by side, the handle on the first one's right edge: the page holds the share, as a host would. */
+function ResizeHandleDemo({ props, parts, log, setProp }: DemoProps) {
+  const given = props as unknown as Partial<ResizeHandleProps>;
+  const share = typeof given.value === "number" ? given.value : 0.5;
+  const words = (value: number) => `${Math.round(value * 100)}% and ${Math.round((1 - value) * 100)}%`;
+  const move = (value: number) => {
+    setProp("value", value);
+    setProp("valueText", words(value));
+  };
+  return (
+    <div className="app-demo-split" style={{ gridTemplateColumns: `minmax(0, ${share}fr) minmax(0, ${1 - share}fr)` }}>
+      <div className="app-demo-pane">
+        <strong>Map</strong>
+        <p className="hint">Drag the line at this pane's right edge, or tab to it and use the arrow keys, Home and End.</p>
+        <ResizeHandle
+          edge="right"
+          label="Resize the map and the list"
+          {...given}
+          value={given.value}
+          // One unit is the whole width of the two panes, so a share moves with the pointer.
+          unitPixels={(handle) => handle.closest(".app-demo-split")?.getBoundingClientRect().width ?? 1}
+          {...(on(parts, "startFrom", true) ? { startFrom: () => 0.5 } : {})}
+          {...(on(parts, "onReset", true) ? {
+                onReset: () => {
+                  move(0.5);
+                  log("onReset");
+                },
+              } : {})}
+          onChange={move}
+          onChangeEnd={(value, end) => log("onChangeEnd", { value: Math.round(value * 1000) / 1000, ...end })}
+        />
+      </div>
+      <div className="app-demo-pane">
+        <strong>List</strong>
+        <p className="hint">{words(share)}</p>
+      </div>
+    </div>
+  );
+}
+
 /** What the dev tools wrap in their demo: a small surface built from messages, with buttons that send more, one of them wrong. */
 function TracedSurface({ source }: { source: ActiveSource }) {
   const table = firstTable(source);
@@ -320,6 +362,8 @@ export function AppDemo({ name, ...demo }: DemoProps & { name: string }): ReactN
       );
     case "ItemControls":
       return <ItemControlsDemo {...demo} />;
+    case "ResizeHandle":
+      return <ResizeHandleDemo {...demo} />;
     case "NavBar":
       return (
         <div className="app-demo-navbar">

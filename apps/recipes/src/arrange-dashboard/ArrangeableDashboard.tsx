@@ -31,6 +31,8 @@ export function ArrangeableDashboard({ initial, onChange }: { initial: PageDocum
       if ("error" in result) setStatus({ text: result.error, error: true });
       else apply(result.messages);
     },
+    // Widths and set heights can be dragged without turning Arrange on; moving and removing still need it.
+    resizeWhileViewing: true,
   });
 
   return (
@@ -44,10 +46,10 @@ export function ArrangeableDashboard({ initial, onChange }: { initial: PageDocum
       <ArrangeHelp arrange={arrange} status={status} />
       <div {...arrange.region} className={`sf-container ${arrange.region.className}`}>
         <SurfaceView
-          surface={arrange.arranging ? arrange.shown(surface) : surface}
+          surface={arrange.shown(surface)}
           catalog={analyticsCatalog}
           renderers={analyticsRenderers}
-          {...(arrange.arranging ? { frame: arrange.frame } : {})}
+          {...(arrange.surfaceFrame ? { frame: arrange.surfaceFrame } : {})}
         />
       </div>
       <ArrangeGhost arrange={arrange} />

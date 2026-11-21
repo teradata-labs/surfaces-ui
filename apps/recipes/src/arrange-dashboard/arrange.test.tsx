@@ -34,6 +34,14 @@ describe("a dashboard a person can arrange", () => {
     );
     // Off by default: the page is drawn as saved, with no frames.
     expect(document.querySelector(".sf-arrange-frame")).toBeNull();
+
+    // While viewing, the line between the two numbers still sizes them: one key press is one step.
+    const line = screen.getByRole("separator", { name: "Resize Metric revenue and what is to its right: wider or narrower" });
+    expect(line.getAttribute("aria-valuenow")).toBe("50");
+    fireEvent.keyDown(line, { key: "ArrowRight" });
+    await waitFor(() => expect(pages.at(-1)!.components.find((c) => c.id === "numbers")?.widths).toEqual([0.54, 0.46]));
+    fireEvent.keyDown(screen.getByRole("separator", { name: /Resize Metric revenue/ }), { key: "Enter" });
+    await waitFor(() => expect(pages.at(-1)!.components.find((c) => c.id === "numbers")?.widths).toEqual([0.5, 0.5]));
     fireEvent.click(screen.getByRole("button", { name: "Arrange" }));
     expect(screen.getByRole("button", { name: "Done arranging" })).toHaveProperty("ariaPressed", "true");
 

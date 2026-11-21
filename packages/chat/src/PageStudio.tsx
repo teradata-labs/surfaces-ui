@@ -200,6 +200,13 @@ export interface PageStudioProps {
    * undo step, shows in the log by `user`, and is told to the agent.
    */
   arrange?: boolean;
+  /**
+   * With `arrange`: keeps the width handles between a Grid's or Row's columns,
+   * and the height handle under a component with a height of its own (a chart or
+   * a table, say) or one whose height is set, while nobody
+   * is arranging. Each drag is one undo step, the same as in Arrange.
+   */
+  resizeWhileViewing?: boolean;
   /** Who is arranging, for the log. */
   user?: ChatActor;
   className?: string;
@@ -230,8 +237,9 @@ export function PageStudio(props: PageStudioProps) {
       if ("error" in result) setArrangeStatus({ text: result.error, error: true });
       else studio.arrange(result.messages, `Removed "${id}"`, by);
     },
+    resizeWhileViewing: props.resizeWhileViewing === true,
   });
-  const arranging = props.arrange === true && arrange.arranging;
+  const frame = props.arrange === true ? arrange.surfaceFrame : undefined;
 
   return (
     <div className={["sf-studio", props.className].filter(Boolean).join(" ")}>
@@ -241,13 +249,13 @@ export function PageStudio(props: PageStudioProps) {
         {props.arrange && <ArrangeHelp arrange={arrange} status={arrangeStatus} />}
         <div {...(props.arrange ? arrange.region : {})}>
           <SurfaceView
-            surface={arranging ? arrange.shown(surface) : surface}
+            surface={props.arrange ? arrange.shown(surface) : surface}
             catalog={catalog}
             renderers={props.renderers ?? lazyAnalyticsRenderers}
             onDataChange={(data) => studio.report({ data })}
             onControlsChange={(componentId, controls) => studio.report({ componentId, controls })}
             onContext={(componentId, note) => studio.report({ componentId, note })}
-            {...(arranging ? { frame: arrange.frame } : {})}
+            {...(frame ? { frame } : {})}
           />
         </div>
         {props.arrange && <ArrangeGhost arrange={arrange} />}
