@@ -5,8 +5,12 @@ import "@surfaces-ui/components/styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.js";
+import { startAnalytics } from "./analytics.js";
 import { ComposerPopout } from "./areas/ComposerPopout.js";
 import "./app.css";
+
+// The published site counts page views; every other build does nothing here.
+startAnalytics();
 
 const params = new URLSearchParams(location.search);
 // `?theme=Sand&mode=light` opens the playground in that preset and mode for this visit only, without changing the
