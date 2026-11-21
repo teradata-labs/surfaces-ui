@@ -1,4 +1,4 @@
-import { type ChartColors, chartColors, currentSeries, parseChartColors } from "./charts.js";
+import { type ChartColors, chartColors, currentHue, currentSeries, parseChartColors } from "./charts.js";
 import { ensureContrast, isHex, normalizeHex, readableOn } from "./color.js";
 
 /** The colours a theme author chooses. Everything else is derived. */
@@ -291,8 +291,13 @@ function parseCharts(input: unknown, fallback: Theme): Theme["charts"] {
   const record = input as Record<string, unknown>;
   const light = parseChartColors(record.light, base.light, "theme.charts.light");
   const dark = parseChartColors(record.dark, base.dark, "theme.charts.dark");
-  // A theme saved with an order since changed takes its current form; colours a person chose are kept.
-  return { light: { ...light, series: currentSeries(light.series, "light") }, dark: { ...dark, series: currentSeries(dark.series, "dark") } };
+  // A theme saved with an order since changed, or with hues as they used to be, takes its current form; colours a person chose are kept.
+  const current = (colors: ChartColors, mode: "light" | "dark"): ChartColors => {
+    const series = currentSeries(colors.series, mode);
+    if (series === colors.series) return colors;
+    return { series, sequential: currentHue(colors.sequential, mode), diverging: [currentHue(colors.diverging[0], mode), currentHue(colors.diverging[1], mode)] };
+  };
+  return { light: current(light, "light"), dark: current(dark, "dark") };
 }
 
 /** Returns the theme with different chart colours. */

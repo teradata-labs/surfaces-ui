@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   GLASS,
+  CVD_TARGET,
   HUES,
+  RETIRED_HUES,
   SERIES_ORDERS,
   glassBackdrops,
   glassOver,
@@ -18,6 +20,7 @@ import {
   SERIES_ORDER_NAMES,
   chartColors,
   checkSeries,
+  currentHue,
   colorDistance,
   contrast,
   divergingRamp,
@@ -337,13 +340,35 @@ describe("chart colours", () => {
       for (const mode of ["light", "dark"] as const) {
         const first = hues.slice(0, LEGEND_SLOTS).map((hue) => HUES[hue][mode]);
         for (let i = 0; i < first.length; i++) {
-          for (let j = i + 1; j < first.length; j++) expect(colorDistance(first[i]!, first[j]!), `${hues[i]} and ${hues[j]}, ${mode}`).toBeGreaterThanOrEqual(LEGEND_FLOOR);
+          for (let j = i + 1; j < first.length; j++) {
+            expect(colorDistance(first[i]!, first[j]!), `${hues[i]} and ${hues[j]}, ${mode}`).toBeGreaterThanOrEqual(LEGEND_FLOOR);
+            // With red-green colour blindness too: the hues differ in lightness where their hue would fall together.
+            for (const kind of ["protan", "deutan"] as const) expect(colorDistance(first[i]!, first[j]!, kind), `${hues[i]} and ${hues[j]}, ${mode}, ${kind}`).toBeGreaterThanOrEqual(CVD_TARGET);
+          }
         }
       }
       // Blue, indigo and purple are one colour with red-green colour blindness and close without it.
       expect(hues.slice(0, LEGEND_SLOTS).filter((hue) => hue === "blue" || hue === "indigo" || hue === "purple").length).toBeLessThanOrEqual(1);
     });
   }
+
+  it("moves a theme saved with the hues as they used to be to their current steps, and keeps colours a person chose", () => {
+    const old = { ...HUES, ...RETIRED_HUES[0] } as typeof HUES;
+    for (const name of SERIES_ORDER_NAMES) {
+      for (const mode of ["light", "dark"] as const) {
+        expect(currentSeries(SERIES_ORDERS[name].map((hue) => old[hue][mode]), mode), `${name} ${mode}`).toEqual(chartColors(name, mode).series);
+      }
+    }
+    expect(currentHue(RETIRED_HUES[0]!.green!.light, "light")).toBe(HUES.green.light);
+    expect(currentHue("#123456", "light")).toBe("#123456");
+    expect(currentSeries(["#123456", "#654321"], "light")).toEqual(["#123456", "#654321"]);
+  });
+
+  it("warns when two of the first five differ only to an eye with full colour vision", () => {
+    // Red and green at one lightness: far apart to most eyes, one colour with red-green colour blindness.
+    const issues = checkSeries(["#217BF4", "#B27805", "#DE3B3D", "#9D57DE", "#029B29"], "#FFFFFF");
+    expect(issues.filter((i) => i.severity === "warning" && /colour blindness/.test(i.message)).map((i) => i.slots)).toContainEqual([3, 5]);
+  });
 
   it("flags two colours among the first five that are alike even when they are not neighbours", () => {
     // What a stack of five drew before: blue first and indigo third, red second and orange fourth.
@@ -379,7 +404,7 @@ describe("chart colours", () => {
     expect(vars["--sf-sequential-7"]).toBeDefined();
     expect(vars["--sf-diverging-4"]).toBeDefined();
     const chart = echartsTheme(dusk, "dark") as { color: string[]; visualMap: { inRange: { color: string[] } } };
-    expect(chart.color[0]).toBe("#909AFE");
+    expect(chart.color[0]).toBe(HUES.indigo.dark);
     expect(chart.visualMap.inRange.color).toHaveLength(7);
 
     const custom = withCharts(dusk, { ...dusk.charts, light: { ...dusk.charts.light, series: ["#111111", "#777777", "#BBBBBB"] } });

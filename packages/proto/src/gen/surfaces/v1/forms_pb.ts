@@ -11,7 +11,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file surfaces/v1/forms.proto.
  */
 export const file_surfaces_v1_forms: GenFile = /*@__PURE__*/
-  fileDesc("ChdzdXJmYWNlcy92MS9mb3Jtcy5wcm90bxILc3VyZmFjZXMudjEi7AEKCUZvcm1GaWVsZBIMCgRuYW1lGAEgASgJEg0KBWxhYmVsGAIgASgJEiQKBHR5cGUYAyABKA4yFi5zdXJmYWNlcy52MS5GaWVsZFR5cGUSEAoIcmVxdWlyZWQYBCABKAgSDwoHb3B0aW9ucxgFIAMoCRIQCgNtaW4YBiABKAFIAIgBARIQCgNtYXgYByABKAFIAYgBARIXCgptYXhfbGVuZ3RoGAggASgNSAKIAQESDwoHcGF0dGVybhgJIAEoCRIMCgRoZWxwGAogASgJQgYKBF9taW5CBgoEX21heEINCgtfbWF4X2xlbmd0aCJ4Cg5Gb3JtRGVmaW5pdGlvbhIKCgJpZBgBIAEoCRINCgV0aXRsZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRImCgZmaWVsZHMYBCADKAsyFi5zdXJmYWNlcy52MS5Gb3JtRmllbGQSDgoGdGFyZ2V0GAUgASgJIiwKCkZpZWxkRXJyb3ISDQoFZmllbGQYASABKAkSDwoHbWVzc2FnZRgCIAEoCSJ8CgpTdWJtaXNzaW9uEgoKAmlkGAEgASgJEg8KB2Zvcm1faWQYAiABKAkSJwoGdmFsdWVzGAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIUCgxzdWJtaXR0ZWRfYXQYBCABKAkSEgoKc3VyZmFjZV9pZBgFIAEoCSISChBMaXN0Rm9ybXNSZXF1ZXN0Ij8KEUxpc3RGb3Jtc1Jlc3BvbnNlEioKBWZvcm1zGAEgAygLMhsuc3VyZmFjZXMudjEuRm9ybURlZmluaXRpb24iHAoOR2V0Rm9ybVJlcXVlc3QSCgoCaWQYASABKAkiPAoPR2V0Rm9ybVJlc3BvbnNlEikKBGZvcm0YASABKAsyGy5zdXJmYWNlcy52MS5Gb3JtRGVmaW5pdGlvbiJ2Cg1TdWJtaXRSZXF1ZXN0Eg8KB2Zvcm1faWQYASABKAkSJwoGdmFsdWVzGAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBISCgpzdXJmYWNlX2lkGAMgASgJEhcKD2lkZW1wb3RlbmN5X2tleRgEIAEoCSJ9Cg5TdWJtaXRSZXNwb25zZRIrCgpzdWJtaXNzaW9uGAEgASgLMhcuc3VyZmFjZXMudjEuU3VibWlzc2lvbhItCgxmaWVsZF9lcnJvcnMYAiADKAsyFy5zdXJmYWNlcy52MS5GaWVsZEVycm9yEg8KB21lc3NhZ2UYAyABKAkiUAoWTGlzdFN1Ym1pc3Npb25zUmVxdWVzdBIPCgdmb3JtX2lkGAEgASgJEhEKCXBhZ2Vfc2l6ZRgCIAEoDRISCgpwYWdlX3Rva2VuGAMgASgJImAKF0xpc3RTdWJtaXNzaW9uc1Jlc3BvbnNlEiwKC3N1Ym1pc3Npb25zGAEgAygLMhcuc3VyZmFjZXMudjEuU3VibWlzc2lvbhIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkqyAEKCUZpZWxkVHlwZRIaChZGSUVMRF9UWVBFX1VOU1BFQ0lGSUVEEAASEwoPRklFTERfVFlQRV9URVhUEAESFQoRRklFTERfVFlQRV9OVU1CRVIQAhIWChJGSUVMRF9UWVBFX0lOVEVHRVIQAxIWChJGSUVMRF9UWVBFX0JPT0xFQU4QBBITCg9GSUVMRF9UWVBFX0RBVEUQBRIXChNGSUVMRF9UWVBFX0RBVEVUSU1FEAYSFQoRRklFTERfVFlQRV9DSE9JQ0UQBzLAAgoLRm9ybVNlcnZpY2USSgoJTGlzdEZvcm1zEh0uc3VyZmFjZXMudjEuTGlzdEZvcm1zUmVxdWVzdBoeLnN1cmZhY2VzLnYxLkxpc3RGb3Jtc1Jlc3BvbnNlEkQKB0dldEZvcm0SGy5zdXJmYWNlcy52MS5HZXRGb3JtUmVxdWVzdBocLnN1cmZhY2VzLnYxLkdldEZvcm1SZXNwb25zZRJBCgZTdWJtaXQSGi5zdXJmYWNlcy52MS5TdWJtaXRSZXF1ZXN0Ghsuc3VyZmFjZXMudjEuU3VibWl0UmVzcG9uc2USXAoPTGlzdFN1Ym1pc3Npb25zEiMuc3VyZmFjZXMudjEuTGlzdFN1Ym1pc3Npb25zUmVxdWVzdBokLnN1cmZhY2VzLnYxLkxpc3RTdWJtaXNzaW9uc1Jlc3BvbnNlYgZwcm90bzM", [file_google_protobuf_struct]);
+  fileDesc("ChdzdXJmYWNlcy92MS9mb3Jtcy5wcm90bxILc3VyZmFjZXMudjEitQIKCUZvcm1GaWVsZBIMCgRuYW1lGAEgASgJEg0KBWxhYmVsGAIgASgJEiQKBHR5cGUYAyABKA4yFi5zdXJmYWNlcy52MS5GaWVsZFR5cGUSEAoIcmVxdWlyZWQYBCABKAgSDwoHb3B0aW9ucxgFIAMoCRIQCgNtaW4YBiABKAFIAIgBARIQCgNtYXgYByABKAFIAYgBARIXCgptYXhfbGVuZ3RoGAggASgNSAKIAQESDwoHcGF0dGVybhgJIAEoCRIMCgRoZWxwGAogASgJEjYKDHZpc2libGVfd2hlbhgLIAEoCzIbLnN1cmZhY2VzLnYxLkZpZWxkQ29uZGl0aW9uSAOIAQFCBgoEX21pbkIGCgRfbWF4Qg0KC19tYXhfbGVuZ3RoQg8KDV92aXNpYmxlX3doZW4iLwoORmllbGRDb25kaXRpb24SDQoFZmllbGQYASABKAkSDgoGdmFsdWVzGAIgAygJIngKDkZvcm1EZWZpbml0aW9uEgoKAmlkGAEgASgJEg0KBXRpdGxlGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEiYKBmZpZWxkcxgEIAMoCzIWLnN1cmZhY2VzLnYxLkZvcm1GaWVsZBIOCgZ0YXJnZXQYBSABKAkiLAoKRmllbGRFcnJvchINCgVmaWVsZBgBIAEoCRIPCgdtZXNzYWdlGAIgASgJInwKClN1Ym1pc3Npb24SCgoCaWQYASABKAkSDwoHZm9ybV9pZBgCIAEoCRInCgZ2YWx1ZXMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EhQKDHN1Ym1pdHRlZF9hdBgEIAEoCRISCgpzdXJmYWNlX2lkGAUgASgJIhIKEExpc3RGb3Jtc1JlcXVlc3QiPwoRTGlzdEZvcm1zUmVzcG9uc2USKgoFZm9ybXMYASADKAsyGy5zdXJmYWNlcy52MS5Gb3JtRGVmaW5pdGlvbiIcCg5HZXRGb3JtUmVxdWVzdBIKCgJpZBgBIAEoCSI8Cg9HZXRGb3JtUmVzcG9uc2USKQoEZm9ybRgBIAEoCzIbLnN1cmZhY2VzLnYxLkZvcm1EZWZpbml0aW9uInYKDVN1Ym1pdFJlcXVlc3QSDwoHZm9ybV9pZBgBIAEoCRInCgZ2YWx1ZXMYAiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EhIKCnN1cmZhY2VfaWQYAyABKAkSFwoPaWRlbXBvdGVuY3lfa2V5GAQgASgJIn0KDlN1Ym1pdFJlc3BvbnNlEisKCnN1Ym1pc3Npb24YASABKAsyFy5zdXJmYWNlcy52MS5TdWJtaXNzaW9uEi0KDGZpZWxkX2Vycm9ycxgCIAMoCzIXLnN1cmZhY2VzLnYxLkZpZWxkRXJyb3ISDwoHbWVzc2FnZRgDIAEoCSJQChZMaXN0U3VibWlzc2lvbnNSZXF1ZXN0Eg8KB2Zvcm1faWQYASABKAkSEQoJcGFnZV9zaXplGAIgASgNEhIKCnBhZ2VfdG9rZW4YAyABKAkiYAoXTGlzdFN1Ym1pc3Npb25zUmVzcG9uc2USLAoLc3VibWlzc2lvbnMYASADKAsyFy5zdXJmYWNlcy52MS5TdWJtaXNzaW9uEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSrIAQoJRmllbGRUeXBlEhoKFkZJRUxEX1RZUEVfVU5TUEVDSUZJRUQQABITCg9GSUVMRF9UWVBFX1RFWFQQARIVChFGSUVMRF9UWVBFX05VTUJFUhACEhYKEkZJRUxEX1RZUEVfSU5URUdFUhADEhYKEkZJRUxEX1RZUEVfQk9PTEVBThAEEhMKD0ZJRUxEX1RZUEVfREFURRAFEhcKE0ZJRUxEX1RZUEVfREFURVRJTUUQBhIVChFGSUVMRF9UWVBFX0NIT0lDRRAHMsACCgtGb3JtU2VydmljZRJKCglMaXN0Rm9ybXMSHS5zdXJmYWNlcy52MS5MaXN0Rm9ybXNSZXF1ZXN0Gh4uc3VyZmFjZXMudjEuTGlzdEZvcm1zUmVzcG9uc2USRAoHR2V0Rm9ybRIbLnN1cmZhY2VzLnYxLkdldEZvcm1SZXF1ZXN0Ghwuc3VyZmFjZXMudjEuR2V0Rm9ybVJlc3BvbnNlEkEKBlN1Ym1pdBIaLnN1cmZhY2VzLnYxLlN1Ym1pdFJlcXVlc3QaGy5zdXJmYWNlcy52MS5TdWJtaXRSZXNwb25zZRJcCg9MaXN0U3VibWlzc2lvbnMSIy5zdXJmYWNlcy52MS5MaXN0U3VibWlzc2lvbnNSZXF1ZXN0GiQuc3VyZmFjZXMudjEuTGlzdFN1Ym1pc3Npb25zUmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_struct]);
 
 /**
  * @generated from message surfaces.v1.FormField
@@ -74,6 +74,15 @@ export type FormField = Message<"surfaces.v1.FormField"> & {
    * @generated from field: string help = 10;
    */
   help: string;
+
+  /**
+   * When set, the field is asked for only while this holds. A field that is
+   * not asked for is not required, and whatever was sent for it is stored as
+   * null.
+   *
+   * @generated from field: optional surfaces.v1.FieldCondition visible_when = 11;
+   */
+  visibleWhen?: FieldCondition | undefined;
 };
 
 /**
@@ -82,6 +91,36 @@ export type FormField = Message<"surfaces.v1.FormField"> & {
  */
 export const FormFieldSchema: GenMessage<FormField> = /*@__PURE__*/
   messageDesc(file_surfaces_v1_forms, 0);
+
+/**
+ * A field that waits on another field of the same form.
+ *
+ * @generated from message surfaces.v1.FieldCondition
+ */
+export type FieldCondition = Message<"surfaces.v1.FieldCondition"> & {
+  /**
+   * The other field's name.
+   *
+   * @generated from field: string field = 1;
+   */
+  field: string;
+
+  /**
+   * Holds while that field's value, written as text ("true" for a ticked
+   * box), is one of these. Empty: holds while that field has any value (not
+   * nothing, empty text or an unticked box).
+   *
+   * @generated from field: repeated string values = 2;
+   */
+  values: string[];
+};
+
+/**
+ * Describes the message surfaces.v1.FieldCondition.
+ * Use `create(FieldConditionSchema)` to create a new message.
+ */
+export const FieldConditionSchema: GenMessage<FieldCondition> = /*@__PURE__*/
+  messageDesc(file_surfaces_v1_forms, 1);
 
 /**
  * @generated from message surfaces.v1.FormDefinition
@@ -121,7 +160,7 @@ export type FormDefinition = Message<"surfaces.v1.FormDefinition"> & {
  * Use `create(FormDefinitionSchema)` to create a new message.
  */
 export const FormDefinitionSchema: GenMessage<FormDefinition> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 1);
+  messageDesc(file_surfaces_v1_forms, 2);
 
 /**
  * @generated from message surfaces.v1.FieldError
@@ -143,7 +182,7 @@ export type FieldError = Message<"surfaces.v1.FieldError"> & {
  * Use `create(FieldErrorSchema)` to create a new message.
  */
 export const FieldErrorSchema: GenMessage<FieldError> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 2);
+  messageDesc(file_surfaces_v1_forms, 3);
 
 /**
  * @generated from message surfaces.v1.Submission
@@ -184,7 +223,7 @@ export type Submission = Message<"surfaces.v1.Submission"> & {
  * Use `create(SubmissionSchema)` to create a new message.
  */
 export const SubmissionSchema: GenMessage<Submission> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 3);
+  messageDesc(file_surfaces_v1_forms, 4);
 
 /**
  * @generated from message surfaces.v1.ListFormsRequest
@@ -197,7 +236,7 @@ export type ListFormsRequest = Message<"surfaces.v1.ListFormsRequest"> & {
  * Use `create(ListFormsRequestSchema)` to create a new message.
  */
 export const ListFormsRequestSchema: GenMessage<ListFormsRequest> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 4);
+  messageDesc(file_surfaces_v1_forms, 5);
 
 /**
  * @generated from message surfaces.v1.ListFormsResponse
@@ -214,7 +253,7 @@ export type ListFormsResponse = Message<"surfaces.v1.ListFormsResponse"> & {
  * Use `create(ListFormsResponseSchema)` to create a new message.
  */
 export const ListFormsResponseSchema: GenMessage<ListFormsResponse> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 5);
+  messageDesc(file_surfaces_v1_forms, 6);
 
 /**
  * @generated from message surfaces.v1.GetFormRequest
@@ -231,7 +270,7 @@ export type GetFormRequest = Message<"surfaces.v1.GetFormRequest"> & {
  * Use `create(GetFormRequestSchema)` to create a new message.
  */
 export const GetFormRequestSchema: GenMessage<GetFormRequest> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 6);
+  messageDesc(file_surfaces_v1_forms, 7);
 
 /**
  * @generated from message surfaces.v1.GetFormResponse
@@ -248,7 +287,7 @@ export type GetFormResponse = Message<"surfaces.v1.GetFormResponse"> & {
  * Use `create(GetFormResponseSchema)` to create a new message.
  */
 export const GetFormResponseSchema: GenMessage<GetFormResponse> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 7);
+  messageDesc(file_surfaces_v1_forms, 8);
 
 /**
  * @generated from message surfaces.v1.SubmitRequest
@@ -282,7 +321,7 @@ export type SubmitRequest = Message<"surfaces.v1.SubmitRequest"> & {
  * Use `create(SubmitRequestSchema)` to create a new message.
  */
 export const SubmitRequestSchema: GenMessage<SubmitRequest> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 8);
+  messageDesc(file_surfaces_v1_forms, 9);
 
 /**
  * @generated from message surfaces.v1.SubmitResponse
@@ -313,7 +352,7 @@ export type SubmitResponse = Message<"surfaces.v1.SubmitResponse"> & {
  * Use `create(SubmitResponseSchema)` to create a new message.
  */
 export const SubmitResponseSchema: GenMessage<SubmitResponse> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 9);
+  messageDesc(file_surfaces_v1_forms, 10);
 
 /**
  * @generated from message surfaces.v1.ListSubmissionsRequest
@@ -340,7 +379,7 @@ export type ListSubmissionsRequest = Message<"surfaces.v1.ListSubmissionsRequest
  * Use `create(ListSubmissionsRequestSchema)` to create a new message.
  */
 export const ListSubmissionsRequestSchema: GenMessage<ListSubmissionsRequest> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 10);
+  messageDesc(file_surfaces_v1_forms, 11);
 
 /**
  * @generated from message surfaces.v1.ListSubmissionsResponse
@@ -362,7 +401,7 @@ export type ListSubmissionsResponse = Message<"surfaces.v1.ListSubmissionsRespon
  * Use `create(ListSubmissionsResponseSchema)` to create a new message.
  */
 export const ListSubmissionsResponseSchema: GenMessage<ListSubmissionsResponse> = /*@__PURE__*/
-  messageDesc(file_surfaces_v1_forms, 11);
+  messageDesc(file_surfaces_v1_forms, 12);
 
 /**
  * FieldType is the kind of value a field holds.

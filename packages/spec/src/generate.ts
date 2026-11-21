@@ -194,7 +194,7 @@ export function catalogPrompt(catalog: Catalog): string {
     "- SQL must be a single read-only SELECT. Never put user-typed text into SQL; sorting, filtering and paging are done by the components.",
     "- For charts over large tables, give each measure an `aggregate`.",
     "- Buttons send an `event` back to you with the `context` you declare. Wait for it; do not assume it happened.",
-    "- Values that must be checked and sent together belong in a `Form`: it marks what is required, shows each problem beside its field, and sends nothing while any is wrong. Loose inputs check themselves (`required`, `min`, `max`, `pattern`) but a Button beside them does not wait for them.",
+    "- Values that must be checked and sent together belong in a `Form`: it marks what is required, shows each problem beside its field, and sends nothing while any is wrong. Inside a `Form` a field waits on another with its own `visibleWhen: { \"field\": \"kind\", \"equals\": \"Table\" }`. Loose inputs check themselves (`required`, `min`, `max`, `pattern`); a Button waits for them only when it names their ids in `requires`, and then sends nothing until each is in order.",
     "",
     "## Getting the reply you need",
     "",

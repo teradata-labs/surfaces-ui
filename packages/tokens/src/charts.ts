@@ -21,26 +21,54 @@ export const SERIES_MAX = 12;
  * (to a chroma of 0.2), with a step for light surfaces and a step for dark ones.
  * Magenta sits between pink and purple for Berry's accent. Series draw from
  * the rest; yellow, mint and cyan are kept for tags and status, where a
- * label goes with the colour. They are tested together: neighbours in every
- * order stay apart for people with red-green colour blindness and for everyone
- * else, and every hue a series uses reaches 3:1 on every preset's surfaces.
- * Change one only with `checkSeries` passing in both modes.
+ * label goes with the colour.
+ *
+ * The series hues do not share one lightness, on purpose. With red-green
+ * colour blindness red, orange, amber and green are one hue, and teal, pink
+ * and magenta another, so within each family the steps differ in lightness
+ * instead: on light surfaces red is a crimson and green a forest green under
+ * a brighter amber and orange, and pink and magenta sit below teal; on dark
+ * surfaces green and teal are the bright ones. That is what keeps any two of
+ * an order's first five colours apart for those readers (`LEGEND_SLOTS`).
+ *
+ * They are tested together: neighbours in every order, and any two of its
+ * first five, stay apart with red-green colour blindness and without it, and
+ * every hue a series uses reaches 3:1 on every preset's surfaces. Change one
+ * only with `checkSeries` passing in both modes.
  */
 export const HUES = {
-  red: { light: "#DE3B3D", dark: "#FF726B" },
-  orange: { light: "#C85D02", dark: "#FE7802" },
-  amber: { light: "#B27805", dark: "#FCAB05" },
+  red: { light: "#C21725", dark: "#FF605B" },
+  orange: { light: "#DA6600", dark: "#FE7802" },
+  amber: { light: "#B27805", dark: "#EC9F00" },
   yellow: { light: "#DABD0A", dark: "#F4D40F" },
-  green: { light: "#029B29", dark: "#39C34B" },
+  green: { light: "#006A18", dark: "#65EA71" },
   mint: { light: "#089772", dark: "#00D7A4" },
-  teal: { light: "#079390", dark: "#0EBCB8" },
+  teal: { light: "#079390", dark: "#00CBC6" },
   cyan: { light: "#078EAD", dark: "#04C4ED" },
-  blue: { light: "#217BF4", dark: "#68A5FF" },
-  indigo: { light: "#696BF4", dark: "#909AFE" },
+  blue: { light: "#217BF4", dark: "#73ACFF" },
+  indigo: { light: "#696BF4", dark: "#97A1FF" },
   purple: { light: "#9D57DE", dark: "#BF82FF" },
-  pink: { light: "#D13D91", dark: "#FC65B6" },
-  magenta: { light: "#BE47B8", dark: "#E76EDF" },
+  pink: { light: "#AC0D71", dark: "#E853A5" },
+  magenta: { light: "#A52DA0", dark: "#D25BCB" },
 } as const;
+
+/**
+ * The steps the series hues had before they were set apart in lightness. A theme saved with a named order in
+ * these is moved to the current steps when it is read (`currentSeries`).
+ */
+export const RETIRED_HUES: Partial<Record<keyof typeof HUES, { light: string; dark: string }>>[] = [
+  {
+    red: { light: "#DE3B3D", dark: "#FF726B" },
+    orange: { light: "#C85D02", dark: "#FE7802" },
+    amber: { light: "#B27805", dark: "#FCAB05" },
+    green: { light: "#029B29", dark: "#39C34B" },
+    teal: { light: "#079390", dark: "#0EBCB8" },
+    blue: { light: "#217BF4", dark: "#68A5FF" },
+    indigo: { light: "#696BF4", dark: "#909AFE" },
+    pink: { light: "#D13D91", dark: "#FC65B6" },
+    magenta: { light: "#BE47B8", dark: "#E76EDF" },
+  },
+];
 
 export type HueName = keyof typeof HUES;
 
@@ -50,17 +78,19 @@ export type HueName = keyof typeof HUES;
  * found by trying every order of the series hues that starts with its first
  * hue, and keeping the one that does best by two measures, in both modes:
  *
- * - Any two of the first five (`LEGEND_SLOTS`) are apart to an eye with full
- *   colour vision, not only neighbours. A chart split five ways is read by its
- *   legend, where the first colour is matched against the third as often as
- *   against the second; blue and indigo, which are nearly one colour, are
- *   never both among them.
+ * - Any two of the first five (`LEGEND_SLOTS`) are apart, not only
+ *   neighbours, to an eye with full colour vision and to one with red-green
+ *   colour blindness. A chart split five ways is read by its legend, where
+ *   the first colour is matched against the third as often as against the
+ *   second; blue and indigo, which are nearly one colour, are never both
+ *   among them.
  * - Neighbours anywhere in the order stay apart with red-green colour
  *   blindness too.
  *
  * Hue alone cannot keep every pair of five apart with red-green colour
- * blindness (red, orange, amber and green fall together), which is why a
- * chart also names its series and offers a table. Aurora keeps blue, indigo,
+ * blindness (red, orange, amber and green fall together), so the hues are
+ * set apart in lightness as well (see `HUES`). Past five a chart still
+ * leans on its names and its table. Aurora keeps blue, indigo,
  * purple and green out of its second and third places: next to its teal they
  * read as one cool family. Moss keeps teal, blue and indigo out of the same
  * places for the same reason, next to its green.
@@ -90,12 +120,27 @@ export const RETIRED_ORDERS: Partial<Record<SeriesOrderName, readonly HueName[][
   Moss: [["green", "purple", "amber", "blue", "red", "indigo", "orange", "teal"]],
 };
 
-/** The current form of a retired order, if `series` is one; otherwise `series` as it is. */
+/**
+ * The current form of a named order, if `series` is one as it used to be (an order since changed, or hues since
+ * given other steps); otherwise `series` as it is.
+ */
 export function currentSeries(series: string[], mode: "light" | "dark"): string[] {
   const wanted = series.map((c) => c.toUpperCase()).join(",");
-  for (const [name, retired] of Object.entries(RETIRED_ORDERS) as [SeriesOrderName, readonly HueName[][]][])
-    if (retired.some((hues) => hues.map((hue) => HUES[hue][mode]).join(",").toUpperCase() === wanted)) return chartColors(name, mode).series;
+  const tables: Partial<Record<HueName, { light: string; dark: string }>>[] = [HUES, ...RETIRED_HUES];
+  for (const name of Object.keys(SERIES_ORDERS) as SeriesOrderName[]) {
+    const forms: (readonly HueName[])[] = [SERIES_ORDERS[name], ...(RETIRED_ORDERS[name] ?? [])];
+    for (const table of tables)
+      for (const hues of forms)
+        if (hues.map((hue) => (table[hue] ?? HUES[hue])[mode]).join(",").toUpperCase() === wanted) return chartColors(name, mode).series;
+  }
   return series;
+}
+
+/** A hue's current step, if `color` is a step it used to have; otherwise `color` as it is. */
+export function currentHue(color: string, mode: "light" | "dark"): string {
+  for (const table of RETIRED_HUES)
+    for (const [hue, steps] of Object.entries(table) as [HueName, { light: string; dark: string }][]) if (steps[mode].toUpperCase() === color.toUpperCase() && HUES[hue][mode] !== steps[mode]) return HUES[hue][mode];
+  return color;
 }
 
 export type SeriesOrderName = keyof typeof SERIES_ORDERS;
@@ -205,9 +250,9 @@ export const MARK_CONTRAST = 3;
  * Checks a categorical palette against the surface it will be drawn on:
  * neighbours must be told apart by everyone, including people with red-green
  * colour blindness, any two of the first `LEGEND_SLOTS` must be told apart
- * by an eye with full colour vision (a stack of five is read from its
- * legend, where every colour is matched against every other), and each
- * colour should stand out from the surface.
+ * (a stack of five is read from its legend, where every colour is matched
+ * against every other; two that only red-green colour blindness brings
+ * together are a warning), and each colour should stand out from the surface.
  */
 export function checkSeries(series: string[], surface: string): SeriesIssue[] {
   const issues: SeriesIssue[] = [];
@@ -223,8 +268,11 @@ export function checkSeries(series: string[], surface: string): SeriesIssue[] {
   // The first few colours are matched against each other in a legend, so they must all differ, not only in turn.
   for (let i = 0; i < Math.min(series.length, LEGEND_SLOTS); i++) {
     for (let j = i + 2; j < Math.min(series.length, LEGEND_SLOTS); j++) {
-      if (colorDistance(series[i]!, series[j]!) < LEGEND_FLOOR) {
+      const [a, b] = [series[i]!, series[j]!];
+      if (colorDistance(a, b) < LEGEND_FLOOR) {
         issues.push({ severity: "error", slots: [i + 1, j + 1], message: `Colours ${i + 1} and ${j + 1} are too alike to tell apart in a legend.` });
+      } else if (Math.min(colorDistance(a, b, "protan"), colorDistance(a, b, "deutan")) < CVD_TARGET) {
+        issues.push({ severity: "warning", slots: [i + 1, j + 1], message: `Colours ${i + 1} and ${j + 1} are close with red-green colour blindness; make one lighter or darker, or label the series.` });
       }
     }
   }

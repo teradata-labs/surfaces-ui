@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SideNav, navigationName } from "./SideNav.js";
+import { SideNav, drawerBox, navigationName } from "./SideNav.js";
 import { Workspace } from "./Workspace.js";
 
 afterEach(cleanup);
@@ -290,5 +290,51 @@ describe("SideNav", () => {
     fireEvent.click(document.querySelector(".sf-sidenav-backdrop")!);
     expect(menu.getAttribute("aria-expanded")).toBe("false");
     expect(document.querySelector(".sf-sidenav-backdrop")).toBeNull();
+  });
+
+  it("puts its drawer over the part of its holder that is on screen, and over the window when that is too small", () => {
+    const viewport = { width: 1200, height: 800 };
+    // A canvas below a host's toolbar: the drawer starts where the canvas does.
+    expect(drawerBox({ top: 56, left: 240, width: 900, height: 2000 }, viewport)).toEqual({ top: 56, left: 240, width: 900, height: 744 });
+    // Scrolled partly off the top and running past the right edge: only what shows.
+    expect(drawerBox({ top: -300, left: 600, width: 900, height: 700 }, viewport)).toEqual({ top: 0, left: 600, width: 600, height: 400 });
+    // Too little showing, off screen, not laid out, or no holder at all: the window.
+    expect(drawerBox({ top: 700, left: 0, width: 900, height: 600 }, viewport)).toBeUndefined();
+    expect(drawerBox({ top: 0, left: 0, width: 200, height: 600 }, viewport)).toBeUndefined();
+    expect(drawerBox({ top: 0, left: 0, width: 0, height: 0 }, viewport)).toBeUndefined();
+    expect(drawerBox(undefined, viewport)).toBeUndefined();
+  });
+
+  it("folds for a narrow region it is drawn in, whatever the window, and opens over that region", () => {
+    const realObserver = globalThis.ResizeObserver;
+    const realRect = Element.prototype.getBoundingClientRect;
+    globalThis.ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      return (this.classList.contains("sf-container") ? { top: 100, left: 300, width: 500, height: 600, right: 800, bottom: 700, x: 300, y: 100, toJSON() {} } : realRect.call(this)) as DOMRect;
+    };
+    try {
+      const { container } = render(
+        <div className="sf-container">
+          <SideNav label="Site" groups={groups} pinned />
+        </div>,
+      );
+      const root = container.querySelector<HTMLElement>(".sf-sidenav")!;
+      // 500px is under 40rem: folded, with no pin, though the window is wide.
+      expect(root.getAttribute("data-pinned")).toBe("false");
+      expect(root.hasAttribute("data-narrow")).toBe(true);
+      fireEvent.click(screen.getByRole("button", { name: "Show Site navigation" }));
+      expect(within(screen.getByRole("dialog", { name: "Site navigation" })).queryByRole("button", { name: /Keep open|Fold away/ })).toBeNull();
+      expect(root.style.getPropertyValue("--sf-sidenav-top")).toBe("100px");
+      expect(root.style.getPropertyValue("--sf-sidenav-left")).toBe("300px");
+      expect(root.style.getPropertyValue("--sf-sidenav-width")).toBe("500px");
+      expect(root.style.getPropertyValue("--sf-sidenav-height")).toBe("600px");
+    } finally {
+      globalThis.ResizeObserver = realObserver;
+      Element.prototype.getBoundingClientRect = realRect;
+    }
   });
 });

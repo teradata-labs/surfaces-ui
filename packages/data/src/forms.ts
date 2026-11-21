@@ -96,6 +96,36 @@ function checkField(field: FormField, value: JsonValue): { value?: JsonValue; er
   }
 }
 
+/** A field's condition as config and the catalog write it: another field of the form, and what it must hold. */
+export interface FieldConditionSpec {
+  field: string;
+  equals?: string | number | boolean;
+  in?: (string | number | boolean)[];
+}
+
+/** A condition as the form definition carries it: the values written as text. */
+export function fieldCondition(when: FieldConditionSpec | undefined): { field: string; values: string[] } | undefined {
+  if (!when) return undefined;
+  return { field: when.field, values: when.equals !== undefined ? [String(when.equals)] : (when.in ?? []).map(String) };
+}
+
+/**
+ * True when a field is asked for, given what has been entered: it has no `visibleWhen`, or the field it waits on is
+ * itself asked for and holds one of the values. The browser draws by this and every backend checks by it, so a
+ * field nobody was shown is never required and never stored.
+ */
+export function fieldAsked(form: Pick<FormDefinition, "fields">, field: FormField, values: JsonObject | undefined, seen: ReadonlySet<string> = new Set()): boolean {
+  const when = field.visibleWhen;
+  if (!when) return true;
+  const other = form.fields.find((f) => f.name === when.field);
+  // A condition that names no field, or leads back to itself, asks nothing: the field is asked for.
+  if (!other || seen.has(field.name)) return true;
+  if (!fieldAsked(form, other, values, new Set(seen).add(field.name))) return false;
+  const value = values?.[when.field];
+  if (empty(value) || value === false) return false;
+  return when.values.length === 0 || when.values.includes(String(value));
+}
+
 /**
  * Checks values against a form's fields. Unknown fields are errors, so a
  * client cannot write a column the form does not declare. Used by every
@@ -110,6 +140,11 @@ export function checkSubmission(form: FormDefinition, values: JsonObject | undef
     if (!known.has(name)) errors.push(create(FieldErrorSchema, { field: name, message: "This form has no such field." }));
   }
   for (const field of form.fields) {
+    // A field that was not asked for holds nothing, whatever was sent for it.
+    if (!fieldAsked(form, field, input)) {
+      out[field.name] = null;
+      continue;
+    }
     const value = input[field.name];
     if (empty(value)) {
       if (field.required) errors.push(create(FieldErrorSchema, { field: field.name, message: `${field.label || field.name} is required.` }));
@@ -195,6 +230,8 @@ export interface FormSpec {
     maxLength?: number;
     pattern?: string;
     help?: string;
+    /** Asked for only while another field of the form holds this. */
+    visibleWhen?: FieldConditionSpec;
   }[];
 }
 
@@ -218,7 +255,10 @@ export function formDefinitions(forms: FormSpec[]): MessageInitShape<typeof Form
       title: form.title ?? form.id,
       description: form.description ?? "",
       target: form.target ?? "",
-      fields: form.fields.map((f) => ({ ...f, type: TYPES[f.type], options: f.options ?? [], pattern: f.pattern ?? "", help: f.help ?? "" })),
+      fields: form.fields.map((f) => {
+        if (f.visibleWhen && (f.visibleWhen.field === f.name || !form.fields.some((other) => other.name === f.visibleWhen!.field))) throw new Error(`Form "${form.id}": field "${f.name}" waits on "${f.visibleWhen.field}", which is not another field of the form.`);
+        return { ...f, type: TYPES[f.type], options: f.options ?? [], pattern: f.pattern ?? "", help: f.help ?? "", visibleWhen: fieldCondition(f.visibleWhen) };
+      }),
     };
   });
 }
