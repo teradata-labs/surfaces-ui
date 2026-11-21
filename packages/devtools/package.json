@@ -3,6 +3,15 @@
   "version": "0.0.0",
   "description": "Developer tools for Surfaces UI: one component that records and shows the messages, components, problems, state, events, agent turns and service calls of agent-generated UI, with time travel",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teradata-labs/surfaces-ui.git",
+    "directory": "packages/devtools"
+  },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui#readme",
+  "bugs": {
+    "url": "https://github.com/teradata-labs/surfaces-ui/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",

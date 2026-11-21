@@ -3,6 +3,15 @@
   "version": "0.0.0",
   "description": "Reference discovery backend: search, profiles, relations and context packs over any DataSource",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teradata-labs/surfaces-ui.git",
+    "directory": "packages/discovery"
+  },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui#readme",
+  "bugs": {
+    "url": "https://github.com/teradata-labs/surfaces-ui/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

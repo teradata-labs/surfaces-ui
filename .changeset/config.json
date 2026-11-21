@@ -25,6 +25,7 @@
       "@surfaces-ui/mcp",
       "@surfaces-ui/page",
       "@surfaces-ui/pipelines",
+      "@surfaces-ui/pipelines-dbt",
       "@surfaces-ui/proto",
       "@surfaces-ui/seeds",
       "@surfaces-ui/spec",
@@ -40,6 +41,8 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@surfaces-ui/playground"
+    "@surfaces-ui/playground",
+    "@surfaces-ui/e2e",
+    "@surfaces-ui/recipes"
   ]
 }

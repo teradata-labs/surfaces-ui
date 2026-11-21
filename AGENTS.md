@@ -221,7 +221,8 @@ pnpm e2e         # browser tests (apps/e2e, Playwright): the playground in Chrom
                  # pnpm --filter @surfaces-ui/e2e e2e:install
 pnpm docs:gen    # docs/catalog and docs/recipes; CI fails if either is stale
 pnpm changeset   # describe a change for the next release
-pnpm check:release      # what stops a publish (license, descriptions, files, access)
+pnpm check:release      # what stops a publish (license, descriptions, files, access, repository, one version);
+                        # cutting a release: docs/releasing.md
 scripts/s3-sim.sh       # a local stand-in for S3 with the retail sample in a bucket; then
                         # SURFACES_S3_ENDPOINT=127.0.0.1:9100 pnpm serve adds the source "s3"
 ```

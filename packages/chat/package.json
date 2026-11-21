@@ -3,6 +3,15 @@
   "version": "0.0.0",
   "description": "Chat thread components for Surfaces UI: streaming replies, tool steps, approvals and inline agent-drawn components",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teradata-labs/surfaces-ui.git",
+    "directory": "packages/chat"
+  },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui#readme",
+  "bugs": {
+    "url": "https://github.com/teradata-labs/surfaces-ui/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",

@@ -3,6 +3,15 @@
   "version": "0.0.0",
   "description": "Creates a Surfaces UI app: a dashboard, a chat that draws live components, and a data server with six sample datasets",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teradata-labs/surfaces-ui.git",
+    "directory": "packages/create-surfaces"
+  },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui#readme",
+  "bugs": {
+    "url": "https://github.com/teradata-labs/surfaces-ui/issues"
+  },
   "type": "module",
   "bin": {
     "create-surfaces": "./dist/cli.js"

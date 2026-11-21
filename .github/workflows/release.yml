@@ -1,10 +1,16 @@
 name: Release
 # Started by hand from the Actions tab, on main: opens a "Version packages"
-# pull request while changesets are pending; running it again after that
-# pull request is merged publishes. Publishing needs the NPM_TOKEN secret and
-# passes scripts/check-release.mjs. Opening the pull request needs the
-# repository setting "Allow GitHub Actions to create and approve pull
-# requests" (Settings, Actions, General).
+# pull request while changesets are pending; running it again after that pull
+# request is merged publishes, with provenance, once scripts/check-release.mjs
+# passes. Opening the pull request needs the repository setting "Allow GitHub
+# Actions to create and approve pull requests" (Settings, Actions, General).
+#
+# npm is reached one of two ways (docs/releasing.md):
+# - the NPM_TOKEN secret: a granular token that may write to @surfaces-ui and
+#   create-surfaces. Needed for the first release, since a package must exist
+#   before it can trust a workflow; delete the secret afterwards.
+# - trusted publishing (OIDC): each package on npmjs.com names this repository
+#   and release.yml as its trusted publisher, and no secret is kept.
 on:
   workflow_dispatch:
 concurrency: release-${{ github.ref }}
@@ -24,6 +30,8 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or later; Node 22 ships npm 10.
+      - run: npm install -g npm@11
       - run: pnpm install --frozen-lockfile
       - uses: changesets/action@v1
         with:

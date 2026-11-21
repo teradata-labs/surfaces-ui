@@ -3,6 +3,15 @@
   "version": "0.0.0",
   "description": "Theme contract, presets and CSS variable output for Surfaces UI",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teradata-labs/surfaces-ui.git",
+    "directory": "packages/tokens"
+  },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui#readme",
+  "bugs": {
+    "url": "https://github.com/teradata-labs/surfaces-ui/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"

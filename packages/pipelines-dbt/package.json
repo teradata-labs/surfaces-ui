@@ -3,6 +3,15 @@
   "version": "0.0.0",
   "description": "A dbt project as a Surfaces UI pipeline: datasets, tests, runs and semantic models read from dbt's artifacts, with dbt build only on a person's approval",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teradata-labs/surfaces-ui.git",
+    "directory": "packages/pipelines-dbt"
+  },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui#readme",
+  "bugs": {
+    "url": "https://github.com/teradata-labs/surfaces-ui/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
