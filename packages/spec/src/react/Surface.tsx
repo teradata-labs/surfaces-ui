@@ -150,10 +150,10 @@ class ComponentBoundary extends Component<{ label: string; component: SurfaceCom
 }
 
 /** With a recorder above: records that a component was drawn, once, and makes what it does (its service calls) children of it. */
-function Drawn({ recorder, scope, surfaceKey, kind, children }: { recorder: Recorder; scope: TraceScope; surfaceKey: string; kind: string; children: ReactNode }) {
+function Drawn({ recorder, scope, held, surfaceKey, kind, children }: { recorder: Recorder; scope: TraceScope; held: HeldScopes; surfaceKey: string; kind: string; children: ReactNode }) {
   return (
     <TraceScopeProvider scope={scope}>
-      <DrawnMark recorder={recorder} scope={scope} surfaceKey={surfaceKey} kind={kind} />
+      <DrawnMark recorder={recorder} scope={scope} held={held} surfaceKey={surfaceKey} kind={kind} />
       <InspectMark recorder={recorder} surfaceKey={surfaceKey} componentId={scope.componentId} />
       {children}
     </TraceScopeProvider>
@@ -161,14 +161,30 @@ function Drawn({ recorder, scope, surfaceKey, kind, children }: { recorder: Reco
 }
 
 /** Draws nothing. It sits before the component so that its effect, which records the component, runs before the component's own. */
-function DrawnMark({ recorder, scope, surfaceKey, kind }: { recorder: Recorder; scope: TraceScope; surfaceKey: string; kind: string }) {
-  const recorded = useRef(false);
+function DrawnMark({ recorder, scope, held, surfaceKey, kind }: { recorder: Recorder; scope: TraceScope; held: HeldScopes; surfaceKey: string; kind: string }) {
   useEffect(() => {
-    if (recorded.current) return;
-    recorded.current = true;
-    recorder.record({ kind: "component", name: `${kind} "${scope.componentId}"`, spanId: scope.spanId, detail: { component: kind } }, { traceId: scope.traceId, spanId: recorder.surfaceScope(surfaceKey)?.spanId, surfaceId: scope.surfaceId, componentId: scope.componentId });
-  }, [recorder, scope, surfaceKey, kind]);
+    // A scope's span is the id of its one event, so whether it was recorded is kept with the scope and not with this
+    // mark: a component that is mounted again under the same scope (a frame put around it, an effect run twice) is
+    // not recorded twice, which would put two events with one id in the log.
+    const place = held.places.get(scope);
+    if (place !== undefined) held.scopes.set(place, scope);
+    if (!held.recorded.has(scope)) {
+      held.recorded.add(scope);
+      recorder.record({ kind: "component", name: `${kind} "${scope.componentId}"`, spanId: scope.spanId, detail: { component: kind } }, { traceId: scope.traceId, spanId: recorder.surfaceScope(surfaceKey)?.spanId, surfaceId: scope.surfaceId, componentId: scope.componentId });
+    }
+    // Once the component is gone its scope is let go, so one drawn there later is a new span and is recorded again.
+    return () => {
+      if (place !== undefined && held.scopes.get(place) === scope) held.scopes.delete(place);
+    };
+  }, [recorder, scope, held, surfaceKey, kind]);
   return null;
+}
+
+/** The scopes a view holds for what it draws: by place, the place of each, and which have been recorded as drawn. */
+interface HeldScopes {
+  scopes: Map<string, TraceScope>;
+  places: WeakMap<TraceScope, string>;
+  recorded: WeakSet<TraceScope>;
 }
 
 /**
@@ -212,11 +228,12 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
     snapshot.current = text;
     recordMessage(recorder, { format: "surface", key: traceKey, raw, snapshot: true, name: "surface" }, { traceId: (viewTrace.current ??= newTraceId()) });
   }, [recorder, tagged, traceKey, surface]);
-  const scopes = useRef(new Map<string, TraceScope>());
-  const scopeOf = (id: string, place: string): TraceScope | undefined => {
+  const held = useRef<HeldScopes>({ scopes: new Map(), places: new WeakMap(), recorded: new WeakSet() });
+  // One scope for each component drawn: its place, its id and its kind, so another kind under the same id is another span.
+  const scopeOf = (id: string, place: string, kind: string): TraceScope | undefined => {
     if (!recorder || traceKey === undefined) return undefined;
-    const key = `${traceKey}|${place}|${id}`;
-    let scope = scopes.current.get(key);
+    const key = `${traceKey}|${place}|${id}|${kind}`;
+    let scope = held.current.scopes.get(key);
     if (!scope) {
       const built = tagged !== undefined;
       let trace: string | undefined;
@@ -229,7 +246,8 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
           return (trace ??= (built ? recorder.surfaceScope(traceKey)?.traceId : undefined) ?? (viewTrace.current ??= newTraceId()));
         },
       };
-      scopes.current.set(key, scope);
+      held.current.scopes.set(key, scope);
+      held.current.places.set(scope, key);
     }
     return scope;
   };
@@ -292,7 +310,7 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
     // A child that has not arrived yet is normal while a surface streams in.
     if (!component) return null;
     if (trail.includes(id) || trail.length > MAX_DEPTH) return <Notice key={id} text={`"${id}" contains itself.`} />;
-    const traced = scopeOf(id, scope);
+    const traced = scopeOf(id, scope, component.component);
 
     let issues = checked.get(component);
     if (!issues) {
@@ -430,7 +448,7 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
     );
     const drawn =
       recorder && traced && traceKey !== undefined ? (
-        <Drawn key={`${id}:${component.component}`} recorder={recorder} scope={traced} surfaceKey={traceKey} kind={component.component}>
+        <Drawn key={`${id}:${component.component}`} recorder={recorder} scope={traced} held={held.current} surfaceKey={traceKey} kind={component.component}>
           {guarded}
         </Drawn>
       ) : (
