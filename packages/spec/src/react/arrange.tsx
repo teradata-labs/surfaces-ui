@@ -144,6 +144,14 @@ export function useArrange(options: {
   say(status: { text: string; error?: boolean }): void;
   remove(id: string): void;
   /**
+   * The surface as it shipped, before anyone arranged it. With it, Enter or a
+   * double click on a handle puts a size back to what it is there: a Grid's
+   * or Row's widths where it still has as many columns, and a component's
+   * height. Without it, or for what the shipped surface does not have, widths
+   * go back to equal and a height to what the component chooses.
+   */
+  shipped?: Surface;
+  /**
    * Keeps the size handles while nobody is arranging: between a Grid's or
    * Row's columns, and under a component with a height of its own (a chart or a table, say) or one
    * whose height is set. A drag sends the
@@ -285,13 +293,16 @@ export function useArrange(options: {
           done(heightMessages(latest.current.surface, id, value, limits, catalog), `Resized "${id}" to ${clamp(kind, value)} pixels tall`);
           if (end.via === "keyboard") focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="bottom"]`);
         }}
-        // Back to the height its renderer chooses: the prop is taken off. A height the page never set has nothing to undo.
+        // Back to the height it shipped with, or to the one its renderer chooses: the prop is taken off. A height the page never set has nothing to undo.
         {...(now === undefined
           ? {}
           : {
               onReset: () => {
+                const was = options.shipped?.components[id];
+                const before = was?.component === component.component ? was[prop] : undefined;
                 const { id: _id, component: _kind, [prop]: _height, ...rest } = component;
-                done(setComponentMessages(latest.current.surface, id, rest, catalog), `Reset the height of "${id}"`);
+                if (typeof before === "number") done(heightMessages(latest.current.surface, id, before, limits, catalog), `Put "${id}" back to ${clamp(kind, before)} pixels tall`);
+                else done(setComponentMessages(latest.current.surface, id, rest, catalog), `Reset the height of "${id}"`);
                 focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="bottom"]`);
               },
             })}
@@ -335,9 +346,12 @@ export function useArrange(options: {
           done(gridWidthsMessages(latest.current.surface, place.parent, next, catalog), `Resized "${place.parent}" to ${percent(next).join(" and ")}`);
           if (end.via === "keyboard") focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="right"]`);
         }}
-        // Back to equal widths.
+        // Back to the widths it shipped with, where it still has as many columns; to equal widths otherwise.
         onReset={() => {
-          done(gridWidthsMessages(latest.current.surface, place.parent, shares.map(() => 1 / shares.length), catalog), `Made the widths in "${place.parent}" equal`);
+          const was = options.shipped?.components[place.parent];
+          const before = was?.component === container.component ? gridShares(was) : [];
+          if (before.length === shares.length) done(gridWidthsMessages(latest.current.surface, place.parent, before, catalog), `Put the widths in "${place.parent}" back to ${percent(before).join(" and ")}`);
+          else done(gridWidthsMessages(latest.current.surface, place.parent, shares.map(() => 1 / shares.length), catalog), `Made the widths in "${place.parent}" equal`);
           focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="right"]`);
         }}
       />

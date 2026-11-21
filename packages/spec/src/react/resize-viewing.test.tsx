@@ -34,8 +34,9 @@ const shipped: PageDocument = {
 const data = memoryDataSource({ sourceId: "shop", tables: { orders: [{ id: 1, amount: 10 }, { id: 2, amount: 32 }] } });
 
 /** A host that keeps each arrangement as page edits, the way a host that stores a person's layout would. */
-function Host({ viewing, steps }: { viewing: boolean; steps: { title: string; messages: SurfaceMessage[] }[] }) {
-  const [page, setPage] = useState(shipped);
+function Host({ viewing, steps, from = shipped, back = false }: { viewing: boolean; steps: { title: string; messages: SurfaceMessage[] }[]; from?: PageDocument; back?: boolean }) {
+  const [page, setPage] = useState(from);
+  const first = useMemo(() => pageSurface(from), [from]);
   const surface = useMemo(() => pageSurface(page), [page]);
   const arrange = useArrange({
     surface,
@@ -46,6 +47,7 @@ function Host({ viewing, steps }: { viewing: boolean; steps: { title: string; me
     say: () => undefined,
     remove: () => undefined,
     resizeWhileViewing: viewing,
+    ...(back ? { shipped: first } : {}),
   });
   return (
     <DataSourceProvider dataSource={data}>
@@ -95,7 +97,7 @@ describe("resizing while viewing", () => {
     // The lock stays with it.
     expect(component("table")?.["@metadata"]).toEqual(locked["@metadata"]);
 
-    // Enter puts each back: equal widths, and the height the component picks.
+    // Enter puts each back. Not told what shipped: equal widths, and the height the component picks.
     fireEvent.keyDown(screen.getByRole("separator", { name: /Resize Metric revenue/ }), { key: "Enter" });
     expect(component("numbers")?.widths).toEqual([0.333, 0.333, 0.333]);
     fireEvent.keyDown(screen.getByRole("separator", { name: "Resize DataGrid table: taller or shorter" }), { key: "Enter" });
@@ -115,6 +117,28 @@ describe("resizing while viewing", () => {
     fireEvent.pointerUp(window, { clientX: 0, clientY: 104 });
     expect(steps).toHaveLength(1);
     expect(component("table")?.height).toBe(360);
+  });
+
+  it("puts sizes back to the ones the page shipped with, when it is told what shipped", () => {
+    const steps: { title: string; messages: SurfaceMessage[] }[] = [];
+    const uneven: PageDocument = { ...shipped, components: shipped.components.map((c) => (c.id === "numbers" ? { ...c, widths: [2, 1, 1] } : c)) };
+    render(<Host viewing steps={steps} from={uneven} back />);
+    fireEvent.keyDown(screen.getByRole("separator", { name: /Resize Metric revenue/ }), { key: "ArrowRight" });
+    expect(component("numbers")?.widths).toEqual([0.54, 0.21, 0.25]);
+    fireEvent.keyDown(screen.getByRole("separator", { name: /Resize Metric revenue/ }), { key: "Enter" });
+    expect(component("numbers")?.widths).toEqual([0.5, 0.25, 0.25]);
+    expect(steps.at(-1)?.title).toBe('Put the widths in "numbers" back to 50% and 25% and 25%');
+
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize DataGrid table: taller or shorter" }), { key: "ArrowDown" });
+    expect(component("table")?.height).toBe(280);
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize DataGrid table: taller or shorter" }), { key: "Enter" });
+    expect(component("table")?.height).toBe(260);
+    expect(steps.at(-1)?.title).toBe('Put "table" back to 260 pixels tall');
+
+    // A height the shipped page never set goes back to the one the component chooses.
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize DataGrid bare: taller or shorter" }), { key: "ArrowDown" });
+    fireEvent.keyDown(screen.getByRole("separator", { name: "Resize DataGrid bare: taller or shorter" }), { key: "Enter" });
+    expect(component("bare")?.height).toBeUndefined();
   });
 
   it("sizes a component whose height was never set, from what is drawn", () => {
