@@ -66,4 +66,30 @@ describe("Form", () => {
     expect(screen.getByRole("alert").textContent).toBe("At most 2 characters.");
     expect(forms.submissions()).toHaveLength(0);
   });
+
+  it("asks for a field only once the choice that calls for it is made, and does not require one it never showed", async () => {
+    const onSubmit = vi.fn();
+    const waiting: FormFieldSpec[] = [
+      { name: "kind", label: "Source", type: "choice", options: ["Table", "Website"], required: true },
+      { name: "table", label: "Table name", type: "text", required: true, visibleWhen: { field: "kind", equals: "Table" } },
+      { name: "url", label: "URL to crawl", type: "text", required: true, visibleWhen: { field: "kind", equals: "Website" } },
+    ];
+    render(<Form formId="source" fields={waiting} onSubmit={onSubmit} resetOnSubmit={false} />);
+    expect(screen.queryByLabelText(/Table name/)).toBeNull();
+    expect(screen.queryByLabelText(/URL to crawl/)).toBeNull();
+    fireEvent.click(screen.getByLabelText("Table"));
+    expect(screen.queryByLabelText(/URL to crawl/)).toBeNull();
+    // The field now shown is required; the one that is not is not.
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Submit" })));
+    expect(screen.getAllByRole("alert").map((a) => a.textContent)).toEqual(["Table name is required."]);
+    fireEvent.change(screen.getByLabelText(/Table name/), { target: { value: "docs.articles" } });
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Submit" })));
+    expect(onSubmit).toHaveBeenCalledWith({ values: { kind: "Table", table: "docs.articles", url: null } });
+    // Changing the choice swaps the field, and what was typed for the other is not sent.
+    fireEvent.click(screen.getByLabelText("Website"));
+    expect(screen.queryByLabelText(/Table name/)).toBeNull();
+    fireEvent.change(screen.getByLabelText(/URL to crawl/), { target: { value: "https://example.com" } });
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Submit" })));
+    expect(onSubmit).toHaveBeenLastCalledWith({ values: { kind: "Website", table: null, url: "https://example.com" } });
+  });
 });

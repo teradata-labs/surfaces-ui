@@ -12,7 +12,7 @@ import {
 } from "@surfaces-ui/components";
 import { type FilterInit, type FilterSpec, type GridColumns, type GridSort, type ResultView, type SortSpec, chosenValues, filtersExcept, filtersFromSpec, filtersToSpec, sortsFromSpec, sortsToSpec, toggleValueFilter } from "@surfaces-ui/components";
 import { type CSSProperties, type ReactNode, createElement, useEffect, useId, useState } from "react";
-import type { ComponentRenderer, RenderProps } from "./Surface.js";
+import { type ComponentRenderer, type RenderProps, useRequiredInputs } from "./Surface.js";
 import { formRenderers } from "./forms.js";
 import { moreRenderers } from "./more.js";
 
@@ -90,6 +90,42 @@ function flex(props: Record<string, unknown>): CSSProperties {
   return { justifyContent: JUSTIFY[text(props.justify)] ?? "flex-start", alignItems: ALIGN[text(props.align)] ?? "stretch" };
 }
 
+/**
+ * A Button. With `requires` it waits for the inputs named: while one is missing or wrong it is marked unavailable but
+ * can still be reached and pressed, and a press then sends nothing, has each input say what is wrong and moves to
+ * the first, so a person is never left guessing why nothing happened.
+ */
+function ButtonView({ props, component, child, dispatch }: RenderProps) {
+  const required = useRequiredInputs(props.requires);
+  const [told, setTold] = useState(false);
+  const waiting = required.waiting.length > 0;
+  return (
+    <>
+      <button
+        type="button"
+        className="sf-button sf-a2-button"
+        data-variant={text(props.variant) || "default"}
+        aria-disabled={waiting || undefined}
+        onClick={() => {
+          if (waiting) {
+            setTold(true);
+            required.show();
+            return;
+          }
+          dispatch(component.action);
+        }}
+      >
+        {child(component.child)}
+      </button>
+      {waiting && told && (
+        <span className="sf-visually-hidden" role="status">
+          {required.waiting.length === 1 ? `Nothing was sent. ${required.waiting[0]!.problem}` : `Nothing was sent. ${required.waiting.length} fields need attention: ${required.waiting.map((field) => field.label).join(", ")}.`}
+        </span>
+      )}
+    </>
+  );
+}
+
 function TabsView({ props, child }: RenderProps) {
   const tabs = (props.tabs as { title: unknown; child: unknown }[]) ?? [];
   const [active, setActive] = useState(0);
@@ -152,16 +188,7 @@ export const analyticsRenderers: Record<string, ComponentRenderer> = {
   Card: ({ component, child }) => <div className="sf-a2-card">{child(component.child)}</div>,
   Divider: ({ props }) => <hr className="sf-a2-divider" data-axis={text(props.axis) || "horizontal"} />,
   Tabs: (renderProps) => <TabsView {...renderProps} />,
-  Button: ({ props, component, child, dispatch }) => (
-    <button
-      type="button"
-      className="sf-button sf-a2-button"
-      data-variant={text(props.variant) || "default"}
-      onClick={() => dispatch(component.action)}
-    >
-      {child(component.child)}
-    </button>
-  ),
+  Button: (renderProps) => <ButtonView {...renderProps} />,
   Stat: ({ props }) => (
     <div className="sf-a2-stat">
       <span className="sf-a2-stat-label">{text(props.label)}</span>

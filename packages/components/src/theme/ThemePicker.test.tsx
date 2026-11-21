@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { defaultTheme, presets } from "@surfaces-ui/tokens";
+import { HUES, defaultTheme, presets } from "@surfaces-ui/tokens";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ThemePicker } from "./ThemePicker.js";
@@ -93,11 +93,11 @@ describe("ThemePicker", () => {
     setup(store);
     expect(screen.getByText(/Neighbouring series can be told apart/)).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Series order"), { target: { value: "Berry" } });
-    expect(saved.at(-1)?.theme.charts.light.series[0]).toBe("#BE47B8");
-    expect(saved.at(-1)?.theme.charts.dark.series[0]).toBe("#E76EDF");
+    expect(saved.at(-1)?.theme.charts.light.series[0]).toBe(HUES.magenta.light);
+    expect(saved.at(-1)?.theme.charts.dark.series[0]).toBe(HUES.magenta.dark);
     expect(saved.at(-1)?.theme.name).toBe("Custom");
     // The chart variables on the page follow.
-    expect(document.querySelector("style[data-sf-theme]")?.textContent).toContain("--sf-series-1: #BE47B8;");
+    expect(document.querySelector("style[data-sf-theme]")?.textContent).toContain(`--sf-series-1: ${HUES.magenta.light};`);
 
     // A colour set by hand next to a look-alike is flagged.
     fireEvent.change(screen.getByLabelText("Series 2"), { target: { value: "#c149bb" } });

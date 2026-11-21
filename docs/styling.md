@@ -55,7 +55,7 @@ Every size, colour, font and timing the components use is a `--sf-*` CSS variabl
 - Set variables on your own wrapper, not on `:root`: the theme writes its own values on `:root`, and which one wins there depends on load order.
 - Colours set this way skip the contrast checks a theme gets. Change colours through the theme where you can.
 - The variables are listed in `themeCss` from `@surfaces-ui/tokens`, by group: `--sf-color-*` (the levels of background, label, fill and gray, accent, borders, focus and status), `--sf-series-*`, `--sf-sequential-*` and `--sf-diverging-*` (charts), `--sf-code-*`, `--sf-font*` and `--sf-line-height*`, `--sf-space-*`, `--sf-radius*`, `--sf-control-size` and `--sf-target-min`, `--sf-duration*` and `--sf-ease*`, and `--sf-glass-*`.
-- A folded `SideNav` tells whatever follows it how much room its menu button takes as `--sf-sidenav-inset`; give your page's heading `padding-inline-start: var(--sf-sidenav-inset, 0px)` so the button never covers it. And set `--sf-sticky-top` to the height of a sticky bar of your own, so the button and the other parts that stick stay below it.
+- A folded `SideNav` keeps a slim strip for its menu button where the navigation was, so you reserve no room for it. Its drawer opens over the window, or over the surface it is drawn in when it is inside one.
 
 ## `className`
 

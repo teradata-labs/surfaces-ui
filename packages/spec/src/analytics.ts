@@ -127,7 +127,30 @@ const FIELD = z.strictObject({
   pattern: z.string().max(200).optional().describe("A regular expression the whole text must match."),
   help: z.string().optional(),
   placeholder: z.string().optional(),
+  visibleWhen: z
+    .strictObject({
+      field: z.string().describe("The name of another field of this form."),
+      equals: z.union([z.string(), z.number(), z.boolean()]).optional().describe("Asked only while that field's value is this."),
+      in: z.array(z.union([z.string(), z.number(), z.boolean()])).min(1).max(50).optional().describe("Asked only while that field's value is one of these."),
+    })
+    .refine((value) => value.equals === undefined || value.in === undefined, { message: "Give `equals` or `in`, not both." })
+    .optional()
+    .describe("Asks for this field only while another field of the form holds a value (with neither `equals` nor `in`, any value). A field that is not asked for is not drawn, not required, and sent as null."),
 });
+/** A form's fields: a field that waits on another must name one the form has, and not itself. */
+const FIELDS = z
+  .array(FIELD)
+  .min(1)
+  .max(40)
+  .superRefine((fields, context) => {
+    const names = new Set(fields.map((field) => field.name));
+    fields.forEach((field, index) => {
+      const other = field.visibleWhen?.field;
+      if (other === undefined) return;
+      if (other === field.name) context.addIssue({ code: "custom", path: [index, "visibleWhen", "field"], message: "A field cannot wait on itself." });
+      else if (!names.has(other)) context.addIssue({ code: "custom", path: [index, "visibleWhen", "field"], message: `This form has no field "${other}". Its fields are: ${[...names].join(", ")}.` });
+    });
+  });
 
 const INPUT_NOTE = "The value is written to the data model at `value.path` as the person types, so other components (a Button's event context, a Text) can bind to it. Nothing is sent until a control sends an event.";
 
@@ -351,7 +374,7 @@ export const analyticsCatalog = defineCatalog({
     },
     SideNav: {
       description:
-        "Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then takes no room, and a menu button at the top corner of the surface slides it back in over the content. On a narrow screen it is always folded. " +
+        "Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then keeps only a slim strip for its menu button, which slides it back in over the surface (never over anything outside it). In a narrow surface or on a narrow screen it is always folded. " +
         "An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.",
       props: {
         label: z.string().optional().describe("What the navigation is for, for assistive technology."),
@@ -380,7 +403,18 @@ export const analyticsCatalog = defineCatalog({
     Button: {
       description:
         'A control that sends an event back to the agent or opens a link. Its label is a child Text. To open a link, the action is a function call in place of an event: `"action": {"functionCall": {"@call": "openUrl", "args": {"url": "https://example.com/start"}}}`.',
-      props: { child: childId, variant: z.enum(["default", "primary", "borderless"]).optional(), action },
+      props: {
+        child: childId,
+        variant: z.enum(["default", "primary", "borderless"]).optional(),
+        action,
+        requires: z
+          .array(z.string())
+          .max(40)
+          .optional()
+          .describe(
+            "Ids of inputs (TextField, NumberField, ChoicePicker, CheckBox, DateTimeInput) this button waits for. While any of them is missing or wrong the button is marked unavailable; a press then sends nothing, has each say what is wrong beside it and moves to the first. An input that is not shown (`visibleWhen`) is not waited for.",
+          ),
+      },
       example: {
         id: "refresh",
         component: "Button",
@@ -438,12 +472,12 @@ export const analyticsCatalog = defineCatalog({
     },
     Form: {
       description:
-        "A form that checks what a person enters and submits it. Give the fields and their rules; the form draws a labelled input for each, shows errors beside them and sends nothing while any is wrong. When the page has a forms backend, values go to the form with this `formId` there (the backend decides where they are stored; you never name a table); either way your event receives them. Use it instead of loose inputs and a Button whenever values must be checked or kept.",
+        "A form that checks what a person enters and submits it. Give the fields and their rules; the form draws a labelled input for each, shows errors beside them and sends nothing while any is wrong. A field with `visibleWhen: { field, equals }` is asked for only once another field holds that value. When the page has a forms backend, values go to the form with this `formId` there (the backend decides where they are stored; you never name a table); either way your event receives them. Use it instead of loose inputs and a Button whenever values must be checked or kept.",
       props: {
         formId: z.string().min(1),
         title: dynamicString.optional(),
         description: dynamicString.optional(),
-        fields: z.array(FIELD).min(1).max(40),
+        fields: FIELDS,
         values: dataBinding.optional().describe("Where the entered values live in the data model, to prefill them or show them elsewhere."),
         submitLabel: z.string().optional(),
         action: action.optional(),

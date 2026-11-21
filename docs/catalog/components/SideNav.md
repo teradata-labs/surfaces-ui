@@ -1,6 +1,6 @@
 # SideNav
 
-Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then takes no room, and a menu button at the top corner of the surface slides it back in over the content. On a narrow screen it is always folded. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.
+Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then keeps only a slim strip for its menu button, which slides it back in over the surface (never over anything outside it). In a narrow surface or on a narrow screen it is always folded. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.
 
 ## Props
 

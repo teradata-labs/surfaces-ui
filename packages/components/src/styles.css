@@ -5502,6 +5502,12 @@ select.sf-input:disabled {
 }
 
 /* A loose input's wrapper only listens for the person leaving it; the field lays itself out. */
+/* A Button waiting for inputs (`requires`): marked unavailable but still reachable, since a press says what is missing. */
+.sf-a2-button[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .sf-a2-field {
   display: contents;
 }
@@ -6229,18 +6235,15 @@ select.sf-input:disabled {
   font-weight: var(--sf-font-weight-semibold);
 }
 
-/* Folded away it takes no room beside the page: a menu button sits at the top corner of whatever holds the navigation,
-   and stays there as that scrolls. It is placed in its container, never the window, so inside a host's canvas it
-   cannot land on the host's own toolbar. */
-.sf-sidenav[data-pinned="false"] {
-  flex: none;
-  inline-size: 0;
+/* Pinned, the stage is not there: the panel sits in the navigation's own row. */
+.sf-sidenav-stage {
+  display: contents;
 }
 
-/* What follows a folded navigation is told how much room its button takes, so a heading can step aside:
-   padding-inline-start: var(--sf-sidenav-inset, 0px). */
-.sf-sidenav[data-pinned="false"] ~ * {
-  --sf-sidenav-inset: calc(max(var(--sf-target-min), var(--sf-control-size)) + var(--sf-space-2) * 2);
+/* Folded away it keeps only the room its menu button takes: a slim strip where the navigation was, so the button is
+   never over the page, and never over a host's own toolbar. The button stays at the top of the strip as it scrolls. */
+.sf-sidenav[data-pinned="false"] {
+  flex: none;
 }
 
 .sf-sidenav-open,
@@ -6295,15 +6298,30 @@ select.sf-input:disabled {
   outline-offset: -2px;
 }
 
-/* Folded away, the panel waits off the left edge and slides in over the page when the menu button is pressed: a drawer
-   on a wide screen, the whole screen on a narrow one. Hover and focus do not open it: a drawer that opened under a
-   passing pointer would cover the page by surprise. */
-.sf-sidenav[data-pinned="false"] .sf-sidenav-panel {
+/* Folded away, the panel waits off the left edge of its stage and slides in when the menu button is pressed: a drawer
+   beside a dimmed page where there is room, the whole stage where there is not. The stage is the window, or the part
+   on screen of the region the navigation is drawn in (measured when it opens, since a fixed box cannot be told its
+   container in CSS), and it clips the drawer, so nothing outside that region is covered even while it slides. Hover
+   and focus do not open it: a drawer that opened under a passing pointer would cover the page by surprise. */
+.sf-sidenav[data-pinned="false"] .sf-sidenav-stage {
+  display: block;
   position: fixed;
-  inset-block: 0;
-  inset-inline-start: 0;
+  /* Over the window it starts below a host's own sticky bar, as everything that sticks does. */
+  inset-block-start: var(--sf-sidenav-top, var(--sf-sticky-top, 0px));
+  left: var(--sf-sidenav-left, 0px);
+  inline-size: var(--sf-sidenav-width, 100%);
+  block-size: var(--sf-sidenav-height, calc(100% - var(--sf-sticky-top, 0px)));
   z-index: 40;
-  inline-size: min(20rem, 85vw);
+  overflow: clip;
+  pointer-events: none;
+}
+
+.sf-sidenav[data-pinned="false"] .sf-sidenav-panel {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  inline-size: min(20rem, 85%);
+  pointer-events: auto;
   border-inline-end: 1px solid var(--sf-glass-edge);
   background: var(--sf-glass-thick);
   -webkit-backdrop-filter: var(--sf-glass-filter);
@@ -6326,20 +6344,18 @@ select.sf-input:disabled {
 }
 
 .sf-sidenav-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 35;
+  pointer-events: auto;
   background: var(--sf-glass-dim);
   animation: sf-fade var(--sf-duration) var(--sf-ease-out);
 }
 
-/* On a narrow screen a drawer would leave a sliver of page beside it: the navigation takes the whole screen. */
-@media (max-width: 40rem) {
-  .sf-sidenav[data-pinned="false"] .sf-sidenav-panel {
-    inset-inline-end: 0;
-    inline-size: auto;
-    border-inline-end: 0;
-  }
+/* Where the window or the region is narrow a drawer would leave a sliver of page beside it: the navigation takes the
+   whole stage. */
+.sf-sidenav[data-pinned="false"][data-narrow] .sf-sidenav-panel {
+  inline-size: 100%;
+  border-inline-end: 0;
 }
 
 /* NavBar: sections across the top on glass, and the current section's pages in a second bar beneath. Content scrolls

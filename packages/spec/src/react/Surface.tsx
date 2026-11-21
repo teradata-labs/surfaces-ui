@@ -109,6 +109,97 @@ export interface SurfaceViewProps {
 
 const Depth = createContext(0);
 
+/** What one drawn input says about itself. */
+interface InputStanding {
+  label: string;
+  /** What is wrong with its value now, whether or not the person has been told yet. */
+  problem?: string;
+  element: HTMLElement | null;
+}
+
+/** The inputs drawn in one view, by component id, so a Button can wait for them (`requires`). Nothing here leaves the view. */
+class InputsStore {
+  fields = new Map<string, InputStanding>();
+  /** Inputs told to say what is wrong although the person has not left them: a Button waiting on them was pressed. */
+  shown = new Set<string>();
+  version = 0;
+  private listeners = new Set<() => void>();
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+  read = () => this.version;
+  private changed() {
+    this.version++;
+    for (const listener of [...this.listeners]) listener();
+  }
+  set(id: string, standing: InputStanding) {
+    const before = this.fields.get(id);
+    this.fields.set(id, standing);
+    if (!before || before.problem !== standing.problem || before.label !== standing.label) this.changed();
+  }
+  remove(id: string, element: HTMLElement | null) {
+    // Another input drawn under the same id since (a row of a list) keeps its place.
+    if (this.fields.get(id)?.element !== element) return;
+    this.fields.delete(id);
+    this.changed();
+  }
+  show(ids: string[]) {
+    for (const id of ids) this.shown.add(id);
+    this.changed();
+  }
+}
+
+const Inputs = createContext<InputsStore | undefined>(undefined);
+const NO_INPUTS = { subscribe: () => () => {}, read: () => 0 };
+
+/**
+ * For an input's renderer: tells the surface whether its value is in order (`problem` is what is wrong, or nothing),
+ * so a Button that names it in `requires` can wait for it. `shown` turns true once such a Button was pressed while it
+ * was not, which is when the input says what is wrong even if the person never visited it. Put `ref` on the
+ * input's own element, so focus can be moved to it.
+ */
+export function useInputCheck(id: string, label: string, problem: string | undefined): { shown: boolean; ref(element: HTMLElement | null): void } {
+  const store = useContext(Inputs);
+  const element = useRef<HTMLElement | null>(null);
+  useSyncExternalStore(store?.subscribe ?? NO_INPUTS.subscribe, store?.read ?? NO_INPUTS.read, NO_INPUTS.read);
+  useEffect(() => {
+    if (!store) return;
+    const held = element.current;
+    store.set(id, { label, problem, element: held });
+    return () => store.remove(id, held);
+  }, [store, id, label, problem]);
+  const ref = useCallback((node: HTMLElement | null) => {
+    element.current = node;
+  }, []);
+  return { shown: store?.shown.has(id) ?? false, ref };
+}
+
+/**
+ * For a control's renderer: the inputs among `ids` that are drawn and not in order, in the order given. `show()` has
+ * each of them say what is wrong and moves focus to the first. An id that names no drawn input (it is not shown, or
+ * is not an input) is not waited for.
+ */
+export function useRequiredInputs(ids: unknown): { waiting: { id: string; label: string; problem: string }[]; show(): void } {
+  const store = useContext(Inputs);
+  useSyncExternalStore(store?.subscribe ?? NO_INPUTS.subscribe, store?.read ?? NO_INPUTS.read, NO_INPUTS.read);
+  const list = Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : [];
+  const waiting = list.flatMap((id) => {
+    const standing = store?.fields.get(id);
+    return standing?.problem ? [{ id, label: standing.label, problem: standing.problem }] : [];
+  });
+  return {
+    waiting,
+    show: () => {
+      if (!store || waiting.length === 0) return;
+      store.show(waiting.map((field) => field.id));
+      store.fields.get(waiting[0]!.id)?.element?.querySelector<HTMLElement>("input, select, textarea")?.focus();
+    },
+  };
+}
+
 /** Runs one renderer as a component of its own, so renderers may use hooks. */
 function Rendered({ render, args }: { render: ComponentRenderer; args: RenderProps }) {
   return render(args);
@@ -302,6 +393,7 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
     [catalog],
   );
   const checked = useMemo(() => new Map<SurfaceComponent, ValidationIssue[]>(), [catalog]);
+  const inputs = useMemo(() => new InputsStore(), []);
 
   // `model` is the data a component reads: the surface's, or for a row of a query the same with that row laid in at its scope.
   const node = (id: unknown, scope: string, trail: string[], model: unknown = data): ReactNode => {
@@ -472,7 +564,7 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
 
   const body = (
     <div className={["sf-surface", "sf-container", className].filter(Boolean).join(" ")} data-surface={surface.surfaceId}>
-      {Object.hasOwn(surface.components, "root") ? node("root", "/", []) : null}
+      <Inputs.Provider value={inputs}>{Object.hasOwn(surface.components, "root") ? node("root", "/", []) : null}</Inputs.Provider>
     </div>
   );
   return surface.theme ? <SurfaceTheme request={surface.theme as ThemeRequest}>{body}</SurfaceTheme> : body;

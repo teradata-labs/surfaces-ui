@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
 import { FieldType, FormDefinitionSchema, SurfaceKind } from "@surfaces-ui/proto";
 import { describe, expect, it } from "vitest";
-import { checkSubmission, memoryForms } from "./forms.js";
+import { checkSubmission, fieldAsked, formDefinitions, memoryForms } from "./forms.js";
 import { memorySurfaceLibrary, StaleSurfaceError } from "./library.js";
 
 const form = {
@@ -18,6 +18,45 @@ const form = {
     { name: "at", label: "At", type: FieldType.DATETIME },
   ],
 };
+
+describe("a field that waits on another", () => {
+  const [spec] = formDefinitions([
+    {
+      id: "source",
+      fields: [
+        { name: "kind", label: "Source", type: "choice", options: ["Table", "Website"], required: true },
+        { name: "table", label: "Table name", type: "text", required: true, visibleWhen: { field: "kind", equals: "Table" } },
+        { name: "url", label: "URL", type: "text", required: true, pattern: "https?://.+", visibleWhen: { field: "kind", equals: "Website" } },
+        { name: "depth", label: "Depth", type: "integer", visibleWhen: { field: "url" } },
+      ],
+    },
+  ]);
+  const waiting = create(FormDefinitionSchema, spec!);
+  const field = (name: string) => waiting.fields.find((f) => f.name === name)!;
+
+  it("is asked for only while the other holds what it waits for", () => {
+    expect(fieldAsked(waiting, field("kind"), {})).toBe(true);
+    expect(fieldAsked(waiting, field("table"), {})).toBe(false);
+    expect(fieldAsked(waiting, field("table"), { kind: "Table" })).toBe(true);
+    expect(fieldAsked(waiting, field("url"), { kind: "Table" })).toBe(false);
+    // With no value named, anything there will do; and a field waiting on one that is not asked for is not asked for either.
+    expect(fieldAsked(waiting, field("depth"), { kind: "Website", url: "https://example.com" })).toBe(true);
+    expect(fieldAsked(waiting, field("depth"), { kind: "Table", url: "https://example.com" })).toBe(false);
+  });
+
+  it("is not required, and stores nothing, while it is not asked for", () => {
+    const table = checkSubmission(waiting, { kind: "Table", table: "docs.articles", url: "left over" });
+    expect(table.errors).toEqual([]);
+    expect(table.values).toEqual({ kind: "Table", table: "docs.articles", url: null, depth: null });
+    expect(checkSubmission(waiting, { kind: "Website" }).errors.map((e) => e.field)).toEqual(["url"]);
+    expect(checkSubmission(waiting, { kind: "Website", url: "ftp://x" }).errors.map((e) => e.message)).toEqual(["Not in the expected format."]);
+  });
+
+  it("is refused in config when it names no other field", () => {
+    expect(() => formDefinitions([{ id: "f", fields: [{ name: "a", label: "A", type: "text", visibleWhen: { field: "b" } }] }])).toThrow(/waits on "b"/);
+    expect(() => formDefinitions([{ id: "f", fields: [{ name: "a", label: "A", type: "text", visibleWhen: { field: "a" } }] }])).toThrow(/waits on "a"/);
+  });
+});
 
 describe("checkSubmission", () => {
   const definition = create(FormDefinitionSchema, form);

@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { ControlIcon } from "../controls/ItemControls.js";
 
 export interface SideNavItem {
@@ -38,8 +38,40 @@ export const SIDENAV_NARROW = "(max-width: 40rem)";
 
 const narrowQuery = () => (typeof window !== "undefined" && typeof window.matchMedia === "function" ? window.matchMedia(SIDENAV_NARROW) : undefined);
 
-function useNarrow(): boolean {
+/** The width, in rem, under which whatever holds the navigation is too narrow to dock it beside the page. */
+const NARROW_REM = 40;
+/** The least room, in px each way, a drawer needs: in a smaller box it takes the window instead. */
+export const SIDENAV_LEAST = 240;
+
+/** A box on screen, in px from the window's top left. */
+export interface NavBox {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Where a folded navigation's drawer goes: the part of its holder that is on screen. Nothing (the whole window) when
+ * the holder is not laid out, is off screen, or shows less than `least` px either way.
+ */
+export function drawerBox(holder: NavBox | undefined, viewport: { width: number; height: number }, least = SIDENAV_LEAST): NavBox | undefined {
+  if (!holder) return undefined;
+  const top = Math.max(holder.top, 0);
+  const left = Math.max(holder.left, 0);
+  const width = Math.min(holder.left + holder.width, viewport.width) - left;
+  const height = Math.min(holder.top + holder.height, viewport.height) - top;
+  if (!(width >= least) || !(height >= least)) return undefined;
+  return { top, left, width, height };
+}
+
+/** What holds the navigation when it is drawn inside a region that answers to its own size (a surface, a result). */
+const holderOf = (element: Element | null) => element?.closest(".sf-container") ?? undefined;
+
+/** True when the window, or the region the navigation is drawn in, is too narrow to dock it. */
+function useNarrow(root: RefObject<HTMLElement | null>): boolean {
   const [narrow, setNarrow] = useState(() => narrowQuery()?.matches ?? false);
+  const [tight, setTight] = useState(false);
   useEffect(() => {
     const query = narrowQuery();
     if (!query) return;
@@ -48,7 +80,21 @@ function useNarrow(): boolean {
     query.addEventListener("change", change);
     return () => query.removeEventListener("change", change);
   }, []);
-  return narrow;
+  useEffect(() => {
+    const holder = holderOf(root.current);
+    if (!holder || typeof ResizeObserver === "undefined") return;
+    const measure = () => {
+      const width = holder.getBoundingClientRect().width;
+      const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      // A holder that is not laid out says nothing.
+      setTight(width > 0 && width < NARROW_REM * rem);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(holder);
+    return () => observer.disconnect();
+  }, [root]);
+  return narrow || tight;
 }
 
 /** "Site navigation" for "Site", and "Main navigation" left as it is: a label that already says so is not said twice. */
@@ -57,16 +103,19 @@ export const navigationName = (label: string) => (/\bnavigation\s*$/i.test(label
 const FOCUSABLE = 'a[href], button:not([disabled]), select:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * Side navigation that can get out of the way. Pinned, it sits beside the page. Unpinned, it takes no room at all: a
- * menu button sits at the top corner of whatever holds the navigation (never the window's, so a host's own toolbar is
- * left alone; what comes after it is told the room to leave as `--sf-sidenav-inset`), and pressing it slides the navigation in from the left over the whole
- * screen, as a dialog. Focus moves into it and stays there until it closes, on Escape, on its close button, or when an
- * item is chosen; focus then goes back to the menu button. Below `SIDENAV_NARROW` it is always folded and offers no pin.
+ * Side navigation that can get out of the way. Pinned, it sits beside the page. Unpinned, it keeps only the room its
+ * menu button takes: a slim strip where the navigation was, so the button never sits over the page or a host's own
+ * toolbar. Pressing it slides the navigation in from the left as a dialog: over the window, or, drawn inside a region
+ * that answers to its own size (a surface in a host's canvas, a chat reply), over that region only. Focus moves into
+ * it and stays there until it closes, on Escape, on its close button, or when an item is chosen; focus then goes back
+ * to the menu button. Where the window or that region is under 40rem wide (`SIDENAV_NARROW`) it is always folded and
+ * offers no pin.
  */
 export function SideNav({ label, groups, current, onSelect, pinned: given, defaultPinned = true, onPinnedChange, header, footer, className }: SideNavProps) {
   const id = useId();
   const [kept, setKept] = useState(defaultPinned);
-  const narrow = useNarrow();
+  const root = useRef<HTMLDivElement>(null);
+  const narrow = useNarrow(root);
   // On a narrow screen it is folded whatever was chosen; the choice comes back on a wider one.
   const pinned = (given ?? kept) && !narrow;
   const [open, setOpen] = useState(false);
@@ -84,6 +133,24 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
     if (!next) requestAnimationFrame(() => opener()?.focus());
   };
   const taking = !pinned && open;
+  // Where the drawer goes while it is open: the part of its holder on screen, kept current as that moves.
+  const [box, setBox] = useState<NavBox | undefined>(undefined);
+  useLayoutEffect(() => {
+    if (!taking) return;
+    const place = () => {
+      const rect = holderOf(root.current)?.getBoundingClientRect();
+      const next = drawerBox(rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : undefined, { width: window.innerWidth, height: window.innerHeight });
+      setBox((before) => (before && next && before.top === next.top && before.left === next.left && before.width === next.width && before.height === next.height ? before : next));
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [taking]);
+  const placed = !pinned && box ? ({ "--sf-sidenav-top": `${box.top}px`, "--sf-sidenav-left": `${box.left}px`, "--sf-sidenav-width": `${box.width}px`, "--sf-sidenav-height": `${box.height}px` } as CSSProperties) : undefined;
   // Opened over the page: focus goes in, to the close button first.
   useEffect(() => {
     if (taking) panel.current?.querySelector<HTMLElement>(".sf-sidenav-close")?.focus();
@@ -118,12 +185,14 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Escape and Tab are handled here for everything inside; the controls themselves are buttons and links.
-    <div className={`sf-sidenav${className ? ` ${className}` : ""}`} data-pinned={pinned} data-open={open || undefined} onKeyDown={onKey}>
+    <div ref={root} className={`sf-sidenav${className ? ` ${className}` : ""}`} data-pinned={pinned} data-open={open || undefined} data-narrow={narrow || undefined} style={placed} onKeyDown={onKey}>
       {!pinned && (
         <button id={`${id}-open`} type="button" className="sf-sidenav-open" aria-expanded={open} aria-controls={`${id}-panel`} aria-label={`Show ${navigationName(label)}`} onClick={() => setOpen(true)}>
           <ControlIcon icon="menu" />
         </button>
       )}
+      {/* Folded, the drawer and the dimmed page behind it live in a stage laid over the holder, which clips the drawer as it slides. */}
+      <div className="sf-sidenav-stage">
       {/* The page behind a drawer is dimmed, and a press on it closes the drawer; Escape and the close button do the same. */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: a pointer's shortcut; the keyboard closes it with Escape or the close button. */}
       {taking && <div className="sf-sidenav-backdrop" aria-hidden="true" onClick={close} />}
@@ -176,6 +245,7 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
           ))}
         </nav>
         {footer && <div className="sf-sidenav-footer">{footer}</div>}
+      </div>
       </div>
     </div>
   );

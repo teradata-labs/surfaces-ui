@@ -24,7 +24,7 @@ Every message has `"version": "1.0"`.
 - SQL must be a single read-only SELECT. Never put user-typed text into SQL; sorting, filtering and paging are done by the components.
 - For charts over large tables, give each measure an `aggregate`.
 - Buttons send an `event` back to you with the `context` you declare. Wait for it; do not assume it happened.
-- Values that must be checked and sent together belong in a `Form`: it marks what is required, shows each problem beside its field, and sends nothing while any is wrong. Loose inputs check themselves (`required`, `min`, `max`, `pattern`) but a Button beside them does not wait for them.
+- Values that must be checked and sent together belong in a `Form`: it marks what is required, shows each problem beside its field, and sends nothing while any is wrong. Inside a `Form` a field waits on another with its own `visibleWhen: { "field": "kind", "equals": "Table" }`. Loose inputs check themselves (`required`, `min`, `max`, `pattern`); a Button waits for them only when it names their ids in `requires`, and then sends nothing until each is in order.
 
 ## Getting the reply you need
 
@@ -98,7 +98,7 @@ Several children side by side as panels a person can arrange: drag a panel by it
 Example: `{"id":"explore","component":"Workspace","label":"Explore the catalog","panels":[{"id":"search","title":"Table search","short":"Search","icon":"search","child":"search"},{"id":"map","title":"Relationship map","short":"Map","icon":"map","child":"map"}],"layout":{"columns":[["search"],["map"]],"columnWidths":[0.4,0.6]},"height":520}`
 
 ### SideNav
-Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then takes no room, and a menu button at the top corner of the surface slides it back in over the content. On a narrow screen it is always folded. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.
+Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then keeps only a slim strip for its menu button, which slides it back in over the surface (never over anything outside it). In a narrow surface or on a narrow screen it is always folded. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.
 - `label` (optional): string — What the navigation is for, for assistive technology.
 - `groups`: array of { label?: string, items: array of object }
 - `current` (optional): string | binding | call — The id of the item for what is showing.
@@ -120,6 +120,7 @@ A control that sends an event back to the agent or opens a link. Its label is a 
 - `child`: string — ID of a child component.
 - `variant` (optional): "default" | "primary" | "borderless"
 - `action`: { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
+- `requires` (optional): array of string — Ids of inputs (TextField, NumberField, ChoicePicker, CheckBox, DateTimeInput) this button waits for. While any of them is missing or wrong the button is marked unavailable; a press then sends nothing, has each say what is wrong beside it and moves to the first. An input that is not shown (`visibleWhen`) is not waited for.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Sends:
 - **press**: When pressed. Carries only the context declared in the action.
@@ -191,11 +192,11 @@ A number chosen along a range, with its value shown in words. The value is writt
 Example: `{"id":"confidence","component":"Slider","label":"Confidence","value":{"@path":"/confidence"},"min":0,"max":100,"step":5}`
 
 ### Form
-A form that checks what a person enters and submits it. Give the fields and their rules; the form draws a labelled input for each, shows errors beside them and sends nothing while any is wrong. When the page has a forms backend, values go to the form with this `formId` there (the backend decides where they are stored; you never name a table); either way your event receives them. Use it instead of loose inputs and a Button whenever values must be checked or kept.
+A form that checks what a person enters and submits it. Give the fields and their rules; the form draws a labelled input for each, shows errors beside them and sends nothing while any is wrong. A field with `visibleWhen: { field, equals }` is asked for only once another field holds that value. When the page has a forms backend, values go to the form with this `formId` there (the backend decides where they are stored; you never name a table); either way your event receives them. Use it instead of loose inputs and a Button whenever values must be checked or kept.
 - `formId`: string
 - `title` (optional): string | binding | call
 - `description` (optional): string | binding | call
-- `fields`: array of { name: string, label: string, type: "text" | "longtext" | "number" | "integer" | "boolean" | "date" | "datetime" | "choice", required?: boolean, options?: array of string, min?: number, max?: number, step?: number, maxLength?: integer, pattern?: string, help?: string, placeholder?: string }
+- `fields`: array of { name: string, label: string, type: "text" | "longtext" | "number" | "integer" | "boolean" | "date" | "datetime" | "choice", required?: boolean, options?: array of string, min?: number, max?: number, step?: number, maxLength?: integer, pattern?: string, help?: string, placeholder?: string, visibleWhen?: { field: string, equals?: any, in?: array } }
 - `values` (optional): binding — Where the entered values live in the data model, to prefill them or show them elsewhere.
 - `submitLabel` (optional): string
 - `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }

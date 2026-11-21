@@ -1,13 +1,13 @@
 # Form
 
-A form that checks what a person enters and submits it. Give the fields and their rules; the form draws a labelled input for each, shows errors beside them and sends nothing while any is wrong. When the page has a forms backend, values go to the form with this `formId` there (the backend decides where they are stored; you never name a table); either way your event receives them. Use it instead of loose inputs and a Button whenever values must be checked or kept.
+A form that checks what a person enters and submits it. Give the fields and their rules; the form draws a labelled input for each, shows errors beside them and sends nothing while any is wrong. A field with `visibleWhen: { field, equals }` is asked for only once another field holds that value. When the page has a forms backend, values go to the form with this `formId` there (the backend decides where they are stored; you never name a table); either way your event receives them. Use it instead of loose inputs and a Button whenever values must be checked or kept.
 
 ## Props
 
 - `formId`: string
 - `title` (optional): string | binding | call
 - `description` (optional): string | binding | call
-- `fields`: array of { name: string, label: string, type: "text" | "longtext" | "number" | "integer" | "boolean" | "date" | "datetime" | "choice", required?: boolean, options?: array of string, min?: number, max?: number, step?: number, maxLength?: integer, pattern?: string, help?: string, placeholder?: string }
+- `fields`: array of { name: string, label: string, type: "text" | "longtext" | "number" | "integer" | "boolean" | "date" | "datetime" | "choice", required?: boolean, options?: array of string, min?: number, max?: number, step?: number, maxLength?: integer, pattern?: string, help?: string, placeholder?: string, visibleWhen?: { field: string, equals?: any, in?: array } }
 - `values` (optional): binding — Where the entered values live in the data model, to prefill them or show them elsewhere.
 - `submitLabel` (optional): string
 - `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }

@@ -49,6 +49,20 @@ message FormField {
   optional uint32 max_length = 8;
   string pattern = 9;
   string help = 10;
+  // When set, the field is asked for only while this holds. A field that is
+  // not asked for is not required, and whatever was sent for it is stored as
+  // null.
+  optional FieldCondition visible_when = 11;
+}
+
+// A field that waits on another field of the same form.
+message FieldCondition {
+  // The other field's name.
+  string field = 1;
+  // Holds while that field's value, written as text ("true" for a ticked
+  // box), is one of these. Empty: holds while that field has any value (not
+  // nothing, empty text or an unticked box).
+  repeated string values = 2;
 }
 
 message FormDefinition {

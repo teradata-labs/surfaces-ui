@@ -71,6 +71,57 @@ describe("inputs", () => {
   });
 });
 
+describe("a Button that waits for inputs", () => {
+  const components = (requires?: string[]): SurfaceComponent[] => [
+    { id: "root", component: "Column", children: ["kind", "table", "url", "size", "send"] },
+    { id: "kind", component: "ChoicePicker", label: "Source", value: { "@path": "/kind" }, options: ["Table", "Website"], required: true },
+    { id: "table", component: "TextField", label: "Table name", value: { "@path": "/table" }, required: true, visibleWhen: { path: "/kind", equals: "Table" } },
+    { id: "url", component: "TextField", label: "URL to crawl", value: { "@path": "/url" }, required: true, visibleWhen: { path: "/kind", equals: "Website" } },
+    { id: "size", component: "NumberField", label: "Chunk size", value: { "@path": "/size" }, min: 200, max: 2000, required: true },
+    { id: "send", component: "Button", child: "send-label", ...(requires ? { requires } : {}), action: { event: { name: "create", context: { kind: { "@path": "/kind" }, size: { "@path": "/size" } } } } },
+    { id: "send-label", component: "Text", text: "Create" },
+  ];
+
+  it("sends nothing while one is missing or wrong, says what is wrong beside each and moves to the first", () => {
+    const onAction = vi.fn<(a: SurfaceAction) => void>();
+    expect(analyticsCatalog.validateComponent(components(["kind", "table", "url", "size"])[5]!)).toEqual([]);
+    render(<SurfaceView surface={surfaceOf(components(["kind", "table", "url", "size"]), false, { size: 50 })} catalog={analyticsCatalog} renderers={analyticsRenderers} onAction={onAction} />);
+    const button = screen.getByRole("button", { name: "Create" }) as HTMLButtonElement;
+    // Marked unavailable, yet not disabled: it can be reached, and a press explains itself.
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    expect(button.disabled).toBe(false);
+    expect(screen.queryByRole("alert")).toBeNull();
+    fireEvent.click(button);
+    expect(onAction).not.toHaveBeenCalled();
+    expect(screen.getAllByRole("alert").map((a) => a.textContent)).toEqual(["Source is required.", "Must be at least 200."]);
+    expect(screen.getByRole("status").textContent).toBe("Nothing was sent. 2 fields need attention: Source, Chunk size.");
+    expect(document.activeElement).toBe(screen.getByLabelText("Table"));
+
+    // The field the choice calls for is waited for; the one it hides is not.
+    fireEvent.click(screen.getByLabelText("Table"));
+    fireEvent.change(screen.getByLabelText(/Chunk size/), { target: { value: "500" } });
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(button);
+    expect(onAction).not.toHaveBeenCalled();
+    expect(screen.getByRole("status").textContent).toBe("Nothing was sent. Table name is required.");
+    expect(document.activeElement).toBe(screen.getByLabelText(/Table name/));
+    fireEvent.change(screen.getByLabelText(/Table name/), { target: { value: "docs.articles" } });
+    expect(button.hasAttribute("aria-disabled")).toBe(false);
+    expect(screen.queryByRole("status")).toBeNull();
+    fireEvent.click(button);
+    expect(onAction.mock.calls[0]![0]).toMatchObject({ name: "create", context: { kind: "Table", size: 500 } });
+  });
+
+  it("does not wait unless it names them", () => {
+    const onAction = vi.fn<(a: SurfaceAction) => void>();
+    render(<SurfaceView surface={surfaceOf(components())} catalog={analyticsCatalog} renderers={analyticsRenderers} onAction={onAction} />);
+    const button = screen.getByRole("button", { name: "Create" });
+    expect(button.hasAttribute("aria-disabled")).toBe(false);
+    fireEvent.click(button);
+    expect(onAction).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("Form on a surface", () => {
   const pattern = patternById("collect-a-decision-in-a-form")!;
 
@@ -100,6 +151,25 @@ describe("Form on a surface", () => {
     expect(forms.submissions()[0]?.values).toEqual({ decision: "Fraud", amount_at_risk: 2700, note: null });
     expect(onAction.mock.calls[0]![0]).toMatchObject({ name: "case_reviewed", context: { formId: "case-review", submissionId: "sub-1", values: { decision: "Fraud", amount_at_risk: 2700 } } });
     expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  it("takes a field that waits on another, and refuses one that waits on a field the form does not have", () => {
+    const form = (field: string) => ({
+      id: "f",
+      component: "Form",
+      formId: "source",
+      fields: [
+        { name: "kind", label: "Source", type: "choice", options: ["Table", "Website"], required: true },
+        { name: "table", label: "Table name", type: "text", required: true, visibleWhen: { field, equals: "Table" } },
+      ],
+    });
+    expect(analyticsCatalog.validateComponent(form("kind"))).toEqual([]);
+    expect(analyticsCatalog.validateComponent(form("sort"))[0]?.message).toMatch(/no field "sort".*kind, table/);
+    expect(analyticsCatalog.validateComponent(form("table"))[0]?.message).toMatch(/cannot wait on itself/);
+    render(<SurfaceView surface={surfaceOf([{ id: "root", component: "Column", children: ["f"] }, form("kind") as SurfaceComponent])} catalog={analyticsCatalog} renderers={analyticsRenderers} />);
+    expect(screen.queryByLabelText(/Table name/)).toBeNull();
+    fireEvent.click(screen.getByLabelText("Table"));
+    expect(screen.getByLabelText(/Table name/)).toBeTruthy();
   });
 
   it("reports a renderer that adds context its catalog entry does not declare", () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { HUES } from "./charts.js";
 import { presetByName } from "./presets.js";
 import { applyThemeRequest } from "./request.js";
 import { defaultTheme } from "./presets.js";
@@ -14,7 +15,7 @@ describe("applyThemeRequest", () => {
     const { theme, problems } = applyThemeRequest({ radius: 99, font: "mono", density: "compact", seriesOrder: "Berry", accent: "#0E7C66" }, defaultTheme);
     expect(problems).toEqual([]);
     expect(theme).toMatchObject({ name: "Custom", radius: 28, font: "mono", density: "compact" });
-    expect(theme.charts.light.series[0]).toBe("#BE47B8");
+    expect(theme.charts.light.series[0]).toBe(HUES.magenta.light);
     expect(theme.light.accent).toBe("#0E7C66");
     expect(theme.light.background).toBe(defaultTheme.light.background);
   });

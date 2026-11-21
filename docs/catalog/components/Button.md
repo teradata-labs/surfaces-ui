@@ -7,6 +7,7 @@ A control that sends an event back to the agent or opens a link. Its label is a 
 - `child`: string — ID of a child component.
 - `variant` (optional): "default" | "primary" | "borderless"
 - `action`: { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
+- `requires` (optional): array of string — Ids of inputs (TextField, NumberField, ChoicePicker, CheckBox, DateTimeInput) this button waits for. While any of them is missing or wrong the button is marked unavailable; a press then sends nothing, has each say what is wrong beside it and moves to the first. An input that is not shown (`visibleWhen`) is not waited for.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

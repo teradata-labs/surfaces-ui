@@ -1,5 +1,5 @@
 import { create, type JsonObject, type JsonValue } from "@bufbuild/protobuf";
-import { checkSubmission, type Forms } from "@surfaces-ui/data";
+import { type FieldConditionSpec, type Forms, checkSubmission, fieldAsked, fieldCondition } from "@surfaces-ui/data";
 import { FieldType, FormDefinitionSchema } from "@surfaces-ui/proto";
 import { type FormEvent, type ReactNode, createContext, useContext, useId, useRef, useState } from "react";
 import { label as text } from "../locale/locale.js";
@@ -36,6 +36,8 @@ export interface FormFieldSpec {
   /** A sentence under the field, outside the label. */
   help?: string;
   placeholder?: string;
+  /** Asked for only while another field of the form holds this: `{ field: "kind", equals: "Table" }`. Not drawn, not required and sent as null otherwise. */
+  visibleWhen?: FieldConditionSpec;
 }
 
 const KIND_TYPE: Record<FormFieldKind, FieldType> = {
@@ -53,7 +55,7 @@ const KIND_TYPE: Record<FormFieldKind, FieldType> = {
 export function formDefinition(formId: string, fields: FormFieldSpec[]) {
   return create(FormDefinitionSchema, {
     id: formId,
-    fields: fields.map((f) => ({ name: f.name, label: f.label, type: KIND_TYPE[f.type], required: f.required ?? false, options: f.options ?? [], min: f.min, max: f.max, maxLength: f.maxLength, pattern: f.pattern ?? "", help: f.help ?? "" })),
+    fields: fields.map((f) => ({ name: f.name, label: f.label, type: KIND_TYPE[f.type], required: f.required ?? false, options: f.options ?? [], min: f.min, max: f.max, maxLength: f.maxLength, pattern: f.pattern ?? "", help: f.help ?? "", visibleWhen: fieldCondition(f.visibleWhen) })),
   });
 }
 
@@ -210,10 +212,13 @@ export function Form(props: FormProps) {
     if (errors[name]) setErrors(({ [name]: _gone, ...rest }) => rest);
   };
 
+  const definition = formDefinition(formId, fields);
+  // Fields that wait on another are drawn only while it holds what they wait for.
+  const asked = fields.filter((_, index) => fieldAsked(definition, definition.fields[index]!, values));
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (status.kind === "sending") return;
-    const definition = formDefinition(formId, fields);
     const checked = checkSubmission(definition, values);
     if (checked.errors.length > 0) {
       setErrors(Object.fromEntries(checked.errors.map((e) => [e.field, e.message])));
@@ -251,7 +256,7 @@ export function Form(props: FormProps) {
         </p>
       )}
       {description && <p className="sf-form-help">{description}</p>}
-      {children ?? fields.map((field) => <FieldInput key={field.name} field={field} value={values[field.name]} error={errors[field.name]} disabled={status.kind === "sending"} onChange={(v) => change(field.name, v)} />)}
+      {children ?? asked.map((field) => <FieldInput key={field.name} field={field} value={values[field.name]} error={errors[field.name]} disabled={status.kind === "sending"} onChange={(v) => change(field.name, v)} />)}
       {children && Object.keys(errors).length > 0 && (
         <ul className="sf-form-error" role="alert">
           {Object.entries(errors).map(([name, message]) => (
