@@ -160,12 +160,14 @@ These changes are in the studio, not this repository. They are listed so the doc
 - Present and review links open a route. A website's handoff carries the site document and the Next.js route file.
 - The pressure tests grow site scenarios, and the splash page becomes the benchmark.
 
-## Questions to settle before building
+## Decisions
 
-1. **Split the basics or extend analytics?** This plan splits a `basicsCatalog` out, so a site agent is not offered a `PivotTable` and a data agent is not offered a `Hero`. The simpler path is `extendCatalog(analyticsCatalog, …)`, which offers a site agent every data component.
-2. **One editorial preset, or editorial tokens on every preset?** This plan adds one preset. The alternative is to give every preset a display step, section spacing and a glow, so any theme can draw a site.
-3. **Layout regions as `PageDocument`s.** Each region is a small page of its own. The alternative is one page per layout with a `Slot` component marking `main`, which is closer to how Next.js writes a layout but harder to edit by region.
-4. **Where image addresses come from.** This plan lets a host give addresses (`resolveImage`) or allowed origins. A site agent will often want to place stock or generated images, and that needs a host-side store.
+Settled in review of this plan.
+
+1. **Split a `basicsCatalog` out of the analytics catalog.** Both catalogs are built on it, so a site agent is not offered a `PivotTable` and a data agent is not offered a `Hero`. A smaller catalog means a shorter prompt and fewer wrong picks. Extending `analyticsCatalog` would have been less work, but it would offer a site agent every data component.
+2. **One Editorial preset.** The display step, section spacing and glow come with one preset, tested like the others. Adding them to all eight presets would multiply the contrast and glow tests by eight for looks most data products never use. A site that wants another look can still start from Editorial and change its accent and fonts.
+3. **Each layout region is a `PageDocument`.** Every tool that reads, checks, edits or arranges a page then works on a region unchanged, and a region can be edited by itself ("show on every page" moves a component into one). A `Slot` marking `main` inside one layout page is closer to how Next.js writes a layout, but it would need new edit rules and a new check for exactly one slot.
+4. **The host gives image addresses, through `resolveImage` or allowed origins.** This is the rule `Markdown` already follows: an agent cannot make a page load an address of its own choosing, which would leak who views it and could show anything. A host that wants stock or generated images supplies them from its own store.
 
 ## Not in this plan
 
