@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/data",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "DataSource interface, Arrow result helpers and an in-memory source",
   "keywords": [
     "surfaces-ui",

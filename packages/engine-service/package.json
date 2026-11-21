@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/engine-service",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "QueryService, CatalogService and SourceService over engine adapters, in Node or a browser",
   "keywords": [
     "surfaces-ui",

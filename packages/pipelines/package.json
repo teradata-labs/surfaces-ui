@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/pipelines",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Reference pipeline runner for Surfaces UI: builds datasets from one another on an Engine, with data quality rules",
   "keywords": [
     "surfaces-ui",

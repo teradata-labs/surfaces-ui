@@ -1,6 +1,6 @@
 {
   "name": "create-surfaces",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Creates a Surfaces UI app: a dashboard, a chat that draws live components, and a data server with six sample datasets",
   "keywords": [
     "surfaces-ui",

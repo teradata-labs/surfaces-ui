@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/agent-loom",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Loom adapter for Surfaces UI chat: talks to a Loom server over its HTTP gateway",
   "keywords": [
     "surfaces-ui",
