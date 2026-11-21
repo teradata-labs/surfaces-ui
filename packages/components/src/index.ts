@@ -54,6 +54,7 @@ export * from "./workspace/icons.js";
 export * from "./workspace/Workspace.js";
 export * from "./workspace/SideNav.js";
 export * from "./workspace/NavBar.js";
+export * from "./site/Site.js";
 export * from "./schema/refs.js";
 export * from "./files/files.js";
 export * from "./files/FileBrowser.js";

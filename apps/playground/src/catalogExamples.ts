@@ -1,4 +1,5 @@
-import { type SurfaceComponent, analyticsCatalog } from "@surfaces-ui/spec";
+import { SITE_COMPONENT_NAMES, type SurfaceComponent } from "@surfaces-ui/spec";
+import { definitionOf } from "./componentCatalogs.js";
 import { type SeedIssue, type SeedPii, joinsOf, seedById, seedSemanticModels } from "@surfaces-ui/seeds";
 import { type DataFocus, focusFor } from "./focus.js";
 import { type ActiveSource, firstTable } from "./source.js";
@@ -13,6 +14,7 @@ export const GROUPS: [string, string[]][] = [
   ["Decisions and review", ["DecisionCard", "Chips", "Checklist", "SqlProposal", "PlanReview", "PiiReview", "StepFlow"]],
   ["Pipelines", ["PipelineGraph", "PipelineView", "RunHistory", "ExpectationsPanel", "SchemaDiff", "StreamMetrics", "IngestWizard"]],
   ["Host", ["ThemeSwitch"]],
+  ["Site", [...SITE_COMPONENT_NAMES]],
 ];
 
 const PII_CATEGORY: Record<SeedPii, string> = {
@@ -210,8 +212,9 @@ export function rowTemplate(props: Record<string, unknown>): SurfaceComponent[] 
 
 export function exampleProps(name: string, source: ActiveSource, thirds?: { to: number; label: string }[]): Record<string, unknown> {
   // An app component has no catalog entry; its page starts from its own example.
-  if (!analyticsCatalog.components[name]) return {};
-  const { id: _id, component: _component, ...props } = analyticsCatalog.components[name]!.example;
+  const definition = definitionOf(name);
+  if (!definition) return {};
+  const { id: _id, component: _component, ...props } = definition.example;
   // Pipelines, quality rules, personal data and cleaning plans come from the picked model itself, not the catalog's
   // own example, so they change with the data picker as everything else does.
   const seeded = seedExample(name, props, source.sourceId);

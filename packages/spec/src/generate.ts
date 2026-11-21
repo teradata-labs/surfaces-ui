@@ -106,8 +106,12 @@ function eventLines(catalog: Catalog, name: string): string[] {
   });
 }
 
-/** Reference documentation for each component, as Markdown keyed by component name. */
-export function catalogDocs(catalog: Catalog): Record<string, string> {
+/**
+ * Reference documentation for each component, as Markdown keyed by component name. `markup` names the JSX elements
+ * the examples are written with (`analyticsMarkup` by default, `siteMarkup` for the site catalog).
+ */
+export function catalogDocs(catalog: Catalog, options: { markup?: string } = {}): Record<string, string> {
+  const markup = options.markup ?? "analyticsMarkup";
   return Object.fromEntries(
     Object.entries(catalog.components).map(([name, definition]) => [
       name,
@@ -125,7 +129,7 @@ export function catalogDocs(catalog: Catalog): Record<string, string> {
         "",
         "The same component written three ways. Each draws the same surface.",
         "",
-        "As JSX, with `analyticsMarkup` from `@surfaces-ui/spec/react`:",
+        `As JSX, with \`${markup}\` from \`@surfaces-ui/spec/react\`:`,
         "",
         "```tsx",
         toMarkup([definition.example as SurfaceComponent], { root: String(definition.example.id) }),

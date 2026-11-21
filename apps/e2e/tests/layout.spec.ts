@@ -46,6 +46,6 @@ test.describe("Data picker", () => {
 
   test("is beside the live screens on the home page", async ({ page }) => {
     await open(page, "home");
-    await expect(page.locator(".home-stage-foot").getByRole("combobox", { name: "Data" })).toBeVisible();
+    await expect(page.locator(".home").getByRole("combobox", { name: "Data" })).toBeVisible();
   });
 });

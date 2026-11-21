@@ -21,15 +21,15 @@ export interface OutlineItem {
   parent?: string;
 }
 
-/** The ids a component names as children: a `children` list, a single `child`, and each tab's `child`. */
+/** The ids a component names as children: a `children` list, a single `child`, and the `child` of each tab, panel or example. */
 function childIds(component: SurfaceComponent): string[] {
   const ids: string[] = [];
   if (Array.isArray(component.children)) ids.push(...component.children.filter((c): c is string => typeof c === "string"));
   // A template: one component repeated over a list in the data model.
   else if (component.children && typeof component.children === "object" && typeof (component.children as { componentId?: unknown }).componentId === "string") ids.push((component.children as { componentId: string }).componentId);
   if (typeof component.child === "string") ids.push(component.child);
-  // Tabs and a workspace's panels each name one child.
-  for (const list of [component.tabs, component.panels]) {
+  // Tabs, a workspace's panels and a showcase's examples each name one child.
+  for (const list of [component.tabs, component.panels, component.examples]) {
     if (Array.isArray(list)) for (const entry of list) if (entry && typeof entry === "object" && typeof (entry as { child?: unknown }).child === "string") ids.push((entry as { child: string }).child);
   }
   return ids;
@@ -69,11 +69,11 @@ export function removeComponentMessages(surface: Surface | undefined, id: string
     if (parent.child === id) return { error: `"${id}" is the only thing inside "${parent.id}" (a ${String(parent.component)}). Remove "${parent.id}" instead.` };
     const next: SurfaceComponent = { ...parent };
     if (Array.isArray(next.children)) next.children = next.children.filter((c) => c !== id);
-    for (const key of ["tabs", "panels"] as const) {
+    for (const key of ["tabs", "panels", "examples"] as const) {
       const list = next[key];
       if (!Array.isArray(list)) continue;
       const kept = list.filter((entry) => !(entry && typeof entry === "object" && (entry as { child?: unknown }).child === id));
-      if (kept.length === 0) return { error: `"${id}" is the last ${key === "tabs" ? "tab" : "panel"} of "${parent.id}". Remove "${parent.id}" instead.` };
+      if (kept.length === 0) return { error: `"${id}" is the last ${{ tabs: "tab", panels: "panel", examples: "example" }[key]} of "${parent.id}". Remove "${parent.id}" instead.` };
       next[key] = kept;
     }
     changed.push(next);
