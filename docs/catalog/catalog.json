@@ -841,7 +841,7 @@
       "additionalProperties": false
     },
     "Grid": {
-      "description": "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand.",
+      "description": "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: \"start\"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height.",
       "type": "object",
       "properties": {
         "id": {
@@ -1092,6 +1092,16 @@
             "type": "number",
             "exclusiveMinimum": 0
           }
+        },
+        "align": {
+          "description": "Where each child sits in the height of its row. Defaults to stretch: every child as tall as the tallest. Use start for mixed content, so each keeps its own height.",
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",

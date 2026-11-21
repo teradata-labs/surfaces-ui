@@ -107,6 +107,30 @@ describe("sizes a person or an agent gives", () => {
     expect(container.querySelectorAll(".sf-surface-sized").length).toBe(1);
   });
 
+  it("lets a grid keep each child at its own height (#183)", () => {
+    const doc: PageDocument = {
+      id: "mixed",
+      title: "Mixed",
+      catalogId: analyticsCatalog.id,
+      components: [
+        { id: "root", component: "Grid", columns: 2, align: "start", children: ["c", "d"] },
+        { id: "c", component: "Text", text: "c" },
+        { id: "d", component: "Text", text: "d" },
+      ],
+    };
+    expect(validatePage(doc, analyticsCatalog)).toEqual([]);
+    const grid = render(view(doc)).container.querySelector<HTMLElement>(".sf-a2-grid")!;
+    expect(grid.style.alignItems).toBe("start");
+    expect(grid.dataset.align).toBe("start");
+    expect(validatePage({ ...doc, components: [{ ...doc.components[0]!, align: "top" }, ...doc.components.slice(1)] }, analyticsCatalog)).not.toEqual([]);
+  });
+
+  it("stretches a grid's children by default", () => {
+    const grid = render(view(page())).container.querySelector<HTMLElement>(".sf-a2-grid")!;
+    expect(grid.style.alignItems).toBe("");
+    expect(grid.hasAttribute("data-align")).toBe(false);
+  });
+
   it("leaves children equal when the shares do not match them", () => {
     const { container } = render(view(page({ widths: [1, 1, 1] })));
     expect(container.querySelector(".sf-a2-row")!.hasAttribute("data-widths")).toBe(false);

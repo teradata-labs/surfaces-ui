@@ -278,7 +278,7 @@ export const analyticsCatalog = defineCatalog({
     },
     Grid: {
       description:
-        "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand.",
+        "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: \"start\"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height.",
       props: {
         children: childList,
         columns: z.number().int().min(1).max(6).optional().describe("Columns per row. Defaults to 2. Narrow screens use one."),
@@ -288,6 +288,10 @@ export const analyticsCatalog = defineCatalog({
           .max(6)
           .optional()
           .describe("The share of the width each column takes, one per column: [2, 1] makes the first twice as wide as the second. Used when it has one entry per column; otherwise columns are equal."),
+        align: z
+          .enum(["start", "center", "end", "stretch"])
+          .optional()
+          .describe("Where each child sits in the height of its row. Defaults to stretch: every child as tall as the tallest. Use start for mixed content, so each keeps its own height."),
       },
       example: { id: "tiles", component: "Grid", columns: 3, children: ["revenue", "orders", "average"] },
     },
