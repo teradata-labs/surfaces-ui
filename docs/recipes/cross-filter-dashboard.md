@@ -6,7 +6,7 @@ One query feeds headline numbers, two bar charts and a table. Clicking a bar fil
 
 How it works:
 
-- `createViewState` from `@surfaces-ui/state` holds what was picked: values per column, ranges and sorts. It holds choices only; the filtering happens in the engine.
+- `createViewState` from `@surfaces-ui/state` holds what was picked as a plain filter list (`{ column, op, values }`, the form page filters and agents use) and sorts. A second click on a bar adds its value; a click on a chosen bar takes it out. It holds choices only; the filtering happens in the engine.
 - Each view gets `view.filters(ownColumn)`. The region chart gets every filter except the one on `region`, so the bar a person clicked does not filter the other bars away. Views that pick nothing get `view.filters()`, which is all of them.
 - `Chart` reports a click through `onPointClick`, and the dashboard calls `view.toggle(column, value)`. Clicking the same bar again removes it.
 - A click is never the only way. Every filter is shown as a button that removes it, and "Clear filters" removes them all. The grid's own sort is kept in the same state, through `onSortsChange` and `view.setSorts`.
@@ -18,7 +18,7 @@ The dashboard expects a query with `region`, `status`, `amount` and `ordered_at`
 `Dashboard.tsx`:
 
 ```tsx
-import { BulletGraph, Chart, DataGrid, Metric, Sparkline } from "@surfaces-ui/components";
+import { BulletGraph, Chart, ControlIcon, DataGrid, Metric, Sparkline, filterWords, sortsFromSpec } from "@surfaces-ui/components";
 import { type ViewStateService, createViewState } from "@surfaces-ui/state";
 import { useStore } from "@surfaces-ui/state/react";
 import { useMemo } from "react";
@@ -42,22 +42,27 @@ export function Dashboard({ sourceId, sql, view: given, ordersTarget = 100 }: Da
   const view = useMemo(() => given ?? createViewState(), [given]);
   const state = useStore(view);
   const all = view.filters();
-  const chosen = Object.entries(state.selections).flatMap(([column, values]) => values.map((value) => ({ column, value })));
+  // One chip per value chosen by a click, and one per any other filter, each with its own remove button.
+  const chips = state.filters.flatMap((filter) =>
+    filter.op === "eq" || filter.op === "in"
+      ? (filter.values ?? []).map((value) => ({ key: `${filter.column}:${value}`, label: `${filter.column}: ${String(value)}`, name: `Remove filter ${filter.column} is ${value}`, remove: () => view.toggle(filter.column, value) }))
+      : [{ key: `${filter.column}:${filter.op}`, label: filterWords(filter), name: `Remove filter ${filterWords(filter)}`, remove: () => view.setFilters(state.filters.filter((f) => f !== filter)) }],
+  );
 
   return (
     <div className="sf-container">
       {/* Every filter a click made can be removed with a button, not only by clicking the bar again. */}
       <div className="sf-filter-chips" role="group" aria-label="Filters" aria-live="polite">
-        {chosen.length === 0 ? (
+        {chips.length === 0 ? (
           <span>Click a bar to filter everything else.</span>
         ) : (
-          chosen.map(({ column, value }) => (
-            <button key={`${column}:${value}`} type="button" className="sf-button" aria-label={`Remove filter ${column} is ${value}`} onClick={() => view.toggle(column, value)}>
-              {column}: {String(value)} ×
+          chips.map((chip) => (
+            <button key={chip.key} type="button" className="sf-button" aria-label={chip.name} onClick={chip.remove}>
+              {chip.label} <ControlIcon icon="close" />
             </button>
           ))
         )}
-        <button type="button" className="sf-button" disabled={chosen.length === 0} onClick={() => view.clear()}>
+        <button type="button" className="sf-button" disabled={chips.length === 0} onClick={() => view.clear()}>
           Clear filters
         </button>
       </div>
@@ -115,7 +120,7 @@ export function Dashboard({ sourceId, sql, view: given, ordersTarget = 100 }: Da
         sourceId={sourceId}
         sql={sql}
         filters={all}
-        sorts={state.sorts}
+        sorts={sortsFromSpec(state.sorts)}
         onSortsChange={(sorts) => view.setSorts(sorts)}
         height={320}
         label="Orders"
@@ -250,7 +255,7 @@ describe("a cross-filtered dashboard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Remove filter region is Europe" }));
     await waitFor(() => expect(filterColumns(gridQuery(queries)!)).toEqual(["status"]));
-    expect(view.get().selections).toEqual({ status: ["returned"] });
+    expect(view.get().filters).toEqual([{ column: "status", op: "eq", values: ["returned"] }]);
 
     fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
     await waitFor(() => expect(filterColumns(gridQuery(queries)!)).toEqual([]));

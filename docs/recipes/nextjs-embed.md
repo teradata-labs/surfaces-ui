@@ -34,7 +34,7 @@ export function SurfacesPanel({ baseUrl = "", sourceId, sql, dataSource }: Surfa
   const data = useMemo(() => dataSource ?? connectDataSource({ baseUrl }), [dataSource, baseUrl]);
   return (
     // "scoped" themes only this region, so the rest of your app keeps its own styles.
-    <ThemeProvider scope="scoped" store={null}>
+    <ThemeProvider scope="scoped" storage={null}>
       <DataSourceProvider dataSource={data}>
         <QueryResult sourceId={sourceId} sql={sql} height={420} exportName="orders" />
       </DataSourceProvider>
@@ -46,7 +46,7 @@ export function SurfacesPanel({ baseUrl = "", sourceId, sql, dataSource }: Surfa
 Notes on it:
 
 - `"use client"` is needed. The library's components use state, effects and the browser, and its packages do not mark themselves as client code, so import them only from files that start with it.
-- `scope="scoped"` puts the theme's `--sf-*` variables on the panel's own element instead of on `:root`, so the rest of your app keeps its look. `store={null}` keeps the theme in memory; leave it out to remember a person's choice in `localStorage`.
+- `scope="scoped"` puts the theme's `--sf-*` variables on the panel's own element instead of on `:root`, so the rest of your app keeps its look. `storage={null}` keeps the theme in memory; leave it out to remember a person's choice in `localStorage`.
 - `connectDataSource` talks to a server that implements the Surfaces services, such as `surfaces-dev`. To use your own API instead, pass any `DataSource` as `dataSource` (see "Bring your own backend").
 - `baseUrl` is read in the browser. Never put a credential in it; the data server resolves credentials by name on its side.
 - To draw what an agent sends instead of a fixed result, render `SurfaceView` from `@surfaces-ui/spec/react` with `lazyAnalyticsRenderers`, which keeps the charts and editors out of the first load until something is drawn.
