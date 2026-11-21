@@ -69,6 +69,37 @@ describe("persistence", () => {
     vi.useRealTimers();
   });
 
+  it("saves only the part asked for, and puts it back without losing the rest", async () => {
+    const storage = memoryStorage();
+    const first = createStore({ filters: ["EU"], draft: "typing…" });
+    const saving = persist(first, { key: "p", storage, select: (v) => ({ filters: v.filters }), debounceMs: 0 });
+    await saving.ready;
+    first.set({ filters: ["NA"], draft: "more" });
+    saving.flush();
+    expect(decodeState(storage.data.p!)).toEqual({ version: 1, state: { filters: ["NA"] } });
+
+    // Laid over the current value: the field that was not saved keeps its start.
+    const second = createStore({ filters: [] as string[], draft: "" });
+    await persist(second, { key: "p", storage, select: (v) => ({ filters: v.filters }) }).ready;
+    expect(second.get()).toEqual({ filters: ["NA"], draft: "" });
+    // Or put back by the caller.
+    const third = createStore({ filters: [] as string[], count: 0 });
+    await persist(third, { key: "p", storage, select: (v) => v.filters, restore: (saved, current) => ({ ...current, filters: (saved as { filters: string[] }).filters, count: 1 }) }).ready;
+    expect(third.get()).toEqual({ filters: ["NA"], count: 1 });
+  });
+
+  it("does not let a slow load overwrite a change made while it loaded", async () => {
+    let answer: (text: string) => void = () => {};
+    const slow = { load: () => new Promise<string>((resolve) => (answer = resolve)), save: () => {} };
+    const store = createStore("start");
+    const saving = persist(store, { key: "k", storage: slow });
+    store.set("chosen now");
+    answer(encodeState({ version: 1, state: "saved earlier" }));
+    await saving.ready;
+    expect(store.get()).toBe("chosen now");
+    saving.stop();
+  });
+
   it("keeps a query parameter in step with the store", () => {
     const location = { href: "https://app.test/dash?view=EU&other=1" };
     const history = { replaceState: (_: unknown, __: string, url: string) => void (location.href = url) };
