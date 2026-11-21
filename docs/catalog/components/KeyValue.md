@@ -4,7 +4,7 @@ A short list of labelled facts.
 
 ## Props
 
-- `items`: array
+- `items`: array of { label: string | binding | call, value: string | binding | call | number | binding | call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

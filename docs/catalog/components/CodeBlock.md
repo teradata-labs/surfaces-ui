@@ -4,7 +4,7 @@ Code with a copy button. For SQL a person should be able to run, use SqlProposal
 
 ## Props
 
-- `code`: value or binding
+- `code`: string | binding | call
 - `language` (optional): string
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 

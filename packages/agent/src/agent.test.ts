@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type AgentEvent, agentEvent, errorEvent, extractSurfaces, scriptedAgent } from "./index.js";
+import { type AgentEvent, UNREAD_SURFACE, agentEvent, errorEvent, extractSurfaces, scriptedAgent } from "./index.js";
 import { turnText } from "./turn.js";
 
 async function* from(events: AgentEvent[]) {
@@ -58,9 +58,45 @@ describe("extractSurfaces", () => {
   it("leaves ordinary code blocks alone, drops bad lines, and survives an unclosed fence", async () => {
     const code = "Run this:\n```sql\nSELECT 1\n```\n";
     expect(await summary(extractSurfaces(from([agentEvent.text(code)])))).toEqual([`text:${code}`]);
-    expect(await summary(extractSurfaces(from([agentEvent.text("```a2ui\nnot json\n[1,2]\n" + create + "\n```\n")])))).toEqual(["surface:createSurface"]);
+    expect(await summary(extractSurfaces(from([agentEvent.text("```a2ui\nnot json\n[1,2]\n" + create + "\n```\n")])))).toEqual(["surface:createSurface", "error"]);
     expect(await summary(extractSurfaces(from([agentEvent.text("```a2ui\n" + create + "\n" + update)])))).toEqual(["surface:createSurface", "surface:updateComponents"]);
     expect(await summary(extractSurfaces(from([agentEvent.text("ends with a backtick `")])))).toEqual(["text:ends with a backtick `"]);
+  });
+
+  it("reads a message written over several lines, however the text is split", async () => {
+    const pretty = JSON.stringify(JSON.parse(update), null, 2);
+    // A component on a line of its own is a whole JSON object, and a string may hold brackets.
+    const spread = pretty.replace('"Hi"', '"Hi } ] \\" {"');
+    const text = `Done.\n\`\`\`a2ui\n${create}\n${spread}\n\`\`\`\nNext?`;
+    const expected = ["text:Done.\n", "surface:createSurface", "surface:updateComponents", "text:Next?"];
+    expect(await summary(extractSurfaces(from([agentEvent.text(text)])))).toEqual(expected);
+    for (const size of [1, 5, 40]) {
+      const deltas = Array.from({ length: Math.ceil(text.length / size) }, (_, i) => agentEvent.text(text.slice(i * size, (i + 1) * size)));
+      expect(await summary(extractSurfaces(from(deltas))), `chunk size ${size}`).toEqual(expected);
+    }
+    const events: AgentEvent[] = [];
+    for await (const next of extractSurfaces(from([agentEvent.text(text)]))) events.push(next);
+    const sent = events.find((e) => e.event.case === "surface" && "updateComponents" in e.event.value)!.event.value as { updateComponents: { components: { text: string }[] } };
+    expect(sent.updateComponents.components[0]!.text).toBe('Hi } ] " {');
+  });
+
+  it("reads a list of messages, with or without its brackets", async () => {
+    expect(await summary(extractSurfaces(from([agentEvent.text("```a2ui\n[\n" + create + ",\n" + update + "\n]\n```\n")])))).toEqual(["surface:createSurface", "surface:updateComponents"]);
+    expect(await summary(extractSurfaces(from([agentEvent.text("```a2ui\n" + create + ",\n" + update + "\n```\n")])))).toEqual(["surface:createSurface", "surface:updateComponents"]);
+  });
+
+  it("says so once when a block holds text that is not a message, and keeps what it could read", async () => {
+    const cut = update.slice(0, -3);
+    const events: AgentEvent[] = [];
+    for await (const next of extractSurfaces(from([agentEvent.text("```a2ui\n" + create + "\n" + cut + "\n```\nI changed the page."), agentEvent.done("s", "m")]))) events.push(next);
+    expect(await summary(from(events))).toEqual(["surface:createSurface", "error", "text:I changed the page.", "done"]);
+    const error = events.find((e) => e.event.case === "error")!.event.value as { code: string; message: string };
+    expect(error.code).toBe(UNREAD_SURFACE);
+    expect(error.message).toContain("could not be read");
+    // A line that is balanced but broken costs only itself.
+    expect(await summary(extractSurfaces(from([agentEvent.text('```a2ui\n{"version": oops}\n' + create + "\n```\n")])))).toEqual(["surface:createSurface", "error"]);
+    // A reply that ends inside a message that never closed.
+    expect(await summary(extractSurfaces(from([agentEvent.text("```a2ui\n" + cut)])))).toEqual(["error"]);
   });
 
   it("keeps other events in order with the text around them", async () => {

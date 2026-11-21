@@ -4,8 +4,8 @@ How the database intends to run a query, without running it: the steps as a tree
 
 ## Props
 
-- `sourceId`: value or binding
-- `sql`: value or binding — A single read-only SELECT statement.
+- `sourceId`: string | binding | call
+- `sql`: string | binding | call — A single read-only SELECT statement.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

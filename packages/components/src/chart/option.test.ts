@@ -2,7 +2,7 @@ import { Field, Float64, TimestampMillisecond, Utf8 } from "apache-arrow";
 import { describe, expect, it } from "vitest";
 import { AggregateFunction, TimeGrain } from "@surfaces-ui/proto";
 import { buildChartQuery, measureOutputs } from "./Chart.js";
-import { axisFormatter, axisNumber, buildChartOption, niceBinWidth, tooltipFormatter } from "./option.js";
+import { axisFormatter, axisNumber, buildChartOption, niceBinWidth, rowsWithoutX, tooltipFormatter } from "./option.js";
 
 const fields = [new Field("region", new Utf8()), new Field("day", new TimestampMillisecond()), new Field("total", new Float64())];
 const rows = [
@@ -25,6 +25,31 @@ describe("buildChartOption", () => {
     expect(option.dataset).toEqual({ source: rows });
     expect(option.dataZoom).toEqual([]);
     expect(option.legend.show).toBe(false);
+  });
+
+  it("leaves a row with no x off a time axis, so a bucket that is not drawn does not size the y axis", () => {
+    const withGap = [...rows, { region: "EU", day: null, total: 189 }];
+    const input = { type: "line" as const, x: "day", series: [{ column: "total", label: "Revenue" }], fields, rows: withGap };
+    expect(rowsWithoutX(input)).toEqual([{ region: "EU", day: null, total: 189 }]);
+    const option = buildChartOption(input) as Option;
+    expect((option.dataset as { source: { total: number }[] }).source.map((row) => row.total).sort()).toEqual([10, 20, 30]);
+    // A category axis has a place for it, under its own name.
+    const bars = { ...input, type: "bar" as const, x: "region", rows: [...rows, { region: null, day: null, total: 5 }] };
+    expect(rowsWithoutX(bars)).toEqual([]);
+    expect((buildChartOption(bars).dataset as { source: unknown[] }).source).toHaveLength(4);
+  });
+
+  it("keeps an axis title clear of its tick labels and inside the chart, whatever their width", () => {
+    const option = buildChartOption({ type: "bar", x: "region", series: [{ column: "total", label: "Hours" }], fields, rows, yTitle: "Hours", xTitle: "Region" }) as unknown as {
+      grid: Record<string, unknown>;
+      yAxis: Record<string, unknown>;
+      xAxis: Record<string, unknown>;
+    };
+    // The title is placed from the labels, not from the axis line, and the plot shrinks to hold both.
+    expect(option.yAxis).toMatchObject({ name: "Hours", nameMoveOverlap: true });
+    expect(option.xAxis).toMatchObject({ name: "Region", nameMoveOverlap: true });
+    expect(option.grid).toMatchObject({ outerBoundsMode: "same", outerBoundsContain: "all" });
+    expect(option.grid.containLabel).toBeUndefined();
   });
 
   it("uses a time axis for timestamps and splits by a column", () => {

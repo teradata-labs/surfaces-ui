@@ -4,10 +4,10 @@ SQL you propose, shown for review. It never runs on its own: a person presses Ru
 
 ## Props
 
-- `sourceId`: value or binding
-- `sql`: value or binding
+- `sourceId`: string | binding | call
+- `sql`: string | binding | call
 - `title` (optional): string
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

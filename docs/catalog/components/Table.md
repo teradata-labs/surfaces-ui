@@ -4,8 +4,8 @@ A small table of values you already have (at most 100 rows). For query results u
 
 ## Props
 
-- `columns`: array
-- `rows`: array
+- `columns`: array of string
+- `rows`: array of array
 - `caption` (optional): string
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 

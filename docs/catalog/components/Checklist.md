@@ -4,7 +4,7 @@ A list of steps showing which are done.
 
 ## Props
 
-- `items`: array
+- `items`: array of { label: string | binding | call, done?: boolean }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

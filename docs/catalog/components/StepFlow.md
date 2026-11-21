@@ -4,8 +4,8 @@ Where multi-step work stands: onboarding, connecting a source, a cleaning or tra
 
 ## Props
 
-- `label`: value or binding
-- `steps`: array
+- `label`: string | binding | call
+- `steps`: array of { id: string, title: string, detail?: string, status: "done" | "current" | "waiting" | "pending" | "failed" | "skipped" }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

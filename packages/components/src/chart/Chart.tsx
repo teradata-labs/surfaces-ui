@@ -21,7 +21,7 @@ import { label as text, numberFormat } from "../locale/locale.js";
 import { type FilterInit, type TimeTravelInit, type ValueInit, messageOf } from "../data/useRowWindow.js";
 import { useOptionalTheme } from "../theme/ThemeProvider.js";
 import { type ChartShape, chartAdvice } from "./advice.js";
-import { type AxisFormat, type ChartOptionInput, type ChartType, type LegendPlacement, type SeriesType, buildChartOption, isOrdered, niceBinWidth } from "./option.js";
+import { type AxisFormat, type ChartOptionInput, type ChartType, type LegendPlacement, type SeriesType, buildChartOption, isOrdered, niceBinWidth, rowsWithoutX } from "./option.js";
 
 echarts.use([
   BarChart,
@@ -438,6 +438,14 @@ export function Chart(props: ChartProps) {
   // Advice is worked out from what was actually drawn, so it follows filters and the data.
   const advice = props.advice === false || !state.loaded ? [] : chartAdvice(drawnShape({ type, x, y, stacked, seriesCount, binned: Boolean(xGrain || xBinWidth || xBins), fields: state.loaded.fields, rows: state.loaded.rows }));
 
+  // Rows a time or number axis cannot place are left out, and the chart says so with what they hold.
+  const unplaced = state.loaded ? rowsWithoutX({ type, x, series: outputs.map((o) => ({ column: o.column, label: o.label, type: o.measure.type })), fields: state.loaded.fields, rows: state.loaded.rows }) : [];
+  const unplacedDetail =
+    unplaced.length === 1
+      ? ` (${outputs.map((o) => `${o.label}: ${typeof unplaced[0]![o.column] === "number" ? numberFormat().format(unplaced[0]![o.column] as number) : String(unplaced[0]![o.column] ?? "–")}`).join(", ")})`
+      : "";
+  const nothingDrawn = !!state.loaded && state.loaded.rows.length === unplaced.length;
+
   const description = props.label ?? text("chart.description", { type, measures: outputs.map((o) => o.label).join(", "), x });
   return (
     <figure className={["sf-chart", props.className].filter(Boolean).join(" ")} aria-busy={state.loading}>
@@ -445,13 +453,14 @@ export function Chart(props: ChartProps) {
         <p className="sf-chart-message" role="alert" style={{ minHeight: height }}>
           {state.error}
         </p>
-      ) : state.loaded && state.loaded.rows.length === 0 ? (
+      ) : nothingDrawn ? (
         <p className="sf-chart-message" style={{ minHeight: height }}>
           {text("chart.empty")}
         </p>
       ) : (
         <div ref={element} className="sf-chart-canvas" role="img" aria-label={description} style={{ height }} />
       )}
+      {unplaced.length > 0 && <figcaption className="sf-chart-note">{text("chart.missingX", { x, detail: unplacedDetail })}</figcaption>}
       {seriesCount > palette.length && (
         <figcaption className="sf-chart-note">
           {text("chart.coloursRepeat", { count: seriesCount, colours: palette.length })}

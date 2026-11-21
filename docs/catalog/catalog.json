@@ -182,6 +182,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "text": {
           "anyOf": [
             {
@@ -426,6 +461,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "children": {
           "anyOf": [
@@ -674,6 +744,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "children": {
           "anyOf": [
             {
@@ -911,6 +1016,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "children": {
           "anyOf": [
             {
@@ -1143,6 +1283,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "child": {
           "type": "string",
           "description": "ID of a child component."
@@ -1336,6 +1511,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "axis": {
           "type": "string",
@@ -1533,6 +1743,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "description": "What the workspace is, for assistive technology.",
           "type": "string"
@@ -1701,7 +1946,7 @@
       "additionalProperties": false
     },
     "SideNav": {
-      "description": "Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away to a narrow strip; it slides back over the content on hover, on focus or from its button. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.",
+      "description": "Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then takes no room, and a menu button at the top corner of the surface slides it back in over the content. On a narrow screen it is always folded. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.",
       "type": "object",
       "properties": {
         "id": {
@@ -1875,6 +2120,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "label": {
           "description": "What the navigation is for, for assistive technology.",
@@ -2336,6 +2616,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "tabs": {
           "minItems": 1,
           "type": "array",
@@ -2412,7 +2727,7 @@
       "additionalProperties": false
     },
     "Button": {
-      "description": "A control that sends an event back to the agent or opens a link. Its label is a child Text.",
+      "description": "A control that sends an event back to the agent or opens a link. Its label is a child Text. To open a link, the action is a function call in place of an event: `\"action\": {\"functionCall\": {\"@call\": \"openUrl\", \"args\": {\"url\": \"https://example.com/start\"}}}`.",
       "type": "object",
       "properties": {
         "id": {
@@ -2586,6 +2901,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "child": {
           "type": "string",
@@ -2959,6 +3309,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "anyOf": [
             {
@@ -3022,6 +3407,7 @@
           "type": "string"
         },
         "help": {
+          "description": "A sentence under the field: what to enter, or why it is asked.",
           "anyOf": [
             {
               "type": "string"
@@ -3068,6 +3454,15 @@
           "type": "integer",
           "exclusiveMinimum": 0,
           "maximum": 9007199254740991
+        },
+        "required": {
+          "description": "Marked as required, and said to be missing once the person leaves it empty.",
+          "type": "boolean"
+        },
+        "pattern": {
+          "description": "A regular expression the whole text must match; a value that does not is said so beside the field.",
+          "type": "string",
+          "maxLength": 200
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
@@ -3260,6 +3655,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "anyOf": [
             {
@@ -3317,9 +3747,11 @@
           "description": "A value read from the data model at this path."
         },
         "min": {
+          "description": "A number below it is said so beside the field.",
           "type": "number"
         },
         "max": {
+          "description": "A number above it is said so beside the field.",
           "type": "number"
         },
         "step": {
@@ -3368,6 +3800,10 @@
               "description": "A call to one of the catalog's functions."
             }
           ]
+        },
+        "required": {
+          "description": "Marked as required, and said to be missing once the person leaves it empty.",
+          "type": "boolean"
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
@@ -3560,6 +3996,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "anyOf": [
             {
@@ -3666,6 +4137,10 @@
               "description": "A call to one of the catalog's functions."
             }
           ]
+        },
+        "required": {
+          "description": "Marked as required, and said to be missing once the person leaves it empty.",
+          "type": "boolean"
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
@@ -3859,6 +4334,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "anyOf": [
             {
@@ -3957,6 +4467,10 @@
               "description": "A call to one of the catalog's functions."
             }
           ]
+        },
+        "required": {
+          "description": "Marked as required, and said to be missing once the person leaves it empty.",
+          "type": "boolean"
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
@@ -4149,6 +4663,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "anyOf": [
             {
@@ -4254,6 +4803,10 @@
               "description": "A call to one of the catalog's functions."
             }
           ]
+        },
+        "required": {
+          "description": "Marked as required, and said to be missing once the person leaves it empty.",
+          "type": "boolean"
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
@@ -4445,6 +4998,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "label": {
           "anyOf": [
@@ -4747,6 +5335,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "formId": {
           "type": "string",
@@ -5310,6 +5933,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "anyOf": [
             {
@@ -5688,6 +6346,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "items": {
           "minItems": 1,
           "type": "array",
@@ -6024,6 +6717,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -6452,6 +7180,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "text": {
           "anyOf": [
             {
@@ -6693,6 +7456,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "value": {
           "anyOf": [
@@ -7012,6 +7810,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -7422,6 +8255,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -8154,6 +9022,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -8628,6 +9531,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -8857,6 +9795,800 @@
       ],
       "additionalProperties": false
     },
+    "Message": {
+      "description": "One turn of a conversation, for a page that is laid out as a chat: who spoke, what they said (Markdown), and when. Put the turns in a Column, oldest first. `side: \"end\"` sets the person's own turns apart from everyone else's; the speaker is always written, so the side is never the only sign. Offer replies with Chips after the last turn, and take a typed one with a TextField and a Button. It shows a conversation; it does not run one.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique within the surface. The top component must be \"root\"."
+        },
+        "component": {
+          "type": "string",
+          "const": "Message"
+        },
+        "@catalogId": {
+          "description": "The component's catalog. This renderer draws one catalog per surface.",
+          "type": "string",
+          "const": "urn:surfaces:catalog:analytics:v1"
+        },
+        "@accessibility": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "live": {
+              "type": "string",
+              "enum": [
+                "off",
+                "polite",
+                "assertive"
+              ]
+            },
+            "hidden": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "@metadata": {
+          "description": "Extensions by name. Never drawn, resolved or run.",
+          "type": "object",
+          "properties": {
+            "extensions": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[\\p{XID_Start}_][\\p{XID_Continue}]*$"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
+        "speaker": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ],
+          "description": "Who spoke: a name or a role."
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ],
+          "description": "What they said, as Markdown."
+        },
+        "side": {
+          "description": "\"end\" for the person's own turns. Defaults to \"start\".",
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ]
+        },
+        "time": {
+          "description": "When, as it should read: \"10:42\" or \"Yesterday\".",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "minHeight": {
+          "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 1600
+        }
+      },
+      "required": [
+        "id",
+        "component",
+        "speaker",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "RowList": {
+      "description": "One component drawn once for each row of a SQL query: a feed of posts, a list of cards, rows that each carry their own buttons. `child` is the component drawn per row, usually a Card. Inside it, and in everything it holds, a relative path reads the row's column of that name (`{ \"@path\": \"author\" }`; `formatString` with `${author}` too), and a Button's event carries the row's key the same way (`\"context\": { \"post_id\": { \"@path\": \"post_id\" } }`), so you learn which row was acted on. Absolute paths still read the surface's data model. The database sorts, filters and pages; a person asks for more rows, up to 200. An input inside a row must bind an absolute path. For plain rows in columns use DataGrid.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique within the surface. The top component must be \"root\"."
+        },
+        "component": {
+          "type": "string",
+          "const": "RowList"
+        },
+        "@catalogId": {
+          "description": "The component's catalog. This renderer draws one catalog per surface.",
+          "type": "string",
+          "const": "urn:surfaces:catalog:analytics:v1"
+        },
+        "@accessibility": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "live": {
+              "type": "string",
+              "enum": [
+                "off",
+                "polite",
+                "assertive"
+              ]
+            },
+            "hidden": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "@metadata": {
+          "description": "Extensions by name. Never drawn, resolved or run.",
+          "type": "object",
+          "properties": {
+            "extensions": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[\\p{XID_Start}_][\\p{XID_Continue}]*$"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
+        "sourceId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "sql": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ],
+          "description": "A single read-only SELECT statement. One row of it is one item."
+        },
+        "child": {
+          "type": "string",
+          "description": "ID of the component drawn for each row."
+        },
+        "label": {
+          "type": "string",
+          "description": "What the items are, for assistive technology: \"Posts\"."
+        },
+        "sorts": {
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "column": {
+                "type": "string"
+              },
+              "desc": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "column"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Sort order, most important first. An empty list clears it."
+        },
+        "filters": {
+          "anyOf": [
+            {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "column": {
+                    "type": "string"
+                  },
+                  "op": {
+                    "type": "string",
+                    "enum": [
+                      "eq",
+                      "neq",
+                      "lt",
+                      "lte",
+                      "gt",
+                      "gte",
+                      "in",
+                      "not_in",
+                      "between",
+                      "contains",
+                      "starts_with",
+                      "ends_with",
+                      "is_null",
+                      "is_not_null",
+                      "since"
+                    ]
+                  },
+                  "values": {
+                    "description": "None for is_null and is_not_null, two for between, otherwise one (several for in and not_in). For since, one relative range: \"7d\", \"4w\", \"3m\", \"1y\", or \"week\", \"month\", \"quarter\", \"year\" for the start of this one. Use since for anything like \"the last 30 days\": it is worked out when the query runs, so it does not go stale.",
+                    "maxItems": 1000,
+                    "type": "array",
+                    "items": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "column",
+                  "op"
+                ],
+                "additionalProperties": false
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            }
+          ],
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+        },
+        "pageSize": {
+          "description": "Rows fetched at a time. Defaults to 20.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "rowKey": {
+          "description": "A column that tells rows apart, such as the key.",
+          "type": "string"
+        },
+        "layout": {
+          "description": "\"list\" stacks the rows; \"grid\" lays them out as cards, as many across as fit.",
+          "type": "string",
+          "enum": [
+            "list",
+            "grid"
+          ]
+        },
+        "minHeight": {
+          "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 1600
+        }
+      },
+      "required": [
+        "id",
+        "component",
+        "sourceId",
+        "sql",
+        "child",
+        "label"
+      ],
+      "additionalProperties": false
+    },
     "Markdown": {
       "description": "Formatted text: headings, lists, tables, links and code. Use it for explanations longer than a line.",
       "type": "object",
@@ -9032,6 +10764,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "text": {
           "anyOf": [
@@ -9265,6 +11032,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "code": {
           "anyOf": [
@@ -9502,6 +11304,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "columns": {
           "minItems": 1,
           "maxItems": 12,
@@ -9718,6 +11555,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "text": {
           "anyOf": [
@@ -9996,6 +11868,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "items": {
           "minItems": 1,
           "maxItems": 30,
@@ -10245,6 +12152,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "items": {
           "minItems": 1,
@@ -10654,6 +12596,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "title": {
           "anyOf": [
@@ -11142,6 +13119,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -11586,6 +13598,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -12035,6 +14082,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "label": {
           "anyOf": [
             {
@@ -12304,6 +14386,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "title": {
           "anyOf": [
@@ -12820,6 +14937,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "title": {
           "anyOf": [
@@ -13350,6 +15502,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "table": {
           "type": "string"
         },
@@ -13849,6 +16036,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "preset": {
           "type": "string",
           "enum": [
@@ -14096,6 +16318,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -14554,6 +16811,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sql": {
           "anyOf": [
             {
@@ -14971,6 +17263,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -15398,6 +17725,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "model": {
           "type": "string",
@@ -16203,6 +18565,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "model": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
@@ -16845,6 +19242,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "model": {
           "type": "string",
@@ -17516,6 +19948,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -17994,6 +20461,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "description": "List this source's storage. Leave out to offer only folders on the person's computer.",
           "anyOf": [
@@ -18421,6 +20923,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -18962,6 +21499,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -19388,6 +21960,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -19856,6 +22463,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -20322,6 +22964,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "label": {
           "type": "string",
@@ -20802,6 +23479,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -21037,6 +23749,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "name": {
           "type": "string"
         },
@@ -21248,6 +23995,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "sourceId": {
           "anyOf": [
@@ -21527,6 +24309,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
           "type": "integer",
@@ -21715,6 +24532,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "nodes": {
           "minItems": 1,
@@ -22183,6 +25035,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "pipelineId": {
           "anyOf": [
             {
@@ -22650,6 +25537,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "pipeline": {
           "type": "object",
           "propertyNames": {
@@ -23059,6 +25981,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "sourceId": {
           "anyOf": [
             {
@@ -23305,6 +26262,41 @@
             }
           },
           "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
         },
         "runs": {
           "maxItems": 200,
@@ -23553,6 +26545,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "expectations": {
           "maxItems": 200,
           "type": "array",
@@ -23786,6 +26813,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "changes": {
           "maxItems": 500,
           "type": "array",
@@ -24015,6 +27077,41 @@
           },
           "additionalProperties": false
         },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
         "progress": {
           "minItems": 1,
           "maxItems": 500,
@@ -24068,7 +27165,7 @@
   },
   "functions": {
     "formatString": {
-      "description": "Builds text from a template. \"${path}\" is replaced by the data model value at that path.",
+      "description": "Builds text from a template. \"${path}\" is replaced by the data model value at that path. \"${path|not chosen yet}\" gives the words to use while there is no value there (nothing, or empty text), so a summary of a form never reads as a gap.",
       "type": "object",
       "properties": {
         "@call": {
@@ -24290,6 +27387,12 @@
         },
         {
           "$ref": "#/components/QueryResult"
+        },
+        {
+          "$ref": "#/components/Message"
+        },
+        {
+          "$ref": "#/components/RowList"
         },
         {
           "$ref": "#/components/Markdown"

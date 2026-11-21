@@ -4,7 +4,7 @@ The runs of a pipeline, newest first: how each ended, how long it took, what it 
 
 ## Props
 
-- `runs`: array
+- `runs`: array of { id: string, state: "idle" | "starting" | "running" | "completed" | "failed" | "cancelled" | "skipped", startTime: string, endTime?: string, trigger?: string, refreshKind?: "default" | "refresh" | "fullRefresh", datasets?: array of string, errorMessage?: string }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

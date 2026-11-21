@@ -4,9 +4,9 @@ One headline number with a label, and optionally how it changed.
 
 ## Props
 
-- `label`: value or binding
-- `value`: value or binding
-- `delta` (optional): value or binding — Change text, e.g. "+5.4% vs last quarter".
+- `label`: string | binding | call
+- `value`: string | binding | call | number | binding | call
+- `delta` (optional): string | binding | call — Change text, e.g. "+5.4% vs last quarter".
 - `tone` (optional): "neutral" | "positive" | "negative" | "warning" — Colour of the change text.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 

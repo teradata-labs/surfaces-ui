@@ -5,9 +5,9 @@ A review of a table's columns for personal data before it is shared, charted or 
 ## Props
 
 - `table`: string
-- `purpose` (optional): value or binding
-- `columns`: array
-- `action`: value or binding
+- `purpose` (optional): string | binding | call
+- `columns`: array of { name: string, type?: string, category?: "name" | "email" | "phone" | "address" | "government_id" | "financial" | "date_of_birth" | "network" | "location" | "credential" | "health" | "demographic", basis?: "name" | "values" | "person", action?: "keep" | "mask" | "hash" | "generalize" | "drop" }
+- `action`: { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

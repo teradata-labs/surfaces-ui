@@ -26,13 +26,18 @@ export function safeUrl(value: unknown): string | undefined {
 /** Functions available to every Surfaces catalog. Names and arguments follow the A2UI basic catalog. */
 export const standardFunctions: Record<string, FunctionDefinition> = {
   formatString: {
-    description: 'Builds text from a template. "${path}" is replaced by the data model value at that path.',
+    description:
+      'Builds text from a template. "${path}" is replaced by the data model value at that path. "${path|not chosen yet}" gives the words to use while there is no value there (nothing, or empty text), so a summary of a form never reads as a gap.',
     args: { value: z.string() },
     returnType: "string",
     implementation: (args, context) =>
-      String(args.value ?? "").replace(/\$\{([^}]*)\}/g, (_, path: string) => {
+      String(args.value ?? "").replace(/\$\{([^}]*)\}/g, (_, inner: string) => {
+        // The first bar ends the path: what follows it stands in for a value that is not there.
+        const bar = inner.indexOf("|");
+        const path = bar === -1 ? inner : inner.slice(0, bar);
+        const fallback = bar === -1 ? "" : inner.slice(bar + 1).trim();
         const found = getPath(context.data, absolutePath(path.trim(), context.scope));
-        return found == null || typeof found === "object" ? "" : String(found);
+        return found == null || typeof found === "object" || found === "" ? fallback : String(found);
       }),
   },
   formatNumber: {

@@ -1,14 +1,14 @@
 # SideNav
 
-Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away to a narrow strip; it slides back over the content on hover, on focus or from its button. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.
+Navigation down the side of a surface: groups of items, with the current one marked. A person can fold it away: it then takes no room, and a menu button at the top corner of the surface slides it back in over the content. On a narrow screen it is always folded. An item with `href` is a link (http and https only); one without sends the event with its `id`. Bind `current` to a data path to mark the item for what is showing.
 
 ## Props
 
 - `label` (optional): string — What the navigation is for, for assistive technology.
-- `groups`: array
-- `current` (optional): value or binding — The id of the item for what is showing.
+- `groups`: array of { label?: string, items: array of object }
+- `current` (optional): string | binding | call — The id of the item for what is showing.
 - `pinned` (optional): boolean — Whether it starts open beside the content. Defaults to true.
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

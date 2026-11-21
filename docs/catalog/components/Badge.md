@@ -4,7 +4,7 @@ A small status label.
 
 ## Props
 
-- `text`: value or binding
+- `text`: string | binding | call
 - `tone` (optional): "neutral" | "positive" | "negative" | "warning"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 

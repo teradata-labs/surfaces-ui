@@ -4,9 +4,9 @@ Progress toward a total.
 
 ## Props
 
-- `value`: value or binding
-- `max` (optional): value or binding
-- `label` (optional): value or binding
+- `value`: number | binding | call
+- `max` (optional): number | binding | call
+- `label` (optional): string | binding | call
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

@@ -1,12 +1,12 @@
 # Button
 
-A control that sends an event back to the agent or opens a link. Its label is a child Text.
+A control that sends an event back to the agent or opens a link. Its label is a child Text. To open a link, the action is a function call in place of an event: `"action": {"functionCall": {"@call": "openUrl", "args": {"url": "https://example.com/start"}}}`.
 
 ## Props
 
 - `child`: string — ID of a child component.
 - `variant` (optional): "default" | "primary" | "borderless"
-- `action`: value or binding
+- `action`: { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

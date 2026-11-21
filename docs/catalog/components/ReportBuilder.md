@@ -5,15 +5,15 @@ A report built from pills: the dashboard pattern. `fields` are the report's pill
 ## Props
 
 - `model` (optional): string — The name of a semantic model (list them with list_semantic_models). Its dimensions, measures and metrics become the pills, marked as the model's, so a metric means what the model defines; its source and query are used when `sourceId` and `sql` are left out. Prefer it to writing `fields` whenever a model covers the data. A person can add a field they make to the model.
-- `sourceId` (optional): value or binding — Where the query runs. Left out with `model`, the model's.
-- `sql` (optional): value or binding — A single read-only SELECT statement, wide enough for every view: a table, or a join. Left out with `model`, the model's.
+- `sourceId` (optional): string | binding | call — Where the query runs. Left out with `model`, the model's.
+- `sql` (optional): string | binding | call — A single read-only SELECT statement, wide enough for every view: a table, or a join. Left out with `model`, the model's.
 - `title` (optional): string
-- `fields` (optional): array — The report's pills. Left out, they are generated from the query's columns.
-- `filters` (optional): array — Filters every tile follows.
-- `tiles` (optional): array
-- `draft` (optional): object — What is on the builder's shelves: a view you propose, for the person to add.
+- `fields` (optional): array of { id: string, kind: "attribute" | "metric" | "derived", label: string, column?: string, grain?: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year", aggregate?: "sum" | "avg" | "count" | "count_distinct" | "min" | "max" | "median", expression?: string, format?: "number" | "compact" | "currency" | "percent", description?: string, by?: string, model?: string } — The report's pills. Left out, they are generated from the query's columns.
+- `filters` (optional): array of { column: string, op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "in" | "not_in" | "between" | "contains" | "starts_with" | "ends_with" | "is_null" | "is_not_null" | "since", values?: array } — Filters every tile follows.
+- `tiles` (optional): array of { id: string, title?: string, rows: array of string, split?: string, values: array of string, view?: "chart" | "table", chart?: { type?: "bar" | "line" | "area", swap?: boolean, measures?: object }, span?: 1 | 2 | 3 }
+- `draft` (optional): { rows: array of string, split?: string, values: array of string, view?: "chart" | "table", chart?: { type?: "bar" | "line" | "area", swap?: boolean, measures?: { [name]: object } } } — What is on the builder's shelves: a view you propose, for the person to add.
 - `mode` (optional): "build" | "view" — Leave out to let the person switch. "view" shows the dashboard alone.
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

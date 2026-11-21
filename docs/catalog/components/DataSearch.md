@@ -4,10 +4,10 @@ A search box over tables and columns, by name or meaning. The event is sent with
 
 ## Props
 
-- `sourceId` (optional): value or binding
-- `opened` (optional): object — Where the opened table's name is written in this surface's data model.
+- `sourceId` (optional): string | binding | call
+- `opened` (optional): binding — Where the opened table's name is written in this surface's data model.
 - `height` (optional): integer — How tall the search is, in pixels. The results scroll inside it. Left out, the list is as long as its results.
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 
 ## Events
 

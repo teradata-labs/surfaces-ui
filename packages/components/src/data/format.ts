@@ -121,3 +121,13 @@ export function chartValue(value: unknown, type: DataType): string | number | nu
   if (typeof value === "boolean") return value ? "true" : "false";
   return String(value);
 }
+
+/**
+ * A value as plain data, for anything that reads a row by column name: numbers stay numbers (a decimal with its
+ * point, a whole number past what a number holds as its digits), times become ISO strings, true and false stay.
+ */
+export function plainValue(value: unknown, type: DataType): string | number | boolean | null {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "bigint" && !DataType.isDecimal(type) && !DataType.isTimestamp(type) && !DataType.isDate(type) && !Number.isSafeInteger(Number(value))) return String(value);
+  return chartValue(value, type);
+}

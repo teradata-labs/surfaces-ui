@@ -9,7 +9,7 @@ A new or changed pipeline dataset for a person to approve: its query, what it re
 - `expectedVersion`: integer
 - `digest` (optional): string
 - `proposedBy` (optional): string — Your name, so the person knows who proposed it.
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Events

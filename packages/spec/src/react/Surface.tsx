@@ -4,7 +4,7 @@ import { TraceScopeProvider, useRecorder } from "@surfaces-ui/trace/react";
 import { ThemeProvider, useOptionalTheme } from "@surfaces-ui/components";
 import { type ThemeRequest, applyThemeRequest, defaultTheme } from "@surfaces-ui/tokens";
 import { type Catalog, type ValidationIssue, contractSchema, eventContextSchema, isComponentIssue } from "../catalog.js";
-import { A2UI_VERSION, type Action, type ChildList, type FunctionImpl, absolutePath, getPath, resolve, setPath } from "../dynamic.js";
+import { A2UI_VERSION, type Action, type ChildList, type FunctionImpl, absolutePath, conditionHolds, getPath, resolve, setPath } from "../dynamic.js";
 import { type Surface, type SurfaceAction, type SurfaceComponent, SurfaceError, type SurfaceMessage, type Surfaces, applyMessage, upgradeSurface } from "../surface.js";
 import { upgradeMessage } from "../upgrade.js";
 
@@ -18,6 +18,14 @@ export interface RenderProps {
   child(id: unknown): ReactNode;
   /** Renders a child list, including a template repeated over a data list. */
   children(list: unknown): ReactNode[];
+  /**
+   * Renders one child once for each row given, a row being plain values by
+   * name: inside it a relative path (`{ "@path": "author" }`) reads the
+   * row. The rows are not put in the surface's data model, so they are
+   * never sent to an agent; what a control in a row sends is the context its
+   * action declares.
+   */
+  rows(id: unknown, rows: Record<string, unknown>[]): ReactNode[];
   /**
    * Runs an action declared on this component. `extra` adds what the person
    * did (the option chosen, the SQL run) to the event's context.
@@ -106,6 +114,8 @@ function Rendered({ render, args }: { render: ComponentRenderer; args: RenderPro
   return render(args);
 }
 const MAX_DEPTH = 48;
+/** Where a row of a query sits in the copy of the data model its template reads. Never in the surface's own data. */
+const ROWS_SCOPE = "@rows";
 
 /**
  * A whole surface as the one `createSurface` message that would draw it. For dev tools: a surface that was not
@@ -275,7 +285,8 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
   );
   const checked = useMemo(() => new Map<SurfaceComponent, ValidationIssue[]>(), [catalog]);
 
-  const node = (id: unknown, scope: string, trail: string[]): ReactNode => {
+  // `model` is the data a component reads: the surface's, or for a row of a query the same with that row laid in at its scope.
+  const node = (id: unknown, scope: string, trail: string[], model: unknown = data): ReactNode => {
     if (typeof id !== "string") return null;
     const component = Object.hasOwn(surface.components, id) ? surface.components[id] : undefined;
     // A child that has not arrived yet is normal while a surface streams in.
@@ -294,9 +305,12 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
       return <Notice key={id} text={issues[0] ? `${component.component} "${id}": ${issues[0].path} ${issues[0].message}` : `No renderer for ${component.component}.`} />;
     }
 
-    const context = { data, scope, functions };
+    // Not shown until the data model holds what it waits for. It is still checked above, so a mistake in it is reported.
+    if (component.visibleWhen !== undefined && !conditionHolds(component.visibleWhen, model, scope)) return null;
+
+    const context = { data: model, scope, functions };
     // The envelope keys (`@catalogId`, `@accessibility`, `@metadata`) are not props: a renderer never receives them and nothing in them is resolved.
-    const { id: _id, component: _name, action: _action, child: _child, children: _children, ...own } = component;
+    const { id: _id, component: _name, action: _action, child: _child, children: _children, visibleWhen: _when, ...own } = component;
     const rest = Object.fromEntries(Object.entries(own).filter(([key]) => !key.startsWith("@")));
     const next = [...trail, id];
     const dispatch = (declared: unknown, extra?: Record<string, unknown>) => {
@@ -346,20 +360,29 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
     const setData = (target: unknown, value: unknown) => {
       const path = typeof target === "string" ? target : target && typeof target === "object" && typeof (target as { "@path"?: unknown })["@path"] === "string" ? (target as { "@path": string })["@path"] : undefined;
       if (path === undefined) return;
+      // A row of a query is read, never written: an input in a row keeps what is typed at an absolute path.
+      if (!path.startsWith("/") && scope.startsWith(`/${ROWS_SCOPE}/`)) return;
       write(absolutePath(path, scope), value, traced);
     };
     const children = (list: unknown): ReactNode[] => {
       const value = list as ChildList | undefined;
-      if (Array.isArray(value)) return value.map((childId) => <Slot key={childId}>{node(childId, scope, next)}</Slot>);
+      if (Array.isArray(value)) return value.map((childId) => <Slot key={childId}>{node(childId, scope, next, model)}</Slot>);
       if (value && typeof value === "object" && typeof value.componentId === "string") {
         const base = absolutePath(value.path, scope);
-        const items = getPath(data, base);
+        const items = getPath(model, base);
         if (!Array.isArray(items)) return [];
         // Templates are not added to the trail check per item; depth still bounds them.
-        return items.map((_, index) => <Slot key={index}>{node(value.componentId, `${base === "/" ? "" : base}/${index}`, next)}</Slot>);
+        return items.map((_, index) => <Slot key={index}>{node(value.componentId, `${base === "/" ? "" : base}/${index}`, next, model)}</Slot>);
       }
       return [];
     };
+    // A row of a query is laid into a copy of the model at a place of its own, and the child is drawn there: its
+    // relative paths read the row, its absolute ones the surface. The surface's own data never holds the row.
+    const rows = (childId: unknown, list: Record<string, unknown>[]): ReactNode[] =>
+      list.map((row, index) => {
+        const place = `/${ROWS_SCOPE}/${id}/${index}`;
+        return <Slot key={index}>{node(childId, place, next, setPath(model, place, row))}</Slot>;
+      });
     // Its own element, keyed by kind, so a renderer's hooks belong to this component and a swap starts fresh.
     const rendered = (
       <Rendered
@@ -367,8 +390,9 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
           args={{
             props: resolve(rest, context) as Record<string, unknown>,
             component,
-            child: (childId) => node(childId, scope, next),
+            child: (childId) => node(childId, scope, next, model),
             children,
+            rows,
             dispatch,
             setData,
             reportControls: (state) => {

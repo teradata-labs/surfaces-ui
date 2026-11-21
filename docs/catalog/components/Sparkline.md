@@ -4,14 +4,14 @@ A word-sized trend line beside its latest value, worked out by the database: no 
 
 ## Props
 
-- `sourceId`: value or binding
-- `sql`: value or binding — A single read-only SELECT statement.
-- `filters` (optional): value or binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
+- `sourceId`: string | binding | call
+- `sql`: string | binding | call — A single read-only SELECT statement.
+- `filters` (optional): array of { column: string, op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "in" | "not_in" | "between" | "contains" | "starts_with" | "ends_with" | "is_null" | "is_not_null" | "since", values?: array } | binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
 - `x`: string — The date or time column the line runs along.
 - `grain`: "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year"
 - `column` (optional): string
 - `aggregate`: "sum" | "avg" | "count" | "count_distinct" | "min" | "max" | "median" | "stddev" | "variance" | "percentile"
-- `label`: value or binding
+- `label`: string | binding | call
 - `format` (optional): "number" | "compact" | "currency" | "percent"
 - `currency` (optional): string
 - `points` (optional): integer

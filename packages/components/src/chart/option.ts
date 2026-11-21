@@ -56,6 +56,12 @@ export interface ChartOptionInput {
   horizontal?: boolean;
 }
 
+/**
+ * An axis title sits a fixed gap beyond the tick labels, wherever they end. A gap measured from the axis line
+ * suits one width of label only: beside two-digit ticks the title ran off the chart's edge.
+ */
+const TITLE_CLEAR = { nameGap: 8, nameMoveOverlap: true } as const;
+
 /** True when a chart of this shape can be turned on its side: bars only, on one scale. */
 export function canTurnSideways(type: ChartType, series: { type?: SeriesType; axis?: "left" | "right" }[]): boolean {
   return series.length > 0 && series.every((s) => (s.type ?? type) === "bar" && s.axis !== "right");
@@ -149,11 +155,25 @@ function endsApart(series: Record<string, unknown>[], dataset: unknown, rows: Re
 }
 
 /**
+ * The rows a chart cannot place: those with no x, on a time or number axis. (A category axis draws them under
+ * "null".) They are left out of the option whole, since a point that is not drawn must not size the y axis:
+ * a count of the rows with no date would otherwise flatten the line of every week that has one.
+ */
+export function rowsWithoutX(input: Pick<ChartOptionInput, "type" | "x" | "series" | "fields" | "rows">): ChartOptionInput["rows"] {
+  if (input.type === "pie") return [];
+  const kinds = input.series.map((s) => s.type ?? input.type);
+  const xType = axisType(input.fields.find((f) => f.name === input.x), kinds.every((k) => k === "scatter"));
+  return xType === "category" ? [] : input.rows.filter((row) => row[input.x] == null);
+}
+
+/**
  * Builds an ECharts option from query rows. Pure, so it can be tested and
  * reused on a server or by an agent. Colours and fonts come from the theme
  * passed to `echarts.init`, not from here.
  */
-export function buildChartOption(input: ChartOptionInput): Record<string, unknown> {
+export function buildChartOption(given: ChartOptionInput): Record<string, unknown> {
+  const unplaced = rowsWithoutX(given);
+  const input = unplaced.length > 0 ? { ...given, rows: given.rows.filter((row) => row[given.x] != null) } : given;
   const { type, x, splitBy } = input;
   const xField = input.fields.find((f) => f.name === x);
   // A date or number axis is drawn in its own order, whatever order the rows arrived in.
@@ -240,7 +260,7 @@ export function buildChartOption(input: ChartOptionInput): Record<string, unknow
     type: "value",
     name,
     nameLocation: "middle",
-    nameGap: 48,
+    ...TITLE_CLEAR,
     position: right ? "right" : "left",
     // A second axis has its own scale, so its grid lines would not line up with the first.
     splitLine: { show: !right },
@@ -251,12 +271,15 @@ export function buildChartOption(input: ChartOptionInput): Record<string, unknow
     // viewer's own zone they would land on the last day of the month before.
     useUTC: true,
     dataset,
+    // The margins are what is left around the plot, its tick labels and its axis titles together: the plot shrinks
+    // until all three fit, however wide the tick labels turn out to be.
     grid: {
-      left: !sideways && input.yTitle ? 28 : 8,
-      right: legend === "right" ? 140 : direct ? 96 : input.yRightTitle ? 36 : 16,
-      top: (legend === "top" ? 36 : 16) + (sideways && input.xTitle ? 16 : 0),
-      bottom: (zoom && !sideways ? 40 : 8) + (legend === "bottom" ? 28 : 0) + ((sideways ? input.yTitle : input.xTitle) ? 20 : 0),
-      containLabel: true,
+      left: 8,
+      right: legend === "right" ? 140 : direct ? 96 : 16,
+      top: legend === "top" ? 36 : 16,
+      bottom: (zoom && !sideways ? 40 : 8) + (legend === "bottom" ? 28 : 0),
+      outerBoundsMode: "same",
+      outerBoundsContain: "all",
     },
     tooltip: { trigger: kinds.every((k) => k === "scatter") ? "item" : "axis" },
     legend: legendOption(legend),
@@ -264,7 +287,7 @@ export function buildChartOption(input: ChartOptionInput): Record<string, unknow
       ? {
           // The largest bar at the top, where reading starts; the values along the bottom from zero.
           yAxis: { type: xType, ...(xType === "category" && categories ? { data: categories } : {}), inverse: true, name: input.xTitle, nameLocation: "start", nameGap: 8, axisLabel: { hideOverlap: true, ...(xType === "category" ? { interval: 0 } : {}) } },
-          xAxis: { ...valueAxis(input.yTitle, false), position: "bottom", nameGap: 28 },
+          xAxis: { ...valueAxis(input.yTitle, false), position: "bottom" },
         }
       : {
           xAxis: {
@@ -272,7 +295,7 @@ export function buildChartOption(input: ChartOptionInput): Record<string, unknow
             ...(xType === "category" && categories ? { data: categories } : {}),
             name: input.xTitle ?? (xType === "value" ? x : undefined),
             nameLocation: "middle",
-            nameGap: 28,
+            ...TITLE_CLEAR,
             // A category axis tries every label (ECharts otherwise skips some on a guess) and hides only those that collide.
             axisLabel: { hideOverlap: true, ...(xType === "category" ? { interval: 0 } : {}) },
           },

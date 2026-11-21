@@ -4,12 +4,12 @@ A query result a person can explore: filters; a table, a chart and a pivot of th
 
 ## Props
 
-- `sourceId`: value or binding
-- `sql`: value or binding
+- `sourceId`: string | binding | call
+- `sql`: string | binding | call
 - `view` (optional): "grid" | "chart" | "pivot"
-- `filters` (optional): value or binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
-- `sorts` (optional): array — Sort order, most important first. An empty list clears it.
-- `columns` (optional): object — Which columns show, in what order and how wide.
+- `filters` (optional): array of { column: string, op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "in" | "not_in" | "between" | "contains" | "starts_with" | "ends_with" | "is_null" | "is_not_null" | "since", values?: array } | binding — Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ "@path": "/filters" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.
+- `sorts` (optional): array of { column: string, desc?: boolean } — Sort order, most important first. An empty list clears it.
+- `columns` (optional): { order?: array of string, hidden?: array of string, widths?: { [name]: number } } — Which columns show, in what order and how wide.
 - `height` (optional): integer
 
 ## Example

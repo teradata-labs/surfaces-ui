@@ -4,8 +4,8 @@ Places children side by side. Wraps on narrow screens. Children share the width 
 
 ## Props
 
-- `children`: value or binding
-- `widths` (optional): array — The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child.
+- `children`: array of string | { componentId: string, path: string }
+- `widths` (optional): array of number — The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child.
 - `justify` (optional): "start" | "center" | "end" | "spaceBetween" | "spaceAround" | "spaceEvenly" | "stretch"
 - `align` (optional): "start" | "center" | "end" | "stretch"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.

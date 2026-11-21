@@ -46,19 +46,55 @@ export function catalogJson(catalog: Catalog): Record<string, unknown> {
   };
 }
 
+type Shape = Record<string, unknown>;
+const isShape = (value: unknown): value is Shape => value !== null && typeof value === "object" && !Array.isArray(value);
+const keyText = (key: string) => (/^[A-Za-z_$][\w$]*$/.test(key) ? key : JSON.stringify(key));
+
+/**
+ * A JSON Schema written as a model reads a type: `array of { column: string, desc?: boolean }`,
+ * `"a" | "b"`, `string | binding | call`. A binding and a function call are named, not spelled out, since the
+ * rules say once how each is written. Past `depth` levels an object or a list is named and not opened.
+ */
+export function shapeText(shape: unknown, depth = 3): string {
+  if (!isShape(shape)) return "any";
+  if (Array.isArray(shape.enum)) return shape.enum.map((value) => JSON.stringify(value)).join(" | ");
+  if (Object.hasOwn(shape, "const")) return JSON.stringify(shape.const);
+  const forms = (shape.anyOf ?? shape.oneOf) as unknown[] | undefined;
+  if (Array.isArray(forms)) return [...new Set(forms.map((form) => shapeText(form, depth)))].join(" | ");
+  const properties = isShape(shape.properties) ? shape.properties : undefined;
+  if (properties && Object.hasOwn(properties, "@path")) return "binding";
+  if (properties && Object.hasOwn(properties, "@call")) return "call";
+  if (shape.type === "array") {
+    const items = shapeText(shape.items, depth - 1);
+    const several = isShape(shape.items) && (Array.isArray(shape.items.enum) || Array.isArray(shape.items.anyOf ?? shape.items.oneOf)) && items.includes(" | ");
+    return depth <= 0 || items === "any" ? "array" : `array of ${several ? `(${items})` : items}`;
+  }
+  if (shape.type === "object" || properties) {
+    if (depth <= 0) return "object";
+    if (properties && Object.keys(properties).length > 0) {
+      const required = new Set(Array.isArray(shape.required) ? (shape.required as string[]) : []);
+      return `{ ${Object.entries(properties).map(([key, value]) => `${keyText(key)}${required.has(key) ? "" : "?"}: ${shapeText(value, depth - 1)}`).join(", ")} }`;
+    }
+    const values = isShape(shape.additionalProperties) ? shapeText(shape.additionalProperties, depth - 1) : "any";
+    return values === "any" ? "object" : `{ [name]: ${values} }`;
+  }
+  return typeof shape.type === "string" ? shape.type : "any";
+}
+
 function propLines(catalog: Catalog, name: string): string[] {
   const schema = jsonSchema(catalog.schema(name)!) as { properties?: Record<string, Record<string, unknown>>; required?: string[] };
   const required = new Set(schema.required ?? []);
   return Object.entries(schema.properties ?? {})
-    .filter(([prop]) => prop !== "id" && prop !== "component" && !prop.startsWith("@"))
-    .map(([prop, shape]) => {
-      const kind = Array.isArray(shape.enum)
-        ? (shape.enum as unknown[]).map((v) => JSON.stringify(v)).join(" | ")
-        : typeof shape.type === "string"
-          ? shape.type
-          : "value or binding";
-      return `- \`${prop}\`${required.has(prop) ? "" : " (optional)"}: ${kind}${typeof shape.description === "string" ? ` — ${shape.description}` : ""}`;
-    });
+    // `visibleWhen` is the same on every component, so the rules say it once.
+    .filter(([prop]) => prop !== "id" && prop !== "component" && prop !== "visibleWhen" && !prop.startsWith("@"))
+    .map(([prop, shape]) => `- \`${prop}\`${required.has(prop) ? "" : " (optional)"}: ${shapeText(shape)}${typeof shape.description === "string" ? ` — ${shape.description}` : ""}`);
+}
+
+/** One function as the prompt lists it: its arguments with their types, what it returns, and how a control runs it. */
+function functionLine(name: string, fn: Catalog["functions"][string]): string {
+  const args = shapeText(jsonSchema(z.object(fn.args)), 2);
+  const example = Object.fromEntries(Object.keys(fn.args).map((key) => [key, "…"]));
+  return `- \`${name}\`, args \`${args}\` → ${fn.returnType}: ${fn.description}${fn.action ? ` It acts, so it is run from a control's \`action\`: \`${JSON.stringify({ functionCall: { "@call": name, args: example } })}\`.` : ""}`;
 }
 
 function eventLines(catalog: Catalog, name: string): string[] {
@@ -150,12 +186,15 @@ export function catalogPrompt(catalog: Catalog): string {
     "- Use only the components and props listed below. Unknown components or props are rejected.",
     "- Any prop that accepts a binding can be a literal or `{ \"@path\": \"/data/path\" }`. Put values that change in the data model and bind to them.",
     "- Inside a repeated child (`children: { componentId, path }`), relative paths such as `{ \"@path\": \"name\" }` read from the current item.",
-    "- A function is called with `{ \"@call\": \"name\", \"args\": { … } }`.",
+    "- In the props below, `binding` is `{ \"@path\": \"/data/path\" }` and `call` is a function call, `{ \"@call\": \"name\", \"args\": { … } }`, which works out a value.",
+    "- A control's `action` is one of two things: `{ \"event\": { \"name\": \"…\", \"context\": { … } } }` sends an event back to you, and `{ \"functionCall\": { \"@call\": \"name\", \"args\": { … } } }` runs a function that acts (see Functions). A bare `{ \"@call\": … }` is not an action.",
+    "- Any component takes `visibleWhen: { \"path\": \"/source/kind\", \"equals\": \"Table\" }` (or `\"in\": [ … ]`; with neither, anything there will do) and is drawn only while the data model holds that. Use it to show a field only once the choice that needs it is made.",
     "- A component is replaced whole by `updateComponents`. Anything you leave out of it, its `@metadata` included, is gone.",
     "- `@metadata: { extensions: { name: value } }` on a component, and `metadata` on `createSurface`, carry data that is never drawn. Prefix a name with whose it is (`acme_ticket`). Keep one you find on a component when you send that component again.",
     "- SQL must be a single read-only SELECT. Never put user-typed text into SQL; sorting, filtering and paging are done by the components.",
     "- For charts over large tables, give each measure an `aggregate`.",
     "- Buttons send an `event` back to you with the `context` you declare. Wait for it; do not assume it happened.",
+    "- Values that must be checked and sent together belong in a `Form`: it marks what is required, shows each problem beside its field, and sends nothing while any is wrong. Loose inputs check themselves (`required`, `min`, `max`, `pattern`) but a Button beside them does not wait for them.",
     "",
     "## Getting the reply you need",
     "",
@@ -166,7 +205,7 @@ export function catalogPrompt(catalog: Catalog): string {
     "",
     "## Functions",
     "",
-    ...Object.entries(catalog.functions).map(([name, fn]) => `- \`${name}(${Object.keys(fn.args).join(", ")})\` → ${fn.returnType}: ${fn.description}`),
+    ...Object.entries(catalog.functions).map(([name, fn]) => functionLine(name, fn)),
     "",
     "## Components",
     "",

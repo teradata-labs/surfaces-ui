@@ -1,6 +1,6 @@
 import { type KeyboardEvent, type ReactNode, type RefObject, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { ControlIcon } from "../controls/ItemControls.js";
-import type { SideNavGroup, SideNavItem } from "./SideNav.js";
+import { type SideNavGroup, type SideNavItem, navigationName } from "./SideNav.js";
 
 export interface NavBarProps {
   /** What the navigation is for, for assistive technology: "Surfaces UI". */
@@ -222,7 +222,7 @@ export function NavBar({ label, groups, current, onSelect, brand, actions, class
               className="sf-navbar-menu"
               aria-expanded={menuOpen}
               aria-controls={`${id}-menu`}
-              aria-label={`Show ${label} navigation`}
+              aria-label={`Show ${navigationName(label)}`}
               onClick={() => setOpen(true)}
             >
               <ControlIcon icon="menu" />
@@ -248,7 +248,7 @@ export function NavBar({ label, groups, current, onSelect, brand, actions, class
       {/* Outside the bar: the bar's backdrop blur would make it the box a fixed sheet is placed in. */}
       {menuOpen && (
         // biome-ignore lint/a11y/noStaticElementInteractions: Escape and Tab are handled here for everything inside; the controls themselves are buttons and links.
-        <div id={`${id}-menu`} ref={sheet} className="sf-navbar-sheet" role="dialog" aria-modal="true" aria-label={`${label} navigation`} onKeyDown={onKey}>
+        <div id={`${id}-menu`} ref={sheet} className="sf-navbar-sheet" role="dialog" aria-modal="true" aria-label={navigationName(label)} onKeyDown={onKey}>
           <div className="sf-navbar-sheet-top">
             {brand && <div className="sf-navbar-brand">{brand}</div>}
             <button type="button" className="sf-navbar-close" aria-label="Close navigation" onClick={close}>

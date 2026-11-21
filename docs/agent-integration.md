@@ -97,7 +97,7 @@ All of these implement `AgentBackend`, the only thing `Chat` needs.
 | OpenAI-compatible servers (OpenAI, Ollama, vLLM, LM Studio) | `openAiCompatibleAgent({ baseUrl, model, headers })` from `@surfaces-ui/agent-openai` | `toolCallingAgent` over `/chat/completions` with streaming, using `fetch` only |
 | Any model with tool calls | `toolCallingAgent({ system, complete, tools })` from `@surfaces-ui/agent` | The model draws by calling `render_surface({ messages })`. Each later turn reaches it as text from `turnText(request)`: the event, each surface's state, the contracts and any problems. History is kept per session |
 | Loom | `loomAgent({ baseUrl, token })` from `@surfaces-ui/agent-loom` | Sends `turnText(request)` as the query; surfaces come back from `a2ui` blocks. `describeAgents` lists Loom's agents and models; a turn naming another model switches the session first |
-| A model that can only write text | Wrap its output with `extractSurfaces` | Pulls A2UI out of fenced blocks |
+| A model that can only write text | Wrap its output with `extractSurfaces` | Pulls A2UI out of fenced blocks: one message per line, one written over several lines, or a list of them. A block holding text that is not a message ends in one `error` event (code `UNREAD_SURFACE`), so a change that could not be read is never lost in silence |
 | MCP hosts | `registerSurfacesApps` from `@surfaces-ui/mcp` | `render_surface` draws in the host. Actions go back to the conversation as `turnText` |
 
 `toolCallingAgent` never calls a model itself. You write `complete` for your provider:

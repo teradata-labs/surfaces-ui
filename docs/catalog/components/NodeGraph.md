@@ -5,14 +5,14 @@ Things and the links between them, drawn as a graph with the same things listed 
 ## Props
 
 - `label`: string — What the graph shows, for assistive technology.
-- `nodes`: array
-- `links`: array
-- `selected` (optional): value or binding — The open node's id, or a data path that holds it and is written when a person opens a node.
-- `groups` (optional): array — The order groups take colours and appear in the legend.
-- `levels` (optional): object — What each level means, in words.
+- `nodes`: array of { id: string, label: string, description?: string, group?: string, level?: "full" | "half" | "outline" }
+- `links`: array of { source: string, target: string, label?: string }
+- `selected` (optional): string | binding — The open node's id, or a data path that holds it and is written when a person opens a node.
+- `groups` (optional): array of string — The order groups take colours and appear in the legend.
+- `levels` (optional): { full?: string, half?: string, outline?: string } — What each level means, in words.
 - `noun` (optional): string — What a node is called: "term" gives "7 terms".
 - `height` (optional): integer
-- `action` (optional): value or binding
+- `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 
 ## Events
 

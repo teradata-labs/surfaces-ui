@@ -1,13 +1,13 @@
-import { analyticsCatalog } from "@surfaces-ui/spec";
+import { type SurfaceComponent, analyticsCatalog } from "@surfaces-ui/spec";
 import { type SeedIssue, type SeedPii, joinsOf, seedById, seedSemanticModels } from "@surfaces-ui/seeds";
 import { type DataFocus, focusFor } from "./focus.js";
 import { type ActiveSource, firstTable } from "./source.js";
 
 /** How the sidebar groups the catalog. A component missing here is listed under "Other", so nothing is hidden. */
 export const GROUPS: [string, string[]][] = [
-  ["Layout and text", ["Text", "Row", "Column", "Grid", "Card", "Tabs", "Divider", "Badge", "KeyValue", "Stat", "Progress", "Link", "Markdown", "CodeBlock", "Table"]],
+  ["Layout and text", ["Text", "Row", "Column", "Grid", "Card", "Tabs", "Divider", "Badge", "KeyValue", "Stat", "Progress", "Link", "Markdown", "Message", "CodeBlock", "Table"]],
   ["Reports and exploring", ["ReportBuilder", "Explorer", "FilterBar"]],
-  ["Data views", ["DataGrid", "Chart", "PivotTable", "QueryResult", "Metric", "Sparkline", "BulletGraph", "QueryPlan", "SqlEditor"]],
+  ["Data views", ["DataGrid", "RowList", "Chart", "PivotTable", "QueryResult", "Metric", "Sparkline", "BulletGraph", "QueryPlan", "SqlEditor"]],
   ["Discovery and modelling", ["DataSearch", "ObjectBrowser", "ObjectDetail", "RelationshipGraph", "NodeGraph", "ModelDiagram", "AskData", "ContextBuilder", "SourceList", "FileBrowser", "SemanticModelEditor"]],
   ["Inputs and forms", ["Form", "TextField", "NumberField", "ChoicePicker", "CheckBox", "DateTimeInput", "Slider", "Button"]],
   ["Decisions and review", ["DecisionCard", "Chips", "Checklist", "SqlProposal", "PlanReview", "PiiReview", "StepFlow"]],
@@ -189,6 +189,25 @@ function wordedExample(name: string, props: Record<string, unknown>, f: DataFocu
   }
 }
 
+/**
+ * What a `RowList` example draws for each row: a card of the picked table's first columns, each read from the row
+ * by a relative path. Undefined where the table's columns are not known here (a source that is not a sample model).
+ */
+export function rowTemplate(props: Record<string, unknown>): SurfaceComponent[] | undefined {
+  const seed = typeof props.sourceId === "string" ? seedById(props.sourceId) : undefined;
+  const table = seed?.tables.find((t) => typeof props.sql === "string" && props.sql.trim().endsWith(` ${t.name}`));
+  if (!table || typeof props.child !== "string") return undefined;
+  const [first, ...rest] = table.columns.slice(0, 5).map((c) => c.name);
+  if (!first) return undefined;
+  const id = props.child;
+  return [
+    { id, component: "Card", child: `${id}-body` },
+    { id: `${id}-body`, component: "Column", children: [`${id}-title`, ...(rest.length > 0 ? [`${id}-facts`] : [])] },
+    { id: `${id}-title`, component: "Text", variant: "h4", text: { "@call": "formatString", args: { value: `${first} \${${first}|–}` } } },
+    ...(rest.length > 0 ? [{ id: `${id}-facts`, component: "KeyValue", items: rest.map((column) => ({ label: column, value: { "@call": "formatString", args: { value: `\${${column}|–}` } } })) }] : []),
+  ];
+}
+
 export function exampleProps(name: string, source: ActiveSource, thirds?: { to: number; label: string }[]): Record<string, unknown> {
   // An app component has no catalog entry; its page starts from its own example.
   if (!analyticsCatalog.components[name]) return {};
@@ -212,6 +231,8 @@ export function exampleProps(name: string, source: ActiveSource, thirds?: { to: 
     case "DataGrid":
     case "QueryResult":
       return { ...props, sourceId, sql: f.rowsSql };
+    case "RowList":
+      return { sourceId, sql: f.rowsSql, child: "row", label: f.table, pageSize: 6, layout: "grid" };
     case "Chart":
       return { sourceId, sql: b.sql, type: "bar", x: b.x, y: b.y, ...(b.yTitle ? { yTitle: b.yTitle } : {}), label: `${b.label}, largest first` };
     case "PivotTable":

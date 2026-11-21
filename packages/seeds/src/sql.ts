@@ -20,7 +20,7 @@ export function prelude(params: SeedParams): string[] {
     "SET TimeZone = 'UTC'",
     // Squaring modulo a prime is not linear, so draws with different salts are independent of each other.
     `CREATE OR REPLACE MACRO sf_mix(x) AS ((CAST(x AS BIGINT) % 2147483647) * (CAST(x AS BIGINT) % 2147483647) + 1013904223) % 2147483647`,
-    `CREATE OR REPLACE MACRO sf_rnd(i, salt) AS sf_mix(sf_mix(((CAST(i AS BIGINT) + 1) * 1103515245 + CAST(salt AS BIGINT) * 2654435 + ${seed} * 97531) % 2147483647) + (CAST(i AS BIGINT) % 65521) * 31 + CAST(salt AS BIGINT) * 7919) / 2147483647.0`,
+    `CREATE OR REPLACE MACRO sf_rnd(i, salt) AS sf_mix(sf_mix(((CAST(i AS BIGINT) + 1) * 1103515245 + CAST(salt AS BIGINT) * 2654435 + CAST(${seed} AS BIGINT) * 97531) % 2147483647) + (CAST(i AS BIGINT) % 65521) * 31 + CAST(salt AS BIGINT) * 7919) / 2147483647.0`,
     `CREATE OR REPLACE MACRO sf_int(i, salt, lo, hi) AS CAST(lo + floor(sf_rnd(i, salt) * (hi - lo + 1)) AS BIGINT)`,
     `CREATE OR REPLACE MACRO sf_pick(list, i, salt) AS list[CAST(1 + floor(sf_rnd(i, salt) * len(list)) AS INTEGER)]`,
     `CREATE OR REPLACE MACRO sf_day(i, salt) AS DATE '${params.start}' + CAST(sf_int(i, salt, 0, ${days - 1}) AS INTEGER)`,

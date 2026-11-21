@@ -4,7 +4,7 @@ A question box that answers from the catalog and cites the tables it used.
 
 ## Props
 
-- `sourceId` (optional): value or binding
+- `sourceId` (optional): string | binding | call
 - `contextPackId` (optional): string
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
