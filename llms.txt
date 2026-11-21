@@ -13,6 +13,7 @@
 - [Recipes](docs/recipes/README.md): tested code for common jobs: chat with Claude over your data, a cross-filtered dashboard, your own backend, Postgres/Teradata/S3, Next.js, Claude Desktop (MCP), an approval before SQL runs, a form that writes back, a dashboard a person can arrange
 - [Component reference](docs/catalog/components): one page per catalog component (what an agent draws), each example as JSX markup (`analyticsMarkup`), A2UI and a json-render spec
 - [App components](docs/components/README.md): one page per component an app places itself (AnalyticsChat, Chat, PageStudio, ThemePicker, ConnectionBuilder, ModelLineage, ChecksPanel, ObjectInfo, CertificationBadge, ItemControls, SurfacesDevTools): plain props, the parts a host supplies in code, callbacks, an example
+- [Styling](docs/styling.md): themes, scoped themes, `--sf-*` variables, `className`, `styles.css` or `styles.layer.css` (`@layer surfaces`); `.sf-*` classes are internal
 - [Accessibility](docs/accessibility.md): WCAG 2.2 AA mapping and keyboard keys
 
 ## Contracts
