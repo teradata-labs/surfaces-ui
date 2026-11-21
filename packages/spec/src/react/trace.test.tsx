@@ -4,6 +4,7 @@ import { memoryDataSource } from "@surfaces-ui/data";
 import { type Recorder, createRecorder, replay } from "@surfaces-ui/trace";
 import { TraceProvider } from "@surfaces-ui/trace/react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { analyticsCatalog } from "../analytics.js";
 import { A2UI_VERSION, setPath } from "../dynamic.js";
@@ -66,6 +67,24 @@ describe("tracing a surface", () => {
     expect((call.detail.request as any).query.baseSql).toBe("SELECT * FROM orders");
     expect((call.detail.response as any).rows).toBe(2);
     expect(JSON.stringify(events)).not.toContain(SECRET);
+  });
+
+  it("gives every recorded event an id of its own, whatever is drawn under one component id", () => {
+    const recorder = createRecorder();
+    let api!: UseSurfaces;
+    // Strict mode runs each effect twice, as a development build does.
+    render(<StrictMode>{traced(recorder, <Host recorder={recorder} expose={(s) => (api = s)} initial={[create, components([{ id: "root", component: "Column", children: ["a"] }, { id: "a", component: "Text", text: "One" }])]} />)}</StrictMode>);
+    // Another kind under the same id is another component: recorded, with a span of its own.
+    act(() => api.apply(components([{ id: "a", component: "Markdown", text: "Two" }])));
+    act(() => api.apply(components([{ id: "a", component: "Text", text: "Three" }])));
+    // A component taken away and drawn again later is recorded again.
+    act(() => api.apply(components([{ id: "root", component: "Column", children: [] }])));
+    act(() => api.apply(components([{ id: "root", component: "Column", children: ["a"] }])));
+    // The same component sent again is not.
+    act(() => api.apply(components([{ id: "a", component: "Text", text: "Four" }])));
+    expect(names(recorder, "component")).toEqual(['Column "root"', 'Text "a"', 'Markdown "a"', 'Text "a"', 'Text "a"']);
+    const ids = recorder.get().events.map((e) => e.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("records a catalog violation, an action with its contract result, and a write", () => {
