@@ -1,43 +1,8 @@
+import type { StateStorage } from "@surfaces-ui/data";
 import type { Store } from "./store.js";
 
-/** Where saved state lives. Implement it over any storage: the browser, a host bridge, a server. */
-export interface StateStorage {
-  load(key: string): string | null | undefined | Promise<string | null | undefined>;
-  save(key: string, value: string): void | Promise<void>;
-}
-
-/** Keeps state for the lifetime of the page. For tests, and for hosts with no storage. */
-export function memoryStorage(initial: Record<string, string> = {}): StateStorage & { data: Record<string, string> } {
-  const data = { ...initial };
-  return { data, load: (key) => data[key], save: (key, value) => void (data[key] = value) };
-}
-
-/** The browser's localStorage. Safe to create where it does not exist or is blocked: it then keeps nothing. */
-export function browserStorage(): StateStorage {
-  const storage = (() => {
-    try {
-      return typeof localStorage === "undefined" ? undefined : localStorage;
-    } catch {
-      return undefined;
-    }
-  })();
-  return {
-    load(key) {
-      try {
-        return storage?.getItem(key);
-      } catch {
-        return undefined;
-      }
-    },
-    save(key, value) {
-      try {
-        storage?.setItem(key, value);
-      } catch {
-        // Full or blocked storage must not break the page.
-      }
-    },
-  };
-}
+// One storage interface for the whole library, defined in @surfaces-ui/data and offered here too.
+export { type StateStorage, browserStorage, memoryStorage } from "@surfaces-ui/data";
 
 export interface PersistOptions<T> {
   key: string;

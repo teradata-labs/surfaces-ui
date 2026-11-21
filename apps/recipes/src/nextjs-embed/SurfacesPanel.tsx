@@ -23,7 +23,7 @@ export function SurfacesPanel({ baseUrl = "", sourceId, sql, dataSource }: Surfa
   const data = useMemo(() => dataSource ?? connectDataSource({ baseUrl }), [dataSource, baseUrl]);
   return (
     // "scoped" themes only this region, so the rest of your app keeps its own styles.
-    <ThemeProvider scope="scoped" store={null}>
+    <ThemeProvider scope="scoped" storage={null}>
       <DataSourceProvider dataSource={data}>
         <QueryResult sourceId={sourceId} sql={sql} height={420} exportName="orders" />
       </DataSourceProvider>

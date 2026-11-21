@@ -14,8 +14,10 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { type StateStorage, browserStorage } from "@surfaces-ui/data";
 
 /** What a person has chosen: the theme document and the light/dark mode. */
 export interface ThemeState {
@@ -24,38 +26,19 @@ export interface ThemeState {
 }
 
 /**
- * Where the choice is kept. Implement this to persist through a host bridge
- * (an MCP App, an embed) or a server instead of the browser.
+ * Reads a saved theme choice. Saved text can be edited by anyone with access
+ * to the storage, so the theme goes through `parseTheme` and an unknown mode
+ * falls back to "system"; unreadable text is ignored.
  */
-export interface ThemeStore {
-  load(): ThemeState | undefined | Promise<ThemeState | undefined>;
-  save(state: ThemeState): void | Promise<void>;
-}
-
-/** Keeps the choice in localStorage. Works (without persisting) when storage is unavailable. */
-export function localThemeStore(key = "surfaces.theme"): ThemeStore {
-  return {
-    load() {
-      try {
-        const raw = globalThis.localStorage?.getItem(key);
-        if (!raw) return undefined;
-        const parsed = JSON.parse(raw) as { theme?: unknown; mode?: unknown };
-        return {
-          theme: parseTheme(parsed.theme, defaultTheme),
-          mode: MODES.includes(parsed.mode as Mode) ? (parsed.mode as Mode) : "system",
-        };
-      } catch {
-        return undefined;
-      }
-    },
-    save(state) {
-      try {
-        globalThis.localStorage?.setItem(key, JSON.stringify(state));
-      } catch {
-        // Storage blocked or full: the choice still applies for this visit.
-      }
-    },
-  };
+export function parseThemeState(text: string | null | undefined): ThemeState | undefined {
+  if (!text) return undefined;
+  try {
+    const parsed = JSON.parse(text) as { theme?: unknown; mode?: unknown };
+    if (!parsed || typeof parsed !== "object") return undefined;
+    return { theme: parseTheme(parsed.theme, defaultTheme), mode: MODES.includes(parsed.mode as Mode) ? (parsed.mode as Mode) : "system" };
+  } catch {
+    return undefined;
+  }
 }
 
 export interface ThemeContextValue extends ThemeState {
@@ -69,11 +52,17 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export interface ThemeProviderProps {
   children: ReactNode;
-  /** Theme used until the store answers, and when it has nothing saved. */
+  /** Theme used until the saved choice loads, and when it has nothing saved. */
   initialTheme?: Theme;
   initialMode?: Mode;
-  /** Pass `null` to keep the choice in memory only. Defaults to localStorage. */
-  store?: ThemeStore | null;
+  /**
+   * Where the choice is kept: the browser (the default), a host's bridge or a
+   * server, through the same `StateStorage` every part of the library takes.
+   * Pass `null` to keep the choice in memory only.
+   */
+  storage?: StateStorage | null;
+  /** The key the choice is kept under. Default "surfaces.theme". */
+  storageKey?: string;
   /**
    * "root" (default) themes the whole document. "scoped" themes only this
    * provider's subtree, so several themes can share a page.
@@ -98,36 +87,41 @@ export function ThemeProvider({
   children,
   initialTheme = defaultTheme,
   initialMode = "system",
-  store,
+  storage,
+  storageKey = "surfaces.theme",
   scope = "root",
 }: ThemeProviderProps) {
-  const resolvedStore = useMemo(() => (store === undefined ? localThemeStore() : store), [store]);
+  const resolvedStorage = useMemo(() => (storage === undefined ? browserStorage() : storage), [storage]);
+  // A choice made before the saved one has loaded wins: the saved one is older.
+  const chosen = useRef(false);
   const [state, setState] = useState<ThemeState>({ theme: initialTheme, mode: initialMode });
   const scopeId = `sf-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const systemDark = useSystemDark();
 
   useEffect(() => {
-    if (!resolvedStore) return;
+    if (!resolvedStorage) return;
     let cancelled = false;
-    void Promise.resolve(resolvedStore.load())
-      .then((saved) => {
-        if (saved && !cancelled) setState(saved);
+    void Promise.resolve(resolvedStorage.load(storageKey))
+      .then((text) => {
+        const saved = parseThemeState(text);
+        if (saved && !cancelled && !chosen.current) setState(saved);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [resolvedStore]);
+  }, [resolvedStorage, storageKey]);
 
   const update = useCallback(
     (patch: Partial<ThemeState>) => {
+      chosen.current = true;
       setState((prev) => {
         const next = { ...prev, ...patch };
-        if (resolvedStore) void Promise.resolve(resolvedStore.save(next)).catch(() => {});
+        if (resolvedStorage) void Promise.resolve(resolvedStorage.save(storageKey, JSON.stringify(next))).catch(() => {});
         return next;
       });
     },
-    [resolvedStore],
+    [resolvedStorage, storageKey],
   );
 
   const css = useMemo(

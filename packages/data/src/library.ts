@@ -1,3 +1,4 @@
+import type { StateStorage } from "./storage.js";
 import { create, type DescMessage, type JsonObject, type MessageInitShape } from "@bufbuild/protobuf";
 import {
   type DeleteSurfaceRequestSchema,
@@ -65,15 +66,9 @@ export interface StoredSurfaceVersion {
   note: string;
 }
 
-/** Where a library keeps its versions. Matches `StateStorage` in `@surfaces-ui/state`, so `browserStorage` fits. */
-export interface LibraryStorage {
-  load(key: string): string | null | undefined | Promise<string | null | undefined>;
-  save(key: string, value: string): void | Promise<void>;
-}
-
 export interface MemorySurfaceLibraryOptions {
   /** Keep the library somewhere that outlives the page. Without it, memory only. */
-  storage?: LibraryStorage;
+  storage?: StateStorage;
   /** Storage key. */
   key?: string;
   /** Versions kept per surface; older ones are dropped. Default 20. */

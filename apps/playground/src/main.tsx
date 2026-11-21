@@ -17,7 +17,7 @@ const linked = Boolean(linkedTheme || linkedMode);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider initialTheme={linkedTheme ?? presetByName("Aurora")} initialMode={linkedMode ?? "dark"} store={linked ? null : undefined}>
+    <ThemeProvider initialTheme={linkedTheme ?? presetByName("Aurora")} initialMode={linkedMode ?? "dark"} storage={linked ? null : undefined}>
       {/* Dev tools for every page: on while developing, absent from a published build. `#view` frames one page alone, with nothing over it. */}
       <SurfacesDevTools enabled={import.meta.env.DEV && !location.hash.startsWith("#view")}>{params.get("popout") === "composer" ? <ComposerPopout /> : <App />}</SurfacesDevTools>
     </ThemeProvider>

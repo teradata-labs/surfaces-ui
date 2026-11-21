@@ -9,7 +9,7 @@ function Tile({ theme, mode, focus, onUse }: { theme: Theme; mode: "light" | "da
   const { sourceId, measure: m, stacked } = focus;
   const colors = resolveColors(theme[mode], theme.charts[mode]);
   return (
-    <ThemeProvider key={`${theme.name}-${mode}`} scope="scoped" store={null} initialTheme={theme} initialMode={mode}>
+    <ThemeProvider key={`${theme.name}-${mode}`} scope="scoped" storage={null} initialTheme={theme} initialMode={mode}>
       <article className="gallery-tile" aria-label={`${theme.name}, ${mode}`}>
         <header className="gallery-head">
           <h3>{theme.name}</h3>

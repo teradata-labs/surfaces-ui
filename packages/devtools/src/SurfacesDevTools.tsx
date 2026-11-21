@@ -1,4 +1,5 @@
 import { ControlIcon, ThemeProvider, useOptionalTheme } from "@surfaces-ui/components";
+import { type StateStorage, browserStorage } from "@surfaces-ui/data";
 import type { Catalog } from "@surfaces-ui/spec";
 import type { ComponentRenderer } from "@surfaces-ui/spec/react";
 import { INSPECT_COMPONENT, INSPECT_MARK, INSPECT_POINTED, type InspectTarget, type Recorder, createRecorder, performanceTracks } from "@surfaces-ui/trace";
@@ -46,6 +47,12 @@ export interface SurfacesDevToolsProps {
   recorder?: Recorder;
   /** Told when the tools are opened or closed. */
   onOpenChange?(open: boolean): void;
+  /**
+   * Where the panel's place (open, dock, size) is kept between visits: the
+   * browser by default, or any `StateStorage`. `null` keeps nothing. It only
+   * arranges tools that are already on; nothing kept turns them on.
+   */
+  storage?: StateStorage | null;
 }
 
 declare const process: { env: { NODE_ENV?: string } };
@@ -93,20 +100,18 @@ interface Kept {
   size?: number;
 }
 const STORE = "surfaces.devtools";
-/** Where the panel was left, kept in this browser. It only arranges tools that are already on; it cannot turn them on. */
-const load = (): Kept => {
+/** Where the panel was left. Saved text is checked: anything else is ignored. */
+const readKept = (text: string | null | undefined): Kept => {
   try {
-    const value = JSON.parse(globalThis.localStorage?.getItem(STORE) ?? "{}") as Kept;
-    return value && typeof value === "object" ? value : {};
+    const value = JSON.parse(text ?? "{}") as Kept;
+    if (!value || typeof value !== "object") return {};
+    return {
+      ...(typeof value.open === "boolean" ? { open: value.open } : {}),
+      ...(value.dock === "bottom" || value.dock === "right" ? { dock: value.dock } : {}),
+      ...(typeof value.size === "number" && Number.isFinite(value.size) ? { size: value.size } : {}),
+    };
   } catch {
     return {};
-  }
-};
-const keep = (value: Kept) => {
-  try {
-    globalThis.localStorage?.setItem(STORE, JSON.stringify(value));
-  } catch {
-    // Not kept: it starts closed next time.
   }
 };
 
@@ -139,9 +144,18 @@ const DockRightIcon = (
   </svg>
 );
 
-function Shell({ recorder, defaultOpen = false, defaultDock = "bottom", shortcut = true, anchor = "window", catalog, renderers, onOpenChange }: Omit<SurfacesDevToolsProps, "enabled" | "children" | "limit" | "performanceTracks" | "recorder"> & { recorder: Recorder }) {
+function Shell({ recorder, defaultOpen = false, defaultDock = "bottom", shortcut = true, anchor = "window", catalog, renderers, onOpenChange, storage }: Omit<SurfacesDevToolsProps, "enabled" | "children" | "limit" | "performanceTracks" | "recorder"> & { recorder: Recorder }) {
   const inline = anchor === "inline";
-  const kept = useMemo(() => (inline ? {} : load()), [inline]);
+  const store = useMemo(() => (inline ? null : storage === undefined ? browserStorage() : storage), [inline, storage]);
+  // Storage that answers at once (the browser's) places the panel on the first draw; one that answers later moves it then.
+  const first = useMemo(() => {
+    try {
+      return store?.load(STORE);
+    } catch {
+      return undefined;
+    }
+  }, [store]);
+  const kept = useMemo(() => (typeof first === "string" ? readKept(first) : {}), [first]);
   const [open, setOpenState] = useState(kept.open ?? defaultOpen);
   const [dock, setDock] = useState<DevToolsDock>(kept.dock ?? defaultDock);
   const [size, setSize] = useState<number | undefined>(kept.size);
@@ -152,9 +166,29 @@ function Shell({ recorder, defaultOpen = false, defaultDock = "bottom", shortcut
   const theme = useOptionalTheme();
 
   useEffect(() => addStyles(document, "sf-devtools-shell-css", SHELL_CSS), []);
+  const [loaded, setLoaded] = useState(!(first instanceof Promise));
   useEffect(() => {
-    if (!inline) keep({ open, dock, ...(size !== undefined ? { size } : {}) });
-  }, [inline, open, dock, size]);
+    if (!(first instanceof Promise)) return;
+    let cancelled = false;
+    void first
+      .then((text) => {
+        if (cancelled) return;
+        const later = readKept(text);
+        if (later.open !== undefined) setOpenState(later.open);
+        if (later.dock) setDock(later.dock);
+        if (later.size !== undefined) setSize(later.size);
+      })
+      .catch(() => {})
+      .finally(() => !cancelled && setLoaded(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [first]);
+  useEffect(() => {
+    // Nothing is saved until what was kept has been read, so the defaults never overwrite it.
+    if (!store || !loaded) return;
+    void Promise.resolve(store.save(STORE, JSON.stringify({ open, dock, ...(size !== undefined ? { size } : {}) }))).catch(() => {});
+  }, [store, loaded, open, dock, size]);
 
   const setOpen = useCallback(
     (next: boolean) => {
@@ -334,7 +368,7 @@ function Shell({ recorder, defaultOpen = false, defaultDock = "bottom", shortcut
     </Suspense>
   );
   // A host with no theme of its own still gets a readable panel.
-  const themed = (node: ReactNode) => (theme ? node : <ThemeProvider scope="scoped" store={null}>{node}</ThemeProvider>);
+  const themed = (node: ReactNode) => (theme ? node : <ThemeProvider scope="scoped" storage={null}>{node}</ThemeProvider>);
 
   const count = errors > 0 ? <span className="sf-devtools-count">{errors}</span> : null;
   const parts = (

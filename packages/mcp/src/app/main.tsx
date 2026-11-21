@@ -273,7 +273,7 @@ function Root() {
   }, []);
 
   return (
-    <ThemeProvider store={null}>
+    <ThemeProvider storage={null}>
       <FollowHostTheme mode={mode} variables={variables} />
       <DataSourceProvider dataSource={dataSource}>
         <PipelinesProvider pipelines={pipelines}>

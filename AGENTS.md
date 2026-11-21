@@ -401,7 +401,7 @@ import "@surfaces-ui/components/styles.css";
 ```
 
 - A host with a sticky bar of its own sets `--sf-sticky-top` to the bar's height, so library parts that stick as the page scrolls (`PageStudio`'s side) stay below it and end inside the window.
-- Persist somewhere else by passing `store={{ load, save }}`; pass `store={null}` for memory only.
+- Persist somewhere else by passing `storage` (any `StateStorage` from `@surfaces-ui/data`, the one interface the chat, the dev tools, a library and `persist` take too) and `storageKey`; pass `storage={null}` for memory only.
 - Theme one region with `scope="scoped"`.
 - Charts: `echarts.init(el, echartsTheme(theme, resolvedMode))` from `@surfaces-ui/tokens`.
 - **Code colours are part of the theme too**: `--sf-code-keyword`, `-string`, `-number`, `-literal`, `-comment`, `-property`, `-function`, `-type`, `-punctuation`, derived from the chart hues or set in `theme.code.light/dark`, and always moved to 4.5:1 on the background and surfaces (tested for every preset). `CodeBlock`, `HighlightedCode` and `SqlEditor` use them; never colour code any other way.

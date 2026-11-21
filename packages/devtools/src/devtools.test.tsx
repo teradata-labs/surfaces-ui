@@ -2,7 +2,7 @@
 import { agentEvent, scriptedAgent } from "@surfaces-ui/agent";
 import { Chat } from "@surfaces-ui/chat";
 import { DataSourceProvider } from "@surfaces-ui/components";
-import { memoryDataSource } from "@surfaces-ui/data";
+import { memoryDataSource, memoryStorage } from "@surfaces-ui/data";
 import { A2UI_VERSION, type SurfaceMessage, analyticsCatalog } from "@surfaces-ui/spec";
 import { SurfaceView, type UseSurfaces, analyticsRenderers, useSurfaces } from "@surfaces-ui/spec/react";
 import { type Recorder, createRecorder, recordMessage } from "@surfaces-ui/trace";
@@ -39,6 +39,27 @@ describe("SurfacesDevTools", () => {
     expect(screen.queryByRole("button", { name: /dev tools/i })).toBeNull();
     expect(container.querySelector("[class*=sf-devtools]")).toBeNull();
     expect(recorder.get().events).toEqual([]);
+  });
+
+  it("keeps where the panel was left in the storage it is given, and reads only what makes sense", async () => {
+    const storage = memoryStorage();
+    const first = render(<SurfacesDevTools storage={storage}>app</SurfacesDevTools>);
+    fireEvent.click(screen.getByRole("button", { name: "Open dev tools" }));
+    await panel();
+    await waitFor(() => expect(JSON.parse(storage.data["surfaces.devtools"] ?? "{}").open).toBe(true));
+    expect(localStorage.getItem("surfaces.devtools")).toBeNull();
+    first.unmount();
+
+    // A storage that answers later opens the panel when it answers.
+    const later = { load: () => Promise.resolve(storage.data["surfaces.devtools"]), save: vi.fn() };
+    render(<SurfacesDevTools storage={later}>app</SurfacesDevTools>);
+    expect(await panel()).toBeTruthy();
+    cleanup();
+
+    // Saved text that is not what the tools wrote is ignored.
+    render(<SurfacesDevTools storage={memoryStorage({ "surfaces.devtools": '{"open":"yes","dock":"left","size":"big"}' })}>app</SurfacesDevTools>);
+    expect(screen.getByRole("button", { name: "Open dev tools" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Surfaces dev tools" })).toBeNull();
   });
 
   it("is on by default in a development build", () => {

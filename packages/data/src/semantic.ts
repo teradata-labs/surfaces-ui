@@ -24,7 +24,7 @@ import {
 } from "@surfaces-ui/proto";
 import type { CallOptions, DataSource } from "./datasource.js";
 import { collect } from "./result.js";
-import type { LibraryStorage } from "./library.js";
+import type { StateStorage } from "./storage.js";
 import { measureExpressionProblem } from "./measure.js";
 import { semanticKeyProblem } from "./semantic-draft.js";
 
@@ -154,7 +154,7 @@ export interface MemorySemanticsOptions {
   /** Models to start with when the store holds none of that name (a project's starters). Their version starts at 1. */
   models?: ModelInit[];
   /** Keep the models somewhere that outlives the process: one key holding every model's versions. */
-  storage?: LibraryStorage;
+  storage?: StateStorage;
   key?: string;
   /** Versions kept per model. Default 20. */
   maxVersions?: number;

@@ -70,7 +70,7 @@ export function mountPage(element: Element, page: PageDocument, options: MountOp
     root.render(
       <StrictMode>
         <SurfacesText locale={options.locale} labels={options.labels}>
-          <ThemeProvider initialTheme={theme} initialMode={options.mode ?? "system"} store={null} scope="scoped">
+          <ThemeProvider initialTheme={theme} initialMode={options.mode ?? "system"} storage={null} scope="scoped">
             <DataSourceProvider dataSource={data}>
               <SurfaceView
                 surface={pageSurface(current)}
