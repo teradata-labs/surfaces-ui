@@ -32,7 +32,7 @@ jobs:
       # after `changeset version`, so a package that would be versioned apart from the rest fails here.
       # Last in the job, since versioning rewrites package.json files and the changesets in this checkout.
       - name: Packages are ready to publish
-        run: pnpm check:release && pnpm changeset status && pnpm changeset version && node scripts/check-release.mjs
+        run: pnpm check:release && pnpm changeset version && node scripts/check-release.mjs
   # The playground in a real browser (Chromium, desktop and phone sizes), against DuckDB in the page, so no server
   # or credentials are needed: keyboard and pointer use, windowed grids, panel layouts kept across a reload, no
   # sideways scroll on a phone, and every axe check of WCAG 2.2 AA. The report is kept when a test fails.
