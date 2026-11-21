@@ -11,7 +11,7 @@ Running the playground in this repo is the quickest way to learn what the compon
 1. **Install and build.** You need Node 22 or later and pnpm 10 (`corepack enable` picks up the pinned version).
 
    ```bash
-   git clone https://github.com/Josh-Schoen/surfaces-ui.git
+   git clone https://github.com/teradata-labs/surfaces-ui.git
    cd surfaces-ui
    pnpm install
    pnpm build

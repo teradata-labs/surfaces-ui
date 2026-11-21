@@ -33,6 +33,7 @@ export function App() {
     </ThemeProvider>
   );
 }`,
+    after: "To restyle, start with a theme. `@surfaces-ui/components/styles.layer.css` is the same stylesheet inside `@layer surfaces`, for apps whose own CSS should win (Tailwind included). The theme, the `--sf-*` variables and `className` are the public way in; `.sf-*` class names are internal. See [Styling](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/styling.md).",
   },
   "@surfaces-ui/chat": {
     about: "Chat threads whose replies hold live components: streaming text, tool steps, approvals, and any catalog component drawn inline. `AnalyticsChat` adds conversations, a data panel and agent setup. It talks to any `AgentBackend` and never to a model itself.",
@@ -141,6 +142,7 @@ function readme(dir, pkg) {
     if (peers.length > 0) lines.push(`${peers.map((p) => `\`${p}\``).join(" and ")} ${peers.length === 1 ? "is a peer dependency" : "are peer dependencies"}: your app provides ${peers.length === 1 ? "it" : "them"}.`, "");
   }
   if (note.example) lines.push(note.install === false ? "## Start" : "## Use", "", `\`\`\`${note.lang ?? "tsx"}`, note.example, "```", "");
+  if (note.after) lines.push(note.after, "");
   lines.push(
     "## Part of Surfaces UI",
     "",
@@ -148,6 +150,7 @@ function readme(dir, pkg) {
     "",
     `- [Getting started](${REPO}/blob/main/docs/getting-started.md)`,
     `- [Building with an agent](${REPO}/blob/main/docs/agent-integration.md)`,
+    `- [Styling](${REPO}/blob/main/docs/styling.md)`,
     `- [Source for this package](${REPO}/tree/main/${dir})`,
     "",
     `Licensed under ${pkg.license}. See LICENSE and NOTICE.`,

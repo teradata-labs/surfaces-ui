@@ -35,12 +35,15 @@ export function App() {
 }
 ```
 
+To restyle, start with a theme. `@surfaces-ui/components/styles.layer.css` is the same stylesheet inside `@layer surfaces`, for apps whose own CSS should win (Tailwind included). The theme, the `--sf-*` variables and `className` are the public way in; `.sf-*` class names are internal. See [Styling](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/styling.md).
+
 ## Part of Surfaces UI
 
 Surfaces UI is a UI library for data and analytics: exploring schemas, querying, charting, tables at scale, chat, and pages an agent can build.
 
 - [Getting started](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/getting-started.md)
 - [Building with an agent](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/agent-integration.md)
+- [Styling](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/styling.md)
 - [Source for this package](https://github.com/teradata-labs/surfaces-ui/tree/main/packages/components)
 
 Licensed under Apache-2.0. See LICENSE and NOTICE.
