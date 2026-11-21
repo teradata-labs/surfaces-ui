@@ -166,7 +166,7 @@ export function ExamplesPage({ source }: { source: ActiveSource }) {
       </div>
       {page ? (
         <>
-          <PageStudio key={page.id} agent={agent} page={page} starters={demoPageStarters(focus)} onChange={setCurrent} arrange {...menu} />
+          <PageStudio key={page.id} agent={agent} page={page} starters={demoPageStarters(focus)} onChange={setCurrent} arrange resizeWhileViewing {...menu} />
           {current && <SaveToLibrary source={source} page={current} defaultTags={[source.sourceId]} />}
           <p className="hint">
             Each page is a JSON document of catalog components, built from the picked dataset; for a sample industry model, the first pages are the model's own starters. The box on the right sends your words and the page to an agent, and its reply is

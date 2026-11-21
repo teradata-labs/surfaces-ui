@@ -70,4 +70,6 @@ export * from "./explore/ModelLineage.js";
 export * from "./explore/semantic-proposal.js";
 export * from "./controls/ItemControls.js";
 export * from "./controls/context.js";
+export * from "./controls/ResizeHandle.js";
+export * from "./controls/resize.js";
 export * from "./appComponents.js";

@@ -1,7 +1,7 @@
-import { CONTROLS_QUIET, ItemControls, standardControls } from "@surfaces-ui/components";
+import { CONTROLS_QUIET, ItemControls, ResizeHandle, standardControls } from "@surfaces-ui/components";
 import { type PointerEvent as ReactPointerEvent, type ReactNode, useMemo, useRef, useState } from "react";
 import { analyticsCatalog } from "../analytics.js";
-import { besideMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, slideShares, stepComponentMessages } from "../arrange.js";
+import { MIN_COLUMN_SHARE, besideMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, setComponentMessages, slideShares, stepComponentMessages } from "../arrange.js";
 import type { Catalog } from "../catalog.js";
 import { isLocked } from "../personal.js";
 import { catalogJson } from "../generate.js";
@@ -143,6 +143,13 @@ export function useArrange(options: {
   /** Says what happened, or why something could not be done. */
   say(status: { text: string; error?: boolean }): void;
   remove(id: string): void;
+  /**
+   * Keeps the size handles while nobody is arranging: between a Grid's or
+   * Row's columns, and under a component whose height is set. A drag sends the
+   * same messages Arrange does, as one step. Moving and removing stay inside
+   * Arrange. Pass `surfaceFrame` to `SurfaceView` to draw them. Off by default.
+   */
+  resizeWhileViewing?: boolean;
 }) {
   const { surface } = options;
   const catalog = options.catalog ?? analyticsCatalog;
@@ -238,58 +245,60 @@ export function useArrange(options: {
     return prop ? schema[kind]?.properties?.[prop] : undefined;
   };
   const clamp = (kind: string, height: number) => Math.max(bounds(kind)?.minimum ?? 0, Math.min(bounds(kind)?.maximum ?? Number.MAX_SAFE_INTEGER, Math.round(height / 10) * 10));
-  /** What is drawn for a frame: the element after its bar. */
-  const drawnOf = (handle: HTMLElement) => handle.parentElement?.querySelector(":scope > .sf-arrange-bar")?.nextElementSibling;
-  const heightHandle = (component: SurfaceComponent) => {
+  /** What is drawn for a frame: the element after its bar while arranging, the frame's first child while viewing. */
+  const drawnOf = (handle: HTMLElement) => {
+    const frame = handle.parentElement;
+    return frame?.querySelector(":scope > .sf-arrange-bar")?.nextElementSibling ?? frame?.firstElementChild;
+  };
+  /** The frame a handle belongs to, by its component and whether it is the arranging kind. */
+  const frameOf = (id: string, viewing: boolean) => `.${viewing ? "sf-arrange-view" : "sf-arrange-frame"}[data-component="${CSS.escape(id)}"]`;
+  /** The handle under a component that sets its height: its own `height` where it has one, its box's `minHeight` otherwise. */
+  const heightHandle = (component: SurfaceComponent, viewing: boolean) => {
     const id = component.id;
     const kind = String(component.component);
     const prop = heightProp(kind, catalog);
     if (!prop) return null;
     const now = typeof component[prop] === "number" ? (component[prop] as number) : undefined;
-    // A height that was never set starts from what is on screen: the renderer's own height, or the box as it is.
-    const from = (handle: HTMLElement) => now ?? (prop === "height" ? drawnHeight(drawnOf(handle)) : (drawnOf(handle)?.getBoundingClientRect().height ?? 120));
-    const set = (height: number) => done(heightMessages(latest.current.surface, id, height, bounds(kind), catalog), `Resized "${id}" to ${clamp(kind, height)} pixels tall`);
+    const limits = bounds(kind);
     return (
-      // biome-ignore lint/a11y/useSemanticElements: a focusable separator is the ARIA pattern for a resize handle.
-      <div
+      <ResizeHandle
         className="sf-arrange-resize"
-        data-edge="bottom"
-        role="separator"
-        tabIndex={0}
-        aria-orientation="horizontal"
-        aria-label={`Resize ${kind} ${id}: taller or shorter`}
-        aria-valuenow={now}
-        aria-valuemin={bounds(kind)?.minimum}
-        aria-valuemax={bounds(kind)?.maximum}
-        onPointerDown={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          const start = from(event.currentTarget);
-          track(
-            event,
-            (_dx, dy) => {
-              const value = clamp(kind, start + dy);
-              // Drawn at its new height as the pointer moves; the message is sent on release.
-              setPreview({ id, prop, value });
-              setSizing({ id, text: `${value} px tall` });
-            },
-            (_dx, dy, dropped) => {
-              setPreview(undefined);
-              setSizing(undefined);
-              if (dropped) set(start + dy);
-            },
-          );
+        edge="bottom"
+        label={`Resize ${kind} ${id}: taller or shorter`}
+        value={now}
+        {...(limits?.minimum !== undefined ? { min: limits.minimum } : {})}
+        {...(limits?.maximum !== undefined ? { max: limits.maximum } : {})}
+        snap={10}
+        step={20}
+        // A height that was never set starts from what is on screen: the renderer's own height, or the box as it is.
+        startFrom={(handle) => clamp(kind, prop === "height" ? drawnHeight(drawnOf(handle)) : (drawnOf(handle)?.getBoundingClientRect().height ?? 120))}
+        onChange={(value) => {
+          // Drawn at its new height as it moves; the message is sent on release.
+          setPreview({ id, prop, value });
+          setSizing({ id, text: `${value} px tall` });
         }}
-        onKeyDown={(event) => {
-          if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
-          event.preventDefault();
-          set(from(event.currentTarget) + (event.key === "ArrowDown" ? 20 : -20));
-          focusAgain(inFrame(id, '.sf-arrange-resize[data-edge="bottom"]'));
+        onChangeEnd={(value, end) => {
+          setPreview(undefined);
+          setSizing(undefined);
+          if (!end.committed) return;
+          done(heightMessages(latest.current.surface, id, value, limits, catalog), `Resized "${id}" to ${clamp(kind, value)} pixels tall`);
+          if (end.via === "keyboard") focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="bottom"]`);
         }}
+        // Back to the height its renderer chooses: the prop is taken off. A height the page never set has nothing to undo.
+        {...(now === undefined
+          ? {}
+          : {
+              onReset: () => {
+                const { id: _id, component: _kind, [prop]: _height, ...rest } = component;
+                done(setComponentMessages(latest.current.surface, id, rest, catalog), `Reset the height of "${id}"`);
+                focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="bottom"]`);
+              },
+            })}
       />
     );
   };
-  const widthHandle = (component: SurfaceComponent, place: { parent: string; index: number }) => {
+  /** The handle at a component's right edge in a Grid or Row, between it and what is to its right: their shares of the width. */
+  const widthHandle = (component: SurfaceComponent, place: { parent: string; index: number }, viewing: boolean) => {
     const container = surface?.components[place.parent];
     if (!container || (container.component !== "Grid" && container.component !== "Row")) return null;
     const shares = gridShares(container);
@@ -298,46 +307,61 @@ export function useArrange(options: {
     // The line after the last one has nothing on its other side.
     if (at >= shares.length - 1) return null;
     const id = component.id;
-    const words = (next: number[]) => next.map((w) => `${Math.round(w * 100)}%`).join(" and ");
-    const set = (next: number[]) => done(gridWidthsMessages(latest.current.surface, place.parent, next, catalog), `Resized "${place.parent}" to ${words(next)}`);
+    const percent = (next: number[]) => next.map((w) => `${Math.round(w * 100)}%`);
+    // The value is this column's share, in percent; the one to its right gives or takes what it gains.
+    const sharesFor = (value: number) => slideShares(shares, at, value / 100 - shares[at]!);
     return (
-      // biome-ignore lint/a11y/useSemanticElements: a focusable separator is the ARIA pattern for a resize handle.
-      <div
+      <ResizeHandle
         className="sf-arrange-resize"
-        data-edge="right"
-        role="separator"
-        tabIndex={0}
-        aria-orientation="vertical"
-        aria-label={`Resize ${String(component.component)} ${id} and what is to its right: wider or narrower`}
-        aria-valuenow={Math.round((shares[at] ?? 0) * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        onPointerDown={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          const width = event.currentTarget.closest("[data-arrange-container]")?.getBoundingClientRect().width;
-          if (!width) return;
-          track(
-            event,
-            (dx) => {
-              const next = slideShares(shares, at, dx / width);
-              setPreview({ id: place.parent, prop: "widths", value: next });
-              setSizing({ id, text: next.map((w) => `${Math.round(w * 100)}%`).join(" · ") });
-            },
-            (dx, _dy, dropped) => {
-              setPreview(undefined);
-              setSizing(undefined);
-              if (dropped) set(slideShares(shares, at, dx / width));
-            },
-          );
+        edge="right"
+        label={`Resize ${String(component.component)} ${id} and what is to its right: wider or narrower`}
+        value={(shares[at] ?? 0) * 100}
+        min={MIN_COLUMN_SHARE * 100}
+        max={((shares[at] ?? 0) + (shares[at + 1] ?? 0) - MIN_COLUMN_SHARE) * 100}
+        step={4}
+        valueText={percent(shares).join(" and ")}
+        unitPixels={(handle) => (handle.closest("[data-arrange-container]")?.getBoundingClientRect().width ?? 0) / 100}
+        onChange={(value) => {
+          const next = sharesFor(value);
+          setPreview({ id: place.parent, prop: "widths", value: next });
+          setSizing({ id, text: percent(next).join(" · ") });
         }}
-        onKeyDown={(event) => {
-          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-          event.preventDefault();
-          set(slideShares(shares, at, event.key === "ArrowRight" ? 0.04 : -0.04));
-          focusAgain(inFrame(id, '.sf-arrange-resize[data-edge="right"]'));
+        onChangeEnd={(value, end) => {
+          setPreview(undefined);
+          setSizing(undefined);
+          if (!end.committed) return;
+          const next = sharesFor(value);
+          done(gridWidthsMessages(latest.current.surface, place.parent, next, catalog), `Resized "${place.parent}" to ${percent(next).join(" and ")}`);
+          if (end.via === "keyboard") focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="right"]`);
+        }}
+        // Back to equal widths.
+        onReset={() => {
+          done(gridWidthsMessages(latest.current.surface, place.parent, shares.map(() => 1 / shares.length), catalog), `Made the widths in "${place.parent}" equal`);
+          focusAgain(`${frameOf(id, viewing)} > .sf-resize-handle[data-edge="right"]`);
         }}
       />
+    );
+  };
+
+  /**
+   * While nobody is arranging (with `resizeWhileViewing`): only the handles,
+   * on a plain box. The width handle between a Grid's or Row's columns, and
+   * the height handle under a component whose height has been set. Moving
+   * and removing stay inside Arrange.
+   */
+  const viewFrame = (component: SurfaceComponent, drawn: ReactNode): ReactNode => {
+    const place = placeOfComponent(surface, component.id);
+    const prop = heightProp(String(component.component), catalog);
+    const sized = prop !== undefined && typeof component[prop] === "number";
+    const width = place ? widthHandle(component, place, true) : null;
+    const height = sized ? heightHandle(component, true) : null;
+    if (!width && !height) return drawn;
+    return (
+      <div className="sf-arrange-view" data-component={component.id}>
+        {drawn}
+        {height}
+        {width}
+      </div>
     );
   };
 
@@ -404,13 +428,13 @@ export function useArrange(options: {
         </div>
         {drawn}
         {inside}
-        {heightHandle(component)}
-        {widthHandle(component, place)}
+        {heightHandle(component, false)}
+        {widthHandle(component, place, false)}
       </div>
     );
   };
 
-  /** The surface with the size being dragged applied to it, so it is drawn as it will be. */
+  /** The surface with the size being dragged applied to it, so it is drawn as it will be. The surface itself when nothing is being sized. */
   const shown = (drawn: Surface): Surface => {
     const target = preview && drawn.components[preview.id];
     return preview && target ? { ...drawn, components: { ...drawn.components, [preview.id]: { ...target, [preview.prop]: preview.value } } } : drawn;
@@ -425,6 +449,12 @@ export function useArrange(options: {
       setArranging((on) => !on);
     },
     frame,
+    /**
+     * What to pass to `SurfaceView` as `frame`: Arrange's frames while
+     * arranging, the size handles alone while viewing with
+     * `resizeWhileViewing`, and nothing otherwise.
+     */
+    surfaceFrame: arranging ? frame : options.resizeWhileViewing ? viewFrame : undefined,
     shown,
     step,
     /** What is being dragged, to draw by the pointer (`ArrangeGhost`). */
@@ -434,6 +464,7 @@ export function useArrange(options: {
       className: arranging ? `sf-arrange-region ${CONTROLS_QUIET}` : "sf-arrange-region",
       "data-arranging": arranging || undefined,
       "data-dragging": ghost ? true : undefined,
+      "data-resizing": sizing ? true : undefined,
     },
   };
 }

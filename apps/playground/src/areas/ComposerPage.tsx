@@ -454,6 +454,7 @@ export function ComposerPage({ source }: { source: ActiveSource }) {
     apply: (added, title) => applyEdit(added, title),
     say: setComponentStatus,
     remove: (id) => removeComponent(id),
+    resizeWhileViewing: true,
   });
   const stepComponent = arrange.step;
 
@@ -729,7 +730,7 @@ export function ComposerPage({ source }: { source: ActiveSource }) {
             <MaybePipelines source={source}>
               <SurfaceView
                 key={viewKey}
-                surface={arrange.arranging ? arrange.shown(surface) : surface}
+                surface={arrange.shown(surface)}
                 catalog={analyticsCatalog}
                 renderers={lazyAnalyticsRenderers}
                 onAction={onAction}
@@ -739,7 +740,7 @@ export function ComposerPage({ source }: { source: ActiveSource }) {
                 onContext={(componentId, note) => {
                   activity.current = [...activity.current, { componentId, ...note, at: new Date().toISOString() }].slice(-40);
                 }}
-                {...(arrange.arranging ? { frame: arrange.frame } : {})}
+                {...(arrange.surfaceFrame ? { frame: arrange.surfaceFrame } : {})}
               />
             </MaybePipelines>
           ) : (

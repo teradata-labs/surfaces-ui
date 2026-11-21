@@ -1,6 +1,7 @@
 import type { CertificationBadge } from "./discovery/shared.js";
 import type { ConnectionBuilderProps } from "./source/ConnectionBuilder.js";
 import type { ItemControlsProps } from "./controls/ItemControls.js";
+import type { ResizeHandleProps } from "./controls/ResizeHandle.js";
 import type { ModelLineageProps } from "./explore/ModelLineage.js";
 import type { ObjectInfoProps } from "./schema/ObjectInfo.js";
 import type { ChecksPanelProps } from "./pipeline/Pipeline.js";
@@ -280,8 +281,40 @@ export const navBarDoc = describeAppComponent<NavBarProps>()({
   },
 });
 
+export const resizeHandleDoc = describeAppComponent<ResizeHandleProps>()({
+  name: "ResizeHandle",
+  from: COMPONENTS,
+  description:
+    "A handle on the right or bottom edge of something, dragged to change its width or height: the same handle Arrange draws between a Grid's columns and under a component, for an app to place between two panes of its own. A focusable separator that says its value and bounds; dragged with pointer events, so a mouse, a pen and a finger all work; moved by the arrow keys (Shift for bigger steps), Home and End; put back by Enter or a double click. It holds no size of its own: the host keeps `value`, draws each change from `onChange` and keeps the size on `onChangeEnd`. Its parent must be positioned, since it sits on that parent's edge.",
+  props: {
+    type: "object",
+    properties: {
+      edge: { type: "string", enum: ["right", "bottom"], description: '"right" sizes a width, dragged left and right; "bottom" a height, dragged up and down.' },
+      value: { type: "number", description: "The size it stands for, in any unit: pixels, a share, a percentage. Left out when no size is set yet." },
+      min: { type: "number", description: "The least it can be." },
+      max: { type: "number", description: "The most it can be." },
+      snap: { type: "number", description: "Values land on multiples of this (10 rounds to ten pixels)." },
+      step: { type: "number", description: "How far an arrow key moves it; Shift moves five steps. A twentieth of the range by default." },
+      unitPixels: { type: "number", description: "How many pixels on screen one unit is: 1 for pixels, a pane's width for a share of it. A function of the handle is read when a drag starts." },
+      label: { type: "string", description: 'What it resizes, for assistive technology: "Resize the map and the list".' },
+      valueText: { type: "string", description: 'The value in words, when a number alone does not say it: "40% and 60%".' },
+      always: { type: "boolean", description: "Shown all the time, rather than when its parent is pointed at or it has focus (it always shows on touch)." },
+    },
+    required: ["edge", "label"],
+  },
+  parts: [
+    { prop: "onReset", label: "Reset", description: "Enter or a double click puts the size back. On the page: back to half and half.", on: true },
+    { prop: "startFrom", label: "Start from what is drawn", description: "Where a drag starts when no `value` is set, such as the height drawn now." },
+  ],
+  callbacks: [
+    { prop: "onChange", description: "Each new value while it is dragged, and after each key." },
+    { prop: "onChangeEnd", description: "When a drag ends (committed, or cancelled by Escape back where it started) and after each key: where to keep the size." },
+  ],
+  example: { edge: "right", value: 0.5, min: 0.25, max: 0.75, step: 0.05, label: "Resize the map and the list", valueText: "50% and 50%" },
+});
+
 /** Every app component of `@surfaces-ui/components`. */
-export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, navBarDoc];
+export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, resizeHandleDoc, navBarDoc];
 
 /** A component's reference page, as Markdown: what it is for, its props, the parts a host supplies and an example. */
 export function appComponentMarkdown(doc: AppComponentDoc): string {

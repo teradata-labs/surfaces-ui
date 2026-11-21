@@ -8117,7 +8117,7 @@ button > .sf-item-control-icon:only-child {
 
 .sf-arrange-bar:active { cursor: grabbing; }
 /* A finger on the bar drags the component; it does not scroll the page. */
-.sf-arrange-bar, .sf-arrange-resize { touch-action: none; }
+.sf-arrange-bar { touch-action: none; }
 
 /* What is being dragged, by the pointer. */
 .sf-arrange-ghost {
@@ -8136,14 +8136,6 @@ button > .sf-item-control-icon:only-child {
 
 .sf-arrange-region[data-dragging] { user-select: none; cursor: grabbing; }
 
-/* Resize handles show for the component under the pointer or with focus; where there is no hover (touch), always. */
-.sf-arrange-resize { opacity: 0; }
-.sf-arrange-frame:hover > .sf-arrange-resize,
-.sf-arrange-resize:focus-visible,
-.sf-arrange-resize:active { opacity: 1; }
-@media (hover: none) {
-  .sf-arrange-resize { opacity: 1; }
-}
 
 .sf-arrange-name {
   flex: 1 1 auto;
@@ -8173,41 +8165,14 @@ button > .sf-item-control-icon:only-child {
   color: var(--sf-color-text);
 }
 
-/* Resize handles while arranging: under a sized component for its height, between two grid columns for their widths. */
-.sf-arrange-resize {
-  position: absolute;
-  z-index: 2;
-  touch-action: none;
-  border-radius: var(--sf-radius-sm);
-  background: var(--sf-color-border-strong);
-}
+/* Arrange's handles sit in the gap between two frames of a Grid or Row, not on the frame's own edge. */
+.sf-arrange-frame > .sf-resize-handle[data-edge="right"],
+.sf-arrange-view > .sf-resize-handle[data-edge="right"] { --sf-resize-offset: var(--sf-space-2); }
 
-.sf-arrange-resize[data-edge="bottom"] {
-  left: 50%;
-  bottom: calc(-1 * var(--sf-space-1));
-  width: var(--sf-space-6);
-  height: var(--sf-space-2);
-  transform: translateX(-50%);
-  cursor: row-resize;
-}
-
-.sf-arrange-resize[data-edge="right"] {
-  top: 50%;
-  right: calc(-1 * var(--sf-space-2) - var(--sf-space-1));
-  width: var(--sf-space-2);
-  height: var(--sf-space-6);
-  transform: translateY(-50%);
-  cursor: col-resize;
-}
-
-.sf-arrange-resize:hover,
-.sf-arrange-resize:focus-visible {
-  background: var(--sf-color-accent);
-}
-
-.sf-arrange-resize:focus-visible {
-  outline: 2px solid var(--sf-color-focus);
-  outline-offset: 2px;
+/* While viewing (useArrange's resizeWhileViewing): a plain box around a component that has a handle, so the handle has an edge to sit on. */
+.sf-arrange-view {
+  position: relative;
+  min-width: 0;
 }
 
 .sf-arrange-size {
@@ -8221,8 +8186,68 @@ button > .sf-item-control-icon:only-child {
   font-size: var(--sf-font-size-sm);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sf-arrange-resize { transition: none; }
+/*
+ * ResizeHandle: a handle on the right or bottom edge of its (positioned)
+ * parent. The element is a press target at least --sf-target-min across; the
+ * line drawn inside it is thin. Quiet until its parent is pointed at or it has
+ * focus, always shown where there is no hover (touch), or with data-always.
+ */
+.sf-resize-handle {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  user-select: none;
+  opacity: 0;
+  transition: opacity var(--sf-duration-fast) var(--sf-ease);
+}
+.sf-resize-handle[data-edge="right"] {
+  top: 50%;
+  right: calc(var(--sf-target-min) / -2 - var(--sf-resize-offset, 0rem));
+  width: var(--sf-target-min);
+  height: max(var(--sf-target-min), var(--sf-space-6) + var(--sf-space-2));
+  transform: translateY(-50%);
+  cursor: col-resize;
+}
+.sf-resize-handle[data-edge="bottom"] {
+  left: 50%;
+  bottom: calc(var(--sf-target-min) / -2 - var(--sf-resize-offset, 0rem));
+  width: max(var(--sf-target-min), var(--sf-space-6) + var(--sf-space-2));
+  height: var(--sf-target-min);
+  transform: translateX(-50%);
+  cursor: row-resize;
+}
+.sf-resize-handle::before {
+  content: "";
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-color-border-strong);
+  transition: background-color var(--sf-duration-fast) var(--sf-ease);
+}
+.sf-resize-handle[data-edge="right"]::before { width: var(--sf-space-1); height: var(--sf-space-6); }
+.sf-resize-handle[data-edge="bottom"]::before { width: var(--sf-space-6); height: var(--sf-space-1); }
+
+:hover > .sf-resize-handle,
+.sf-resize-handle[data-always],
+.sf-resize-handle[data-dragging],
+.sf-resize-handle:focus-visible { opacity: 1; }
+@media (hover: none) {
+  .sf-resize-handle { opacity: 1; }
+}
+/* One layer of controls at a time: an outer editor that is arranging quiets the handles inside it. */
+.sf-controls-quiet .sf-arrange-view > .sf-resize-handle { opacity: 0; pointer-events: none; }
+
+.sf-resize-handle:hover::before,
+.sf-resize-handle:focus-visible::before,
+.sf-resize-handle[data-dragging]::before { background: var(--sf-color-accent); }
+.sf-resize-handle:focus-visible {
+  outline: 2px solid var(--sf-color-focus);
+  outline-offset: 2px;
+  border-radius: var(--sf-radius-sm);
+}
+@media (forced-colors: active) {
+  .sf-resize-handle::before { background: CanvasText; }
+  .sf-resize-handle:hover::before, .sf-resize-handle:focus-visible::before, .sf-resize-handle[data-dragging]::before { background: Highlight; }
 }
 
 /* NodeGraph: a graph on a canvas with the same nodes listed beside it. One column in a narrow container. */
