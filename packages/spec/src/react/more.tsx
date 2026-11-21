@@ -503,18 +503,23 @@ function ThemeSwitchView({ props }: { props: Record<string, unknown> }) {
   );
 }
 
+/** Where a Grid's children sit in the height of their row; the values are CSS `align-items` values as they are. */
+const GRID_ALIGN = new Set(["start", "center", "end", "stretch"]);
+
 /** Renderers for the conversation, discovery and modelling components of the analytics catalog. */
 export const moreRenderers: Record<string, ComponentRenderer> = {
   Grid: ({ props, component, children }) => {
     const columns = typeof props.columns === "number" ? props.columns : 2;
     // A share per column, when there is exactly one for each; anything else leaves the columns equal.
     const widths = Array.isArray(props.widths) && props.widths.length === columns && props.widths.every((w) => typeof w === "number" && w > 0) ? (props.widths as number[]) : undefined;
+    const align = typeof props.align === "string" && GRID_ALIGN.has(props.align) ? props.align : undefined;
     return (
       <div
         className="sf-a2-grid"
+        data-align={align}
         data-arrange-container
         data-widths={widths ? true : undefined}
-        style={{ "--sf-grid-columns": columns, ...(widths ? { "--sf-grid-template": widths.map((w) => `minmax(0, ${w}fr)`).join(" ") } : {}) } as CSSProperties}
+        style={{ "--sf-grid-columns": columns, ...(align ? { alignItems: align } : {}), ...(widths ? { "--sf-grid-template": widths.map((w) => `minmax(0, ${w}fr)`).join(" ") } : {}) } as CSSProperties}
       >
         {children(component.children)}
       </div>

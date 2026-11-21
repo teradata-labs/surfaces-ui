@@ -5488,8 +5488,10 @@ select.sf-input:disabled {
 
 /* ---- Forms ---- */
 
+/* A form given more height than its fields (stretched in a grid row) keeps them together and leaves the space below. */
 .sf-form {
   display: grid;
+  align-content: start;
   gap: var(--sf-space-3);
   max-width: 40em;
 }
@@ -5514,6 +5516,7 @@ select.sf-input:disabled {
 
 .sf-form-field {
   display: grid;
+  align-content: start;
   gap: var(--sf-space-1);
   min-width: 0;
 }

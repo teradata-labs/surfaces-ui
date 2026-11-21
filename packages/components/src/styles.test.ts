@@ -20,3 +20,12 @@ describe("the layered stylesheet", () => {
     expect(() => layered('/* @import "in a comment" */\n.sf-x { color: red; }')).not.toThrow();
   });
 });
+
+describe("a form given more height than it needs", () => {
+  const rule = (selector: string) => css.match(new RegExp(`\\n${selector.replace(/[.-]/g, "\\$&")} \\{([^}]*)\\}`))?.[1] ?? "";
+
+  it("keeps its fields, and each field's label and control, together at the top (#183)", () => {
+    expect(rule(".sf-form")).toContain("align-content: start");
+    expect(rule(".sf-form-field")).toContain("align-content: start");
+  });
+});
