@@ -1,6 +1,6 @@
 import { FilterOperator } from "@surfaces-ui/proto";
 import { describe, expect, it, vi } from "vitest";
-import { createQueryRuns, createStore, createViewState, decodeState, derive, encodeState, memoryStorage, parseViewState, persist, syncUrl, withHistory } from "./index.js";
+import { createQueryRuns, createStore, createViewState, decodeState, derive, emptyViewState, encodeState, memoryStorage, parseViewState, persist, syncUrl, viewFilters, withHistory } from "./index.js";
 
 describe("store", () => {
   it("notifies on change only, and derives values that update when they differ", () => {
@@ -84,12 +84,18 @@ describe("persistence", () => {
 });
 
 describe("view state", () => {
-  it("turns selections and ranges into engine filters, leaving out a view's own column", () => {
+  it("holds the plain filter list and turns it into engine filters, leaving out a view's own column", () => {
     const view = createViewState();
     view.toggle("region", "Europe");
     view.toggle("region", "Asia Pacific");
     view.toggle("status", "shipped");
     view.setRange("ordered_at", { from: "2026-01-01" });
+    // The same form a page's filters and an agent use.
+    expect(view.get().filters).toEqual([
+      { column: "region", op: "in", values: ["Europe", "Asia Pacific"] },
+      { column: "status", op: "eq", values: ["shipped"] },
+      { column: "ordered_at", op: "gte", values: ["2026-01-01"] },
+    ]);
     expect(view.filters()).toEqual([
       { column: "region", operator: FilterOperator.IN, values: [{ kind: { case: "stringValue", value: "Europe" } }, { kind: { case: "stringValue", value: "Asia Pacific" } }] },
       { column: "status", operator: FilterOperator.EQ, values: [{ kind: { case: "stringValue", value: "shipped" } }] },
@@ -97,20 +103,43 @@ describe("view state", () => {
     ]);
     expect(view.filters("region").map((f) => f.column)).toEqual(["status", "ordered_at"]);
     expect(view.activeCount()).toBe(3);
+    view.setRange("ordered_at", { from: "2026-01-01", to: "2026-03-31" });
+    expect(view.get().filters.at(-1)).toEqual({ column: "ordered_at", op: "between", values: ["2026-01-01", "2026-03-31"] });
     view.toggle("status", "shipped");
     view.clear("ordered_at");
     expect(view.filters().map((f) => f.column)).toEqual(["region"]);
+    view.setSorts([{ column: "amount", desc: true }]);
     view.clear();
-    expect(view.get()).toEqual({ selections: {}, ranges: {}, sorts: [] });
+    expect(view.get()).toEqual({ filters: [], sorts: [{ column: "amount", desc: true }] });
+  });
+
+  it("keeps a relative date relative until the query is sent", () => {
+    const view = createViewState({ filters: [{ column: "ordered_at", op: "since", values: ["30d"] }], sorts: [] });
+    expect(viewFilters(view.get(), undefined, new Date("2026-11-15T14:30:00Z"))).toEqual([
+      { column: "ordered_at", operator: FilterOperator.GTE, values: [{ kind: { case: "temporalValue", value: "2026-10-16" } }] },
+    ]);
   });
 
   it("checks view state that comes from storage or the address bar", () => {
-    expect(parseViewState({ selections: { region: ["EU", 3], bad: [{}], empty: [] }, ranges: { d: { from: "a", to: {} } }, sorts: [{ column: "x", desc: 1 }, "no"] })).toEqual({
-      selections: { region: ["EU", 3] },
-      ranges: { d: { from: "a" } },
-      sorts: [{ column: "x", desc: false }],
-    });
+    expect(
+      parseViewState({
+        filters: [{ column: "region", op: "in", values: ["EU", 3] }, { column: "x", op: "drop table" }, { column: "y", op: "between", values: [1] }, { column: "d", op: "since", values: ["soon"] }, "no"],
+        sorts: [{ column: "x", desc: 1 }, "no"],
+      }),
+    ).toEqual({ filters: [{ column: "region", op: "in", values: ["EU", 3] }], sorts: [{ column: "x" }] });
     expect(parseViewState("nope")).toBeUndefined();
+    expect(parseViewState({})).toEqual(emptyViewState);
+  });
+
+  it("reads a view state saved in the older form", () => {
+    expect(parseViewState({ selections: { region: ["EU", 3], status: ["shipped"], bad: [{}], empty: [] }, ranges: { d: { from: "a", to: {} } }, sorts: [{ column: "x", desc: true }] })).toEqual({
+      filters: [
+        { column: "region", op: "in", values: ["EU", 3] },
+        { column: "status", op: "eq", values: ["shipped"] },
+        { column: "d", op: "gte", values: ["a"] },
+      ],
+      sorts: [{ column: "x", desc: true }],
+    });
   });
 });
 

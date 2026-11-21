@@ -9,7 +9,7 @@ import { downloadBlob, exportCsv } from "../data/export.js";
 import { type ColumnFormat, formatCell, isNumeric } from "../data/format.js";
 import type { FilterInit, TimeTravelInit } from "../data/useRowWindow.js";
 import { FilterBar } from "../filter/FilterBar.js";
-import { valueFilter } from "../data/controls.js";
+import { valueFilter } from "@surfaces-ui/data";
 import { DataGrid, type DataGridInfo, type GridColumns, type GridSort } from "../grid/DataGrid.js";
 import { type LabelKey, label as text, numberFormat } from "../locale/locale.js";
 import { PivotTable } from "../pivot/PivotTable.js";

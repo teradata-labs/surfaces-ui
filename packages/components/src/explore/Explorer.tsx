@@ -5,8 +5,8 @@ import { type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEv
 import { Chart, type ChartGrain } from "../chart/Chart.js";
 import type { OnContext } from "../controls/context.js";
 import { ControlIcon, type ItemControl, ItemControls, standardControls } from "../controls/ItemControls.js";
-import type { FilterSpec } from "../data/controls.js";
-import { filtersExcept, filtersFromSpec } from "../data/controls.js";
+import type { FilterSpec } from "@surfaces-ui/data";
+import { filtersExcept, filtersFromSpec } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
 import { formatCell, numericValue } from "../data/format.js";
 import { type FilterInit, messageOf } from "../data/useRowWindow.js";

@@ -960,6 +960,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.17.0
         version: 2.17.0
+      '@surfaces-ui/data':
+        specifier: workspace:*
+        version: link:../data
       '@surfaces-ui/proto':
         specifier: workspace:*
         version: link:../proto

@@ -1,5 +1,5 @@
 import { PageStudio } from "@surfaces-ui/chat";
-import { Chart, DataGrid, Metric, Sparkline } from "@surfaces-ui/components";
+import { Chart, ControlIcon, DataGrid, Metric, Sparkline, filterWords, sortsFromSpec } from "@surfaces-ui/components";
 import type { PageDocument } from "@surfaces-ui/spec";
 import { createViewState, decodeState, encodeState, parseViewState, persist, browserStorage, syncUrl } from "@surfaces-ui/state";
 import { useHistory, useStore } from "@surfaces-ui/state/react";
@@ -37,10 +37,12 @@ function CrossFilterDashboard({ focus }: { focus: DataFocus }) {
     // The parameter names the dataset, so filters on one dataset's columns never reach another's.
     const stopUrl = syncUrl(view, {
       param: `filters-${sourceId}`,
-      encode: (value) => (Object.keys(value.selections).length === 0 ? "" : encodeState(value.selections)),
+      encode: (value) => (value.filters.length === 0 ? "" : encodeState(value.filters)),
       decode: (text) => {
         try {
-          return parseViewState({ selections: decodeState(text) });
+          const decoded = decodeState(text);
+          // A link made before the filter list was plain JSON held values per column.
+          return parseViewState(Array.isArray(decoded) ? { filters: decoded, sorts: view.get().sorts } : { selections: decoded, sorts: view.get().sorts });
         } catch {
           return undefined;
         }
@@ -57,20 +59,23 @@ function CrossFilterDashboard({ focus }: { focus: DataFocus }) {
     { label: measure.label, sql, column: measure.column, aggregate: "sum", format: measure.format },
     { label: rows, sql, aggregate: "count", format: "compact" },
   ];
-  const chosen = Object.entries(state.selections);
+  // One chip per value chosen by a click, and one per any other filter, each with its own remove button.
+  const chips = state.filters.flatMap((filter) =>
+    filter.op === "eq" || filter.op === "in"
+      ? (filter.values ?? []).map((value) => ({ key: `${filter.column}:${value}`, label: `${filter.column}: ${String(value)}`, name: `Remove filter ${filter.column} is ${value}`, remove: () => view.toggle(filter.column, value) }))
+      : [{ key: `${filter.column}:${filter.op}`, label: filterWords(filter), name: `Remove filter ${filterWords(filter)}`, remove: () => view.setFilters(state.filters.filter((f) => f !== filter)) }],
+  );
   return (
     <div className="examples-dashboard">
       <div className="examples-filters" aria-live="polite">
-        {chosen.length === 0 ? (
+        {chips.length === 0 ? (
           <span className="hint">Click a bar to filter everything else.</span>
         ) : (
-          chosen.flatMap(([column, values]) =>
-            values.map((value) => (
-              <button key={`${column}:${value}`} type="button" className="sf-button" aria-label={`Remove filter ${column} is ${value}`} onClick={() => view.toggle(column, value)}>
-                {column}: {String(value)} ×
-              </button>
-            )),
-          )
+          chips.map((chip) => (
+            <button key={chip.key} type="button" className="sf-button" aria-label={chip.name} onClick={chip.remove}>
+              {chip.label} <ControlIcon icon="close" />
+            </button>
+          ))
         )}
         <button type="button" className="sf-button" disabled={!history.canUndo()} onClick={history.undo}>
           Undo
@@ -78,7 +83,7 @@ function CrossFilterDashboard({ focus }: { focus: DataFocus }) {
         <button type="button" className="sf-button" disabled={!history.canRedo()} onClick={history.redo}>
           Redo
         </button>
-        <button type="button" className="sf-button" disabled={chosen.length === 0} onClick={() => view.clear()}>
+        <button type="button" className="sf-button" disabled={chips.length === 0} onClick={() => view.clear()}>
           Clear filters
         </button>
       </div>
@@ -126,7 +131,7 @@ function CrossFilterDashboard({ focus }: { focus: DataFocus }) {
           />
         ))}
       </div>
-      <DataGrid sourceId={sourceId} sql={sql} filters={view.filters()} sorts={state.sorts} onSortsChange={(sorts) => view.setSorts(sorts)} height={280} />
+      <DataGrid sourceId={sourceId} sql={sql} filters={view.filters()} sorts={sortsFromSpec(state.sorts)} onSortsChange={(sorts) => view.setSorts(sorts)} height={280} />
     </div>
   );
 }

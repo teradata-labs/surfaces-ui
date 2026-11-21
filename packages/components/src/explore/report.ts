@@ -1,4 +1,4 @@
-import type { FilterSpec } from "../data/controls.js";
+import type { FilterSpec } from "@surfaces-ui/data";
 import { type ExploreChartSettings, type ExploreState, type Pill, normalizeExplore } from "./model.js";
 
 /** One view on a report: what is on its shelves, drawn from the report's pills and filters. */

@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { OnContext } from "../controls/context.js";
 import { label as text } from "../locale/locale.js";
 import { ItemControls, standardControls } from "../controls/ItemControls.js";
-import { toggleValueFilter } from "../data/controls.js";
+import { chosenValues, toggleValueFilter } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
 import { QueryFilters } from "../filter/QueryFilters.js";
 import { ExploreView, Explorer, exploreReading } from "./Explorer.js";
@@ -127,8 +127,15 @@ export function ReportBuilder(props: ReportBuilderProps) {
               onPointClick={(column, value) => {
                 const filters = toggleValueFilter(report.filters, column, value);
                 set({ ...report, filters });
-                const on = filters.some((f) => f.column === column && f.op === "eq");
-                say("point.selected", on ? `Clicked ${value} in “${title}”: the report is filtered to ${column} is ${value}. Click the bar again to clear it.` : `Clicked ${value} in “${title}” again: the filter on ${column} is cleared.`, { tile: tile.id, column, value, filters });
+                const chosen = chosenValues(filters, column);
+                const on = chosen.some((v) => String(v) === String(value));
+                say(
+                  "point.selected",
+                  on
+                    ? `Clicked ${value} in “${title}”: the report is filtered to ${column} ${chosen.length === 1 ? "is" : "is one of"} ${chosen.join(", ")}. Click the bar again to take it out.`
+                    : `Clicked ${value} in “${title}” again: ${value} is taken out of the filter on ${column}${chosen.length === 0 ? ", which is now cleared" : ""}.`,
+                  { tile: tile.id, column, value, filters },
+                );
               }}
             />
           </section>

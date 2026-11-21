@@ -96,7 +96,7 @@ describe("a cross-filtered dashboard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Remove filter region is Europe" }));
     await waitFor(() => expect(filterColumns(gridQuery(queries)!)).toEqual(["status"]));
-    expect(view.get().selections).toEqual({ status: ["returned"] });
+    expect(view.get().filters).toEqual([{ column: "status", op: "eq", values: ["returned"] }]);
 
     fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
     await waitFor(() => expect(filterColumns(gridQuery(queries)!)).toEqual([]));

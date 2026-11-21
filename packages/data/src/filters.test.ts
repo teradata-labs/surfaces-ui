@@ -1,6 +1,6 @@
 import { FilterOperator } from "@surfaces-ui/proto";
 import { describe, expect, it } from "vitest";
-import { type FilterSpec, filterWords, filtersExcept, filtersFromSpec, filtersToSpec, joinRelative, sinceLabel, sinceStart, splitRelative, toggleValueFilter } from "./controls.js";
+import { type FilterSpec, filterWords, filtersExcept, filtersFromSpec, filtersToSpec, chosenValues, joinRelative, selectValues, sinceLabel, sinceStart, splitRelative, toggleValueFilter } from "./filters.js";
 
 const now = new Date("2026-11-15T14:30:00Z");
 const day = (date: Date | undefined) => date?.toISOString().slice(0, 10);
@@ -49,8 +49,16 @@ describe("a click on a value", () => {
   it("filters the column to it, replaces another value, and clears on a second click", () => {
     const eu = toggleValueFilter(list, "region", "EU");
     expect(eu).toEqual([...list, { column: "region", op: "eq", values: ["EU"] }]);
-    expect(toggleValueFilter(eu, "region", "NA")).toEqual([...list, { column: "region", op: "eq", values: ["NA"] }]);
+    // A second value is added, so two bars can be compared.
+    const both = toggleValueFilter(eu, "region", "NA");
+    expect(both).toEqual([...list, { column: "region", op: "in", values: ["EU", "NA"] }]);
+    expect(chosenValues(both, "region")).toEqual(["EU", "NA"]);
+    // Clicking a chosen value again takes it out; the last one out clears the column.
+    expect(toggleValueFilter(both, "region", "EU")).toEqual([...list, { column: "region", op: "eq", values: ["NA"] }]);
     expect(toggleValueFilter(eu, "region", "EU")).toEqual(list);
+    // A number and its text are the same bar.
+    expect(toggleValueFilter([{ column: "year", op: "eq", values: [2026] }], "year", "2026")).toEqual([]);
+    expect(selectValues(both, "region", [])).toEqual(list);
     // Other kinds of filter on the same column are a person's and are left alone.
     expect(toggleValueFilter(list, "status", "returned")).toEqual([...list, { column: "status", op: "eq", values: ["returned"] }]);
   });
