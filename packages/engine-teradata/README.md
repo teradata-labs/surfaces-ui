@@ -18,6 +18,7 @@ Surfaces UI is a UI library for data and analytics: exploring schemas, querying,
 
 - [Getting started](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/getting-started.md)
 - [Building with an agent](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/agent-integration.md)
+- [Styling](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/styling.md)
 - [Source for this package](https://github.com/teradata-labs/surfaces-ui/tree/main/packages/engine-teradata)
 
 Licensed under Apache-2.0. See LICENSE and NOTICE.

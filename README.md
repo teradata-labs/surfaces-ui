@@ -32,6 +32,7 @@ Open **Sample analysis** in the playground (`pnpm dev`) to play the third one yo
   <a href="#try-it-in-five-minutes">Try it</a> ·
   <a href="docs/getting-started.md">Getting started</a> ·
   <a href="docs/agent-integration.md">Agent integration</a> ·
+  <a href="docs/styling.md">Styling</a> ·
   <a href="docs/recipes/README.md">Recipes</a> ·
   <a href="docs/catalog/components">Component reference</a> ·
   <a href="llms.txt">llms.txt</a>
@@ -107,7 +108,7 @@ Setups for an analyst, an analytics engineer, a data engineer, a data steward, a
 You need Node 22 or later and pnpm 10 (`corepack enable` picks up the version this repo pins).
 
 ```bash
-git clone https://github.com/Josh-Schoen/surfaces-ui.git
+git clone https://github.com/teradata-labs/surfaces-ui.git
 cd surfaces-ui
 pnpm install
 pnpm build
@@ -150,6 +151,8 @@ const data = memoryDataSource({ tables: { sales: [{ region: "Europe", amount: 10
   </DataSourceProvider>
 </ThemeProvider>;
 ```
+
+To change how it looks, start with a theme: eight presets, or your own palette, checked for contrast in light and dark. [docs/styling.md](docs/styling.md) covers scoped themes, the `--sf-*` variables, `className`, and `styles.layer.css` for apps whose own CSS should win.
 
 ## How it fits together
 
@@ -210,7 +213,7 @@ pnpm check:boundaries   # the UI must not import the data layer
 pnpm docs:gen           # regenerates docs/catalog and docs/recipes
 ```
 
-Read [AGENTS.md](AGENTS.md) before changing anything; it holds the rules (contracts first, SQL never in the browser, tokens only, accessibility to WCAG 2.2 AA). [docs/plan.md](docs/plan.md) has the architecture, and [docs/accessibility.md](docs/accessibility.md) maps each WCAG criterion to how it is met. Releases use Changesets (`pnpm changeset`).
+Read [AGENTS.md](AGENTS.md) before changing anything; it holds the rules (contracts first, SQL never in the browser, tokens only, accessibility to WCAG 2.2 AA). [docs/plan.md](docs/plan.md) has the architecture, and [docs/accessibility.md](docs/accessibility.md) maps each WCAG criterion to how it is met. Releases use Changesets (`pnpm changeset`); [docs/releasing.md](docs/releasing.md) says how to cut one.
 
 ## License
 

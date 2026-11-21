@@ -18,7 +18,7 @@ const TEXTS = import.meta.glob<string>(["../../../../docs/*.md", "../../../../do
 const IMAGES = import.meta.glob<string>("../../../../docs/images/*.{png,jpg,gif,svg}", { query: "?url", import: "default", eager: true });
 
 const PREFIX = "../../../../docs/";
-const REPO = "https://github.com/Josh-Schoen/surfaces-ui/blob/main/";
+const REPO = "https://github.com/teradata-labs/surfaces-ui/blob/main/";
 
 /** A guide's id is its path under `docs/` without `.md` (`recipes/analytics-chat`). */
 const idOf = (file: string) => file.slice(PREFIX.length).replace(/\.md$/, "");
