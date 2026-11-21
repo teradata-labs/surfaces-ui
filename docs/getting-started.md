@@ -128,6 +128,8 @@ import "@surfaces-ui/components/styles.css";
 
 `DiscoveryProvider` (search, table detail, agent context), `PipelinesProvider`, `FormsProvider` and `SemanticsProvider` (semantic models) are optional. A component that needs one says so when it is missing.
 
+To change how it looks, start with a theme; [styling.md](styling.md) covers scoped themes, `--sf-*` variables, `className`, and `styles.layer.css` for apps whose own CSS should win (Tailwind included).
+
 With TypeScript and Vite, add `/// <reference types="vite/client" />` (or `"types": ["vite/client"]`) so the CSS import type-checks.
 
 ## Your data

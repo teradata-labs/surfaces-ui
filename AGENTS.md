@@ -391,6 +391,8 @@ import { connectDiscovery } from "@surfaces-ui/client-connect"; // or createDisc
 
 ## Using the theme
 
+The styling guide for consumers is [docs/styling.md](docs/styling.md). The theme, the `--sf-*` variable names and `className` are public; `.sf-*` class names are internal and may change in any release, so never tell a consumer to style against them. `@surfaces-ui/components` ships `styles.css` and `styles.layer.css` (the same rules inside `@layer surfaces`, written by `packages/components/scripts/styles.mjs`); keep `@import`, `@charset` and `@namespace` out of `styles.css`, since a layer block cannot hold them.
+
 ```tsx
 import { ThemeProvider, ThemePicker } from "@surfaces-ui/components";
 import "@surfaces-ui/components/styles.css";

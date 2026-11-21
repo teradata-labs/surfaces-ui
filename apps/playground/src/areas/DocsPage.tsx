@@ -29,10 +29,11 @@ interface Guide {
 }
 
 /** The sections of the guide list, in reading order. Anything not named here is listed under its folder by name. */
-const START = ["getting-started", "agent-integration", "accessibility"];
+const START = ["getting-started", "agent-integration", "styling", "accessibility"];
 const TITLES: Record<string, string> = {
   "getting-started": "Getting started",
   "agent-integration": "Agent integration",
+  styling: "Styling",
   accessibility: "Accessibility",
   "recipes/README": "All recipes",
   "components/README": "All app components",
