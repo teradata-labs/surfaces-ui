@@ -2,6 +2,14 @@
   "name": "@surfaces-ui/datasource-duckdb-wasm",
   "version": "0.0.0",
   "description": "A DataSource that runs DuckDB in the browser (WebAssembly): real SQL over Parquet with no server",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "duckdb",
+    "wasm",
+    "browser"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +30,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

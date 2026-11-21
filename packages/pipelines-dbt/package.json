@@ -2,6 +2,13 @@
   "name": "@surfaces-ui/pipelines-dbt",
   "version": "0.0.0",
   "description": "A dbt project as a Surfaces UI pipeline: datasets, tests, runs and semantic models read from dbt's artifacts, with dbt build only on a person's approval",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "dbt",
+    "pipelines"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -26,7 +33,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

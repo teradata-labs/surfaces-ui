@@ -2,6 +2,16 @@
   "name": "@surfaces-ui/chat",
   "version": "0.0.0",
   "description": "Chat thread components for Surfaces UI: streaming replies, tool steps, approvals and inline agent-drawn components",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "react",
+    "chat",
+    "agent",
+    "ai",
+    "generative-ui"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -27,7 +37,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

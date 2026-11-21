@@ -2,6 +2,13 @@
   "name": "@surfaces-ui/embedder-local",
   "version": "0.0.0",
   "description": "Local embedding model for semantic search; the model is downloaded on first use to a cache outside the repo",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "embeddings",
+    "semantic-search"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +29,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -2,6 +2,16 @@
   "name": "@surfaces-ui/spec",
   "version": "0.0.0",
   "description": "Component catalog, A2UI surface model and React renderer for agent-generated UI",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "a2ui",
+    "generative-ui",
+    "agent",
+    "catalog",
+    "react"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -27,7 +37,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

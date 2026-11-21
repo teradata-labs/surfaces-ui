@@ -2,6 +2,14 @@
   "name": "@surfaces-ui/data",
   "version": "0.0.0",
   "description": "DataSource interface, Arrow result helpers and an in-memory source",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "datasource",
+    "arrow",
+    "sql"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +30,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

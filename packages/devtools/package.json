@@ -2,6 +2,14 @@
   "name": "@surfaces-ui/devtools",
   "version": "0.0.0",
   "description": "Developer tools for Surfaces UI: one component that records and shows the messages, components, problems, state, events, agent turns and service calls of agent-generated UI, with time travel",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "devtools",
+    "react",
+    "tracing"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -31,7 +39,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

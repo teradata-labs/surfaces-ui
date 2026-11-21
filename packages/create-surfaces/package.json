@@ -2,6 +2,14 @@
   "name": "create-surfaces",
   "version": "0.0.0",
   "description": "Creates a Surfaces UI app: a dashboard, a chat that draws live components, and a data server with six sample datasets",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "create",
+    "starter",
+    "template"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -18,7 +26,8 @@
   },
   "files": [
     "dist",
-    "template"
+    "template",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

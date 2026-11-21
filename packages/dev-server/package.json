@@ -2,6 +2,15 @@
   "name": "@surfaces-ui/dev-server",
   "version": "0.0.0",
   "description": "Local Connect server for Surfaces UI data sources",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "server",
+    "connect",
+    "duckdb",
+    "teradata"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +31,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -1,3 +1,4 @@
+<!-- own readme -->
 # @surfaces-ui/page
 
 Surfaces UI pages for plain HTML: one script and one stylesheet, no build

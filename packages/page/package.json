@@ -2,6 +2,11 @@
   "name": "@surfaces-ui/page",
   "version": "0.0.0",
   "description": "Surfaces UI pages as one script and one stylesheet, for plain HTML pages with no build step",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -21,7 +26,8 @@
     "./surfaces-page.css": "./dist/surfaces-page.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "scripts": {
     "build": "vite build && node check-bundle.mjs",
