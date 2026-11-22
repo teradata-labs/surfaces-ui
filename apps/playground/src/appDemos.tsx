@@ -27,6 +27,8 @@ import {
   NavBar,
   type NavBarProps,
   ObjectInfo,
+  Popover,
+  type PopoverProps,
   ResizeHandle,
   type ResizeHandleProps,
   SegmentedControl,
@@ -477,6 +479,71 @@ function DevToolsDemo({ props, parts, source, log }: DemoProps) {
   );
 }
 
+const WIDTHS = [
+  { value: "Fit", label: "Fit to the window" },
+  { value: "Phone", label: "Phone" },
+  { value: "Tablet", label: "Tablet" },
+  { value: "Desktop", label: "Desktop" },
+];
+const ZOOMS = ["50%", "75%", "100%", "125%"];
+const DATA_STATES = [
+  { value: "Real data", label: "Real" },
+  { value: "Empty", label: "Empty" },
+  { value: "Loading", label: "Loading" },
+];
+
+/** A toolbar's View button: three settings behind one button, its summary kept up to date as a host would. */
+function PopoverDemo({ props, log, setProp }: DemoProps) {
+  const given = props as unknown as Partial<PopoverProps>;
+  const [width, setWidth] = useState("Fit");
+  const [zoom, setZoom] = useState("100%");
+  const [data, setData] = useState("Real data");
+  const choose = (next: { width?: string; zoom?: string; data?: string }) => {
+    const all = { width, zoom, data, ...next };
+    setWidth(all.width);
+    setZoom(all.zoom);
+    setData(all.data);
+    setProp("summary", `${all.width} · ${all.zoom} · ${all.data}`);
+  };
+  const held = typeof given.open === "boolean";
+  return (
+    <div className="app-demo-row">
+      <Popover
+        label={typeof given.label === "string" && given.label ? given.label : "View"}
+        summary={typeof given.summary === "string" ? given.summary : undefined}
+        align={given.align}
+        disabled={given.disabled}
+        defaultOpen={given.defaultOpen}
+        open={held ? given.open : undefined}
+        onOpenChange={(open) => {
+          if (held) setProp("open", open);
+          log("onOpenChange", open);
+        }}
+      >
+        <label className="sf-form-field">
+          <span className="sf-form-label">Width</span>
+          <select className="sf-input" value={width} onChange={(event) => choose({ width: event.target.value })}>
+            {WIDTHS.map((w) => (
+              <option key={w.value} value={w.value}>
+                {w.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="sf-form-field">
+          <span className="sf-form-label">Zoom</span>
+          <select className="sf-input" value={zoom} onChange={(event) => choose({ zoom: event.target.value })}>
+            {ZOOMS.map((z) => (
+              <option key={z}>{z}</option>
+            ))}
+          </select>
+        </label>
+        <SegmentedControl label="Data" fit="fill" options={DATA_STATES} value={data} onChange={(value) => choose({ data: value })} />
+      </Popover>
+    </div>
+  );
+}
+
 /** The component, drawn live with the parts switched on. */
 export function AppDemo({ name, ...demo }: DemoProps & { name: string }): ReactNode {
   const { props, parts, source, log, setProp } = demo;
@@ -572,6 +639,8 @@ export function AppDemo({ name, ...demo }: DemoProps & { name: string }): ReactN
     }
     case "Combobox":
       return <ComboboxDemo {...demo} />;
+    case "Popover":
+      return <PopoverDemo {...demo} />;
     case "NavBar":
       return (
         <div className="app-demo-navbar">
