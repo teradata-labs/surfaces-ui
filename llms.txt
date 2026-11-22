@@ -6,6 +6,7 @@
 - [Agent prompt](docs/catalog/agent-prompt.md): the message format, every component and its props, as a system prompt
 - [Catalog as JSON Schema](docs/catalog/catalog.json): component props, and each event's payload under `x-events`
 - [Human-in-the-loop patterns](docs/catalog/patterns.md): complete surfaces for decisions a person must make
+- [Site catalog](docs/catalog/site/README.md): for pages people read (landing pages, docs, posts): the basic components plus Hero, Section, FeatureGrid, DeviceFrame, PromptReveal, Showcase, NavBar, Footer, Media, Quote, Callout, PostCard and PostList, with its own prompt and JSON Schema
 - [Agent integration](docs/agent-integration.md): the turn loop, response contracts (`expects`), what comes back each turn, adapters (Claude, OpenAI-compatible, Loom, your own), `surfaceAgentPrompt` and `dataTools`, choosing the model from a page (`ModelService`), approvals that pause a turn, keeping a thread across reloads
 
 ## For people integrating

@@ -16,7 +16,7 @@ One `Send` is one turn. The agent streams `SendResponse` events: `text` (Markdow
 
 ## Drawing: A2UI v1.0
 
-The agent sends four kinds of message. The full format, every component and its props are in [catalog/agent-prompt.md](catalog/agent-prompt.md); give that file to the model as its system prompt (`catalogPrompt(analyticsCatalog)` generates it). A surface that needs no data (a form, a page of text and links) can use `basicsCatalog`, which holds only the components every catalog shares, and a shorter prompt (`catalogPrompt(basicsCatalog)`).
+The agent sends four kinds of message. The full format, every component and its props are in [catalog/agent-prompt.md](catalog/agent-prompt.md); give that file to the model as its system prompt (`catalogPrompt(analyticsCatalog)` generates it). A surface that needs no data (a form, a page of text and links) can use `basicsCatalog`, which holds only the components every catalog shares, and a shorter prompt (`catalogPrompt(basicsCatalog)`). A page for people to read (a landing page, docs, posts) uses `siteCatalog`, drawn with `siteRenderers`: the basics plus heroes, sections, cards, device frames, navigation, footers, media, quotes, callouts and posts ([catalog/site](catalog/site/README.md)). Its images load only from addresses the page gives (`MediaPolicyProvider`).
 
 | Message | What it does |
 |---|---|

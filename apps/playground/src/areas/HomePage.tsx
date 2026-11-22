@@ -1,175 +1,99 @@
-import type { PageDocument, SurfaceComponent } from "@surfaces-ui/spec";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type PageDocument, type SurfaceAction, extendCatalog, pageSurface, siteCatalog } from "@surfaces-ui/spec";
+import { type ComponentRenderer, SurfaceView, siteRenderers } from "@surfaces-ui/spec/react";
+import { type ReactNode, useMemo } from "react";
+import { z } from "zod";
 import { examplePages } from "../examples.js";
 import { focusFor } from "../focus.js";
 import { type ActiveSource, firstTable } from "../source.js";
-import { Devices } from "./Devices.js";
+import { Screen } from "./Devices.js";
 import { PERSONAS } from "./ShowcasePage.js";
 
-/** What the person in the demo asks for, typed out before the dashboard builds. */
-const PROMPT = "Build me a dashboard: the headline numbers with their trend, the breakdowns, then the rows.";
-const TYPE_MS = 28;
-const STEP_MS = 1100;
-const HOLD_MS = 3200;
-
-/** The leaves of a page, in reading order: the parts that appear one by one. */
-function leavesOf(page: PageDocument): string[] {
-  const byId = new Map(page.components.map((c) => [c.id, c]));
-  const out: string[] = [];
-  const walk = (id: string) => {
-    const c = byId.get(id);
-    if (!c) return;
-    const kids = Array.isArray(c.children) ? (c.children as string[]) : typeof c.child === "string" ? [c.child] : [];
-    if (kids.length === 0) out.push(id);
-    else kids.forEach(walk);
-  };
-  walk("root");
-  return out;
-}
-
-/** The page with only the given leaves, and the containers that hold any of them. */
-function revealed(page: PageDocument, shown: Set<string>): PageDocument {
-  const byId = new Map(page.components.map((c) => [c.id, c]));
-  const keep = new Map<string, SurfaceComponent>();
-  const visit = (id: string): boolean => {
-    const c = byId.get(id);
-    if (!c) return false;
-    if (!Array.isArray(c.children)) {
-      if (!shown.has(id)) return false;
-      keep.set(id, c);
-      return true;
-    }
-    const kids = (c.children as string[]).filter(visit);
-    if (kids.length === 0 && id !== "root") return false;
-    keep.set(id, { ...c, children: kids });
-    return true;
-  };
-  visit("root");
-  return { ...page, id: `${page.id}-${shown.size}`, components: page.components.filter((c) => keep.has(c.id)).map((c) => keep.get(c.id)!) };
-}
-
-function useReducedMotion(): boolean {
-  const query = "(prefers-reduced-motion: reduce)";
-  const [reduce, setReduce] = useState(() => globalThis.matchMedia?.(query).matches ?? false);
-  useEffect(() => {
-    const media = globalThis.matchMedia?.(query);
-    if (!media) return;
-    const change = () => setReduce(media.matches);
-    media.addEventListener("change", change);
-    return () => media.removeEventListener("change", change);
-  }, []);
-  return reduce;
-}
-
 /**
- * The demo's clock: the prompt types out, then the leaves appear one at a time, it holds, and starts again.
- * Paused, or under reduced motion, it shows the finished dashboard and stands still.
+ * The home page is a page of the site catalog, drawn like any agent's page. Two parts are the playground's own and
+ * added the documented way, with `extendCatalog`: the live dashboard over the picked data, and the data picker.
  */
-function usePlayback(leaves: string[], running: boolean): { typed: number; shown: number } {
-  const [tick, setTick] = useState({ typed: 0, shown: 0 });
-  useEffect(() => {
-    if (!running) {
-      setTick({ typed: PROMPT.length, shown: leaves.length });
-      return;
-    }
-    let typed = 0;
-    let shown = 0;
-    let timer: ReturnType<typeof setTimeout>;
-    const step = () => {
-      if (typed < PROMPT.length) {
-        typed += 1;
-        timer = setTimeout(step, TYPE_MS);
-      } else if (shown < leaves.length) {
-        shown += 1;
-        timer = setTimeout(step, STEP_MS);
-      } else {
-        timer = setTimeout(() => {
-          typed = 0;
-          shown = 0;
-          setTick({ typed, shown });
-          timer = setTimeout(step, 600);
-        }, HOLD_MS);
-        return;
-      }
-      setTick({ typed, shown });
-    };
-    timer = setTimeout(step, 400);
-    return () => clearTimeout(timer);
-  }, [running, leaves.length]);
-  return tick;
+export const homeCatalog = extendCatalog(siteCatalog, {
+  id: "urn:surfaces:playground:home:v1",
+  title: "Playground home",
+  description: "The site catalog, with the playground's live dashboard and data picker.",
+  components: {
+    LiveDashboard: {
+      description: "The first example dashboard, drawn live over the picked sample data.",
+      props: {},
+      example: { id: "dashboard", component: "LiveDashboard" },
+    },
+    SamplePicker: {
+      description: "The playground's sample data picker.",
+      props: { label: z.string().optional() },
+      example: { id: "picker", component: "SamplePicker" },
+    },
+  },
+});
+
+/** What the person in the demo asks for, typed out before the dashboard builds. */
+export const HOME_PROMPT = "Build me a dashboard: the headline numbers with their trend, the breakdowns, then the rows.";
+
+const button = (id: string, label: string, area: string, primary = false) => [
+  { id, component: "Button", child: `${id}-label`, ...(primary ? { variant: "primary" } : {}), action: { event: { name: "open", context: { area } } } },
+  { id: `${id}-label`, component: "Text", text: label },
+];
+
+/** The home page as a document: what an agent with the site catalog would send to draw it. */
+export function homePage(dashboard: string): PageDocument {
+  return {
+    id: "home",
+    title: "Surfaces UI",
+    catalogId: homeCatalog.id,
+    components: [
+      { id: "root", component: "Column", children: ["hero", "demo", "demo-foot", "roles"] },
+      {
+        id: "hero",
+        component: "Hero",
+        title: "Surfaces UI",
+        lead: "Components for data work that people and agents build together. Query, chart, model and share, in your own app or in a chat, on any engine.",
+        children: ["open-playground", "open-catalog", "open-showcase"],
+      },
+      ...button("open-playground", "Open the playground", "composer", true),
+      ...button("open-catalog", "Browse components", "catalog"),
+      ...button("open-showcase", "See the showcase", "showcase"),
+      { id: "demo", component: "PromptReveal", prompt: HOME_PROMPT, label: dashboard, child: "devices" },
+      { id: "devices", component: "DeviceFrame", title: "Playground", label: dashboard, child: "dashboard" },
+      { id: "dashboard", component: "LiveDashboard" },
+      { id: "demo-foot", component: "Row", justify: "center", align: "center", children: ["picker", "demo-hint"] },
+      { id: "picker", component: "SamplePicker" },
+      { id: "demo-hint", component: "Text", variant: "caption", text: "Every part is live: click, filter and scroll." },
+      { id: "roles", component: "Section", heading: "Showcase", lead: "Setups for the people who work with data, each made from the same components.", children: ["role-cards"] },
+      {
+        id: "role-cards",
+        component: "FeatureGrid",
+        label: "Roles",
+        items: PERSONAS.map((persona) => ({ id: persona.id, title: persona.name, line: persona.line })),
+        action: { event: { name: "role" } },
+      },
+    ],
+  };
 }
 
 export function HomePage({ source, onOpen, picker }: { source: ActiveSource; onOpen(area: string): void; picker?: ReactNode }) {
   const focus = useMemo(() => focusFor(source.sourceId, firstTable(source)), [source]);
-  const page = useMemo(() => examplePages(focus)[0]!, [focus]);
-  const leaves = useMemo(() => leavesOf(page), [page]);
-  const reduce = useReducedMotion();
-  const [paused, setPaused] = useState(false);
-  const { typed, shown } = usePlayback(leaves, !reduce && !paused);
-  const current = useMemo(() => revealed(page, new Set(leaves.slice(0, shown))), [page, leaves, shown]);
-  const prompt = PROMPT.slice(0, typed);
-  const describe = `${page.title}: ${shown} of ${leaves.length} parts drawn`;
-
+  const dashboard = useMemo(() => examplePages(focus)[0]!, [focus]);
+  const surface = useMemo(() => pageSurface(homePage(`${dashboard.title}, over the ${focus.title.toLowerCase()} sample`)), [dashboard, focus]);
+  const renderers = useMemo<Record<string, ComponentRenderer>>(
+    () => ({
+      ...siteRenderers,
+      LiveDashboard: () => <Screen page={dashboard} />,
+      SamplePicker: () => picker ?? null,
+    }),
+    [dashboard, picker],
+  );
+  const act = (action: SurfaceAction) => {
+    const context = action.context as { area?: string; id?: string };
+    if (action.name === "open" && context.area) onOpen(context.area);
+    if (action.name === "role" && context.id) onOpen(`showcase?persona=${context.id}`);
+  };
   return (
     <div className="home">
-      <section className="home-hero">
-        <h1 className="home-title">Surfaces UI</h1>
-        <p className="home-lead">
-          Components for data work that people and agents build together. Query, chart, model and share, in your own app or in a chat, on any
-          engine.
-        </p>
-        <div className="home-actions">
-          <button type="button" className="btn primary" onClick={() => onOpen("composer")}>
-            Open the playground
-          </button>
-          <button type="button" className="btn" onClick={() => onOpen("catalog")}>
-            Browse components
-          </button>
-          <button type="button" className="btn" onClick={() => onOpen("showcase")}>
-            See the showcase
-          </button>
-        </div>
-      </section>
-
-      {/* The screens are the real components. Reaching into one stops the demo on the finished page, so nothing changes under the pointer. */}
-      <section className="home-stage" aria-label="The playground building a dashboard, on a desktop and on a phone">
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: it only watches for a person reaching into the live screens */}
-        <div onPointerDown={() => setPaused(true)} onFocus={() => setPaused(true)}>
-          <Devices page={current} prompt={prompt} typing={typed < PROMPT.length} describe={describe} />
-        </div>
-        <div className="home-stage-foot">
-          {picker}
-          <p className="hint" role="status">
-            {reduce
-              ? "Shown finished, since your system asks for less motion. Every part is live: click, filter and scroll."
-              : paused
-                ? `${page.title}, over the ${focus.title.toLowerCase()} sample. Every part is live: click, filter and scroll.`
-                : `${page.title}, over the ${focus.title.toLowerCase()} sample. Click into it to stop and try it.`}
-          </p>
-          {!reduce && (
-            <button type="button" className="btn" aria-pressed={paused} onClick={() => setPaused((p) => !p)}>
-              {paused ? "Play" : "Pause"}
-            </button>
-          )}
-        </div>
-      </section>
-
-      <section className="home-section" aria-labelledby="home-showcase">
-        <div className="home-section-head">
-          <h2 id="home-showcase">Showcase</h2>
-          <p className="hint">Setups for the people who work with data, each made from the same components.</p>
-        </div>
-        <ul className="home-personas">
-          {PERSONAS.map((persona) => (
-            <li key={persona.id}>
-              <button type="button" className="home-persona" onClick={() => onOpen(`showcase?persona=${persona.id}`)}>
-                <span className="home-persona-name">{persona.name}</span>
-                <span className="home-persona-line">{persona.line}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <SurfaceView surface={surface} catalog={homeCatalog} renderers={renderers} onAction={act} />
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import { Children, type ReactElement, type ReactNode, isValidElement, useId, useMemo } from "react";
 import { analyticsCatalog } from "../analytics.js";
 import type { Catalog } from "../catalog.js";
+import { siteCatalog } from "../site.js";
 import { pageSurface } from "../page.js";
 import type { SurfaceAction, SurfaceComponent } from "../surface.js";
 import { type ComponentRenderer, type SurfaceNote, type SurfaceProblem, SurfaceView } from "./Surface.js";
 import { lazyAnalyticsRenderers } from "./lazy.js";
+import { siteRenderers } from "./site.js";
 
 /**
  * Catalog components written as JSX: `<Ui.Row><Ui.Metric … /><Ui.Chart … /></Ui.Row>`. Each element takes exactly
@@ -121,3 +123,6 @@ export function createMarkup<Name extends string = string>(catalog: Catalog & { 
  * `@surfaces-ui/components`; for the renderers loaded at once, `createMarkup(analyticsCatalog, analyticsRenderers)`.
  */
 export const analyticsMarkup = createMarkup(analyticsCatalog, lazyAnalyticsRenderers);
+
+/** JSX for the site catalog: an element per site component, drawn with `siteRenderers`. */
+export const siteMarkup = createMarkup(siteCatalog, siteRenderers);

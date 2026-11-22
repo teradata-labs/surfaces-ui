@@ -1,5 +1,6 @@
-import { A2UI_VERSION, type PageDocument, type SurfaceAction, analyticsCatalog, catalogJson, pageSurface, shapeText, toJsonRender, toMarkup } from "@surfaces-ui/spec";
-import { type SurfaceProblem, SurfaceView, analyticsRenderers } from "@surfaces-ui/spec/react";
+import { A2UI_VERSION, type PageDocument, type SurfaceAction, pageSurface, shapeText, toJsonRender, toMarkup } from "@surfaces-ui/spec";
+import { type SurfaceProblem, SurfaceView } from "@surfaces-ui/spec/react";
+import { COMPONENT_NAMES, COMPONENT_SCHEMA, catalogOf, definitionOf, markupOf, renderersOf } from "../componentCatalogs.js";
 import { chatAppComponents } from "@surfaces-ui/chat";
 import { appComponentDocs as devtoolsAppComponents } from "@surfaces-ui/devtools/app-components";
 import { CodeBlock, Markdown, PipelinesProvider, ThemeProvider, componentsAppComponents, useOptionalTheme } from "@surfaces-ui/components";
@@ -14,11 +15,11 @@ import { ComponentInventory, type InventoryItem } from "./ComponentInventory.js"
 import { focusFor, useThirds } from "../focus.js";
 import { type ActiveSource, firstTable } from "../source.js";
 
-const SCHEMA = catalogJson(analyticsCatalog).components as Record<
+const SCHEMA = COMPONENT_SCHEMA as Record<
   string,
   { description: string; properties?: Record<string, { type?: string; enum?: unknown[]; description?: string }>; required?: string[] }
 >;
-const NAMES = Object.keys(analyticsCatalog.components);
+const NAMES = COMPONENT_NAMES;
 const grouped = (() => {
   const listed = new Set(GROUPS.flatMap(([, names]) => names));
   const groups = GROUPS.map(([label, names]) => [label, names.filter((n) => NAMES.includes(n))] as const);
@@ -26,7 +27,10 @@ const grouped = (() => {
   return other.length ? [...groups, ["Other", other] as const] : groups;
 })();
 /** Components an app places itself: no catalog entry, a page of their own. */
-const APP_DOCS = [...chatAppComponents, ...componentsAppComponents, ...devtoolsAppComponents];
+const APP_DOCS = [...chatAppComponents, ...componentsAppComponents, ...devtoolsAppComponents].filter(
+  // NavBar is also in the site catalog; it is listed once, there, and drawn the way an agent's page draws it.
+  (doc) => !NAMES.includes(doc.name),
+);
 const APP = new Map(APP_DOCS.map((doc) => [doc.name, doc]));
 const LIST = [...grouped, ["App components", APP_DOCS.map((doc) => doc.name)] as const];
 
@@ -57,13 +61,16 @@ function firstSentence(text: string): string {
  * so each named child is drawn as a labelled placeholder.
  */
 function previewPage(name: string, props: Record<string, unknown>): PageDocument {
-  const children = [...(Array.isArray(props.children) ? props.children : []), ...(typeof props.child === "string" ? [props.child] : [])].filter(
-    (c): c is string => typeof c === "string",
-  );
+  const children = [
+    ...(Array.isArray(props.children) ? props.children : []),
+    ...(typeof props.child === "string" ? [props.child] : []),
+    // A showcase names a child for each example.
+    ...(Array.isArray(props.examples) ? (props.examples as { child?: unknown }[]).map((example) => example.child) : []),
+  ].filter((c): c is string => typeof c === "string");
   return {
     id: "preview",
     title: name,
-    catalogId: analyticsCatalog.id,
+    catalogId: catalogOf(name).id,
     components: [
       { id: "root", component: name, ...props },
       // A list of rows draws its child once per row, so its child reads the row.
@@ -114,7 +121,7 @@ export function SurfaceCode({ page }: { page: PageDocument }) {
     }
   };
   const code = useMemo(() => {
-    if (view === "react") return `import { analyticsMarkup as Ui } from "@surfaces-ui/spec/react";\n\nexport const View = () => (\n${toMarkup(page.components).replace(/^/gm, "  ")}\n);`;
+    if (view === "react") return `import { ${markupOf(String(page.components[0]?.component ?? ""))} as Ui } from "@surfaces-ui/spec/react";\n\nexport const View = () => (\n${toMarkup(page.components).replace(/^/gm, "  ")}\n);`;
     if (view === "a2ui") return JSON.stringify({ version: A2UI_VERSION, updateComponents: { surfaceId: "main", components: page.components } }, null, 2);
     return JSON.stringify(toJsonRender(page.components, { data: page.data }), null, 2);
   }, [view, page]);
@@ -207,7 +214,7 @@ export function ComponentCatalog({ source }: { source: ActiveSource }) {
                 name: n,
                 summary: firstSentence(SCHEMA[n]?.description ?? ""),
                 page: previewPage(n, exampleProps(n, source, thirds)),
-                tags: analyticsCatalog.components[n]?.events ? ["events"] : [],
+                tags: definitionOf(n)?.events ? ["events"] : [],
               };
             }),
           ] as const,
@@ -237,7 +244,7 @@ export function ComponentCatalog({ source }: { source: ActiveSource }) {
   const schema = SCHEMA[name];
   const required = new Set(schema?.required ?? []);
   const props = Object.entries(schema?.properties ?? {}).filter(([p]) => p !== "id" && p !== "component" && p !== "accessibility");
-  const declared = analyticsCatalog.components[name]?.events ?? {};
+  const declared = definitionOf(name)?.events ?? {};
   const needle = filter.trim().toLowerCase();
 
   return (
@@ -258,7 +265,7 @@ export function ComponentCatalog({ source }: { source: ActiveSource }) {
                   <li key={n}>
                     <button type="button" aria-current={n === name ? "true" : undefined} onClick={() => choose(n)}>
                       {n}
-                      {analyticsCatalog.components[n]?.events && <span className="catalog-tag">events</span>}
+                      {definitionOf(n)?.events && <span className="catalog-tag">events</span>}
                       {APP.has(n) && <span className="catalog-tag">app</span>}
                     </button>
                   </li>
@@ -313,8 +320,8 @@ export function ComponentCatalog({ source }: { source: ActiveSource }) {
             <MaybePipelines source={source}>
             <SurfaceView
               surface={surface}
-              catalog={analyticsCatalog}
-              renderers={analyticsRenderers}
+              catalog={catalogOf(name)}
+              renderers={renderersOf(name)}
               onAction={(action) => setEvents((list) => [action, ...list].slice(0, 20))}
               onProblem={(problem) => setProblems((list) => [...list, problem])}
               onDataChange={setData}

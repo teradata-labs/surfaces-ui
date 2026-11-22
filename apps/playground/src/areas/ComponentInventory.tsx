@@ -1,5 +1,6 @@
-import { type PageDocument, analyticsCatalog, pageSurface } from "@surfaces-ui/spec";
-import { SurfaceView, lazyAnalyticsRenderers } from "@surfaces-ui/spec/react";
+import { type PageDocument, pageSurface } from "@surfaces-ui/spec";
+import { SurfaceView } from "@surfaces-ui/spec/react";
+import { catalogOf, renderersOf } from "../componentCatalogs.js";
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 export interface InventoryItem {
@@ -16,7 +17,8 @@ export interface InventoryItem {
 /** A catalog example, drawn through the catalog as an agent's surface would be. */
 function CatalogExample({ page }: { page: PageDocument }) {
   const surface = useMemo(() => pageSurface(page), [page]);
-  return <SurfaceView surface={surface} catalog={analyticsCatalog} renderers={lazyAnalyticsRenderers} />;
+  const name = String(page.components[0]?.component ?? "");
+  return <SurfaceView surface={surface} catalog={catalogOf(name)} renderers={renderersOf(name, true)} />;
 }
 
 /** Draws a component's example only once its card comes near the screen, so 75 live previews do not all query at once. */

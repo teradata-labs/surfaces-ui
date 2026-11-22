@@ -1,66 +1,48 @@
+import { DeviceFrame } from "@surfaces-ui/components";
 import type { PageDocument } from "@surfaces-ui/spec";
 import { analyticsCatalog, pageSurface } from "@surfaces-ui/spec";
 import { SurfaceView, lazyAnalyticsRenderers } from "@surfaces-ui/spec/react";
-import { useMemo } from "react";
+import { type CSSProperties, useMemo } from "react";
 
 /**
- * One surface drawn live inside a device's screen: the real components, over the picked data, to click, filter, sort and
- * scroll. The screen scrolls on its own, and can be focused to scroll it by keyboard.
+ * One surface drawn live: the real components, over the picked data, to click, filter, sort and scroll. Each part
+ * rises in as it is first drawn, one after another; the delays are motion tokens, so under reduced motion they are
+ * nothing and the page is simply there.
  */
-export function Screen({ page, label }: { page: PageDocument; label: string }) {
+export function Screen({ page }: { page: PageDocument }) {
   const surface = useMemo(() => pageSurface(page), [page]);
+  const order = useMemo(() => new Map(page.components.map((c, index) => [c.id, index])), [page]);
   return (
-    // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrolling region is focused to scroll it by keyboard
-    <section className="home-screen sf-container" aria-label={label} tabIndex={0}>
-      <SurfaceView
-        surface={surface}
-        catalog={analyticsCatalog}
-        renderers={lazyAnalyticsRenderers}
-        frame={(component, drawn) => (
-          <div key={component.id} className="home-reveal">
-            {drawn}
-          </div>
-        )}
-      />
-    </section>
+    <SurfaceView
+      surface={surface}
+      catalog={analyticsCatalog}
+      renderers={lazyAnalyticsRenderers}
+      frame={(component, drawn) => (
+        <div key={component.id} className="home-reveal" style={{ "--home-reveal-step": order.get(component.id) ?? 0 } as CSSProperties}>
+          {drawn}
+        </div>
+      )}
+    />
   );
 }
 
 /**
- * The same page on a desktop window and on an iPhone, side by side; under 860px only the phone. `prompt` is what the
- * person asked (shown as a field on the desktop and a bubble on the phone), and `typing` adds a caret while it types.
+ * The same page on a desktop window and on an iPhone, side by side (the library's `DeviceFrame`); with too little
+ * room, only the phone. `prompt` is what the person asked, shown above the page on each screen.
  */
-export function Devices({ page, prompt, typing = false, title = "Playground", describe }: { page: PageDocument; prompt: string; typing?: boolean; title?: string; describe: string }) {
+export function Devices({ page, prompt, title = "Playground", describe }: { page: PageDocument; prompt?: string; title?: string; describe: string }) {
   return (
-    <div className="home-devices">
-      <figure className="home-desktop">
-        <div className="home-desktop-bar" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <p>{title}</p>
-        </div>
-        <div className="home-desktop-body">
-          <div className="home-prompt" aria-hidden="true">
-            <span>{prompt}</span>
-            {typing && <span className="home-caret" />}
-          </div>
-          <Screen page={page} label={`Desktop: ${describe}`} />
-        </div>
-        <figcaption>Desktop</figcaption>
-      </figure>
-      <figure className="home-phone">
-        <div className="home-phone-frame">
-          <div className="home-phone-island" aria-hidden="true" />
-          <div className="home-phone-body">
-            <p className="home-bubble" aria-hidden="true">
-              {prompt || " "}
+    <DeviceFrame title={title} label={describe}>
+      {(device) => (
+        <div className="home-device-body">
+          {prompt && (
+            <p className={device === "phone" ? "home-bubble" : "home-prompt"} aria-hidden="true">
+              {prompt}
             </p>
-            <Screen page={page} label={`iPhone: ${describe}`} />
-          </div>
+          )}
+          <Screen page={page} />
         </div>
-        <figcaption>iPhone</figcaption>
-      </figure>
-    </div>
+      )}
+    </DeviceFrame>
   );
 }

@@ -78,6 +78,17 @@ test.describe("Live device screens", () => {
     await expect(head).toHaveAttribute("aria-sort", "ascending");
   });
 
+  test("draws the home page from the site catalog: its actions and role cards open their pages", async ({ page }) => {
+    await page.goto("/?source=retail#home");
+    await expect(page.getByRole("heading", { level: 1, name: "Surfaces UI" })).toBeVisible();
+    const roles = page.getByRole("region", { name: "Showcase" });
+    await roles.getByRole("button", { name: /Data steward/ }).click();
+    await expect(page).toHaveURL(/#showcase\?persona=data-steward/);
+    await page.goto("/?source=retail#home");
+    await page.getByRole("button", { name: "Browse components" }).click();
+    await expect(page).toHaveURL(/#catalog/);
+  });
+
   test("lets a person change the analyst's Explorer on the showcase", async ({ page }) => {
     await page.goto("/?source=retail#showcase");
     const desktop = page.getByRole("region", { name: /^Desktop:/ });
