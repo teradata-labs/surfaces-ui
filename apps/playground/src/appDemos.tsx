@@ -3,10 +3,26 @@ import { AnalyticsChat, type AttachResult, Chat, type ChatProvider, type ChatSet
 import {
   CertificationBadge,
   ChecksPanel,
+  Combobox,
+  type ComboboxOption,
+  type ComboboxProps,
+  ConfirmDialog,
+  type ConfirmDialogProps,
   ConnectionBuilder,
   type ConnectionDraft,
+  type DataTableColumn,
+  type DataTableProps,
+  type DataTableSort,
+  DataTable,
   DataSourceProvider,
   ItemControls,
+  Pagination,
+  type PaginationProps,
+  type SelectionAction,
+  SelectionBar,
+  type SelectionBarProps,
+  StatusBadge,
+  type StatusBadgeProps,
   ModelLineage,
   NavBar,
   type NavBarProps,
@@ -228,6 +244,149 @@ function ItemControlsDemo({ props, log }: DemoProps) {
   );
 }
 
+type DemoRow = Record<string, unknown> & { id: string };
+const rowsOf = (value: unknown): DemoRow[] => (Array.isArray(value) ? value.filter((r): r is DemoRow => !!r && typeof r === "object" && typeof (r as DemoRow).id === "string") : []);
+
+/** A table whose host sorts the rows it holds, as a server would, and keeps the selection. */
+function DataTableDemo({ props, parts, log, setProp }: DemoProps) {
+  const given = props as unknown as Partial<DataTableProps<DemoRow>>;
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const columns: DataTableColumn<DemoRow>[] = (Array.isArray(given.columns) ? given.columns : [])
+    .filter((c) => c && typeof c.id === "string" && typeof c.label === "string")
+    .map((c) => (c.id === "status" ? { ...c, cell: (row: DemoRow) => <StatusBadge label={String(row.status)} tone={row.status === "On" ? "success" : "danger"} /> } : c));
+  const sort = given.sort;
+  // The host's server sorts; here the page stands in for it.
+  const rows = [...rowsOf(given.rows)].sort((a, b) => {
+    if (!sort) return 0;
+    const [x, y] = [a[sort.column], b[sort.column]];
+    const order = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y));
+    return sort.desc ? -order : order;
+  });
+  return (
+    <DataTable<DemoRow>
+      label={given.label ?? "Rows"}
+      columns={columns}
+      rows={rows}
+      rowKey={(row) => row.id}
+      rowName={(row) => String(row.name ?? row.id)}
+      rowHeader={given.rowHeader}
+      sort={sort}
+      onSortChange={(next: DataTableSort) => {
+        setProp("sort", next);
+        log("onSortChange", next);
+      }}
+      selected={on(parts, "selected", selected)}
+      onSelectedChange={(next) => {
+        setSelected(next);
+        log("onSelectedChange", [...next]);
+      }}
+      allSelected={given.allSelected}
+      selectable={on(parts, "selectable", (row: DemoRow) => row.id !== "u1")}
+      rowControls={on(parts, "rowControls", (row: DemoRow) => [
+        row.status === "On"
+          ? { id: "turn-off", label: `Turn off ${row.name}`, icon: "power" as const, onSelect: () => log("turn off", row.id) }
+          : { id: "turn-on", label: `Turn on ${row.name}`, icon: "power" as const, onSelect: () => log("turn on", row.id) },
+        { id: "sign-out", label: `Sign ${row.name} out everywhere`, icon: "sign-out" as const, onSelect: () => log("sign out", row.id), disabled: row.status !== "On" },
+        { id: "open", label: `Open ${row.name}'s page`, icon: "more" as const, onSelect: () => log("open", row.id) },
+      ])}
+      controlsShow={given.controlsShow}
+      rowMenu={on(parts, "rowMenu", (row: DemoRow) => [
+        { label: "Copy email", onSelect: () => log("copy email", row.email) },
+        { label: "Open their page", onSelect: () => log("open", row.id) },
+      ])}
+      rowState={on(parts, "rowState", (row: DemoRow) => (row.status === "On" ? undefined : "off"))}
+      loading={given.loading}
+      empty={on(parts, "empty", <span>No one matches. Try another search.</span>)}
+    />
+  );
+}
+
+function SelectionBarDemo({ props, parts, log, setProp }: DemoProps) {
+  const given = props as unknown as Partial<SelectionBarProps>;
+  const [handing, setHanding] = useState(false);
+  const actions: SelectionAction[] = (Array.isArray(given.actions) ? given.actions : [])
+    .filter((a) => a && typeof a.id === "string" && typeof a.label === "string")
+    .map((a) => ({ ...a, onSelect: () => log("onSelect", a.id) }));
+  if (parts.has("children")) actions.push({ id: "hand-over", label: "Hand over their work…", expanded: handing, onSelect: () => setHanding(!handing) });
+  return (
+    <SelectionBar
+      {...given}
+      count={typeof given.count === "number" ? given.count : 0}
+      actions={actions}
+      onClear={() => {
+        setProp("count", 0);
+        log("onClear");
+      }}
+      onAllMatchingChange={(all) => {
+        setProp("allMatching", all);
+        if (all && typeof given.total === "number") setProp("count", given.total);
+        log("onAllMatchingChange", all);
+      }}
+    >
+      {handing && parts.has("children") ? (
+        <form className="app-demo-row" onSubmit={(event) => (event.preventDefault(), log("hand over"))}>
+          <label>
+            Hand everything they own to <input className="sf-input" type="email" required />
+          </label>
+          <button type="submit" className="sf-button" data-variant="primary">
+            Hand over
+          </button>
+        </form>
+      ) : null}
+    </SelectionBar>
+  );
+}
+
+function ConfirmDialogDemo({ props, parts, log, setProp }: DemoProps) {
+  const given = props as unknown as Partial<ConfirmDialogProps>;
+  const title = given.title ?? "Go ahead?";
+  return (
+    <div>
+      <button type="button" className="sf-button" data-variant={given.danger ? "danger" : undefined} onClick={() => setProp("open", true)}>
+        {given.confirmLabel ?? "Confirm"}…
+      </button>
+      <ConfirmDialog
+        {...given}
+        open={given.open === true}
+        title={title}
+        body={on(parts, "body", <p>They are signed out everywhere now and cannot sign in until turned back on. What they own stays theirs.</p>)}
+        onConfirm={() => {
+          setProp("open", false);
+          log("onConfirm");
+        }}
+        onCancel={() => {
+          setProp("open", false);
+          log("onCancel");
+        }}
+      />
+    </div>
+  );
+}
+
+function ComboboxDemo({ props, log, setProp }: DemoProps) {
+  const given = props as unknown as Partial<ComboboxProps>;
+  const all: ComboboxOption[] = Array.isArray(given.options) ? given.options.filter((o) => o && typeof o.value === "string" && typeof o.label === "string") : [];
+  const value = typeof given.value === "string" ? given.value : "";
+  // The host searches, as its server would; the box shows what comes back.
+  const words = value.trim().toLowerCase();
+  const options = words ? all.filter((o) => `${o.label} ${o.value} ${o.detail ?? ""}`.toLowerCase().includes(words)) : all;
+  return (
+    <div className="app-demo-narrow">
+      <Combobox
+        {...given}
+        label={given.label ?? "Choose"}
+        value={value}
+        options={options}
+        onChange={(next) => {
+          setProp("value", next);
+          log("onChange", next);
+        }}
+        onPick={(option) => log("onPick", option.value)}
+      />
+    </div>
+  );
+}
+
 /** Two panes side by side, the handle on the first one's right edge: the page holds the share, as a host would. */
 function ResizeHandleDemo({ props, parts, log, setProp }: DemoProps) {
   const given = props as unknown as Partial<ResizeHandleProps>;
@@ -382,6 +541,37 @@ export function AppDemo({ name, ...demo }: DemoProps & { name: string }): ReactN
         />
       );
     }
+    case "DataTable":
+      return <DataTableDemo {...demo} />;
+    case "SelectionBar":
+      return <SelectionBarDemo {...demo} />;
+    case "Pagination": {
+      const given = props as unknown as Partial<PaginationProps>;
+      return (
+        <Pagination
+          {...given}
+          offset={typeof given.offset === "number" ? given.offset : 0}
+          pageSize={typeof given.pageSize === "number" ? given.pageSize : 50}
+          total={typeof given.total === "number" ? given.total : 0}
+          onChange={(offset) => {
+            setProp("offset", offset);
+            log("onChange", offset);
+          }}
+        />
+      );
+    }
+    case "ConfirmDialog":
+      return <ConfirmDialogDemo {...demo} />;
+    case "StatusBadge": {
+      const given = props as unknown as Partial<StatusBadgeProps>;
+      return (
+        <p>
+          Ben Brook <StatusBadge {...given} label={given.label ?? "Status"} />
+        </p>
+      );
+    }
+    case "Combobox":
+      return <ComboboxDemo {...demo} />;
     case "NavBar":
       return (
         <div className="app-demo-navbar">

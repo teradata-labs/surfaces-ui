@@ -172,6 +172,31 @@ import { Chart, DataGrid, QueryResult } from "@surfaces-ui/components";
 
 Each component's props, events and an example are in [docs/catalog/components](catalog/components). Components an app places itself rather than an agent (the chats, `PageStudio`, `ThemePicker`, `ConnectionBuilder` and others) have their own pages in [docs/components](components/README.md), with the parts a host supplies in code. The playground (`pnpm dev` in this repo) lets you edit the props and see the result live, under Components, App components included.
 
+### Rows your app holds
+
+Not every table is a query. People, invitations, jobs and keys come from your own server, and `DataTable` draws them, with `SelectionBar` for what to do with the rows chosen and `Pagination` beneath. The table sorts and pages nothing itself: a heading calls `onSortChange` and you fetch that page.
+
+```tsx
+import { DataTable, Pagination, SelectionBar, StatusBadge, useConfirm } from "@surfaces-ui/components";
+
+<DataTable
+  label="People"
+  rows={page.people}
+  rowKey={(p) => p.id}
+  columns={[
+    { id: "name", label: "Name", sortable: true },
+    { id: "status", label: "Status", cell: (p) => <StatusBadge label={p.off ? "Turned off" : "On"} tone={p.off ? "danger" : "success"} /> },
+  ]}
+  sort={sort}
+  onSortChange={setSort}
+  selected={selected}
+  onSelectedChange={setSelected}
+/>
+<Pagination offset={offset} pageSize={50} total={page.total} onChange={setOffset} />
+```
+
+`useConfirm` asks before an action that is hard to undo, and `Combobox` suggests as a person types (someone to hand work to). The recipe [Records a person manages](recipes/manage-records.md) puts them together, including acting on everyone a search matches.
+
 ## Metrics defined once: semantic models
 
 A semantic model names a query and the dimensions, measures and metrics on it, each with who defined it. Give `Explorer` or `ReportBuilder` a `model` instead of `sourceId` and `sql`, and its pills are the model's fields, so "Refund rate" means the same thing in every report.

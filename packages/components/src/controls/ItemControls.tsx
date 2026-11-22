@@ -18,6 +18,9 @@ const PATHS = {
   fold: "M4 4v16 M20 12H9 M14 7l-5 5 5 5",
   unfold: "M20 4v16 M4 12h11 M10 7l5 5-5 5",
   confirm: "M5 12l5 5 9-10",
+  power: "M12 3v8 M7 6.5a7 7 0 1 0 10 0",
+  "sign-out": "M10 4H5v16h5 M15 8l4 4-4 4 M19 12H9",
+  more: "M4.8 12a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0-2.4 0 M10.8 12a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0-2.4 0 M16.8 12a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0-2.4 0",
 } as const;
 
 /** The drawings the shared controls use. One set, so the same action looks the same wherever it appears. */
