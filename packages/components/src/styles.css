@@ -6500,11 +6500,14 @@ select.sf-input:disabled {
   font-weight: var(--sf-font-weight-semibold);
 }
 
-/* The page shown is its name in the text colour with a straight accent line under it, as a tab: no tinted block on the
-   glass, and marked by a shape as well as weight. In the full-screen menu, where a line under a whole row would not
+/* The page shown is a tab: its name in the text colour on a light tint of the accent, rounded at the top only, with a
+   straight accent line along its foot. It is marked by a shape as well as weight, and the tint stays light on the glass. In the full-screen menu, where a line under a whole row would not
    read, it is a filled row like the section above it. */
 .sf-navbar-page[aria-current="page"] {
-  background: linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / calc(100% - 2 * var(--sf-space-3)) 2px no-repeat;
+  border-radius: var(--sf-radius-sm) var(--sf-radius-sm) 0 0;
+  background:
+    linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / 100% 2px no-repeat,
+    color-mix(in srgb, var(--sf-color-accent) 10%, transparent);
   color: var(--sf-color-text);
   font-weight: var(--sf-font-weight-semibold);
 }
@@ -6553,10 +6556,12 @@ select.sf-input:disabled {
   background: var(--sf-color-fill-2);
 }
 
-/* The pages' indicator is the line alone, sliding under the page shown. */
+/* The pages' indicator is that tab, sliding to the page shown. */
 .sf-navbar-pages[data-indicator]::before {
-  background: linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / calc(100% - 2 * var(--sf-space-3)) 2px no-repeat;
-  border-radius: 0;
+  background:
+    linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / 100% 2px no-repeat,
+    color-mix(in srgb, var(--sf-color-accent) 10%, transparent);
+  border-radius: var(--sf-radius-sm) var(--sf-radius-sm) 0 0;
 }
 
 .sf-navbar-sections[data-instant]::before,
@@ -9133,8 +9138,8 @@ button > .sf-item-control-icon:only-child {
   padding: var(--sf-space-2) var(--sf-space-3);
   border: 1px solid var(--sf-color-edge, var(--sf-color-border));
   border-radius: var(--sf-radius);
-  /* The same faint neutral fill as a ticked row, so the bar and the rows it acts on read as one selection. */
-  background: color-mix(in srgb, var(--sf-color-text) 6%, transparent);
+  /* A light tint of the accent: it says a selection is being acted on without the full accent block. */
+  background: color-mix(in srgb, var(--sf-color-accent) 10%, transparent);
   color: var(--sf-color-text);
   font-family: var(--sf-font);
   font-size: var(--sf-font-size);
