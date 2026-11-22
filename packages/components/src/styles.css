@@ -6493,20 +6493,25 @@ select.sf-input:disabled {
   transform: scale(var(--sf-press-scale));
 }
 
-/* The section and the page being shown. The section is a filled pill; the page is the accent's tint with the accent's
-   text and a bar beneath, so neither relies on colour alone. Hover on them only deepens the fill. */
+/* The section being shown is a filled pill; the page shown is below. Neither relies on colour alone. */
 .sf-navbar-section[aria-current] {
   background: var(--sf-color-fill-2);
   color: var(--sf-color-text);
   font-weight: var(--sf-font-weight-semibold);
 }
 
-.sf-navbar-page[aria-current="page"],
-.sf-navbar-sheet-item[aria-current="page"] {
-  background: var(--sf-color-accent-soft);
-  color: var(--sf-color-accent-text);
+/* The page shown is its name in the text colour with a straight accent line under it, as a tab: no tinted block on the
+   glass, and marked by a shape as well as weight. In the full-screen menu, where a line under a whole row would not
+   read, it is a filled row like the section above it. */
+.sf-navbar-page[aria-current="page"] {
+  background: linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / calc(100% - 2 * var(--sf-space-3)) 2px no-repeat;
+  color: var(--sf-color-text);
   font-weight: var(--sf-font-weight-semibold);
-  box-shadow: inset 0 -2px 0 var(--sf-color-accent);
+}
+
+.sf-navbar-sheet-item[aria-current="page"] {
+  background: var(--sf-color-fill-2);
+  color: var(--sf-color-text);
 }
 
 .sf-navbar-section[aria-current]:hover {
@@ -6515,7 +6520,7 @@ select.sf-input:disabled {
 
 .sf-navbar-page[aria-current="page"]:hover,
 .sf-navbar-sheet-item[aria-current="page"]:hover {
-  color: var(--sf-color-accent-text);
+  color: var(--sf-color-text);
 }
 
 /* One highlight per bar slides to the current item with the gummy spring, measured by the NavBar (useIndicator). The
@@ -6548,9 +6553,10 @@ select.sf-input:disabled {
   background: var(--sf-color-fill-2);
 }
 
+/* The pages' indicator is the line alone, sliding under the page shown. */
 .sf-navbar-pages[data-indicator]::before {
-  background: var(--sf-color-accent-soft);
-  box-shadow: inset 0 -2px 0 var(--sf-color-accent);
+  background: linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / calc(100% - 2 * var(--sf-space-3)) 2px no-repeat;
+  border-radius: 0;
 }
 
 .sf-navbar-sections[data-instant]::before,
@@ -9125,9 +9131,10 @@ button > .sf-item-control-icon:only-child {
   display: grid;
   gap: var(--sf-space-2);
   padding: var(--sf-space-2) var(--sf-space-3);
-  border: 1px solid var(--sf-color-edge, transparent);
+  border: 1px solid var(--sf-color-edge, var(--sf-color-border));
   border-radius: var(--sf-radius);
-  background: var(--sf-color-accent-soft);
+  /* The same faint neutral fill as a ticked row, so the bar and the rows it acts on read as one selection. */
+  background: color-mix(in srgb, var(--sf-color-text) 6%, transparent);
   color: var(--sf-color-text);
   font-family: var(--sf-font);
   font-size: var(--sf-font-size);
