@@ -95,7 +95,7 @@ describe("ReportBuilder", () => {
     fireEvent.change(within(tile).getByLabelText("Title of Revenue and Refund rate"), { target: { value: "Headline" } });
     expect(latest.tiles[0]!.title).toBe("Headline");
     rerender(draw());
-    fireEvent.click(screen.getByRole("button", { name: "View" }));
+    fireEvent.click(screen.getByRole("radio", { name: "View" }));
     expect(screen.queryByRole("button", { name: "Add to report" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Refunds" })).toBeTruthy();
     expect(within(screen.getByRole("region", { name: "Headline" })).queryByRole("button")).toBeNull();

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { OnContext } from "../controls/context.js";
 import { label as text } from "../locale/locale.js";
 import { ItemControls, standardControls } from "../controls/ItemControls.js";
+import { SegmentedControl } from "../controls/SegmentedControl.js";
 import { chosenValues, toggleValueFilter } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
 import { QueryFilters } from "../filter/QueryFilters.js";
@@ -152,13 +153,15 @@ export function ReportBuilder(props: ReportBuilderProps) {
         ) : (
           <h3 className="sf-report-title">{report.title || text("report.untitledReport")}</h3>
         )}
-        <div className="sf-segmented" role="group" aria-label={text("report.mode")}>
-          {(["build", "view"] as const).map((m) => (
-            <button key={m} type="button" className="sf-segment" aria-pressed={mode === m} data-checked={mode === m || undefined} onClick={() => setMode(m)}>
-              {m === "build" ? text("report.build") : text("report.view")}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label={text("report.mode")}
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: "build", label: text("report.build") },
+            { value: "view", label: text("report.view") },
+          ]}
+        />
       </header>
       {model?.dataset && <ModelLineage model={model} compact />}
 

@@ -13,6 +13,8 @@ import {
   ObjectInfo,
   ResizeHandle,
   type ResizeHandleProps,
+  SegmentedControl,
+  type SegmentedControlProps,
   ThemePicker,
   standardControls,
 } from "@surfaces-ui/components";
@@ -364,6 +366,22 @@ export function AppDemo({ name, ...demo }: DemoProps & { name: string }): ReactN
       return <ItemControlsDemo {...demo} />;
     case "ResizeHandle":
       return <ResizeHandleDemo {...demo} />;
+    case "SegmentedControl": {
+      const given = props as unknown as Partial<SegmentedControlProps>;
+      const options = Array.isArray(given.options) ? given.options.filter((o) => o && typeof o.value === "string" && typeof o.label === "string") : [];
+      return (
+        <SegmentedControl
+          label={given.label ?? "Choose"}
+          fit={given.fit}
+          options={options}
+          value={given.value ?? ""}
+          onChange={(value) => {
+            demo.setProp("value", value);
+            log("onChange", value);
+          }}
+        />
+      );
+    }
     case "NavBar":
       return (
         <div className="app-demo-navbar">

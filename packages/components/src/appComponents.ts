@@ -2,6 +2,7 @@ import type { CertificationBadge } from "./discovery/shared.js";
 import type { ConnectionBuilderProps } from "./source/ConnectionBuilder.js";
 import type { ItemControlsProps } from "./controls/ItemControls.js";
 import type { ResizeHandleProps } from "./controls/ResizeHandle.js";
+import type { SegmentedControlProps } from "./controls/SegmentedControl.js";
 import type { ModelLineageProps } from "./explore/ModelLineage.js";
 import type { ObjectInfoProps } from "./schema/ObjectInfo.js";
 import type { ChecksPanelProps } from "./pipeline/Pipeline.js";
@@ -313,8 +314,50 @@ export const resizeHandleDoc = describeAppComponent<ResizeHandleProps>()({
   example: { edge: "right", value: 0.5, min: 0.25, max: 0.75, step: 0.05, label: "Resize the map and the list", valueText: "50% and 50%" },
 });
 
+export const segmentedControlDoc = describeAppComponent<SegmentedControlProps>()({
+  name: "SegmentedControl",
+  from: COMPONENTS,
+  description:
+    "A few equal choices of which exactly one holds, as one bar: build or view, chart or table, light or dark. It is the bar `ReportBuilder` switches modes with. A radio group, so it is one tab stop and the arrow keys move the choice; the chosen segment is one thumb that slides between the options. It holds no choice of its own: the host keeps `value` and sets it from `onChange`. Use it to switch what is shown in place, for two to eight short options; for actions use buttons, and for many or long options a select.",
+  props: {
+    type: "object",
+    properties: {
+      label: { type: "string", description: 'What is being chosen, for assistive technology: "Mode", "Preview mode".' },
+      options: {
+        type: "array",
+        description: "The choices, in order. They share the width equally.",
+        items: {
+          type: "object",
+          properties: {
+            value: { type: "string", description: "What `onChange` reports." },
+            label: { type: "string", description: "The words on the segment." },
+            disabled: { type: "boolean", description: "Greyed and still reachable, for a choice that makes no sense right now." },
+          },
+          required: ["value", "label"],
+        },
+      },
+      value: { type: "string", description: "The chosen option's value." },
+      fit: { type: "string", enum: ["content", "fill"], description: '"content" is as wide as its options need; "fill" takes its parent\'s width.' },
+      name: { type: "string", description: "The radio group's name, when a form reads it. Made up otherwise." },
+    },
+    required: ["label", "options", "value"],
+  },
+  parts: [],
+  callbacks: [{ prop: "onChange", description: "The value of the option a person chose." }],
+  example: {
+    label: "Preview mode",
+    value: "page",
+    fit: "content",
+    options: [
+      { value: "page", label: "As the page" },
+      { value: "light", label: "Light" },
+      { value: "dark", label: "Dark" },
+    ],
+  },
+});
+
 /** Every app component of `@surfaces-ui/components`. */
-export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, resizeHandleDoc, navBarDoc];
+export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, resizeHandleDoc, segmentedControlDoc, navBarDoc];
 
 /** A component's reference page, as Markdown: what it is for, its props, the parts a host supplies and an example. */
 export function appComponentMarkdown(doc: AppComponentDoc): string {
