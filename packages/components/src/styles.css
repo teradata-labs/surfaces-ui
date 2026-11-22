@@ -73,6 +73,10 @@
   place-items: center;
   min-height: var(--sf-control-size);
   padding: 0 var(--sf-space-2);
+  /* A segment may be a button: without these it keeps the browser's own border, fill and font. */
+  border: 0;
+  background: none;
+  font: inherit;
   border-radius: max(calc(var(--sf-radius) - 2px), 0px);
   color: var(--sf-color-muted);
   cursor: pointer;
@@ -181,6 +185,25 @@
   .sf-segmented > .sf-segment[data-checked] {
     outline: 2px solid Highlight;
   }
+}
+
+/* SegmentedControl: as wide as its options need unless told to fill, and never wider than its parent. */
+.sf-segmented-control {
+  flex: none;
+}
+
+.sf-segmented-control[data-fit="content"] {
+  inline-size: max-content;
+  max-inline-size: 100%;
+}
+
+.sf-segmented-control .sf-segment {
+  padding: 0 var(--sf-space-3);
+}
+
+.sf-segment[data-disabled] {
+  color: var(--sf-color-label-4);
+  cursor: not-allowed;
 }
 
 .sf-segment:not([data-checked]):hover {

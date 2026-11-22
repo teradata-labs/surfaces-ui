@@ -3,7 +3,7 @@ import { type SurfaceProblem, SurfaceView } from "@surfaces-ui/spec/react";
 import { COMPONENT_NAMES, COMPONENT_SCHEMA, catalogOf, definitionOf, markupOf, renderersOf } from "../componentCatalogs.js";
 import { chatAppComponents } from "@surfaces-ui/chat";
 import { appComponentDocs as devtoolsAppComponents } from "@surfaces-ui/devtools/app-components";
-import { CodeBlock, Markdown, PipelinesProvider, ThemeProvider, componentsAppComponents, useOptionalTheme } from "@surfaces-ui/components";
+import { CodeBlock, Markdown, PipelinesProvider, SegmentedControl, ThemeProvider, componentsAppComponents, useOptionalTheme } from "@surfaces-ui/components";
 import { presets } from "@surfaces-ui/tokens";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { CodeInput } from "../CodeInput.js";
@@ -132,14 +132,7 @@ export function SurfaceCode({ page }: { page: PageDocument }) {
         <h2>Code</h2>
         <span className="hint">{current.about}</span>
       </div>
-      <div className="sf-segmented catalog-code-views" role="radiogroup" aria-label="Write it as">
-        {CODE_VIEWS.map((v) => (
-          <label key={v.id} className="sf-segment" data-checked={v.id === view || undefined}>
-            <input type="radio" name="catalog-code" value={v.id} checked={v.id === view} onChange={() => choose(v.id)} />
-            {v.label}
-          </label>
-        ))}
-      </div>
+      <SegmentedControl className="catalog-code-views" label="Write it as" value={view} onChange={choose} options={CODE_VIEWS.map((v) => ({ value: v.id, label: v.label }))} />
       <CodeBlock code={code} language={view === "react" ? "tsx" : "json"} label={`${current.label} code`} />
     </section>
   );
@@ -295,14 +288,16 @@ export function ComponentCatalog({ source }: { source: ActiveSource }) {
             <span className="hint">Drawn from the props below, through the catalog, exactly as an agent's surface would be</span>
           </div>
           <div className="catalog-appearance" role="group" aria-label="Preview appearance">
-            <div className="sf-segmented" role="radiogroup" aria-label="Preview mode">
-              {(["page", "light", "dark"] as const).map((m) => (
-                <label key={m} className="sf-segment" data-checked={m === previewMode || undefined}>
-                  <input type="radio" name="catalog-preview-mode" value={m} checked={m === previewMode} onChange={() => setPreviewMode(m)} />
-                  {m === "page" ? "As the page" : m === "light" ? "Light" : "Dark"}
-                </label>
-              ))}
-            </div>
+            <SegmentedControl<PreviewMode>
+              label="Preview mode"
+              value={previewMode}
+              onChange={setPreviewMode}
+              options={[
+                { value: "page", label: "As the page" },
+                { value: "light", label: "Light" },
+                { value: "dark", label: "Dark" },
+              ]}
+            />
             <label className="catalog-appearance-preset">
               <span className="hint">Theme</span>
               <select className="schema-field" value={previewPreset} onChange={(e) => setPreviewPreset(e.target.value)}>
