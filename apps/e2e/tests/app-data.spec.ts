@@ -44,6 +44,8 @@ test.describe("ConfirmDialog", () => {
     const dialog = p.getByRole("dialog", { name: "Turn off 5 accounts?" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+    // Scan once it has faded in: mid-fade its text is part transparent, which reads as low contrast.
+    await dialog.evaluate((d) => Promise.all(d.getAnimations({ subtree: true }).map((a) => a.finished)));
     expect(await axeViolations(p)).toEqual([]);
     await p.keyboard.press("Tab");
     await expect(dialog.getByRole("button", { name: "Turn off" })).toBeFocused();

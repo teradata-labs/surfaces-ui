@@ -9002,8 +9002,19 @@ button > .sf-item-control-icon:only-child {
   border-bottom: 0;
 }
 
+/* A ticked row: a faint neutral fill, so it does not compete with links and badges in the accent, and an accent edge
+   at its start to scan for down a long list (the tick box already says it in a shape as well as a colour). */
 .sf-data-table tbody tr[data-selected] > * {
-  background: var(--sf-color-accent-soft);
+  background: color-mix(in srgb, var(--sf-color-text) 6%, transparent);
+}
+
+.sf-data-table tbody tr[data-selected] > :first-child {
+  box-shadow: inset 3px 0 0 var(--sf-color-accent);
+}
+
+/* A neutral status keeps its outline on the fill. */
+.sf-data-table tbody tr[data-selected] .sf-status:not([data-tone="danger"], [data-tone="warning"]) {
+  border-color: var(--sf-color-border-strong);
 }
 
 .sf-data-table [data-align="end"] {
@@ -9387,5 +9398,10 @@ button > .sf-item-control-icon:only-child {
 
   .sf-status-mark {
     background: CanvasText;
+  }
+
+  /* Forced colours drop the fill and the edge's shadow, so the edge is a border in the system's highlight. */
+  .sf-data-table tbody tr[data-selected] > :first-child {
+    border-inline-start: 3px solid Highlight;
   }
 }
