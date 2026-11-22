@@ -3,6 +3,15 @@
  * by ThemeProvider (see @surfaces-ui/tokens), so components follow the theme.
  */
 
+/* Every part's size includes its padding and border, as the playground draws them, whatever the host page sets: a
+   full-width item with padding would otherwise run past its row in an app without a border-box reset. No specificity,
+   so a host can still override it. */
+:where([class*="sf-"]),
+:where([class*="sf-"])::before,
+:where([class*="sf-"])::after {
+  box-sizing: border-box;
+}
+
 .sf-scope {
   background: var(--sf-color-bg);
   color: var(--sf-color-text);
