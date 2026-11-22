@@ -3,6 +3,12 @@ import type { ConnectionBuilderProps } from "./source/ConnectionBuilder.js";
 import type { ItemControlsProps } from "./controls/ItemControls.js";
 import type { ResizeHandleProps } from "./controls/ResizeHandle.js";
 import type { SegmentedControlProps } from "./controls/SegmentedControl.js";
+import type { ComboboxProps } from "./controls/Combobox.js";
+import type { ConfirmDialogProps } from "./controls/ConfirmDialog.js";
+import type { StatusBadgeProps } from "./controls/StatusBadge.js";
+import type { DataTableProps } from "./table/DataTable.js";
+import type { PaginationProps } from "./table/Pagination.js";
+import type { SelectionBarProps } from "./table/SelectionBar.js";
 import type { ModelLineageProps } from "./explore/ModelLineage.js";
 import type { ObjectInfoProps } from "./schema/ObjectInfo.js";
 import type { ChecksPanelProps } from "./pipeline/Pipeline.js";
@@ -356,8 +362,245 @@ export const segmentedControlDoc = describeAppComponent<SegmentedControlProps>()
   },
 });
 
+const PEOPLE_EXAMPLE = [
+  { id: "u1", name: "Ana Admin", email: "ana@example.com", status: "On", owns: 4, signedIn: "Today" },
+  { id: "u2", name: "Ben Brook", email: "ben@example.com", status: "Turned off", owns: 0, signedIn: "3 May" },
+  { id: "u3", name: "Cleo Chen", email: "cleo@example.com", status: "On", owns: 12, signedIn: "Yesterday" },
+  { id: "u4", name: "Dev Diaz", email: "dev@example.com", status: "On", owns: 1, signedIn: "Never" },
+];
+
+export const dataTableDoc = describeAppComponent<DataTableProps<Record<string, unknown>>>()({
+  name: "DataTable",
+  from: COMPONENTS,
+  description:
+    "The rows an app holds, as a table: people, invitations, jobs, keys. Headings ask the host to sort; check boxes say which rows are chosen (with `SelectionBar` for what to do with them); each row can carry its everyday actions as `ItemControls` and a menu on a right click. It sorts, filters and pages nothing itself: the host asks its own server and hands over one page, with `Pagination` beneath. Columns marked `medium` or `wide` give way as the table, not the window, narrows. For the rows of a query use `DataGrid`, which asks the engine.",
+  props: {
+    type: "object",
+    properties: {
+      label: { type: "string", description: 'What the rows are, for assistive technology: "People".' },
+      columns: {
+        type: "array",
+        description: "The columns, in order. A column's `cell` function draws it; without one the row's value under `id` is shown as text.",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string", description: "Tells columns apart, and names the sort the table reports." },
+            label: { type: "string", description: "The heading." },
+            sortable: { type: "boolean", description: "Whether a press on the heading asks the host to sort by it." },
+            align: { type: "string", enum: ["start", "end"], description: '"end" for numbers.' },
+            show: { type: "string", enum: ["always", "medium", "wide"], description: "From what width of the table the column is shown: always, 36rem, or 52rem." },
+          },
+          required: ["id", "label"],
+        },
+      },
+      rows: { type: "array", description: "One page of rows, already sorted and filtered by the host, shown in the order given.", items: { type: "object" } },
+      rowHeader: { type: "string", description: "The column that names each row, drawn as its header. Defaults to the first." },
+      sort: {
+        type: "object",
+        description: "How the host has sorted the rows.",
+        properties: { column: { type: "string" }, desc: { type: "boolean" } },
+        required: ["column", "desc"],
+      },
+      allSelected: { type: "boolean", description: "Every row that matches is chosen, past this page too (see `SelectionBar`)." },
+      controlsShow: { type: "string", enum: ["always", "hover"], description: "Whether a row's controls are always shown (the default) or on hover and focus." },
+      loading: { type: "boolean", description: "The rows are being fetched." },
+    },
+    required: ["label", "columns", "rows"],
+  },
+  parts: [
+    { prop: "rowKey", label: "Row key", description: "A function giving each row a value that tells it apart: an id.", required: true },
+    { prop: "rowName", label: "Row name", description: 'A function giving the row\'s name, for its check box and controls: "Select Ana Admin". Defaults to the first column\'s text.' },
+    { prop: "selected", label: "Selection", description: "The keys of the rows ticked, with `onSelectedChange`: adds a check box to each row and the heading.", on: true },
+    { prop: "selectable", label: "Who can be chosen", description: "A function saying whether a row can be ticked: one that cannot shows no box." },
+    { prop: "rowControls", label: "Row controls", description: "A function giving a row's everyday actions, drawn with `ItemControls`.", on: true },
+    { prop: "rowMenu", label: "Row menu", description: "A function giving a row's menu, opened by a right click, a long press or the Menu key." },
+    { prop: "rowState", label: "Row state", description: 'A function giving a word put on the row as `data-state` for the host\'s own styling: "off".' },
+    { prop: "empty", label: "When empty", description: "What to show in place of rows when there are none." },
+  ],
+  callbacks: [
+    { prop: "onSortChange", description: "The column and direction a person asked to sort by. Fetch the rows in that order and pass them back." },
+    { prop: "onSelectedChange", description: "The keys now ticked." },
+  ],
+  example: {
+    label: "People",
+    rowHeader: "name",
+    sort: { column: "name", desc: false },
+    columns: [
+      { id: "name", label: "Name", sortable: true },
+      { id: "email", label: "Email", sortable: true, show: "medium" },
+      { id: "status", label: "Status" },
+      { id: "signedIn", label: "Last signed in", show: "wide" },
+      { id: "owns", label: "Owns", sortable: true, align: "end", show: "wide" },
+    ],
+    rows: PEOPLE_EXAMPLE,
+  },
+});
+
+export const selectionBarDoc = describeAppComponent<SelectionBarProps>()({
+  name: "SelectionBar",
+  from: COMPONENTS,
+  description:
+    "What to do with the rows a person chose in a `DataTable`: how many, the actions, and Clear. When the whole page is ticked and more rows match, it offers to take every row that matches, so an action can reach rows on pages never opened; the host then acts on its search and filters, not on a list of keys. An action that takes something away comes last, after a gap. It runs nothing itself: ask first for anything hard to undo with `useConfirm`, and report what happened, and whom it left alone, with `ActionReceipt`. Nothing is drawn with nothing chosen.",
+  props: {
+    type: "object",
+    properties: {
+      count: { type: "integer", minimum: 0, description: "How many rows are chosen: those ticked, or all that match when `allMatching`." },
+      actions: {
+        type: "array",
+        description: "What can be done to them, in order; one with `danger` is moved last.",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            label: { type: "string", description: 'The button\'s words: "Turn off".' },
+            danger: { type: "boolean", description: "For an action that takes something away." },
+            disabled: { type: "boolean" },
+            expanded: { type: "boolean", description: "For an action that opens a form below the bar: whether it is open." },
+          },
+          required: ["id", "label"],
+        },
+      },
+      label: { type: "string", description: 'Names the bar for assistive technology. Defaults to "With the selected rows".' },
+      pageSelected: { type: "boolean", description: "Every row on this page is ticked." },
+      total: { type: "integer", minimum: 0, description: "How many rows match in all, across every page." },
+      allMatching: { type: "boolean", description: "Every row that matches is chosen, not only those ticked." },
+      busy: { type: "boolean", description: "An action is running: every button waits." },
+    },
+    required: ["count", "actions"],
+  },
+  parts: [{ prop: "children", label: "Form below", description: "Drawn under the actions: a form an action opened, such as who to hand the rows to." }],
+  callbacks: [
+    { prop: "onClear", description: "Untick everything." },
+    { prop: "onAllMatchingChange", description: "True when a person chooses every row that matches; false to go back to this page. Without it nothing is offered past the page." },
+  ],
+  example: {
+    count: 50,
+    total: 126,
+    pageSelected: true,
+    actions: [
+      { id: "turn-off", label: "Turn off", danger: true },
+      { id: "turn-on", label: "Turn back on" },
+      { id: "sign-out", label: "Sign out everywhere" },
+    ],
+  },
+});
+
+export const paginationDoc = describeAppComponent<PaginationProps>()({
+  name: "Pagination",
+  from: COMPONENTS,
+  description:
+    'Which rows are shown, "51–100 of 126", with Previous and Next, under a `DataTable` a host pages on its server. It holds no page of its own: the host keeps `offset` and fetches the page `onChange` asks for. Nothing is drawn when every row fits on one page.',
+  props: {
+    type: "object",
+    properties: {
+      offset: { type: "integer", minimum: 0, description: "Where this page starts, counting from 0." },
+      pageSize: { type: "integer", minimum: 1, description: "How many rows a page holds." },
+      total: { type: "integer", minimum: 0, description: "How many rows there are in all." },
+      label: { type: "string", description: 'Names the navigation. Defaults to "Pages".' },
+      busy: { type: "boolean", description: "A page is being fetched." },
+    },
+    required: ["offset", "pageSize", "total"],
+  },
+  parts: [],
+  callbacks: [{ prop: "onChange", description: "The offset of the page a person moved to." }],
+  example: { offset: 50, pageSize: 50, total: 126 },
+});
+
+export const confirmDialogDoc = describeAppComponent<ConfirmDialogProps>()({
+  name: "ConfirmDialog",
+  from: COMPONENTS,
+  description:
+    'Asks a person to confirm one action before it runs, as a modal dialog: the page behind cannot be used, focus starts inside (on Cancel for something that takes away) and returns where it was, and Escape or a press outside cancels. Name the button for the action ("Turn off"), never "OK", and say what cannot be undone. From an event handler, `useConfirm()` gives `confirm({ title, body, confirmLabel, danger })`, which resolves true or false. For something that can be undone, prefer doing it and offering Undo with `ActionReceipt`.',
+  props: {
+    type: "object",
+    properties: {
+      open: { type: "boolean", description: "Whether the dialog is showing." },
+      title: { type: "string", description: 'The question: "Turn off 5 accounts?"' },
+      confirmLabel: { type: "string", description: 'The button that goes ahead, named for what it does. Defaults to "Confirm".' },
+      cancelLabel: { type: "string", description: 'Defaults to "Cancel".' },
+      danger: { type: "boolean", description: "For something that takes away or cannot be undone." },
+    },
+    required: ["open", "title"],
+  },
+  parts: [{ prop: "body", label: "What will happen", description: "A sentence or two on what the action does and what cannot be undone.", on: true }],
+  callbacks: [
+    { prop: "onConfirm", description: "The person went ahead." },
+    { prop: "onCancel", description: "Cancel, Escape, or a press outside the dialog." },
+  ],
+  example: { open: false, title: "Turn off 5 accounts?", confirmLabel: "Turn off", danger: true },
+});
+
+export const statusBadgeDoc = describeAppComponent<StatusBadgeProps>()({
+  name: "StatusBadge",
+  from: COMPONENTS,
+  description:
+    "A short status beside the thing it describes: an account on or turned off, a job running or failed, an invitation waiting. Its words carry the meaning; the tone backs them up with a colour and a shape (a ring, a dot, a diamond, a square), so it reads the same without colour. For data that is certified or deprecated use `CertificationBadge`.",
+  props: {
+    type: "object",
+    properties: {
+      label: { type: "string", description: 'The status in a word or two: "Turned off".' },
+      tone: { type: "string", enum: ["neutral", "info", "success", "warning", "danger"], description: "How it should strike a person. Defaults to neutral." },
+      description: { type: "string", description: 'A sentence more, shown on hover and read after the label: "by Ana on 3 May".' },
+    },
+    required: ["label"],
+  },
+  parts: [],
+  callbacks: [],
+  example: { label: "Turned off", tone: "danger", description: "by Ana on 3 May" },
+});
+
+export const comboboxDoc = describeAppComponent<ComboboxProps>()({
+  name: "Combobox",
+  from: COMPONENTS,
+  description:
+    "A text box that suggests as a person types: a person to hand work to, a table, a tag. Anything may be typed; a suggestion is a shortcut. The host searches (on its server, for a long list) and passes the matches back as `options`; the box filters nothing. The ARIA 1.2 combobox: Down and Up move through the suggestions with focus kept in the box, Enter chooses (and with none highlighted, leaves Enter to the form), Escape closes the list and then clears the box. How many suggestions there are is announced.",
+  props: {
+    type: "object",
+    properties: {
+      label: { type: "string", description: "The field's name, shown above it." },
+      value: { type: "string", description: "The text in the box." },
+      options: {
+        type: "array",
+        description: "The suggestions for the text as it is now, best first.",
+        items: {
+          type: "object",
+          properties: {
+            value: { type: "string", description: "What choosing it puts in the box: an email, an id." },
+            label: { type: "string", description: "The words shown for it: a name." },
+            detail: { type: "string", description: "A second line." },
+          },
+          required: ["value", "label"],
+        },
+      },
+      loading: { type: "boolean", description: "Suggestions are being fetched." },
+      type: { type: "string", enum: ["text", "email", "search"], description: "The input's type." },
+      placeholder: { type: "string" },
+      required: { type: "boolean" },
+      disabled: { type: "boolean" },
+      name: { type: "string", description: "The input's name, when a form reads it." },
+      help: { type: "string", description: "A sentence under the field." },
+    },
+    required: ["label", "value", "options"],
+  },
+  parts: [],
+  callbacks: [
+    { prop: "onChange", description: "Every change to the text, typed or chosen. Search with it." },
+    { prop: "onPick", description: "The suggestion a person chose." },
+  ],
+  example: {
+    label: "Hand their work to",
+    type: "email",
+    value: "",
+    placeholder: "Their name or email",
+    options: [
+      { value: "ana@example.com", label: "Ana Admin", detail: "ana@example.com" },
+      { value: "cleo@example.com", label: "Cleo Chen", detail: "cleo@example.com" },
+    ],
+  },
+});
+
 /** Every app component of `@surfaces-ui/components`. */
-export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, resizeHandleDoc, segmentedControlDoc, navBarDoc];
+export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, resizeHandleDoc, segmentedControlDoc, dataTableDoc, selectionBarDoc, paginationDoc, confirmDialogDoc, statusBadgeDoc, comboboxDoc, navBarDoc];
 
 /** A component's reference page, as Markdown: what it is for, its props, the parts a host supplies and an example. */
 export function appComponentMarkdown(doc: AppComponentDoc): string {

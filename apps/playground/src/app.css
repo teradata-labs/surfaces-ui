@@ -2501,6 +2501,12 @@ select.schema-mode {
   font-size: var(--sf-font-size-sm);
   overflow-wrap: anywhere;
 }
+/* A field on its own: a combobox is as wide as a form field, not the whole page. */
+.app-demo-narrow {
+  max-inline-size: 24rem;
+  min-block-size: 14rem;
+}
+
 .app-demo-tile {
   position: relative;
   padding: var(--sf-space-4);

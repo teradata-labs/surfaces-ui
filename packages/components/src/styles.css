@@ -3,6 +3,15 @@
  * by ThemeProvider (see @surfaces-ui/tokens), so components follow the theme.
  */
 
+/* Every part's size includes its padding and border, as the playground draws them, whatever the host page sets: a
+   full-width item with padding would otherwise run past its row in an app without a border-box reset. No specificity,
+   so a host can still override it. */
+:where([class*="sf-"]),
+:where([class*="sf-"])::before,
+:where([class*="sf-"])::after {
+  box-sizing: border-box;
+}
+
 .sf-scope {
   background: var(--sf-color-bg);
   color: var(--sf-color-text);
@@ -6484,20 +6493,25 @@ select.sf-input:disabled {
   transform: scale(var(--sf-press-scale));
 }
 
-/* The section and the page being shown. The section is a filled pill; the page is the accent's tint with the accent's
-   text and a bar beneath, so neither relies on colour alone. Hover on them only deepens the fill. */
+/* The section being shown is a filled pill; the page shown is below. Neither relies on colour alone. */
 .sf-navbar-section[aria-current] {
   background: var(--sf-color-fill-2);
   color: var(--sf-color-text);
   font-weight: var(--sf-font-weight-semibold);
 }
 
-.sf-navbar-page[aria-current="page"],
-.sf-navbar-sheet-item[aria-current="page"] {
-  background: var(--sf-color-accent-soft);
-  color: var(--sf-color-accent-text);
+/* The page shown is its name in the text colour with a straight accent line under it, as a tab: no tinted block on the
+   glass, and marked by a shape as well as weight. In the full-screen menu, where a line under a whole row would not
+   read, it is a filled row like the section above it. */
+.sf-navbar-page[aria-current="page"] {
+  background: linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / calc(100% - 2 * var(--sf-space-3)) 2px no-repeat;
+  color: var(--sf-color-text);
   font-weight: var(--sf-font-weight-semibold);
-  box-shadow: inset 0 -2px 0 var(--sf-color-accent);
+}
+
+.sf-navbar-sheet-item[aria-current="page"] {
+  background: var(--sf-color-fill-2);
+  color: var(--sf-color-text);
 }
 
 .sf-navbar-section[aria-current]:hover {
@@ -6506,7 +6520,7 @@ select.sf-input:disabled {
 
 .sf-navbar-page[aria-current="page"]:hover,
 .sf-navbar-sheet-item[aria-current="page"]:hover {
-  color: var(--sf-color-accent-text);
+  color: var(--sf-color-text);
 }
 
 /* One highlight per bar slides to the current item with the gummy spring, measured by the NavBar (useIndicator). The
@@ -6539,9 +6553,10 @@ select.sf-input:disabled {
   background: var(--sf-color-fill-2);
 }
 
+/* The pages' indicator is the line alone, sliding under the page shown. */
 .sf-navbar-pages[data-indicator]::before {
-  background: var(--sf-color-accent-soft);
-  box-shadow: inset 0 -2px 0 var(--sf-color-accent);
+  background: linear-gradient(var(--sf-color-accent), var(--sf-color-accent)) center bottom / calc(100% - 2 * var(--sf-space-3)) 2px no-repeat;
+  border-radius: 0;
 }
 
 .sf-navbar-sections[data-instant]::before,
@@ -8951,5 +8966,458 @@ button > .sf-item-control-icon:only-child {
   .sf-site-desktop-body,
   .sf-site-desktop-bar {
     border-color: CanvasText;
+  }
+}
+
+/* ---- DataTable: the rows an app holds ---- */
+
+/* It answers to its own width, so the same table works in a page, a side panel and on a phone. */
+.sf-data-table {
+  container: sf-table / inline-size;
+  min-width: 0;
+}
+
+.sf-data-table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--sf-color-edge, transparent);
+  border-radius: var(--sf-radius);
+  background: var(--sf-color-bg);
+}
+
+.sf-data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sf-font);
+  font-size: var(--sf-font-size);
+  color: var(--sf-color-text);
+}
+
+.sf-data-table th,
+.sf-data-table td {
+  padding: var(--sf-space-2) var(--sf-space-3);
+  border-bottom: 1px solid var(--sf-color-border);
+  font-weight: 400;
+  text-align: start;
+  vertical-align: middle;
+}
+
+.sf-data-table thead th {
+  background: var(--sf-color-surface);
+  color: var(--sf-color-muted);
+  font-size: var(--sf-font-size-sm);
+  font-weight: var(--sf-font-weight-medium);
+  white-space: nowrap;
+}
+
+.sf-data-table tbody th {
+  font-weight: var(--sf-font-weight-medium);
+}
+
+.sf-data-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* A ticked row: a faint neutral fill, so it does not compete with links and badges in the accent, and an accent edge
+   at its start to scan for down a long list (the tick box already says it in a shape as well as a colour). */
+.sf-data-table tbody tr[data-selected] > * {
+  background: color-mix(in srgb, var(--sf-color-text) 6%, transparent);
+}
+
+.sf-data-table tbody tr[data-selected] > :first-child {
+  box-shadow: inset 3px 0 0 var(--sf-color-accent);
+}
+
+/* A neutral status keeps its outline on the fill. */
+.sf-data-table tbody tr[data-selected] .sf-status:not([data-tone="danger"], [data-tone="warning"]) {
+  border-color: var(--sf-color-border-strong);
+}
+
+.sf-data-table [data-align="end"] {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-data-table-check {
+  inline-size: 1%;
+  padding-inline-end: 0;
+}
+
+.sf-data-table-check > input {
+  display: block;
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0;
+  accent-color: var(--sf-color-accent);
+  cursor: pointer;
+}
+
+/* The heading is the button, so the whole heading is the target; the arrow says which way, the heading's aria-sort says it to a screen reader. */
+.sf-data-table-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-1);
+  min-height: var(--sf-target-min);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sf-data-table-sort:hover,
+.sf-data-table-sort[data-sorted] {
+  color: var(--sf-color-text);
+}
+
+.sf-data-table-sort:focus-visible {
+  outline: 2px solid var(--sf-color-focus);
+  outline-offset: 2px;
+  border-radius: var(--sf-radius-sm);
+}
+
+.sf-data-table-arrow {
+  color: var(--sf-color-label-3);
+}
+
+.sf-data-table-sort[data-sorted] .sf-data-table-arrow {
+  color: var(--sf-color-accent-text);
+}
+
+.sf-data-table-actions {
+  inline-size: 1%;
+  text-align: end;
+  white-space: nowrap;
+}
+
+/* The cell is as narrow as its controls, so they must keep to one line rather than stack and make the row tall. */
+.sf-data-table-actions > .sf-item-controls {
+  flex-wrap: nowrap;
+  vertical-align: middle;
+}
+
+.sf-data-table-empty td {
+  padding: var(--sf-space-6) var(--sf-space-3);
+  color: var(--sf-color-muted);
+  text-align: center;
+}
+
+.sf-data-table table[aria-busy="true"] tbody {
+  opacity: 0.6;
+}
+
+/* Columns marked to give way leave first as the table narrows; the one that names a row stays. */
+@container sf-table (max-width: 52rem) {
+  .sf-data-table [data-show="wide"] {
+    display: none;
+  }
+}
+
+@container sf-table (max-width: 36rem) {
+  .sf-data-table [data-show="medium"] {
+    display: none;
+  }
+
+  .sf-data-table th,
+  .sf-data-table td {
+    padding-inline: var(--sf-space-2);
+  }
+}
+
+/* ---- SelectionBar ---- */
+
+.sf-selection-bar {
+  display: grid;
+  gap: var(--sf-space-2);
+  padding: var(--sf-space-2) var(--sf-space-3);
+  border: 1px solid var(--sf-color-edge, var(--sf-color-border));
+  border-radius: var(--sf-radius);
+  /* A light tint of the accent: it says a selection is being acted on without the full accent block. */
+  background: color-mix(in srgb, var(--sf-color-accent) 10%, transparent);
+  color: var(--sf-color-text);
+  font-family: var(--sf-font);
+  font-size: var(--sf-font-size);
+}
+
+.sf-selection-bar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-2);
+}
+
+.sf-selection-bar-count {
+  font-weight: var(--sf-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-selection-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-2);
+}
+
+/* An action that takes away comes last, after a gap: marked by more than its colour. */
+.sf-selection-bar-actions > [data-variant="danger"]:first-of-type {
+  margin-inline-start: var(--sf-space-2);
+}
+
+.sf-selection-bar-all {
+  margin: 0;
+  color: var(--sf-color-muted);
+}
+
+.sf-selection-bar-link {
+  min-height: var(--sf-target-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sf-color-accent-text);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.sf-selection-bar-link:disabled {
+  color: var(--sf-color-label-4);
+  cursor: not-allowed;
+}
+
+.sf-selection-bar-link:focus-visible {
+  outline: 2px solid var(--sf-color-focus);
+  outline-offset: 2px;
+  border-radius: var(--sf-radius-sm);
+}
+
+.sf-selection-bar-more {
+  min-width: 0;
+}
+
+/* ---- Pagination ---- */
+
+.sf-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sf-space-2);
+  font-family: var(--sf-font);
+  font-size: var(--sf-font-size-sm);
+  color: var(--sf-color-muted);
+}
+
+.sf-pagination-range {
+  margin-inline-end: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- ConfirmDialog ---- */
+
+.sf-confirm {
+  box-sizing: border-box;
+  inline-size: min(28rem, calc(100% - 2 * var(--sf-space-4)));
+  max-block-size: calc(100% - 2 * var(--sf-space-4));
+  padding: var(--sf-space-4);
+  border: 1px solid var(--sf-color-edge, var(--sf-color-border));
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-color-surface-raised);
+  color: var(--sf-color-text);
+  font-family: var(--sf-font);
+  font-size: var(--sf-font-size);
+}
+
+.sf-confirm::backdrop {
+  background: color-mix(in srgb, var(--sf-color-bg) 60%, transparent);
+}
+
+.sf-confirm-title {
+  margin: 0 0 var(--sf-space-2);
+  font-size: var(--sf-font-size-title-3);
+  font-weight: var(--sf-font-weight-semibold);
+}
+
+.sf-confirm-body {
+  color: var(--sf-color-muted);
+}
+
+.sf-confirm-body > :first-child {
+  margin-top: 0;
+}
+
+.sf-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sf-space-2);
+  margin-top: var(--sf-space-4);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sf-confirm[open] {
+    animation: sf-confirm-in var(--sf-duration) var(--sf-ease-out);
+  }
+}
+
+@keyframes sf-confirm-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+/* ---- StatusBadge ---- */
+
+.sf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-1);
+  padding: 0 var(--sf-space-2);
+  border: 1px solid var(--sf-color-border);
+  border-radius: var(--sf-radius-full);
+  color: var(--sf-color-text);
+  font-size: var(--sf-font-size-sm);
+  font-weight: var(--sf-font-weight-medium);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* A shape for each tone as well as a colour: a ring, a dot, a diamond, a square. */
+.sf-status-mark {
+  inline-size: 0.55em;
+  block-size: 0.55em;
+  flex: none;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  color: var(--sf-color-muted);
+}
+
+.sf-status[data-tone="info"] .sf-status-mark {
+  color: var(--sf-color-accent);
+  background: currentColor;
+}
+
+.sf-status[data-tone="success"] .sf-status-mark {
+  color: var(--sf-color-success);
+  background: currentColor;
+}
+
+.sf-status[data-tone="warning"] {
+  border-color: var(--sf-color-warning);
+}
+
+.sf-status[data-tone="warning"] .sf-status-mark {
+  color: var(--sf-color-warning);
+  background: currentColor;
+  border-radius: 0;
+  transform: rotate(45deg) scale(0.85);
+}
+
+.sf-status[data-tone="danger"] {
+  border-color: var(--sf-color-danger);
+}
+
+.sf-status[data-tone="danger"] .sf-status-mark {
+  color: var(--sf-color-danger);
+  background: currentColor;
+  border-radius: 0;
+}
+
+/* ---- Combobox ---- */
+
+.sf-combobox {
+  position: relative;
+  display: grid;
+  gap: var(--sf-space-1);
+  min-width: 0;
+  font-family: var(--sf-font);
+  font-size: var(--sf-font-size);
+  color: var(--sf-color-text);
+}
+
+.sf-combobox-label {
+  font-size: var(--sf-font-size-sm);
+  font-weight: var(--sf-font-weight-medium);
+}
+
+.sf-combobox-help {
+  margin: 0;
+  color: var(--sf-color-muted);
+  font-size: var(--sf-font-size-sm);
+}
+
+.sf-combobox-popup {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  z-index: 50;
+  margin-top: var(--sf-space-1);
+  max-block-size: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--sf-color-edge, var(--sf-color-border));
+  border-radius: var(--sf-radius);
+  background: var(--sf-color-surface-raised);
+}
+
+.sf-combobox-popup[hidden],
+.sf-combobox-list[hidden] {
+  display: none;
+}
+
+.sf-combobox-list {
+  margin: 0;
+  padding: var(--sf-space-1);
+  list-style: none;
+}
+
+.sf-combobox-option {
+  display: grid;
+  min-height: var(--sf-target-min);
+  align-content: center;
+  padding: var(--sf-space-1) var(--sf-space-2);
+  border-radius: var(--sf-radius-sm);
+  cursor: pointer;
+}
+
+.sf-combobox-option[aria-selected="true"] {
+  background: var(--sf-color-accent-soft);
+  outline: 2px solid var(--sf-color-focus);
+  outline-offset: -2px;
+}
+
+.sf-combobox-detail {
+  color: var(--sf-color-muted);
+  font-size: var(--sf-font-size-sm);
+}
+
+.sf-combobox-note {
+  margin: 0;
+  padding: var(--sf-space-2) var(--sf-space-3);
+  color: var(--sf-color-muted);
+}
+
+@media (hover: none) {
+  .sf-data-table-check > input {
+    width: 1.4em;
+    height: 1.4em;
+  }
+}
+
+@media (forced-colors: active) {
+  .sf-status,
+  .sf-selection-bar,
+  .sf-confirm,
+  .sf-combobox-popup {
+    border-color: CanvasText;
+  }
+
+  .sf-status-mark {
+    background: CanvasText;
+  }
+
+  /* Forced colours drop the fill and the edge's shadow, so the edge is a border in the system's highlight. */
+  .sf-data-table tbody tr[data-selected] > :first-child {
+    border-inline-start: 3px solid Highlight;
   }
 }

@@ -13,7 +13,7 @@ The standard is **WCAG 2.2, level AA**. This page maps the criteria that matter 
 | Human-in-the-loop surfaces are valid and end in a decision | `packages/spec/src/patterns.test.ts` |
 | Every axe check tagged WCAG 2.0, 2.1 and 2.2 A and AA, on eight playground areas at desktop and phone size | `apps/e2e/tests/accessibility.spec.ts` (`pnpm e2e`; CI job `browser`) |
 | No sideways page scroll at phone width (1.4.10) on seven areas | `apps/e2e/tests/layout.spec.ts` |
-| Keyboard paths in a real browser: running SQL, sorting, pills put on shelves and taken off, panels moved from their menu | `apps/e2e/tests/*.spec.ts` |
+| Keyboard paths in a real browser: running SQL, sorting, pills put on shelves and taken off, panels moved from their menu; a `DataTable` sorted and ticked, a `ConfirmDialog` that keeps focus and gives it back, a `Combobox` chosen from with the keys (`app-data.spec.ts`) | `apps/e2e/tests/*.spec.ts` |
 
 The browser tests run the playground against DuckDB in the page, in Chromium only, and in the default theme only. axe's target-size rule is not run inside a pan and zoom canvas, where a diagram fitted to a phone draws its cards small until the person zooms in (every card there is also reached from the keyboard, and in `ModelDiagram` from the list beneath). Not automated yet: other browsers, screenshot tests per theme, and screen reader runs. Those are done by hand; do not assume them.
 
@@ -23,7 +23,7 @@ The browser tests run the playground against DuckDB in the page, in Chromium onl
 |---|---|
 | 1.1.1 Non-text content | Charts are `role="img"` with a label that states the finding; `Sparkline` and `BulletGraph` write their reading in words; `QueryResult` offers the table behind a chart. |
 | 1.3.1 Info and relationships | Native `table`, `th scope`, lists, `label`; step lists are `ol`. |
-| 1.4.1 Use of colour | Status, risk, certification, flags and pipeline check results (✓ Passed, ! Failed, ! Warning) carry a word and a symbol. Series are labelled. |
+| 1.4.1 Use of colour | Status, risk, certification, flags and pipeline check results (✓ Passed, ! Failed, ! Warning) carry a word and a symbol; a `StatusBadge` is its words, with a different shape for each tone. Series are labelled. |
 | 1.4.3 / 1.4.11 Contrast | Tokens are derived to 4.5:1 for text and 3:1 for controls and marks, and tested per preset. Status colours (success, warning, danger, info) are text colours, 4.5:1 on the background and on surfaces; accent text is 4.5:1 on the soft accent fill as well, since a selected item draws one on the other. |
 | 1.4.4 / 1.4.12 Resize and spacing | Sizes are tokens; text containers have no fixed height. |
 | 1.4.10 Reflow | Components respond to their container (`.sf-container`, `@container sf`); nothing scrolls the page sideways at 320px. Grids, charts and diagrams scroll inside their own box. |
@@ -41,7 +41,7 @@ The browser tests run the playground against DuckDB in the page, in Chromium onl
 | 3.3.7 Redundant entry (new in 2.2) | Flows carry earlier answers forward; a decision made in a card is not asked again. |
 | 3.3.8 Accessible authentication (new in 2.2) | The library has no sign-in and no field for a credential. |
 | 4.1.2 Name, role, value | Native elements first; state through `aria-busy`, `aria-pressed`, `aria-current`, `aria-expanded`. |
-| 4.1.3 Status messages | Outcomes use `role="status"` or `aria-live="polite"`. |
+| 4.1.3 Status messages | Outcomes use `role="status"` or `aria-live="polite"`: among them a `SelectionBar`'s count, a `Pagination`'s range and how many suggestions a `Combobox` has. |
 
 Also supported: Windows forced-colours mode (marks and focus take system colours), light and dark, and themes checked for contrast when a person edits them. A person who asks their system for more contrast (`prefers-contrast: more`), or picks the High contrast preset (`contrast: "more"`), gets solid glass, every pane and control outlined at 3:1 or more, and the quieter labels a level darker.
 
@@ -124,6 +124,17 @@ Everything a pointer can do has a key. A right-click menu opens with the Menu ke
 | `ResizeHandle` | Home, End | The least or the most it allows |
 | `ResizeHandle` | Enter, or a double click | Put the size back, where the host offers it (Arrange: the widths and height the page shipped with when it is given `shipped`; equal widths and the height the component chooses otherwise) |
 | `ResizeHandle` | Escape while dragging | Give up the drag; the size goes back to where it started |
+| `DataTable` (a sortable heading) | Tab, then Enter or Space | Ask the host to sort by that column, ascending first, then the other way; the heading's `aria-sort` says which way it is sorted. The table never reorders rows itself |
+| `DataTable` (a check box) | Space | Tick or untick the row; the heading's box ticks or unticks every row on the page and shows a mixed state when some are ticked |
+| `DataTable` (a row) | Menu key, Shift+F10 | The row's menu, where the host gives one; everything in it is also on the page |
+| `DataTable` (a row's controls) | Tab, then ← → | One tab stop for the row's actions, as for any item controls; always shown unless the host asks for them on hover |
+| `SelectionBar` | Tab, Enter | Each action, "Select all N that match", "Only this page" and Clear are buttons in reading order; the count is announced as it changes |
+| `Pagination` | Tab, Enter | Previous and Next; the range shown ("51–100 of 126") is announced |
+| `ConfirmDialog` | Tab, Shift+Tab | Stay inside the dialog: the page behind is inert. Focus starts on Cancel when the action takes something away, on the action otherwise |
+| `ConfirmDialog` | Escape, or a press outside | Cancel; focus goes back to what opened it |
+| `Combobox` | ↓ ↑ | Open the suggestions and move through them; focus stays in the box (`aria-activedescendant`) |
+| `Combobox` | Enter | Choose the highlighted suggestion; with none highlighted, Enter goes to the form, so what was typed stands |
+| `Combobox` | Escape | Close the suggestions; a second Escape clears the box |
 | Arrange (`useArrange`, `PageStudio` with `arrange`, the Playground), a resize handle | ↑ ↓ on the handle under a component; ← → on the handle at its right edge in a grid or row | Make the component 20 pixels shorter or taller, or move the line between it and its neighbour by 4% of the row; focus stays on the handle. Handles show for the component under the pointer or with focus, and always on a touch screen. With `resizeWhileViewing` (the pages gallery and the Playground) the width handles and the height handle under a component with a height of its own (a chart or a table, say) or one whose height is set stay while nobody is arranging, and work the same |
 | Arrange (`useArrange`, `PageStudio` with `arrange`, the Playground) | The arrow controls on a component's bar (one tab stop, ← → between them), or Up and Down in the Playground's Components panel | Move the component one place earlier or later in its container, as dragging it does; focus stays on the control. Remove takes it off. Escape stops a drag |
 | Workspace (a divider) | ← → between columns, ↑ ↓ between stacked panels | Resize the two sides of the divider (also drag it) |

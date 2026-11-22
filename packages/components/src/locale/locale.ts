@@ -301,6 +301,40 @@ export const defaultLabels = {
   "receipt.undoUntil": "Can be undone until {time}.",
   "receipt.undoRequested": "Undo requested. You will be asked to confirm it.",
 
+  // DataTable
+  "table.selectPage": "Select every row on this page",
+  "table.selectRow": "Select {name}",
+  "table.empty": "Nothing to show.",
+  "table.loading": "Loading…",
+  "table.rowControls": "{name} actions",
+  "table.actions": "Actions",
+  "table.select": "Select",
+
+  // SelectionBar
+  "selection.label": "With the selected rows",
+  "selection.count": "{count} selected",
+  "selection.pageSelected": "All {count} on this page are selected.",
+  "selection.selectAllMatching": "Select all {total} that match",
+  "selection.allMatching": "All {total} that match are selected.",
+  "selection.onlyPage": "Only this page",
+  "selection.clear": "Clear",
+
+  // Pagination
+  "pages.label": "Pages",
+  "pages.range": "{from}–{to} of {total}",
+  "pages.previous": "Previous",
+  "pages.next": "Next",
+
+  // ConfirmDialog
+  "confirm.confirm": "Confirm",
+  "confirm.cancel": "Cancel",
+
+  // Combobox
+  "combobox.loading": "Looking…",
+  "combobox.none": "Nothing matches.",
+  "combobox.count": "{count} suggestions",
+  "combobox.countOne": "1 suggestion",
+
   // ReportBuilder
   "report.untitled": "Untitled",
   "report.untitledReport": "Untitled report",
