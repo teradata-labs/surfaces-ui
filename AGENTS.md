@@ -34,7 +34,7 @@ Components in `packages/components`:
 | Component | Use it for | Key props |
 |---|---|---|
 | `DataSourceProvider` / `useDataSource` | Supplying the backend to everything below it | `dataSource` |
-| `DataGrid` | Any tabular result, of any size; columns drag to reorder, resize, hide; keyboard cell navigation; column and cell menus | `sourceId`, `sql`, `filters`, `sorts`, `columns` (`order`, `hidden`, `widths`), `onColumnsChange`, `onCellFilter`, `onUseSql`, `formats`, `mode` (`scroll` or `pages`), `timeTravel`, `notBefore`, `onInfo` (includes `cancel`), `onRowClick` (helpers: `arrangeColumns`, `moveColumn`) |
+| `DataGrid` | Any tabular result, of any size; columns drag to reorder, resize, hide; keyboard cell navigation; column and cell menus | `sourceId`, `sql`, `filters`, `sorts`, `columns` (`order`, `hidden`, `widths`), `onColumnsChange`, `onCellFilter`, `onUseSql`, `formats`, `mode` (`scroll` or `pages`), `footer` (`false` for a small look at a few rows: no count, timing or Run again, the count still announced), `timeTravel`, `notBefore`, `onInfo` (includes `cancel`), `onRowClick` (helpers: `arrangeColumns`, `moveColumn`) |
 | `useContextMenu` | A right-click menu for anything: opens on right click, long press, the Menu key and Shift+F10 | `open(event, label, items)`, `element` |
 | `ObjectInfo` | What the backend knows about a database, schema or table: kind, format, size, columns and keys | `sourceId`, `catalog`, `schema`, `table`, `onClose` |
 | `Chart` | Bar, line, area, scatter, pie over a query; compound charts | `sourceId`, `sql`, `type`, `x`, `xGrain`, `xBins`, `y` (one entry per series: `aggregate`, `type`, `axis`), `splitBy`, `stacked`, `legend`, `xTitle`/`yTitle`/`yRightTitle`, `option` |

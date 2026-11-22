@@ -115,6 +115,22 @@ describe("DataGrid", () => {
   });
 });
 
+describe("footer", () => {
+  it("can be left out, with the row count still announced", async () => {
+    const source = memoryDataSource({ tables: { t: Array.from({ length: 7 }, (_, i) => ({ id: i })) } });
+    const { container } = render(<DataGrid dataSource={source} sourceId="memory" sql="SELECT * FROM t" height={300} rowHeight={30} footer={false} />);
+    await waitFor(() => expect(screen.getByText("7 rows")).toBeTruthy());
+    expect(container.querySelector(".sf-grid-footer")).toBeNull();
+    expect(screen.getByText("7 rows").className).toBe("sf-visually-hidden");
+    expect(screen.getByText("7 rows").getAttribute("aria-live")).toBe("polite");
+  });
+  it("stays in pages mode, which needs Previous and Next", async () => {
+    const source = memoryDataSource({ tables: { t: Array.from({ length: 7 }, (_, i) => ({ id: i })) } });
+    const { container } = render(<DataGrid dataSource={source} sourceId="memory" sql="SELECT * FROM t" mode="pages" pageSize={5} footer={false} />);
+    await waitFor(() => expect(container.querySelector(".sf-grid-footer")).not.toBeNull());
+  });
+});
+
 describe("counting", () => {
   it("does not run a count when the first block already shows every row", async () => {
     const small = memoryDataSource({ tables: { t: Array.from({ length: 7 }, (_, i) => ({ id: i })) } });
