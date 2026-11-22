@@ -15,6 +15,8 @@ A word-sized trend line beside its latest value, worked out by the database: no 
 - `format` (optional): "number" | "compact" | "currency" | "percent"
 - `currency` (optional): string
 - `points` (optional): integer
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

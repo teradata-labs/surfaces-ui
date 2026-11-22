@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Chart, type ChartAggregate, type ChartGrain, type ChartMeasure } from "../chart/Chart.js";
 import type { ChartType, LegendPlacement, SeriesType } from "../chart/option.js";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import { downloadBlob, exportCsv } from "../data/export.js";
 import { type ColumnFormat, formatCell, isNumeric } from "../data/format.js";
 import type { FilterInit, TimeTravelInit } from "../data/useRowWindow.js";
@@ -17,7 +18,7 @@ import { QueryPlan } from "../plan/QueryPlan.js";
 
 export type ResultView = "grid" | "chart" | "pivot";
 
-export interface QueryResultProps {
+export interface QueryResultProps extends DataMessages {
   sourceId: string;
   sql: string;
   timeTravel?: TimeTravelInit;
@@ -536,6 +537,8 @@ export function QueryResult(props: QueryResultProps) {
             columns={columns}
             onColumnsChange={setColumns}
             onCellFilter={(column, value, exclude) => setFilters((current) => [...current, valueFilter(column, value, exclude)])}
+            emptyMessage={props.emptyMessage}
+            errorMessage={props.errorMessage}
             onInfo={(next) => {
               setInfo(next);
               if (next.error) onError?.(next.error, next.errorInfo);
@@ -560,6 +563,8 @@ export function QueryResult(props: QueryResultProps) {
                 stacked={chart.stacked}
                 legend={chart.legend || undefined}
                 height={height - 24}
+                emptyMessage={props.emptyMessage}
+                errorMessage={props.errorMessage}
               />
             </div>
           ) : (
@@ -579,6 +584,8 @@ export function QueryResult(props: QueryResultProps) {
             columns={pivot.column ? [dimension(pivot.column)] : []}
             measures={[measureOf(pivot.measure, pivot.summary)]}
             height={height}
+            emptyMessage={props.emptyMessage}
+            errorMessage={props.errorMessage}
           />
         ) : (
           <p className="sf-chart-message" style={{ minHeight: height }}>

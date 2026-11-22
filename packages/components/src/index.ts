@@ -5,6 +5,7 @@ export * from "./theme/ThemePicker.js";
 export * from "./data/DataSourceProvider.js";
 export * from "./data/format.js";
 export * from "./data/useRowWindow.js";
+export * from "./data/messages.js";
 export * from "./grid/DataGrid.js";
 export * from "./chart/Chart.js";
 export * from "./chart/option.js";

@@ -117,6 +117,19 @@ const DIMENSION = z.union([
  */
 const str = (about: string) => z.string().describe(about);
 
+/**
+ * What a data component says to the people using the page when its query answers with no rows or fails,
+ * written by whoever designs the page. Spread into each data component's props.
+ */
+const MESSAGES = {
+  emptyMessage: dynamicString
+    .optional()
+    .describe("What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\""),
+  errorMessage: dynamicString
+    .optional()
+    .describe("What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do."),
+};
+
 /** Catalog navigation that works inside a saved surface, with no agent: opening a table writes its name to the surface's own data. */
 const OPENED_NOTE =
   "Give `opened` a data path and opening a table also writes its name there, inside the surface; bind another component's `table` to the same path and it follows, with no agent. The event is still sent.";
@@ -309,6 +322,7 @@ export const analyticsCatalog = defineCatalog({
         label: dynamicString,
         format: z.enum(["number", "compact", "currency", "percent"]).optional(),
         currency: z.string().length(3).optional(),
+        ...MESSAGES,
       },
       example: { id: "revenue", component: "Metric", sourceId: "lake", sql: "SELECT * FROM orders", column: "amount", aggregate: "sum", label: "Revenue", format: "currency" },
     },
@@ -334,6 +348,7 @@ export const analyticsCatalog = defineCatalog({
         columns: COLUMNS.optional(),
         height: z.number().int().min(160).max(1200).optional(),
         label: z.string().optional().describe("Accessible name for the table."),
+        ...MESSAGES,
       },
       example: { id: "table", component: "DataGrid", sourceId: "lake", sql: "SELECT * FROM orders", height: 360 },
     },
@@ -391,6 +406,7 @@ export const analyticsCatalog = defineCatalog({
         height: z.number().int().min(160).max(1200).optional(),
         action: action.optional(),
         label: z.string().optional().describe("Accessible description of what the chart shows."),
+        ...MESSAGES,
       },
       example: {
         id: "chart",
@@ -427,6 +443,7 @@ export const analyticsCatalog = defineCatalog({
         totals: z.boolean().optional(),
         height: z.number().int().min(160).max(1200).optional(),
         label: z.string().optional().describe("Accessible name for the table."),
+        ...MESSAGES,
       },
       example: {
         id: "pivot",
@@ -449,6 +466,7 @@ export const analyticsCatalog = defineCatalog({
         sorts: SORTS.optional(),
         columns: COLUMNS.optional(),
         height: z.number().int().min(160).max(1200).optional(),
+        ...MESSAGES,
       },
       example: { id: "explore", component: "QueryResult", sourceId: "lake", sql: "SELECT * FROM orders" },
     },
@@ -481,6 +499,7 @@ export const analyticsCatalog = defineCatalog({
         pageSize: z.number().int().min(1).max(100).optional().describe("Rows fetched at a time. Defaults to 20."),
         rowKey: z.string().optional().describe("A column that tells rows apart, such as the key."),
         layout: z.enum(["list", "grid"]).optional().describe("\"list\" stacks the rows; \"grid\" lays them out as cards, as many across as fit."),
+        ...MESSAGES,
       },
       example: { id: "feed", component: "RowList", sourceId: "lake", sql: "SELECT * FROM orders", child: "order-card", label: "Orders", sorts: [{ column: "ordered_at", desc: true }], rowKey: "order_id", pageSize: 10 },
     },
@@ -557,6 +576,7 @@ export const analyticsCatalog = defineCatalog({
         format: z.enum(["number", "compact", "currency", "percent"]).optional(),
         currency: z.string().length(3).optional(),
         points: z.number().int().min(2).max(120).optional(),
+        ...MESSAGES,
       },
       example: { id: "trend", component: "Sparkline", sourceId: "lake", sql: "SELECT * FROM orders", x: "ordered_at", grain: "month", column: "amount", aggregate: "sum", label: "Revenue", format: "currency" },
     },
@@ -574,6 +594,7 @@ export const analyticsCatalog = defineCatalog({
         ranges: z.array(z.strictObject({ to: z.number(), label: z.string() })).min(1).max(5).describe("Where each band ends, lowest first. The last end is the end of the scale."),
         format: z.enum(["number", "compact", "currency", "percent"]).optional(),
         currency: z.string().length(3).optional(),
+        ...MESSAGES,
       },
       example: {
         id: "goal",

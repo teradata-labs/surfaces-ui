@@ -71,6 +71,8 @@ function DataGridView({ props, filters, reportControls }: { props: Record<string
       onSortsChange={setSorts}
       columns={columns}
       onColumnsChange={setColumns}
+      emptyMessage={text(props.emptyMessage) || undefined}
+      errorMessage={text(props.errorMessage) || undefined}
     />
   );
 }
@@ -275,6 +277,8 @@ export const analyticsRenderers: Record<string, ComponentRenderer> = {
         height={typeof props.height === "number" ? props.height : 300}
         label={text(props.label) || undefined}
         onPointClick={clicked}
+        emptyMessage={text(props.emptyMessage) || undefined}
+        errorMessage={text(props.errorMessage) || undefined}
       />
     ));
   },
@@ -289,6 +293,8 @@ export const analyticsRenderers: Record<string, ComponentRenderer> = {
       totals={props.totals !== false}
       height={typeof props.height === "number" ? props.height : 360}
       label={text(props.label) || undefined}
+      emptyMessage={text(props.emptyMessage) || undefined}
+      errorMessage={text(props.errorMessage) || undefined}
     />
   )),
   QueryResult: ({ props, reportControls }) =>
@@ -302,6 +308,8 @@ export const analyticsRenderers: Record<string, ComponentRenderer> = {
         sorts={Array.isArray(props.sorts) ? sortsFromSpec(props.sorts as SortSpec[]) : undefined}
         columns={props.columns as GridColumns | undefined}
         onControlsChange={(c) => reportControls({ view: c.view, filters: filtersToSpec(c.filters), sorts: sortsToSpec(c.sorts), columns: c.columns })}
+        emptyMessage={text(props.emptyMessage) || undefined}
+        errorMessage={text(props.errorMessage) || undefined}
       />
     )),
   ...moreRenderers,

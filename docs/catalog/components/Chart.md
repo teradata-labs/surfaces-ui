@@ -24,6 +24,8 @@ A chart over a SQL query. Give each measure an aggregate so the database summari
 - `height` (optional): integer
 - `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `label` (optional): string — Accessible description of what the chart shows.
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 
 ## Events
 

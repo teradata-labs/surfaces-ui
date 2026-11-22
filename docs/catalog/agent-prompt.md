@@ -232,6 +232,8 @@ One headline number worked out by the database from a query: a total, an average
 - `label`: string | binding | call
 - `format` (optional): "number" | "compact" | "currency" | "percent"
 - `currency` (optional): string
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"revenue","component":"Metric","sourceId":"lake","sql":"SELECT * FROM orders","column":"amount","aggregate":"sum","label":"Revenue","format":"currency"}`
 
@@ -260,6 +262,8 @@ A table over a SQL query, for any number of rows. Sorting and paging run in the 
 - `columns` (optional): { order?: array of string, hidden?: array of string, widths?: { [name]: number } } — Which columns show, in what order and how wide.
 - `height` (optional): integer
 - `label` (optional): string — Accessible name for the table.
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 Example: `{"id":"table","component":"DataGrid","sourceId":"lake","sql":"SELECT * FROM orders","height":360}`
 
 ### Chart
@@ -284,6 +288,8 @@ A chart over a SQL query. Give each measure an aggregate so the database summari
 - `height` (optional): integer
 - `action` (optional): { event: { name: string, userMessage?: string | binding | call, context?: { [name]: string | number | boolean | array | binding | call } } } | { functionCall: call }
 - `label` (optional): string — Accessible description of what the chart shows.
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 Sends:
 - **select**: When a person clicks a bar or point. Adds `column` (the x column), `value` (the clicked x value), `series` (the series clicked).
 Example: `{"id":"chart","component":"Chart","sourceId":"lake","sql":"SELECT * FROM orders","type":"bar","x":"region","y":[{"column":"amount","aggregate":"sum","label":"Revenue"}],"yTitle":"Revenue","label":"Revenue by region, largest first"}`
@@ -299,6 +305,8 @@ A pivot table over a SQL query: row values down the side, column values across t
 - `totals` (optional): boolean
 - `height` (optional): integer
 - `label` (optional): string — Accessible name for the table.
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 Example: `{"id":"pivot","component":"PivotTable","sourceId":"lake","sql":"SELECT * FROM orders","rows":["region"],"columns":[{"column":"ordered_at","grain":"quarter"}],"measures":[{"column":"amount","aggregate":"sum","label":"Revenue"}]}`
 
 ### QueryResult
@@ -310,6 +318,8 @@ A query result a person can explore: filters; a table, a chart and a pivot of th
 - `sorts` (optional): array of { column: string, desc?: boolean } — Sort order, most important first. An empty list clears it.
 - `columns` (optional): { order?: array of string, hidden?: array of string, widths?: { [name]: number } } — Which columns show, in what order and how wide.
 - `height` (optional): integer
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 Example: `{"id":"explore","component":"QueryResult","sourceId":"lake","sql":"SELECT * FROM orders"}`
 
 ### Message
@@ -332,6 +342,8 @@ One component drawn once for each row of a SQL query: a feed of posts, a list of
 - `pageSize` (optional): integer — Rows fetched at a time. Defaults to 20.
 - `rowKey` (optional): string — A column that tells rows apart, such as the key.
 - `layout` (optional): "list" | "grid" — "list" stacks the rows; "grid" lays them out as cards, as many across as fit.
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"feed","component":"RowList","sourceId":"lake","sql":"SELECT * FROM orders","child":"order-card","label":"Orders","sorts":[{"column":"ordered_at","desc":true}],"rowKey":"order_id","pageSize":10}`
 
@@ -403,6 +415,8 @@ A word-sized trend line beside its latest value, worked out by the database: no 
 - `format` (optional): "number" | "compact" | "currency" | "percent"
 - `currency` (optional): string
 - `points` (optional): integer
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"trend","component":"Sparkline","sourceId":"lake","sql":"SELECT * FROM orders","x":"ordered_at","grain":"month","column":"amount","aggregate":"sum","label":"Revenue","format":"currency"}`
 
@@ -418,6 +432,8 @@ One measure against a target and named bands (poor, fair, good), as a bar from z
 - `ranges`: array of { to: number, label: string } — Where each band ends, lowest first. The last end is the end of the scale.
 - `format` (optional): "number" | "compact" | "currency" | "percent"
 - `currency` (optional): string
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"goal","component":"BulletGraph","sourceId":"lake","sql":"SELECT * FROM orders","column":"amount","aggregate":"sum","label":"Revenue","format":"currency","target":2000000,"ranges":[{"to":1000000,"label":"Poor"},{"to":1800000,"label":"Fair"},{"to":3000000,"label":"Good"}]}`
 

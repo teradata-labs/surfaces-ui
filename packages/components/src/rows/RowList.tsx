@@ -2,6 +2,7 @@ import { type DataSource, collect } from "@surfaces-ui/data";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { OnContext } from "../controls/context.js";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import { plainValue } from "../data/format.js";
 import { type FilterInit, type SortInit, type TimeTravelInit, messageOf } from "../data/useRowWindow.js";
 import { label as text, numberFormat } from "../locale/locale.js";
@@ -14,7 +15,7 @@ export const ROW_LIST_MAX = 200;
 /** The most rows fetched at a time. */
 export const ROW_LIST_PAGE_MAX = 100;
 
-export interface RowListProps {
+export interface RowListProps extends DataMessages {
   sourceId: string;
   /** The base SQL. The engine sorts, filters and pages it. */
   sql: string;
@@ -106,15 +107,15 @@ export function RowList(props: RowListProps) {
         </ul>
       )}
       {state.error ? (
-        <p className="sf-rowlist-note" role="alert">
-          {state.error}
+        <p className="sf-rowlist-note" role="alert" data-error={state.error}>
+          {props.errorMessage ?? state.error}
         </p>
       ) : (
         <p className="sf-rowlist-note" role="status">
           {state.loading
             ? text("rows.loading")
             : rows.length === 0
-              ? text("rows.empty")
+              ? (props.emptyMessage ?? text("rows.empty"))
               : full && state.more
                 ? text("rows.full", { count: numberFormat().format(rows.length) })
                 : state.more

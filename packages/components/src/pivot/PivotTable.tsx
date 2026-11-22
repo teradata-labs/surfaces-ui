@@ -5,6 +5,7 @@ import type { DataType, Table } from "apache-arrow";
 import { useEffect, useMemo, useState } from "react";
 import { AGGREGATE_FUNCTIONS, type ChartAggregate, type ChartGrain, TIME_GRAINS, measureOutputs } from "../chart/Chart.js";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import { formatCell } from "../data/format.js";
 import { label, numberFormat } from "../locale/locale.js";
 import { type FilterInit, type TimeTravelInit, type ValueInit, messageOf } from "../data/useRowWindow.js";
@@ -21,7 +22,7 @@ export interface PivotMeasure {
   label?: string;
 }
 
-export interface PivotTableProps {
+export interface PivotTableProps extends DataMessages {
   sourceId: string;
   /** The base SQL. Grouping and aggregation are applied around it by the backend. */
   sql: string;
@@ -185,6 +186,8 @@ export function pivotModel(input: {
 interface Loaded {
   model: PivotModel;
   truncated: boolean;
+  /** The query answered with no rows. */
+  empty: boolean;
 }
 
 const count = { format: (n: number | bigint) => numberFormat().format(n) };
@@ -225,7 +228,7 @@ export function PivotTable(props: PivotTableProps) {
       .then(([cells, rowTotals, columnTotals, grandTotal]) => {
         if (controller.signal.aborted) return;
         const model = pivotModel({ rows, columns, aliases: outputs.map((o) => o.column), cells, rowTotals, columnTotals, grandTotal, maxColumns });
-        setState({ loaded: { model, truncated: cells.numRows > limit }, loading: false });
+        setState({ loaded: { model, truncated: cells.numRows > limit, empty: cells.numRows === 0 }, loading: false });
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setState({ error: messageOf(error), loading: false });
@@ -237,8 +240,8 @@ export function PivotTable(props: PivotTableProps) {
   if (state.error) {
     return (
       <div className={className}>
-        <p className="sf-chart-message" role="alert">
-          {state.error}
+        <p className="sf-chart-message" role="alert" data-error={state.error}>
+          {props.errorMessage ?? state.error}
         </p>
       </div>
     );
@@ -248,6 +251,14 @@ export function PivotTable(props: PivotTableProps) {
     return (
       <div className={className} aria-busy={state.loading}>
         <p className="sf-chart-message">{state.loading ? label("pivot.loading") : label("pivot.choose")}</p>
+      </div>
+    );
+  }
+
+  if (state.loaded?.empty) {
+    return (
+      <div className={className} aria-busy={state.loading}>
+        <p className="sf-chart-message">{props.emptyMessage ?? label("pivot.empty")}</p>
       </div>
     );
   }

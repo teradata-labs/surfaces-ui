@@ -13,6 +13,8 @@ One component drawn once for each row of a SQL query: a feed of posts, a list of
 - `pageSize` (optional): integer — Rows fetched at a time. Defaults to 20.
 - `rowKey` (optional): string — A column that tells rows apart, such as the key.
 - `layout` (optional): "list" | "grid" — "list" stacks the rows; "grid" lays them out as cards, as many across as fit.
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

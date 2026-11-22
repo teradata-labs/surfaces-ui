@@ -16,6 +16,7 @@ import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import { chartValue, numericValue } from "../data/format.js";
 import { label as text, numberFormat } from "../locale/locale.js";
 import { type FilterInit, type TimeTravelInit, type ValueInit, messageOf } from "../data/useRowWindow.js";
@@ -86,7 +87,7 @@ export interface ChartMeasure {
   slot?: number;
 }
 
-export interface ChartProps {
+export interface ChartProps extends DataMessages {
   sourceId: string;
   /** The base SQL. Grouping and aggregation are applied around it by the backend. */
   sql: string;
@@ -450,12 +451,12 @@ export function Chart(props: ChartProps) {
   return (
     <figure className={["sf-chart", props.className].filter(Boolean).join(" ")} aria-busy={state.loading}>
       {state.error ? (
-        <p className="sf-chart-message" role="alert" style={{ minHeight: height }}>
-          {state.error}
+        <p className="sf-chart-message" role="alert" data-error={state.error} style={{ minHeight: height }}>
+          {props.errorMessage ?? state.error}
         </p>
       ) : nothingDrawn ? (
         <p className="sf-chart-message" style={{ minHeight: height }}>
-          {text("chart.empty")}
+          {props.emptyMessage ?? text("chart.empty")}
         </p>
       ) : (
         <div ref={element} className="sf-chart-canvas" role="img" aria-label={description} style={{ height }} />
