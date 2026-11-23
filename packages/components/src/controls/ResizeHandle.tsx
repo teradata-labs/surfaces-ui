@@ -1,9 +1,9 @@
 import { type KeyboardEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
-import { type ResizeBounds, defaultResizeStep, dragResize, keyResize } from "./resize.js";
+import { type ResizeBounds, type ResizeEdge, defaultResizeStep, dragResize, keyResize } from "./resize.js";
 
 export interface ResizeHandleProps {
-  /** Which edge of its parent it sits on: "right" sizes a width (dragged left and right), "bottom" a height (dragged up and down). The parent must be positioned. */
-  edge: "right" | "bottom";
+  /** Which edge of its parent it sits on: "right" sizes a width (dragged left and right), "left" a width that grows leftwards (a panel docked on the right), "bottom" a height (dragged up and down). The parent must be positioned. */
+  edge: ResizeEdge;
   /** The size it stands for, in any unit (pixels, a share, a percentage). Undefined when no size is set yet: a drag then starts from `startFrom`. */
   value: number | undefined;
   min?: number;
@@ -32,7 +32,7 @@ export interface ResizeHandleProps {
 }
 
 /**
- * A handle on the right or bottom edge of something, dragged to change its
+ * A handle on the right, left or bottom edge of something, dragged to change its
  * width or height: the one Arrange draws under a component and between a
  * Grid's columns, for any app to place. A focusable `separator` with its
  * value, least and most; dragged with pointer events so a mouse, a pen and a
@@ -60,7 +60,8 @@ export function ResizeHandle(props: ResizeHandleProps) {
     const handle = event.currentTarget;
     const start = from(handle);
     const unit = perUnit(handle);
-    const origin = edge === "right" ? event.clientX : event.clientY;
+    const along = (e: { clientX: number; clientY: number }) => (edge === "bottom" ? e.clientY : edge === "left" ? -e.clientX : e.clientX);
+    const origin = along(event);
     let now = start;
     setDragging(true);
     const finish = (committed: boolean, gone = false) => {
@@ -75,7 +76,7 @@ export function ResizeHandle(props: ResizeHandleProps) {
     };
     const move = (e: PointerEvent) => {
       e.preventDefault();
-      const next = dragResize(start, (edge === "right" ? e.clientX : e.clientY) - origin, unit, bounds);
+      const next = dragResize(start, along(e) - origin, unit, bounds);
       if (next === now) return;
       now = next;
       latest.current.onChange?.(next);
@@ -120,8 +121,8 @@ export function ResizeHandle(props: ResizeHandleProps) {
       data-dragging={dragging || undefined}
       role="separator"
       tabIndex={0}
-      // A handle on the right edge is a line between things side by side, so the separator stands upright.
-      aria-orientation={edge === "right" ? "vertical" : "horizontal"}
+      // A handle on a right or left edge is a line between things side by side, so the separator stands upright.
+      aria-orientation={edge === "bottom" ? "horizontal" : "vertical"}
       aria-label={label}
       aria-valuenow={value === undefined ? undefined : Math.round(value * 100) / 100}
       aria-valuemin={min}
