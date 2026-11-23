@@ -7297,6 +7297,15 @@ select.sf-input:disabled {
   font-weight: var(--sf-font-weight-semibold);
 }
 
+/* The host's actions for the view, under it at its end edge; they wrap under one another in a narrow space. */
+.sf-explore-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sf-space-2);
+}
+
 .sf-explore-editor {
   display: flex;
   flex-direction: column;

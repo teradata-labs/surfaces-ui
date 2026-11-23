@@ -34,6 +34,12 @@ describe("Explorer", () => {
     ]);
   });
 
+  it("draws the host's actions under the view, with what they act on", async () => {
+    render(<Explorer dataSource={data()} sourceId="memory" sql="SELECT * FROM lines" startWithView actions={<button type="button">Put this chart on the page</button>} />);
+    const put = await screen.findByRole("button", { name: "Put this chart on the page" });
+    expect(put.closest(".sf-explore-result")).toBeTruthy();
+  });
+
   it("generates pills from the query's columns, and a press puts one on its shelf", async () => {
     const onChange = vi.fn();
     render(<Explorer dataSource={data()} sourceId="memory" sql="SELECT * FROM lines" onChange={onChange} />);

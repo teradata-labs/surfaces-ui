@@ -1,7 +1,7 @@
 import { type DataSource, collect } from "@surfaces-ui/data";
 import type { SemanticModel } from "@surfaces-ui/proto";
 import type { Field } from "apache-arrow";
-import { type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Chart, type ChartGrain } from "../chart/Chart.js";
 import type { OnContext } from "../controls/context.js";
 import { ControlIcon, type ItemControl, ItemControls, standardControls } from "../controls/ItemControls.js";
@@ -84,6 +84,12 @@ export interface ExplorerProps {
    * presses a pill. Off by default: a host that holds the shelves decides.
    */
   startWithView?: boolean;
+  /**
+   * What the host does with the view, drawn under it at its end edge: "Put
+   * this chart on the page". There, it sits with what it acts on and clear
+   * of the view's own controls in its corner.
+   */
+  actions?: ReactNode;
   dataSource?: DataSource;
   className?: string;
 }
@@ -974,6 +980,7 @@ export function Explorer(props: ExplorerProps) {
             <p className="sf-explore-reading">{reading}</p>
             {!chart && <p className="sf-explore-hint">With nothing to break down by there is one number each. Press an attribute for a chart.</p>}
             <ExploreView dataSource={dataSource} sourceId={sourceId} sql={sql} state={state} view={shown} height={chartHeight} label={reading} />
+            {props.actions && <div className="sf-explore-actions">{props.actions}</div>}
           </div>
         )}
         <p className="sf-explore-note" role="status">
