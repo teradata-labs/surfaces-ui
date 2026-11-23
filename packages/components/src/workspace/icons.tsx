@@ -21,6 +21,7 @@ const PATHS = {
   settings: "M4 7h9 M19 7h1 M4 17h3 M13 17h7 M16 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z M10 15a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
   note: "M7 3h8l4 4v14H7z M15 3v4h4 M10 12h6 M10 16h6",
   folder: "M3 6h6l2 2h10v11H3z",
+  people: "M9 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5 M16 4.4a3.5 3.5 0 0 1 0 6.2 M18 14c2 .9 3.5 3.2 3.5 6",
 } as const;
 
 export type WorkspaceIconName = keyof typeof PATHS;
