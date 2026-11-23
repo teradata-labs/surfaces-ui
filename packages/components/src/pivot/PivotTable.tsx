@@ -202,6 +202,8 @@ export function PivotTable(props: PivotTableProps) {
   const dataSource = useDataSource(props.dataSource);
   const [state, setState] = useState<{ loaded?: Loaded; error?: string; loading: boolean }>({ loading: true });
   const outputs = useMemo(() => measureOutputs(measures), [JSON.stringify(measures)]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A total adds up; a maximum, minimum or average over everything is not one, so its row and column say "All".
+  const totalKey = measures.every((m) => m.aggregate === "sum" || m.aggregate === "count" || m.aggregate === "count_distinct") ? "pivot.total" : "pivot.all";
   const key = JSON.stringify([sourceId, sql, rows, columns, measures, filters, parameters, timeTravel, notBefore, totals, maxColumns, limit], (_, v) =>
     typeof v === "bigint" ? `${v}n` : v,
   );
@@ -298,7 +300,7 @@ export function PivotTable(props: PivotTableProps) {
                   ))}
               {showRowTotals && (
                 <th scope="colgroup" colSpan={outputs.length} className="sf-pivot-value" data-total>
-                  {label("pivot.total")}
+                  {label(totalKey)}
                 </th>
               )}
             </tr>
@@ -331,7 +333,7 @@ export function PivotTable(props: PivotTableProps) {
             <tfoot>
               <tr>
                 <th scope="row" colSpan={rows.length}>
-                  {label("pivot.total")}
+                  {label(totalKey)}
                 </th>
                 {crossed
                   ? model.columnKeys.flatMap((column) => numbers(model.columnTotal(column.id), column.id, true))

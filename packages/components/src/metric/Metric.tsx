@@ -33,7 +33,12 @@ export interface MetricProps extends DataMessages {
 export function formatMetric(value: number, format: MetricProps["format"] = "number", currency = "USD"): string {
   const options: Intl.NumberFormatOptions =
     format === "currency"
-      ? { style: "currency", currency, notation: Math.abs(value) >= 100_000 ? "compact" : "standard", maximumFractionDigits: Math.abs(value) >= 100_000 ? 1 : 2 }
+      ? // Cents only under a thousand: "$1,904" sits beside "$498.2K" as one way of writing money.
+        Math.abs(value) >= 100_000
+        ? { style: "currency", currency, notation: "compact", maximumFractionDigits: 1 }
+        : Math.abs(value) >= 1_000
+          ? { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }
+          : { style: "currency", currency, maximumFractionDigits: 2 }
       : format === "percent"
         ? { style: "percent", maximumFractionDigits: 1 }
         : format === "compact"

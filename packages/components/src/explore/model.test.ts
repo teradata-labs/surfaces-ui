@@ -133,8 +133,11 @@ describe("what the shelves ask the engine for", () => {
     expect(query.aggregates?.map((a) => a.alias)).toEqual(["calc_0_line_amount", "calc_0_line_cost"]);
     expect(query.derived).toEqual([{ alias: "calc_0", expression: "((calc_0_line_amount - calc_0_line_cost) / calc_0_line_amount)" }]);
     expect(query.sorts).toEqual([{ column: "calc_0", direction: SortDirection.DESC }]);
-    // Two values: the series are the values, so there is no split.
-    expect(exploreChart(state({ rows: ["region"], split: "order_id", values: ["margin", "rows"] }))?.splitBy).toBeUndefined();
+    // Two values and a split: each value for each of the split's values, as the page's Chart draws it ("North · Revenue").
+    expect(exploreChart(state({ rows: ["region"], split: "order_id", values: ["margin", "rows"] }))?.splitBy).toBe("order_id");
+    // A second attribute on the rows splits one value only, so adding a measure never multiplies the lines unasked.
+    expect(exploreChart(state({ rows: ["region", "order_id"], values: ["margin"] }))?.splitBy).toBe("order_id");
+    expect(exploreChart(state({ rows: ["region", "order_id"], values: ["margin", "rows"] }))?.splitBy).toBeUndefined();
   });
 
   it("writes numbers as a pill's format says", () => {
