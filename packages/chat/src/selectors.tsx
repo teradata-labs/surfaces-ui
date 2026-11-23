@@ -19,7 +19,34 @@ export interface ChatProvider {
   label: string;
   /** One line on where it runs. */
   detail?: string;
-  models: { id: string; label?: string; detail?: string }[];
+  models: { id: string; label?: string; detail?: string; level?: ModelLevel }[];
+}
+
+/**
+ * How capable a model is, on the host's own scale: drawn in the Model menu as
+ * `of` bars rising left to right, `value` of them filled, beside `label`
+ * ("Everyday"). The word is what is read; the bars are only drawn.
+ */
+export interface ModelLevel {
+  value: number;
+  of: number;
+  label: string;
+}
+
+/** A model's level as rising bars and its word, on the line with its name. */
+export function ModelLevelBars({ level }: { level: ModelLevel }) {
+  const of = Math.max(1, Math.min(5, Math.round(level.of)));
+  const value = Math.max(0, Math.min(of, Math.round(level.value)));
+  return (
+    <span className="sf-chat-model-level">
+      <span className="sf-chat-model-bars" aria-hidden="true">
+        {Array.from({ length: of }, (_, i) => (
+          <span key={i} data-on={i < value || undefined} style={{ blockSize: `${Math.round(((i + 1) / of) * 100)}%` }} />
+        ))}
+      </span>
+      {level.label}
+    </span>
+  );
 }
 
 export interface SelectorProps {
@@ -98,7 +125,14 @@ export function ModelMenu(props: ModelMenuProps) {
                       close();
                     }}
                   >
-                    {m.label || m.id}
+                    {m.level ? (
+                      <span className="sf-chat-model-name">
+                        <span>{m.label || m.id}</span>
+                        <ModelLevelBars level={m.level} />
+                      </span>
+                    ) : (
+                      m.label || m.id
+                    )}
                   </MenuItem>
                 ))}
               </MenuGroup>
