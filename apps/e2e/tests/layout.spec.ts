@@ -3,7 +3,7 @@ import { open } from "./helpers.js";
 
 // The same components are drawn in a page, a chat reply and a side panel, so none may push the page sideways.
 for (const area of ["home", "showcase", "analysis", "workbench", "chat", "pages", "semantic", "discover", "pipelines", "patterns", "docs"]) {
-  test(`${area} has no sideways scroll @phone`, async ({ page }) => {
+  test(`${area} has no sideways scroll @phone @webkit`, async ({ page }) => {
     await open(page, area);
     await page.waitForLoadState("networkidle");
     const { scroll, view } = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, view: document.documentElement.clientWidth }));
@@ -52,7 +52,7 @@ test.describe("Data picker", () => {
 
 // The home page's phone keeps its screen inside the bezel on every side: in WebKit a percentage height inside the
 // frame (sized by aspect-ratio) once ran the screen past the bottom bezel and over the rounded corners (#205).
-test("the home page's phone keeps its screen inside its bezel @phone", async ({ page }) => {
+test("the home page's phone keeps its screen inside its bezel @phone @webkit", async ({ page }) => {
   await open(page, "home");
   const phone = page.locator(".sf-site-phone:visible").first();
   await phone.scrollIntoViewIfNeeded();
