@@ -2173,6 +2173,37 @@ select.sf-input:disabled {
   background: var(--sf-color-surface);
 }
 
+/*
+ * Layout props (Row, Column, Grid, Card in @surfaces-ui/spec): `gap` and `padding` as steps of the spacing scale,
+ * `wrap` and `sizes` on a Row. Each is an attribute that is there only when the prop is set, so a page that does not
+ * use them is drawn exactly as before.
+ */
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-grid)[data-gap="none"] { gap: 0; }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-grid)[data-gap="1"] { gap: var(--sf-space-1); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-grid)[data-gap="2"] { gap: var(--sf-space-2); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-grid)[data-gap="3"] { gap: var(--sf-space-3); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-grid)[data-gap="4"] { gap: var(--sf-space-4); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-grid)[data-gap="6"] { gap: var(--sf-space-6); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-grid)[data-gap="8"] { gap: var(--sf-space-8); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-card)[data-padding="none"] { padding: 0; }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-card)[data-padding="1"] { padding: var(--sf-space-1); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-card)[data-padding="2"] { padding: var(--sf-space-2); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-card)[data-padding="3"] { padding: var(--sf-space-3); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-card)[data-padding="4"] { padding: var(--sf-space-4); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-card)[data-padding="6"] { padding: var(--sf-space-6); }
+:is(.sf-a2-row, .sf-a2-column, .sf-a2-card)[data-padding="8"] { padding: var(--sf-space-8); }
+
+/* A Row that keeps its children on one line: each shrinks to fit, at any width. */
+.sf-a2-row[data-wrap="false"] { flex-wrap: nowrap; }
+
+/* A Row whose children say how they are sized: their content's width, a share of what is left, or fixed pixels. */
+.sf-a2-row[data-sizes] > .sf-a2-row-cell { min-width: 0; }
+.sf-a2-row[data-sizes] > .sf-a2-row-cell[data-size="hug"] { flex: 0 0 auto; }
+.sf-a2-row[data-sizes] > .sf-a2-row-cell[data-size="fill"] { flex: 1 1 180px; }
+.sf-a2-row[data-sizes] > .sf-a2-row-cell[data-size="fixed"] { flex: 0 0 var(--sf-row-cell-size); max-width: 100%; }
+.sf-a2-row[data-sizes][data-wrap="false"] > .sf-a2-row-cell[data-size="fill"] { flex: 1 1 0; }
+.sf-a2-row[data-sizes][data-wrap="false"] > .sf-a2-row-cell[data-size="fixed"] { flex-shrink: 1; }
+
 .sf-a2-text {
   margin: 0;
   max-width: 75ch;
@@ -5301,16 +5332,18 @@ select.sf-input:disabled {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .sf-a2-row {
+  /* A Row stacks, unless it was told to keep to one line (`wrap: false`); :where keeps these rules' weight as it was. */
+  .sf-a2-row:where(:not([data-wrap="false"])) {
     flex-wrap: wrap;
   }
 
-  .sf-a2-row > * {
+  .sf-a2-row:where(:not([data-wrap="false"])) > * {
     flex: 1 1 100%;
   }
 
-  /* Shares of the width mean nothing once the children stack. */
-  .sf-a2-row[data-widths] > .sf-a2-row-cell {
+  /* Shares of the width, and sizes, mean nothing once the children stack. */
+  .sf-a2-row[data-widths] > .sf-a2-row-cell,
+  .sf-a2-row[data-sizes]:not([data-wrap="false"]) > .sf-a2-row-cell {
     flex: 1 1 100% !important;
   }
 
@@ -8319,13 +8352,106 @@ button > .sf-item-control-icon:only-child {
   opacity: 0.45;
 }
 
-/* Where a dragged component will land: a line on the side it will go. */
-.sf-arrange-frame[data-over="before"]:not([data-across]) { box-shadow: 0 calc(-1 * var(--sf-space-1)) 0 0 var(--sf-color-accent); }
-.sf-arrange-frame[data-over="after"]:not([data-across]) { box-shadow: 0 var(--sf-space-1) 0 0 var(--sf-color-accent); }
-.sf-arrange-frame[data-over="before"][data-across],
-.sf-arrange-frame[data-over="left"] { box-shadow: calc(-1 * var(--sf-space-1)) 0 0 0 var(--sf-color-accent); }
-.sf-arrange-frame[data-over="after"][data-across],
-.sf-arrange-frame[data-over="right"] { box-shadow: var(--sf-space-1) 0 0 0 var(--sf-color-accent); }
+/*
+ * Where a dragged component will land: a line in the middle of the gap between it and its neighbour, on the side it
+ * will go (--sf-arrange-gap is the gap of what holds the frame), and the container that will receive it outlined.
+ */
+.sf-arrange-insert {
+  position: absolute;
+  z-index: 3;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-color-accent);
+  pointer-events: none;
+}
+.sf-arrange-insert:is([data-side="before"], [data-side="after"]):not([data-across]) {
+  left: 0;
+  right: 0;
+  height: 2px;
+}
+.sf-arrange-insert[data-side="before"]:not([data-across]) { top: calc(var(--sf-arrange-gap, var(--sf-space-4)) / -2 - 1px); }
+.sf-arrange-insert[data-side="after"]:not([data-across]) { bottom: calc(var(--sf-arrange-gap, var(--sf-space-4)) / -2 - 1px); }
+.sf-arrange-insert:is([data-side="left"], [data-side="right"], [data-across]) {
+  top: 0;
+  bottom: 0;
+  width: 2px;
+}
+.sf-arrange-insert[data-side="before"][data-across] { left: calc(var(--sf-arrange-gap, var(--sf-space-4)) / -2 - 1px); }
+.sf-arrange-insert[data-side="after"][data-across] { right: calc(var(--sf-arrange-gap, var(--sf-space-4)) / -2 - 1px); }
+/* Beside a component in a stack: the two will share a row, so the line is on that edge of it. */
+.sf-arrange-insert[data-side="left"] { left: -1px; }
+.sf-arrange-insert[data-side="right"] { right: -1px; }
+
+.sf-arrange-frame[data-receiving],
+.sf-arrange-root[data-receiving] {
+  outline: 2px solid var(--sf-color-accent);
+  outline-offset: 2px;
+}
+
+/* The root while arranging: no bar, but it can be selected and receive a drop. */
+.sf-arrange-root {
+  position: relative;
+  min-width: 0;
+  border-radius: var(--sf-radius-sm);
+}
+
+/* The component selected: its frame drawn solid, and a selected container's gap and padding handles shown. */
+.sf-arrange-frame[data-selected] { border-style: solid; border-color: var(--sf-color-accent); }
+.sf-arrange-root[data-selected] { outline: 1px solid var(--sf-color-accent); outline-offset: 2px; }
+
+/*
+ * Gap and padding handles (useArrange, on a selected container). The wrapper draws no box, so the handle sits on
+ * the frame. The gap handle is in the middle of the gap after the first child, nearer its top or left end than the
+ * width and height handles; the padding handle is inside the container's left edge, in its padding.
+ */
+.sf-arrange-space { display: contents; }
+.sf-arrange-space > .sf-resize-handle[data-edge="right"] {
+  --sf-resize-offset: calc(var(--sf-arrange-gap, var(--sf-space-4)) / 2);
+  top: calc(var(--sf-target-min) + var(--sf-space-2));
+  transform: none;
+}
+.sf-arrange-space > .sf-resize-handle[data-edge="bottom"] {
+  --sf-resize-offset: calc(var(--sf-arrange-gap, var(--sf-space-4)) / 2);
+  left: var(--sf-space-4);
+  transform: none;
+}
+.sf-arrange-space[data-space="padding"] > .sf-resize-handle {
+  right: auto;
+  left: calc(var(--sf-space-1) + var(--sf-arrange-padding, 0px) / 2 - var(--sf-target-min) / 2);
+  top: 50%;
+  transform: translateY(-50%);
+}
+.sf-arrange-space > .sf-resize-handle::before { background: var(--sf-color-accent); }
+
+/* The step a gap or padding handle stands for ("16 px · space-4"), beside it while it is pointed at, focused or dragged. */
+.sf-arrange-space-label {
+  position: absolute;
+  z-index: 4;
+  padding: 0 var(--sf-space-1);
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-color-accent);
+  color: var(--sf-color-on-accent);
+  font-size: var(--sf-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--sf-duration-fast) var(--sf-ease);
+}
+.sf-arrange-space[data-edge="right"]:not([data-space="padding"]) > .sf-arrange-space-label {
+  top: var(--sf-space-2);
+  right: calc(var(--sf-arrange-gap, var(--sf-space-4)) / -2);
+  transform: translateX(50%);
+}
+.sf-arrange-space[data-edge="bottom"] > .sf-arrange-space-label {
+  left: calc(var(--sf-space-4) + var(--sf-target-min));
+  bottom: calc(var(--sf-arrange-gap, var(--sf-space-4)) / -2);
+  transform: translateY(50%);
+}
+.sf-arrange-space[data-space="padding"] > .sf-arrange-space-label {
+  top: calc(50% + var(--sf-target-min) / 2);
+  left: var(--sf-space-1);
+}
+.sf-arrange-space > .sf-resize-handle:is(:hover, :focus-visible, [data-dragging]) + .sf-arrange-space-label { opacity: 1; }
 
 .sf-arrange-bar {
   display: flex;
@@ -8394,7 +8520,7 @@ button > .sf-item-control-icon:only-child {
 
 /* Arrange's handles sit in the gap between two frames of a Grid or Row, not on the frame's own edge. */
 .sf-arrange-frame > .sf-resize-handle[data-edge="right"],
-.sf-arrange-view > .sf-resize-handle[data-edge="right"] { --sf-resize-offset: var(--sf-space-2); }
+.sf-arrange-view > .sf-resize-handle[data-edge="right"] { --sf-resize-offset: calc(var(--sf-arrange-gap, var(--sf-space-4)) / 2); }
 
 /* While viewing (useArrange's resizeWhileViewing): a plain box around a component that has a handle, so the handle has an edge to sit on. */
 .sf-arrange-view {

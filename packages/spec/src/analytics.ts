@@ -250,7 +250,7 @@ export const analyticsCatalog = defineCatalog({
               id: z.string(),
               title: z.string().describe("The panel's heading: one to three words."),
               short: z.string().max(14).optional().describe("A shorter name for the rail, which has room for about ten characters a line. Give one when the title is longer than that."),
-              icon: z.enum(["surface", "agent", "components", "table", "code", "data", "history", "save", "search", "map", "chart", "grid", "settings", "note", "folder"]).optional().describe("The rail's icon. Left out, the title's first letter."),
+              icon: z.enum(["surface", "agent", "components", "table", "code", "data", "history", "save", "search", "map", "chart", "grid", "settings", "note", "folder", "person", "bell", "people"]).optional().describe("The rail's icon. Left out, the title's first letter."),
               child: childId,
             }),
           )

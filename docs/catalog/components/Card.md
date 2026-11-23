@@ -1,10 +1,11 @@
 # Card
 
-A bordered container for one child, to group related content.
+A bordered container for one child, to group related content. `padding` is a step of the theme's spacing scale.
 
 ## Props
 
 - `child`: string — ID of a child component.
+- `padding` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to 4.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

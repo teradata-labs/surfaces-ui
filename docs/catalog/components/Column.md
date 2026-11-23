@@ -1,10 +1,12 @@
 # Column
 
-Stacks children top to bottom. Use it as the root of most surfaces.
+Stacks children top to bottom. Use it as the root of most surfaces. `gap` and `padding` are steps of the theme's spacing scale.
 
 ## Props
 
 - `children`: array of string | { componentId: string, path: string }
+- `gap` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to 4.
+- `padding` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to "none".
 - `justify` (optional): "start" | "center" | "end" | "spaceBetween" | "spaceAround" | "spaceEvenly" | "stretch"
 - `align` (optional): "start" | "center" | "end" | "stretch"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.

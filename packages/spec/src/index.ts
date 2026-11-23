@@ -10,6 +10,7 @@ export * from "./surface.js";
 export * from "./upgrade.js";
 export * from "./page.js";
 export * from "./arrange.js";
+export * from "./layout.js";
 export * from "./personal.js";
 export * from "./patterns.js";
 export * from "./conversation.js";

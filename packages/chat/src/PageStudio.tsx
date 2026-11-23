@@ -159,7 +159,7 @@ export function usePageStudio(agent: AgentBackend, initial: PageDocument, catalo
       if (applied === 0) return;
       // What changed, as the props that now say where things are: the same form an agent arranges with.
       const changed = edits.flatMap((edit) => (edit.op === "set" ? [edit.component] : []));
-      const subject = Object.fromEntries(changed.map(({ id, children, widths, height, minHeight }) => [id, Object.fromEntries(Object.entries({ children, widths, height, minHeight }).filter(([, v]) => v !== undefined))]));
+      const subject = Object.fromEntries(changed.map(({ id, children, widths, sizes, wrap, gap, padding, height, minHeight }) => [id, Object.fromEntries(Object.entries({ children, widths, sizes, wrap, gap, padding, height, minHeight }).filter(([, v]) => v !== undefined))]));
       local.current.activity = [...local.current.activity, { componentId: changed[0]?.id ?? "root", kind: "layout.changed", summary: `${title}.`, subject, at: new Date().toISOString() }].slice(-40);
     },
     [catalog, store],

@@ -13,6 +13,8 @@ import {
 import { type FilterInit, type FilterSpec, type GridColumns, type GridSort, type ResultView, type SortSpec, chosenValues, filtersExcept, filtersFromSpec, filtersToSpec, sortsFromSpec, sortsToSpec, toggleValueFilter } from "@surfaces-ui/components";
 import { type CSSProperties, type ReactNode, createElement, useEffect, useId, useState } from "react";
 import { basicsCatalog } from "../basics.js";
+import { rowSizes } from "../layout.js";
+import { spaceAttributes } from "./layout.js";
 import { type ComponentRenderer, type RenderProps, useRequiredInputs } from "./Surface.js";
 import { formRenderers } from "./forms.js";
 import { moreRenderers } from "./more.js";
@@ -168,27 +170,43 @@ export const analyticsRenderers: Record<string, ComponentRenderer> = {
   },
   Row: ({ props, component, children }) => {
     const drawn = children(component.children);
+    // How each child is sized, when there is exactly one valid size for each; that wins over `widths`.
+    const sizes = rowSizes(props.sizes, drawn.length);
     // A share per child, when there is exactly one for each; anything else leaves them equal.
-    const widths = Array.isArray(props.widths) && props.widths.length === drawn.length && props.widths.every((w) => typeof w === "number" && w > 0) ? (props.widths as number[]) : undefined;
+    const widths = !sizes && Array.isArray(props.widths) && props.widths.length === drawn.length && props.widths.every((w) => typeof w === "number" && w > 0) ? (props.widths as number[]) : undefined;
     return (
-      <div className="sf-a2-row" data-arrange-container style={flex(props)} data-widths={widths ? true : undefined}>
-        {widths
-          ? drawn.map((node, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: a row's cells are its children in order.
-              <div key={i} className="sf-a2-row-cell" style={{ flex: `${widths[i]} 1 0` }}>
-                {node}
-              </div>
-            ))
-          : drawn}
+      <div className="sf-a2-row" data-arrange-container style={flex(props)} data-widths={widths ? true : undefined} data-sizes={sizes ? true : undefined} {...spaceAttributes(props, { gap: true, padding: true })} data-wrap={props.wrap === false ? "false" : undefined}>
+        {sizes
+          ? drawn.map((node, i) => {
+              const size = sizes[i]!;
+              return (
+                // biome-ignore lint/suspicious/noArrayIndexKey: a row's cells are its children in order.
+                <div key={i} className="sf-a2-row-cell" data-size={typeof size === "string" ? size : "fixed"} style={typeof size === "string" ? undefined : ({ "--sf-row-cell-size": `${size.fixed}px` } as CSSProperties)}>
+                  {node}
+                </div>
+              );
+            })
+          : widths
+            ? drawn.map((node, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: a row's cells are its children in order.
+                <div key={i} className="sf-a2-row-cell" style={{ flex: `${widths[i]} 1 0` }}>
+                  {node}
+                </div>
+              ))
+            : drawn}
       </div>
     );
   },
   Column: ({ props, component, children }) => (
-    <div className="sf-a2-column" style={flex(props)}>
+    <div className="sf-a2-column" style={flex(props)} {...spaceAttributes(props, { gap: true, padding: true })}>
       {children(component.children)}
     </div>
   ),
-  Card: ({ component, child }) => <div className="sf-a2-card">{child(component.child)}</div>,
+  Card: ({ props, component, child }) => (
+    <div className="sf-a2-card" {...spaceAttributes(props, { padding: true })}>
+      {child(component.child)}
+    </div>
+  ),
   Divider: ({ props }) => <hr className="sf-a2-divider" data-axis={text(props.axis) || "horizontal"} />,
   Tabs: (renderProps) => <TabsView {...renderProps} />,
   Button: (renderProps) => <ButtonView {...renderProps} />,

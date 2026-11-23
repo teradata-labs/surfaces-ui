@@ -51,34 +51,42 @@ A heading, paragraph or caption.
 Example: `{"id":"title","component":"Text","text":"Revenue this quarter","variant":"h2"}`
 
 ### Row
-Places children side by side. Wraps on narrow screens. Children share the width equally unless `widths` gives each its share.
+Places children side by side. Wraps on narrow screens unless `wrap` is false. Children share the width equally unless `widths` gives each its share, or `sizes` says how each is sized (content width, fill, or fixed pixels); `sizes` wins over `widths` when both have one entry per child. `gap` and `padding` are steps of the theme's spacing scale.
 - `children`: array of string | { componentId: string, path: string }
-- `widths` (optional): array of number — The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child.
+- `widths` (optional): array of number — The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child and `sizes` is not used.
+- `sizes` (optional): array of ("hug" | "fill" | { fixed: number }) — How each child is sized, one per child: "hug" keeps its content's width and does not grow, "fill" grows to share the space left, { fixed: 240 } is that many pixels wide. Used when it has one entry per child, in place of `widths`. Narrow screens stack the children unless `wrap` is false.
+- `wrap` (optional): boolean — Whether children move onto a new line when they do not fit, and stack on narrow screens. Defaults to true; false keeps them on one line, each shrinking to fit.
+- `gap` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to 4.
+- `padding` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to "none".
 - `justify` (optional): "start" | "center" | "end" | "spaceBetween" | "spaceAround" | "spaceEvenly" | "stretch"
 - `align` (optional): "start" | "center" | "end" | "stretch"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"stats","component":"Row","children":["revenue","orders"]}`
 
 ### Column
-Stacks children top to bottom. Use it as the root of most surfaces.
+Stacks children top to bottom. Use it as the root of most surfaces. `gap` and `padding` are steps of the theme's spacing scale.
 - `children`: array of string | { componentId: string, path: string }
+- `gap` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to 4.
+- `padding` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to "none".
 - `justify` (optional): "start" | "center" | "end" | "spaceBetween" | "spaceAround" | "spaceEvenly" | "stretch"
 - `align` (optional): "start" | "center" | "end" | "stretch"
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"root","component":"Column","children":["title","stats","chart"]}`
 
 ### Grid
-Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: "start"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height.
+Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: "start"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height. `gap` is a step of the theme's spacing scale, between rows and columns alike.
 - `children`: array of string | { componentId: string, path: string }
 - `columns` (optional): integer — Columns per row. Defaults to 2. Narrow screens use one.
 - `widths` (optional): array of number — The share of the width each column takes, one per column: [2, 1] makes the first twice as wide as the second. Used when it has one entry per column; otherwise columns are equal.
 - `align` (optional): "start" | "center" | "end" | "stretch" — Where each child sits in the height of its row. Defaults to stretch: every child as tall as the tallest. Use start for mixed content, so each keeps its own height.
+- `gap` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to 4.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"tiles","component":"Grid","columns":3,"children":["revenue","orders","average"]}`
 
 ### Card
-A bordered container for one child, to group related content.
+A bordered container for one child, to group related content. `padding` is a step of the theme's spacing scale.
 - `child`: string — ID of a child component.
+- `padding` (optional): "none" | 1 | 2 | 3 | 4 | 6 | 8 — The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or "none". Defaults to 4.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"panel","component":"Card","child":"chart"}`
 
