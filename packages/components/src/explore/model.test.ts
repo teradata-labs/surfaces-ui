@@ -2,13 +2,31 @@ import { AggregateFunction, SortDirection, TimeGrain } from "@surfaces-ui/proto"
 import { Field, Float64, Int32, TimestampMillisecond, Utf8 } from "apache-arrow";
 import { describe, expect, it } from "vitest";
 import { buildChartQuery } from "../chart/Chart.js";
-import { type ExploreState, type Pill, addToShelf, exploreChart, exploreQuery, normalizeExplore, pillId, pillNumber, pillProblem, pillsFromFields, setPill, suggestDerived } from "./model.js";
+import { type ExploreState, type Pill, addToShelf, exploreChart, exploreQuery, normalizeExplore, pillId, pillNumber, pillProblem, pillsFromFields, setPill, suggestDerived, suggestedView } from "./model.js";
 
 const columns = [new Field("ordered_at", new TimestampMillisecond()), new Field("region", new Utf8()), new Field("order_id", new Int32()), new Field("line_amount", new Float64()), new Field("line_cost", new Float64()), new Field("refund_amount", new Float64()), new Field("quantity", new Int32())];
 const generated = pillsFromFields(columns);
 const state = (extra: Partial<ExploreState> = {}): ExploreState => ({ fields: [...generated, ...suggestDerived(generated)], rows: [], values: [], filters: [], ...extra });
 
 describe("pills generated from columns", () => {
+  it("sums a number whose name says it adds up, and averages a reading", () => {
+    const pills = pillsFromFields([new Field("power_kw", new Float64()), new Field("energy_mwh", new Float64()), new Field("unit_price", new Float64()), new Field("downtime_hours", new Float64()), new Field("generating", new Int32()), new Field("cost_usd", new Float64())]);
+    const of = (column: string) => pills.find((p) => p.column === column && p.kind === "metric");
+    expect(of("power_kw")).toMatchObject({ aggregate: "avg", label: "Average power kw" });
+    expect(of("unit_price")).toMatchObject({ aggregate: "avg", label: "Average unit price", format: "currency" });
+    expect(of("generating")).toMatchObject({ aggregate: "avg" });
+    expect(of("energy_mwh")).toMatchObject({ aggregate: "sum", label: "Energy mwh" });
+    expect(of("downtime_hours")).toMatchObject({ aggregate: "sum" });
+    expect(of("cost_usd")).toMatchObject({ aggregate: "sum", format: "currency" });
+  });
+
+  it("suggests a first view: a category, not an id or a date, by a measure, not a count of ids", () => {
+    expect(suggestedView(generated)).toEqual({ rows: ["region"], values: ["line_amount"] });
+    const onlyDates = pillsFromFields([new Field("ordered_at", new TimestampMillisecond()), new Field("order_id", new Int32())]);
+    expect(suggestedView(onlyDates)).toEqual({ rows: ["ordered_at"], values: ["rows"] });
+    expect(suggestedView([])).toEqual({ rows: [], values: [] });
+  });
+
   it("makes attributes of text, dates and keys, metrics of numbers, and always a count of rows", () => {
     expect(generated.map((p) => [p.id, p.kind, p.aggregate ?? p.grain ?? ""])).toEqual([
       ["ordered_at", "attribute", "month"],
