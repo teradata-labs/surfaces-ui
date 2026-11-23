@@ -8945,10 +8945,12 @@ button > .sf-item-control-icon:only-child {
 .sf-site-phone-body {
   display: grid;
   height: 100%;
-  padding: calc(var(--sf-space-8) + var(--sf-space-2)) var(--sf-space-2) var(--sf-space-2);
+  /* The screen stops above the rounded bottom corners, where a phone keeps its home bar: iOS Safari does not clip a
+     scrolling child's canvas to a rounded ancestor, even with clip-path, so the screen must not reach the corners. */
+  padding: calc(var(--sf-space-8) + var(--sf-space-2)) var(--sf-space-2)
+    max(var(--sf-space-6), calc(var(--sf-radius-xl) * 2.2 * 0.6));
   overflow: hidden;
   border-radius: calc(var(--sf-radius-xl) * 2.2);
-  /* WebKit does not clip a composited child (a chart's canvas) to a rounded overflow box; clip-path does. */
   clip-path: inset(0 round calc(var(--sf-radius-xl) * 2.2));
   background: var(--sf-color-bg);
 }
