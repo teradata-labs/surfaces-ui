@@ -3,10 +3,10 @@ import type { AgentInfo } from "@surfaces-ui/proto";
 import { type DataRef, Markdown, addDataRefs, dataRefLabel, hasDataRefs, readDataRefs, sameDataRef } from "@surfaces-ui/components";
 import { type Catalog, type SurfaceAction, analyticsCatalog } from "@surfaces-ui/spec";
 import { type ComponentRenderer, type SurfaceNote, SurfaceView, lazyAnalyticsRenderers } from "@surfaces-ui/spec/react";
-import { type DragEvent, type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { type DragEvent, type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { ApprovalCard } from "./Approval.js";
 import { Composer } from "./ChatComposer.js";
-import type { ChatActor, ChatMessage, ChatStep, ChatThread, ChatUsage } from "./thread.js";
+import type { ChatActions, ChatActor, ChatButton, ChatMessage, ChatStep, ChatThread, ChatUsage } from "./thread.js";
 import type { ChatProvider } from "./selectors.js";
 import { type ChatSettings, type UseChat, type UseChatOptions, useChat } from "./useChat.js";
 
@@ -44,6 +44,86 @@ export function ToolSteps({ steps }: ToolStepsProps) {
   );
 }
 
+export interface ActionsCardProps {
+  actions: ChatActions;
+  /** A press: the button's id, and the choice it belongs to when it is in one. Never called for a disabled button. */
+  onPress(buttonId: string, choiceId?: string): void;
+}
+
+function ActionButtons({ buttons, label, onPress }: { buttons: ChatButton[]; label?: string; onPress(id: string): void }) {
+  const uid = useId();
+  if (buttons.length === 0) return null;
+  return (
+    <div className="sf-chat-actions-row" role={label ? "group" : undefined} aria-label={label}>
+      {buttons.map((button, i) => {
+        const why = button.reason ? `${uid}-${i}` : undefined;
+        return (
+          <span key={button.id} className="sf-chat-actions-button">
+            <button
+              type="button"
+              className="sf-button"
+              data-variant={button.variant}
+              // Not `disabled`: a disabled button cannot be reached by keyboard, and then neither can its reason.
+              aria-disabled={button.disabled || undefined}
+              aria-label={button.ariaLabel}
+              aria-describedby={why}
+              title={button.reason}
+              onClick={() => {
+                if (!button.disabled) onPress(button.id);
+              }}
+            >
+              {button.label}
+            </button>
+            {why && (
+              <span id={why} className="sf-a2-visually-hidden">
+                {button.reason}
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * What a person can do about a reply, under it: a row of buttons, or several
+ * alternatives one row each with buttons for the whole set after them. The
+ * host decides what a press does and, once it is handled, replaces the
+ * buttons with what became of it (`outcome`).
+ */
+export function ActionsCard({ actions, onPress }: ActionsCardProps) {
+  const choices = actions.choices ?? [];
+  return (
+    <div className="sf-chat-actions" role="group" aria-label={actions.title || "Actions"} data-handled={actions.outcome !== undefined || undefined}>
+      {actions.title && <p className="sf-chat-actions-title">{actions.title}</p>}
+      {actions.detail && <p className="sf-chat-actions-detail">{actions.detail}</p>}
+      {actions.outcome !== undefined ? (
+        <p className="sf-chat-actions-outcome" role="status">
+          {actions.outcome}
+        </p>
+      ) : (
+        <>
+          {choices.length > 0 && (
+            <ul className="sf-chat-actions-choices" aria-label="Choices">
+              {choices.map((choice) => (
+                <li key={choice.id}>
+                  <p className="sf-chat-actions-choice">
+                    <span className="sf-chat-actions-title">{choice.title}</span>
+                    {choice.detail && <span className="sf-chat-actions-detail"> · {choice.detail}</span>}
+                  </p>
+                  <ActionButtons buttons={choice.buttons} label={choice.title} onPress={(id) => onPress(id, choice.id)} />
+                </li>
+              ))}
+            </ul>
+          )}
+          <ActionButtons buttons={actions.buttons ?? []} label={choices.length > 0 ? "All choices" : undefined} onPress={(id) => onPress(id)} />
+        </>
+      )}
+    </div>
+  );
+}
+
 export interface MessageListProps {
   thread: ChatThread;
   catalog: Catalog;
@@ -55,11 +135,13 @@ export interface MessageListProps {
   onProblem?: UseChat["problem"];
   /** Told what a person does in a drawn component as they do it, with where. For a host that keeps its own context for an agent. */
   onContext?(note: SurfaceNote & { surfaceId: string; componentId: string }): void;
+  /** A press on a button in an actions part (`ChatActions`): the part's id, the button's id, and its choice's id when it is in one. */
+  onPartAction?(partId: string, actionId: string, choiceId?: string): void;
   /** Shown when the thread is empty. */
   empty?: string;
 }
 
-function MessageView({ message, thread, catalog, renderers, onAction, onAnswer, onReport, onProblem, onContext }: MessageListProps & { message: ChatMessage }) {
+function MessageView({ message, thread, catalog, renderers, onAction, onAnswer, onReport, onProblem, onContext, onPartAction }: MessageListProps & { message: ChatMessage }) {
   if (message.role === "user") {
     return (
       <article className="sf-chat-message" data-role="user">
@@ -113,6 +195,8 @@ function MessageView({ message, thread, catalog, renderers, onAction, onAnswer, 
           }
           case "approval":
             return <ApprovalCard key={index} approval={part.approval} onAnswer={onAnswer} />;
+          case "actions":
+            return <ActionsCard key={index} actions={part.actions} onPress={(actionId, choiceId) => onPartAction?.(part.actions.id, actionId, choiceId)} />;
           case "references":
             // Attachments belong to what a person sent; a reply has none.
             return null;
