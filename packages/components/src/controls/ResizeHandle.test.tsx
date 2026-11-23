@@ -35,6 +35,10 @@ describe("resize arithmetic", () => {
     expect(keyResize("Home", 50, "right", 4, bounds)).toBe(0);
     expect(keyResize("End", 50, "right", 4, bounds)).toBe(100);
     expect(keyResize("End", 50, "bottom", 4, {})).toBeUndefined();
+    // A left edge grows as it moves left.
+    expect(keyResize("ArrowLeft", 400, "left", 20, { min: 320, max: 800 })).toBe(420);
+    expect(keyResize("ArrowRight", 400, "left", 20, { min: 320, max: 800 }, true)).toBe(320);
+    expect(keyResize("ArrowUp", 400, "left", 20, {})).toBeUndefined();
     expect(defaultResizeStep({ min: 0.25, max: 0.75 })).toBeCloseTo(0.025);
     expect(defaultResizeStep({})).toBe(10);
   });
@@ -93,6 +97,20 @@ describe("ResizeHandle", () => {
     fireEvent.pointerUp(window, { clientX: 0, clientY: -500 });
     expect(onChangeEnd).toHaveBeenCalledWith(100, { committed: true, via: "pointer" });
     expect(handle.hasAttribute("data-dragging")).toBe(false);
+  });
+
+  it("on a left edge, stands upright and grows as it is dragged left", () => {
+    const onChange = vi.fn();
+    render(<ResizeHandle edge="left" value={400} min={320} max={800} label="Resize the panels" onChange={onChange} />);
+    const handle = screen.getByRole("separator", { name: "Resize the panels" });
+    expect(handle.getAttribute("aria-orientation")).toBe("vertical");
+    expect(handle.getAttribute("data-edge")).toBe("left");
+    fireEvent.pointerDown(handle, { pointerType: "mouse", button: 0, clientX: 900, clientY: 0 });
+    fireEvent.pointerMove(window, { clientX: 850, clientY: 0 });
+    expect(onChange).toHaveBeenLastCalledWith(450);
+    fireEvent.pointerMove(window, { clientX: 1200, clientY: 0 });
+    expect(onChange).toHaveBeenLastCalledWith(320);
+    fireEvent.pointerUp(window, { clientX: 1200, clientY: 0 });
   });
 
   it("gives up a drag on Escape, back where it started", () => {

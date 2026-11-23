@@ -8376,6 +8376,14 @@ button > .sf-item-control-icon:only-child {
   transform: translateY(-50%);
   cursor: col-resize;
 }
+.sf-resize-handle[data-edge="left"] {
+  top: 50%;
+  left: calc(var(--sf-target-min) / -2 - var(--sf-resize-offset, 0rem));
+  width: var(--sf-target-min);
+  height: max(var(--sf-target-min), var(--sf-space-6) + var(--sf-space-2));
+  transform: translateY(-50%);
+  cursor: col-resize;
+}
 .sf-resize-handle[data-edge="bottom"] {
   left: 50%;
   bottom: calc(var(--sf-target-min) / -2 - var(--sf-resize-offset, 0rem));
@@ -8390,7 +8398,7 @@ button > .sf-item-control-icon:only-child {
   background: var(--sf-color-border-strong);
   transition: background-color var(--sf-duration-fast) var(--sf-ease);
 }
-.sf-resize-handle[data-edge="right"]::before { width: var(--sf-space-1); height: var(--sf-space-6); }
+.sf-resize-handle:is([data-edge="right"], [data-edge="left"])::before { width: var(--sf-space-1); height: var(--sf-space-6); }
 .sf-resize-handle[data-edge="bottom"]::before { width: var(--sf-space-6); height: var(--sf-space-1); }
 
 :hover > .sf-resize-handle,

@@ -4,6 +4,9 @@
  * so many pixels, and for each key.
  */
 
+/** Which edge of what it sizes a handle sits on: a right or left edge sizes a width, a bottom edge a height. */
+export type ResizeEdge = "right" | "left" | "bottom";
+
 /** Bounds and steps for a resize handle's value. */
 export interface ResizeBounds {
   min?: number;
@@ -32,12 +35,13 @@ export function dragResize(start: number, pixels: number, unitPixels: number, bo
 /**
  * The value a key gives, or undefined for a key the handle does not take. A
  * handle on a right edge moves with Left and Right, one on a bottom edge with
- * Up and Down; Shift takes five steps at once; Home and End go to `min` and
- * `max` where there are some.
+ * Up and Down; one on a left edge (a panel docked on the right) grows with
+ * Left, the way its edge moves. Shift takes five steps at once; Home and End
+ * go to `min` and `max` where there are some.
  */
-export function keyResize(key: string, value: number, edge: "right" | "bottom", step: number, bounds: ResizeBounds, shift = false): number | undefined {
+export function keyResize(key: string, value: number, edge: ResizeEdge, step: number, bounds: ResizeBounds, shift = false): number | undefined {
   const by = step * (shift ? 5 : 1);
-  const [less, more] = edge === "right" ? ["ArrowLeft", "ArrowRight"] : ["ArrowUp", "ArrowDown"];
+  const [less, more] = edge === "right" ? ["ArrowLeft", "ArrowRight"] : edge === "left" ? ["ArrowRight", "ArrowLeft"] : ["ArrowUp", "ArrowDown"];
   if (key === less) return clampResize(value - by, bounds);
   if (key === more) return clampResize(value + by, bounds);
   if (key === "Home" && bounds.min !== undefined) return clampResize(bounds.min, bounds);
