@@ -28,6 +28,11 @@ export interface ResizeHandleProps {
   valueText?: string;
   /** Shown all the time, rather than when its parent is pointed at or it has focus. */
   always?: boolean;
+  /**
+   * Whether Tab stops on it (default true). False leaves it to the pointer and to focus given in code: an editor with
+   * a handle on every element keeps Tab to one stop each, and offers the handles of the one selected.
+   */
+  tabbable?: boolean;
   className?: string;
 }
 
@@ -120,7 +125,7 @@ export function ResizeHandle(props: ResizeHandleProps) {
       data-always={props.always || undefined}
       data-dragging={dragging || undefined}
       role="separator"
-      tabIndex={0}
+      tabIndex={props.tabbable === false ? -1 : 0}
       // A handle on a right or left edge is a line between things side by side, so the separator stands upright.
       aria-orientation={edge === "bottom" ? "horizontal" : "vertical"}
       aria-label={label}
