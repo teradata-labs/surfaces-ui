@@ -194,6 +194,11 @@ export function useArrange(options: {
   selected?: string;
   /** Told when a person selects a component by clicking its frame or focusing its bar. */
   onSelect?(id: string): void;
+  /**
+   * How a kind of component is named on its bar and in its controls' labels, for a host with words of its own
+   * ("Stack across" for a Row, say). Defaults to the catalog's name. Only what is read changes.
+   */
+  kindName?(kind: string): string;
 }) {
   const { surface } = options;
   const catalog = options.catalog ?? analyticsCatalog;
@@ -210,6 +215,7 @@ export function useArrange(options: {
   const [preview, setPreview] = useState<Preview>();
   const [ownSelected, setOwnSelected] = useState("");
   const selected = options.selected ?? ownSelected;
+  const named = (kind: unknown) => latest.current.kindName?.(String(kind)) ?? String(kind);
   const select = (id: string) => {
     if (options.selected === undefined) setOwnSelected(id);
     latest.current.onSelect?.(id);
@@ -316,7 +322,7 @@ export function useArrange(options: {
       <ResizeHandle
         className="sf-arrange-resize"
         edge="bottom"
-        label={`Resize ${kind} ${id}: taller or shorter`}
+        label={`Resize ${named(kind)} ${id}: taller or shorter`}
         value={now}
         {...(limits?.minimum !== undefined ? { min: limits.minimum } : {})}
         {...(limits?.maximum !== undefined ? { max: limits.maximum } : {})}
@@ -369,7 +375,7 @@ export function useArrange(options: {
       <ResizeHandle
         className="sf-arrange-resize"
         edge="right"
-        label={`Resize ${String(component.component)} ${id} and what is to its right: wider or narrower`}
+        label={`Resize ${named(component.component)} ${id} and what is to its right: wider or narrower`}
         value={(shares[at] ?? 0) * 100}
         min={MIN_COLUMN_SHARE * 100}
         max={((shares[at] ?? 0) + (shares[at + 1] ?? 0) - MIN_COLUMN_SHARE) * 100}
@@ -435,7 +441,7 @@ export function useArrange(options: {
           className="sf-arrange-resize"
           edge={edge}
           always
-          label={`${prop === "gap" ? "Gap between the children" : "Padding"} of ${kind} ${id}: drag, or use the arrow keys, to step through the spacing scale`}
+          label={`${prop === "gap" ? "Gap between the children" : "Padding"} of ${named(kind)} ${id}: drag, or use the arrow keys, to step through the spacing scale`}
           value={SPACE_STEPS.indexOf(now)}
           min={0}
           max={SPACE_STEPS.length - 1}
@@ -520,7 +526,7 @@ export function useArrange(options: {
     // A place to drop into a container: at its end, and the only way into an empty one.
     const inside = holds && dragId && dragId !== id && (
       <div className="sf-arrange-inside" data-container={id} data-over={(dropAt?.id === id && dropAt.side === "inside") || undefined}>
-        Drop at the end of {kind} {id}
+        Drop at the end of {named(kind)} {id}
       </div>
     );
     if (!place) {
@@ -555,7 +561,7 @@ export function useArrange(options: {
       >
         <div
           className="sf-arrange-bar"
-          onPointerDown={(event) => startDrag(event, id, `${kind} ${id}`)}
+          onPointerDown={(event) => startDrag(event, id, `${named(kind)} ${id}`)}
           // Reaching a component's controls by keyboard selects it, so its gap and padding handles come next in order.
           onFocus={() => {
             if (selected !== id) select(id);
@@ -565,15 +571,15 @@ export function useArrange(options: {
             ⠿
           </span>
           <span className="sf-arrange-name">
-            {kind} <code>{id}</code>
+            {named(kind)} <code>{id}</code>
             {sizing?.id === id && <span className="sf-arrange-size"> {sizing.text}</span>}
           </span>
           {/* The same controls a report's tiles have, so moving and removing look and read alike everywhere. They belong to the editor, so nothing quiets them. */}
           <ItemControls
-            label={`${kind} ${id} controls`}
+            label={`${named(kind)} ${id} controls`}
             show="always"
             quietable={false}
-            controls={standardControls(`${kind} ${id}`, {
+            controls={standardControls(`${named(kind)} ${id}`, {
               [across ? "earlier" : "up"]:
                 place.index === 0
                   ? false
