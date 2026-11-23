@@ -51,8 +51,8 @@ test.describe("Explorer with pills", () => {
   });
 
   test("the numbers behind the chart are a table", async ({ page }) => {
-    // Item controls stay quiet until the item is pointed at or focused; the keyboard reaches them all the same.
-    await page.getByRole("button", { name: /as a table$/ }).focus();
+    // Table is a choice under Draw as, beside the chart types, reached by the keyboard like them.
+    await page.getByRole("group", { name: "Draw as" }).getByRole("button", { name: "Table" }).focus();
     await page.keyboard.press("Enter");
     const table = page.getByRole("region", { name: "The numbers behind the view" });
     await expect(table.getByRole("table")).toBeVisible();
