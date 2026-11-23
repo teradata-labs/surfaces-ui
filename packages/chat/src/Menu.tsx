@@ -15,10 +15,14 @@ export interface MenuButtonProps {
   className?: string;
 }
 
+/** Space kept between a popover and the window's edge. */
+const EDGE = 8;
+
 /**
  * A button that opens a small popover above it, or below when there is more
  * room there, kept inside the window: a list of choices, a
- * checklist. Escape and a press outside close it, and focus goes back to the
+ * checklist. It floats over the page (fixed to the window), so a panel that
+ * scrolls or clips what it holds does not cut it off. Escape and a press outside close it, and focus goes back to the
  * button. It is a dialog rather than an ARIA menu because it holds checkboxes
  * and links as well as commands; Tab moves through them.
  */
@@ -28,16 +32,31 @@ export function MenuButton({ label, text, icon, iconOnly, children, disabled, cl
   const panel = useRef<HTMLDivElement>(null);
   const id = useId();
   // Which side has room, measured when it opens; the popover scrolls within that room.
-  const [place, setPlace] = useState<{ below: boolean; end: boolean; room: number }>({ below: false, end: false, room: 0 });
+  const [place, setPlace] = useState<{ below: boolean; end: boolean; room: number; left?: number; top?: number; bottom?: number }>({ below: false, end: false, room: 0 });
   useLayoutEffect(() => {
     if (!open || !button.current) return;
-    const at = button.current.getBoundingClientRect();
-    const height = window.innerHeight || document.documentElement.clientHeight;
-    const width = window.innerWidth || document.documentElement.clientWidth;
-    const above = at.top;
-    const below = height - at.bottom;
-    const wide = panel.current?.offsetWidth ?? 0;
-    setPlace({ below: below > above, end: at.left + wide > width && at.right - wide >= 0, room: Math.max(below, above) });
+    const measure = () => {
+      if (!button.current) return;
+      const at = button.current.getBoundingClientRect();
+      const height = window.innerHeight || document.documentElement.clientHeight;
+      const width = window.innerWidth || document.documentElement.clientWidth;
+      const above = at.top;
+      const below = height - at.bottom;
+      const wide = panel.current?.offsetWidth ?? 0;
+      const end = at.left + wide > width && at.right - wide >= 0;
+      // Lined up with the button's start (or its end, when that fits better), then moved inside the window.
+      const left = Math.max(EDGE, Math.min((end ? at.right - wide : at.left), width - wide - EDGE));
+      const gap = 4;
+      setPlace(below > above ? { below: true, end, room: below, left, top: at.bottom + gap } : { below: false, end, room: above, left, bottom: height - at.top + gap });
+    };
+    measure();
+    // A panel scrolled, or the window resized, moves the button; the popover follows it.
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
   }, [open]);
   const close = () => {
     setOpen(false);
@@ -80,7 +99,14 @@ export function MenuButton({ label, text, icon, iconOnly, children, disabled, cl
           className="sf-chat-popover"
           data-below={place.below || undefined}
           data-end={place.end || undefined}
-          style={place.room > 0 ? ({ "--sf-chat-popover-room": `${Math.floor(place.room)}px` } as CSSProperties) : undefined}
+          style={
+            place.room > 0
+              ? ({
+                  "--sf-chat-popover-room": `${Math.floor(place.room)}px`,
+                  ...(place.left !== undefined ? { position: "fixed", left: place.left, right: "auto", top: place.top ?? "auto", bottom: place.bottom ?? "auto" } : {}),
+                } as CSSProperties)
+              : undefined
+          }
           role="dialog"
           aria-label={label}
           onKeyDown={(event) => {

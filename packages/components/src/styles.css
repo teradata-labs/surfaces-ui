@@ -3861,7 +3861,12 @@ select.sf-input:disabled {
 }
 
 /* A model's name with its capability beside it: rising bars, filled up to its level, and the level's word. */
-/* One line: the menu widens for it (up to its most), and only a name too long for that is cut short. */
+/* A menu of models is as wide as its longest line, up to its most, so a name and its level share one line. */
+.sf-chat-popover:has(.sf-chat-model-name) {
+  inline-size: max-content;
+}
+
+/* One line: only a name too long for the widest menu is cut short. */
 .sf-chat-model-name {
   display: grid;
   grid-template-columns: minmax(0, max-content) auto;
