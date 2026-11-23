@@ -93,6 +93,12 @@ export interface DataGridProps {
   pageSize?: number;
   /** Height of the grid. A number is px. Defaults to 420. */
   height?: number | string;
+  /**
+   * The line under the rows: the row count, the time the query took, "as of" with Run again for a kept result,
+   * and Show hidden columns. `false` leaves it out, for a small look at a few rows inside something else; the
+   * row count is still announced. In "pages" mode the footer stays, since it holds Previous and Next.
+   */
+  footer?: boolean;
   /** Row height in px. Defaults to the theme's density. */
   rowHeight?: number;
   /** Called when the row count, executed SQL, notices, columns or error change. */
@@ -572,37 +578,43 @@ export function DataGrid(props: DataGridProps) {
         )}
         {window.status === "ready" && total === 0 && <p className="sf-grid-message">{text("grid.noRows")}</p>}
       </div>
-      <div className="sf-grid-footer">
-        <span aria-live="polite">{status}</span>
-        {(layout.hidden?.length ?? 0) > 0 && (
-          <button type="button" className="sf-button" onClick={() => setColumns({ ...layout, hidden: [] })}>
-            {text(layout.hidden!.length === 1 ? "grid.showHiddenOne" : "grid.showHidden", { count: count.format(layout.hidden!.length) })}
-          </button>
-        )}
-        <span className="sf-grid-note" role="status">
-          {note}
+      {props.footer === false && mode !== "pages" ? (
+        <span className="sf-visually-hidden" aria-live="polite">
+          {status}
         </span>
-        {window.elapsedMs !== undefined && window.status === "ready" && <span>{text("grid.elapsed", { ms: window.elapsedMs })}</span>}
-        {window.stored && window.status === "ready" && (
-          <span className="sf-grid-asof">
-            {text("grid.asOf", { time: dateFormat({ hour: "numeric", minute: "2-digit", second: "2-digit" }).format(new Date(window.stored.createdAt)) })}
-            <button type="button" className="sf-button" onClick={window.refresh}>
-              {text("grid.runAgain")}
+      ) : (
+        <div className="sf-grid-footer">
+          <span aria-live="polite">{status}</span>
+          {(layout.hidden?.length ?? 0) > 0 && (
+            <button type="button" className="sf-button" onClick={() => setColumns({ ...layout, hidden: [] })}>
+              {text(layout.hidden!.length === 1 ? "grid.showHiddenOne" : "grid.showHidden", { count: count.format(layout.hidden!.length) })}
             </button>
+          )}
+          <span className="sf-grid-note" role="status">
+            {note}
           </span>
-        )}
-        {mode === "pages" && total !== undefined && (
-          <span className="sf-grid-pager">
-            <button type="button" className="sf-button" disabled={page === 0} onClick={() => setPage(page - 1)}>
-              {text("grid.previous")}
-            </button>
-            <span>{text("grid.page", { page: count.format(page + 1), pages: count.format(pages) })}</span>
-            <button type="button" className="sf-button" disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}>
-              {text("grid.next")}
-            </button>
-          </span>
-        )}
-      </div>
+          {window.elapsedMs !== undefined && window.status === "ready" && <span>{text("grid.elapsed", { ms: window.elapsedMs })}</span>}
+          {window.stored && window.status === "ready" && (
+            <span className="sf-grid-asof">
+              {text("grid.asOf", { time: dateFormat({ hour: "numeric", minute: "2-digit", second: "2-digit" }).format(new Date(window.stored.createdAt)) })}
+              <button type="button" className="sf-button" onClick={window.refresh}>
+                {text("grid.runAgain")}
+              </button>
+            </span>
+          )}
+          {mode === "pages" && total !== undefined && (
+            <span className="sf-grid-pager">
+              <button type="button" className="sf-button" disabled={page === 0} onClick={() => setPage(page - 1)}>
+                {text("grid.previous")}
+              </button>
+              <span>{text("grid.page", { page: count.format(page + 1), pages: count.format(pages) })}</span>
+              <button type="button" className="sf-button" disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}>
+                {text("grid.next")}
+              </button>
+            </span>
+          )}
+        </div>
+      )}
       {menu.element}
     </div>
   );
