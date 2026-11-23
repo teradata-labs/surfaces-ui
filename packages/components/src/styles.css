@@ -8915,6 +8915,8 @@ button > .sf-item-control-icon:only-child {
   overflow: hidden;
   border: 1px solid var(--sf-color-divider);
   border-radius: 0 0 var(--sf-radius-lg) var(--sf-radius-lg);
+  /* WebKit does not clip a composited child (a chart's canvas) to a rounded overflow box; clip-path does. */
+  clip-path: inset(0 round 0 0 var(--sf-radius-lg) var(--sf-radius-lg));
   background: var(--sf-color-bg);
 }
 
@@ -8946,6 +8948,8 @@ button > .sf-item-control-icon:only-child {
   padding: calc(var(--sf-space-8) + var(--sf-space-2)) var(--sf-space-2) var(--sf-space-2);
   overflow: hidden;
   border-radius: calc(var(--sf-radius-xl) * 2.2);
+  /* WebKit does not clip a composited child (a chart's canvas) to a rounded overflow box; clip-path does. */
+  clip-path: inset(0 round calc(var(--sf-radius-xl) * 2.2));
   background: var(--sf-color-bg);
 }
 
@@ -8954,6 +8958,7 @@ button > .sf-item-control-icon:only-child {
   min-height: 0;
   overflow: auto;
   border-radius: var(--sf-radius-md);
+  clip-path: inset(0 round var(--sf-radius-md));
   scrollbar-width: thin;
 }
 
