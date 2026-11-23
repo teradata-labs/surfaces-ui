@@ -3420,6 +3420,7 @@ select.sf-input:disabled {
 
 /* Buttons the host offers under a reply (ChatActions): one row, or a row for each choice. */
 .sf-chat-actions {
+  container: sf-chat-actions / inline-size;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--sf-space-2);
@@ -3466,6 +3467,18 @@ select.sf-input:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sf-space-2);
+}
+
+/* In a narrow panel the buttons share each line they wrap onto, so none is left alone at its natural width. */
+@container sf-chat-actions (max-width: 30rem) {
+  .sf-chat-actions-button {
+    display: flex;
+    flex: 1 1 auto;
+  }
+
+  .sf-chat-actions-button > .sf-button {
+    flex: 1 1 auto;
+  }
 }
 
 /* Shown, reachable and explained, but not pressable. */
