@@ -4,7 +4,7 @@ import type { Field } from "apache-arrow";
 import { type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Chart, type ChartGrain } from "../chart/Chart.js";
 import type { OnContext } from "../controls/context.js";
-import { ControlIcon, type ItemControl, ItemControls, standardControls } from "../controls/ItemControls.js";
+import { ControlIcon, type ItemControl, ItemControls } from "../controls/ItemControls.js";
 import type { FilterSpec } from "@surfaces-ui/data";
 import { filtersExcept, filtersFromSpec } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
@@ -74,7 +74,7 @@ export interface ExplorerProps {
   editor?: string;
   /** Told what a person does here as they do it (a field put on a shelf, a field made or changed, a calculation suggested), for an agent's context. */
   onContext?: OnContext;
-  /** More controls for the view, shown with its chart and table switch when the view is pointed at or focused: a report's "Add to report". */
+  /** Controls for the view, shown in its corner when it is pointed at or focused: a report's "Add to report". Chart or table is chosen under "Draw as". */
   controls?: ItemControl[];
   /** Height of the chart in px. Defaults to 300. */
   chartHeight?: number;
@@ -512,8 +512,7 @@ export function Explorer(props: ExplorerProps) {
   // Calculations and filters start folded unless there are some already; then each stays as a person leaves it.
   const [calculationsOpen, setCalculationsOpen] = useState(() => (props.value ?? props.defaultValue)?.fields?.some((p) => p.kind === "derived") ?? false);
   const [filtersOpen, setFiltersOpen] = useState(() => ((props.value ?? props.defaultValue)?.filters?.length ?? 0) > 0);
-  const [view, setView] = useState<"chart" | "table">("chart");
-  const shown = state.view ?? view;
+  const shown = state.view ?? "chart";
 
   // The query's columns: what a pill can be made from. With no pills given, they are generated from these.
   useEffect(() => {
@@ -597,8 +596,12 @@ export function Explorer(props: ExplorerProps) {
   const CHART_WORD: Record<ExploreChartType, string> = { bar: "bars", line: "a line", area: "an area" };
   const chartTypeNow: ExploreChartType = state.chart?.type ?? (pill(state.rows[0] ?? "")?.grain ? "line" : "bar");
   const setType = (type: ExploreChartType) => {
-    set(setChartSettings(state, { type }));
+    set({ ...setChartSettings(state, { type }), view: "chart" });
     say("chart.changed", `Drawn as ${CHART_WORD[type]}.`, { chart: { type } });
+  };
+  const showTable = () => {
+    set({ ...state, view: "table" });
+    say("view.changed", "Shown as a table.", { view: "table" });
   };
   const cannotSwap = swapProblem(state);
   const swapped = !!state.chart?.swap && !cannotSwap;
@@ -913,15 +916,23 @@ export function Explorer(props: ExplorerProps) {
             );
           })}
         </div>
-        {chart && shown === "chart" && (
+        {chart && (
           <div className="sf-explore-chart-settings">
             <div className="sf-segmented sf-result-views" role="group" aria-label="Draw as">
-              {(["bar", "line", "area"] as ExploreChartType[]).map((type) => (
-                <button key={type} type="button" className="sf-segment" data-checked={chartTypeNow === type || undefined} aria-pressed={chartTypeNow === type} onClick={() => setType(type)}>
-                  {type === "bar" ? "Bars" : type === "line" ? "Line" : "Area"}
-                </button>
-              ))}
+              {(["bar", "line", "area"] as ExploreChartType[]).map((type) => {
+                const on = shown === "chart" && chartTypeNow === type;
+                return (
+                  <button key={type} type="button" className="sf-segment" data-checked={on || undefined} aria-pressed={on} onClick={() => setType(type)}>
+                    {type === "bar" ? "Bars" : type === "line" ? "Line" : "Area"}
+                  </button>
+                );
+              })}
+              <button type="button" className="sf-segment" data-checked={shown === "table" || undefined} aria-pressed={shown === "table"} onClick={showTable}>
+                Table
+              </button>
             </div>
+            {shown === "chart" && (
+            <>
             <button type="button" className="sf-button" aria-pressed={swapped} aria-disabled={!!cannotSwap || undefined} title={cannotSwap} aria-describedby={cannotSwap ? `${uid}-swap` : undefined} onClick={() => !cannotSwap && swap()}>
               Swap axes
             </button>
@@ -948,6 +959,8 @@ export function Explorer(props: ExplorerProps) {
                 ))}
               </ul>
             )}
+            </>
+            )}
           </div>
         )}
         {/* Filters fold away until there are some. */}
@@ -969,14 +982,7 @@ export function Explorer(props: ExplorerProps) {
         ) : (
           // The view's own controls sit over its corner and show on hover or focus, like a tile's.
           <div className="sf-explore-result sf-controls-host" data-controls="corner">
-            <ItemControls
-              label={`${reading || "View"} controls`}
-              controls={[
-                ...(chart ? standardControls(reading || "this view", { view: { now: shown, toggle: () => (props.value?.view !== undefined || state.view ? set({ ...state, view: shown === "chart" ? "table" : "chart" }) : setView(shown === "chart" ? "table" : "chart")) } }) : []),
-                // Last, so a pinned one sits in the corner itself when the rest are quiet.
-                ...(props.controls ?? []),
-              ]}
-            />
+            {props.controls?.length ? <ItemControls label={`${reading || "View"} controls`} controls={props.controls} /> : null}
             <p className="sf-explore-reading">{reading}</p>
             {!chart && <p className="sf-explore-hint">With nothing to break down by there is one number each. Press an attribute for a chart.</p>}
             <ExploreView dataSource={dataSource} sourceId={sourceId} sql={sql} state={state} view={shown} height={chartHeight} label={reading} />

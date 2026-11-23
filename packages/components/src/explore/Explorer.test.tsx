@@ -177,6 +177,26 @@ describe("Explorer", () => {
     });
   });
 
+  it("shows the numbers as a table from Draw as, with no switch hidden in the corner", async () => {
+    let latest: ExploreState = { fields: [], rows: ["region"], values: ["line_amount"], filters: [] };
+    const draw = () => <Explorer dataSource={data()} sourceId="memory" sql="SELECT * FROM lines" value={latest} onChange={(next) => (latest = next)} />;
+    const { rerender } = render(draw());
+    await waitFor(() => expect(latest.fields.length).toBe(4));
+    rerender(draw());
+    expect(screen.queryByRole("button", { name: /as a table/ })).toBeNull();
+    fireEvent.click(within(group("Draw as")).getByRole("button", { name: "Table" }));
+    expect(latest.view).toBe("table");
+    rerender(draw());
+    expect(within(group("Draw as")).getByRole("button", { name: "Table" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.queryByRole("button", { name: "Swap axes" })).toBeNull();
+    expect(within(group("Break down by")).queryByText("X axis")).toBeNull();
+    expect(await screen.findByRole("region", { name: "The numbers behind the view" })).toBeTruthy();
+    // Choosing a chart type draws the chart again.
+    fireEvent.click(within(group("Draw as")).getByRole("button", { name: "Line" }));
+    expect(latest.view).toBe("chart");
+    expect(latest.chart?.type).toBe("line");
+  });
+
   it("says which shelf is which axis, swaps them, and draws each measure as a person sets it", async () => {
     let latest: ExploreState = { fields: [], rows: ["region"], values: ["line_amount"], filters: [] };
     const draw = () => <Explorer dataSource={data()} sourceId="memory" sql="SELECT * FROM lines" value={latest} onChange={(next) => (latest = next)} />;
