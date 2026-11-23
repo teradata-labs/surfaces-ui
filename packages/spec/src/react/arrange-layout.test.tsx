@@ -27,7 +27,7 @@ const page: PageDocument = {
   ],
 };
 
-function Host({ steps }: { steps: { title: string; messages: SurfaceMessage[] }[] }) {
+function Host({ steps, kindName }: { steps: { title: string; messages: SurfaceMessage[] }[]; kindName?(kind: string): string }) {
   const [now, setNow] = useState(page);
   const surface = useMemo(() => pageSurface(now), [now]);
   const arrange = useArrange({
@@ -39,6 +39,7 @@ function Host({ steps }: { steps: { title: string; messages: SurfaceMessage[] }[
     },
     say: () => undefined,
     remove: () => undefined,
+    ...(kindName ? { kindName } : {}),
   });
   return (
     <>
@@ -182,5 +183,20 @@ describe("drop feedback", () => {
     fireEvent.click(frame("one").querySelector<HTMLElement>('.sf-arrange-bar [data-control="later"]')!);
     expect(component("stats")?.children).toEqual(["two", "one"]);
     expect(steps.at(-1)?.title).toBe('Moved "one" later');
+  });
+});
+
+describe("names", () => {
+  it("are the host's words for a kind on the bar and in the labels, and the catalog's otherwise", () => {
+    const { unmount } = render(<Host steps={[]} kindName={(kind) => (kind === "Row" ? "Stack across" : kind)} />);
+    arrangeOn();
+    const bar = frame("stats").querySelector(".sf-arrange-name")!;
+    expect(bar.textContent).toBe("Stack across stats");
+    expect(frame("stats").querySelector("[aria-label=\"Stack across stats controls\"]")).toBeTruthy();
+    expect(frame("title").querySelector(".sf-arrange-name")!.textContent).toBe("Text title");
+    unmount();
+    render(<Host steps={[]} />);
+    arrangeOn();
+    expect(frame("stats").querySelector(".sf-arrange-name")!.textContent).toBe("Row stats");
   });
 });
