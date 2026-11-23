@@ -1,7 +1,9 @@
 import { CONTROLS_QUIET, ItemControls, ResizeHandle, standardControls } from "@surfaces-ui/components";
-import { type PointerEvent as ReactPointerEvent, type ReactNode, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, useMemo, useRef, useState } from "react";
 import { analyticsCatalog } from "../analytics.js";
-import { MIN_COLUMN_SHARE, besideMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, setComponentMessages, slideShares, stepComponentMessages } from "../arrange.js";
+import { MIN_COLUMN_SHARE, besideMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, setComponentMessages, slideShares, spaceDefault, spaceMessages, spaceProps, stepComponentMessages } from "../arrange.js";
+import { SPACE_STEPS, type SpaceStep } from "../basics.js";
+import { spaceName, spaceStep, spaceVar } from "../layout.js";
 import type { Catalog } from "../catalog.js";
 import { isLocked } from "../personal.js";
 import { catalogJson } from "../generate.js";
@@ -31,8 +33,32 @@ export function drawnHeight(drawn: Element | null | undefined): number {
 
 type Side = "before" | "after" | "inside" | "left" | "right";
 type Result = { messages: SurfaceMessage[] } | { error: string };
-/** A size being dragged, shown before it is sent: a component's height prop, or a container's widths. */
-type Preview = { id: string; prop: "height" | "minHeight" | "widths"; value: number | number[] };
+/** A size being dragged, shown before it is sent: a component's height prop, a container's widths, or its gap or padding. */
+type Preview = { id: string; prop: "height" | "minHeight" | "widths" | "gap" | "padding"; value: number | number[] | SpaceStep };
+
+/**
+ * How many pixels a step of the spacing scale is where it is drawn: read from the theme's `--sf-space-<step>` on
+ * `element` (the density changes it), four pixels a step when there is no theme to read.
+ */
+export function spacePixels(step: SpaceStep, element?: Element | null): number {
+  if (step === "none") return 0;
+  const read = element ? Number.parseFloat(getComputedStyle(element).getPropertyValue(`--sf-space-${step}`)) : Number.NaN;
+  return Number.isFinite(read) ? read : step * 4;
+}
+
+/** A step as a designer reads it: "16 px · space-4", or "0 px · none". */
+export function spaceLabel(step: SpaceStep, element?: Element | null): string {
+  return `${Math.round(spacePixels(step, element))} px · ${spaceName(step)}`;
+}
+
+/**
+ * Which container receives a component dropped at `target`: the container itself for a drop inside it, and
+ * otherwise what holds the component it lands beside.
+ */
+export function receivingContainer(surface: Surface | undefined, target: { id: string; side: string } | undefined): string | undefined {
+  if (!target) return undefined;
+  return target.side === "inside" ? target.id : placeOfComponent(surface, target.id)?.parent;
+}
 
 /**
  * Where a dragged component would land for a pointer at (x, y) over a frame.
@@ -159,6 +185,15 @@ export function useArrange(options: {
    * Arrange. Pass `surfaceFrame` to `SurfaceView` to draw them. Off by default.
    */
   resizeWhileViewing?: boolean;
+  /**
+   * The component selected, for a host that keeps its own selection (an outline, an inspector). Without it, Arrange
+   * keeps one: a click on a component's frame, or focus on its bar, selects it. A selected Row, Column or Grid shows
+   * handles in its gap and at its padding (a Card at its padding), which drag, or take the arrow keys, from one
+   * step of the spacing scale to the next.
+   */
+  selected?: string;
+  /** Told when a person selects a component by clicking its frame or focusing its bar. */
+  onSelect?(id: string): void;
 }) {
   const { surface } = options;
   const catalog = options.catalog ?? analyticsCatalog;
@@ -173,6 +208,14 @@ export function useArrange(options: {
   const [ghost, setGhost] = useState<{ x: number; y: number; title: string }>();
   const [sizing, setSizing] = useState<{ id: string; text: string }>();
   const [preview, setPreview] = useState<Preview>();
+  const [ownSelected, setOwnSelected] = useState("");
+  const selected = options.selected ?? ownSelected;
+  const select = (id: string) => {
+    if (options.selected === undefined) setOwnSelected(id);
+    latest.current.onSelect?.(id);
+  };
+  // The container a dragged component would land in, outlined while it is over it.
+  const receiving = dragId ? receivingContainer(surface, dropAt) : undefined;
 
   const done = (result: Result, title: string) => {
     if ("error" in result) return latest.current.say({ text: result.error, error: true });
@@ -358,6 +401,93 @@ export function useArrange(options: {
     );
   };
 
+  /** A click inside a frame selects the innermost component under it; a click on a control inside it does too, and still does what it does. */
+  const selectOnClick = (id: string) => (event: ReactMouseEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest(".sf-arrange-frame, .sf-arrange-root") !== event.currentTarget) return;
+    if ((event.target as HTMLElement).closest(".sf-resize-handle")) return;
+    if (selected !== id) select(id);
+  };
+
+  /** The step a container's gap or padding is drawn with: the one being dragged, the one it has, or its default. */
+  const stepOf = (component: SurfaceComponent | undefined, prop: "gap" | "padding"): SpaceStep => {
+    if (!component) return 4;
+    if (preview?.id === component.id && preview.prop === prop) return preview.value as SpaceStep;
+    return spaceStep(component[prop]) ?? spaceDefault(String(component.component), prop);
+  };
+  /**
+   * A handle that sets a container's `gap` or `padding`, from one step of the spacing scale to the next: a drag
+   * snaps step to step, an arrow key moves one step, Enter takes the prop off (back to the default). Shown and
+   * named with the step's pixels and token ("16 px · space-4"); sent, as one A2UI message, on release.
+   */
+  const spaceHandle = (container: SurfaceComponent, prop: "gap" | "padding", edge: "right" | "bottom", viewing: boolean) => {
+    const id = container.id;
+    const kind = String(container.component);
+    const now = stepOf(container, prop);
+    // Where to read the theme's spacing from: the container's frame once it is drawn, the arranging region before.
+    const element = typeof document === "undefined" ? null : ((typeof CSS !== "undefined" && typeof CSS.escape === "function" ? document.querySelector(frameOf(id, viewing)) : null) ?? document.querySelector(".sf-arrange-region"));
+    const label = spaceLabel(now, element);
+    const at = (index: number) => SPACE_STEPS[Math.max(0, Math.min(SPACE_STEPS.length - 1, Math.round(index)))]!;
+    const selector = `.sf-arrange-space[data-space="${prop}"][data-for="${CSS.escape(id)}"] > .sf-resize-handle`;
+    return (
+      // Which container and which prop, for the stylesheet and to put focus back after a change. It draws no box of its own (display: contents), so the handle sits on the frame's edge.
+      <span className="sf-arrange-space" data-space={prop} data-for={id} data-edge={edge}>
+        <ResizeHandle
+          className="sf-arrange-resize"
+          edge={edge}
+          always
+          label={`${prop === "gap" ? "Gap between the children" : "Padding"} of ${kind} ${id}: drag, or use the arrow keys, to step through the spacing scale`}
+          value={SPACE_STEPS.indexOf(now)}
+          min={0}
+          max={SPACE_STEPS.length - 1}
+          snap={1}
+          step={1}
+          valueText={label}
+          // A step is the scale's second step on screen (8 px at the usual density), so the whole scale is a short drag.
+          unitPixels={(handle) => spacePixels(2, handle)}
+          onChange={(index) => {
+            const step = at(index);
+            setPreview({ id, prop, value: step });
+            setSizing({ id, text: `${prop} ${spaceLabel(step, element)}` });
+          }}
+          onChangeEnd={(index, end) => {
+            setPreview(undefined);
+            setSizing(undefined);
+            if (!end.committed) return;
+            const step = at(index);
+            done(spaceMessages(latest.current.surface, id, prop, step, catalog), `Set the ${prop} of "${id}" to ${spaceLabel(step, element)}`);
+            if (end.via === "keyboard") focusAgain(selector);
+          }}
+          onReset={() => {
+            const { id: _id, component: _kind, [prop]: was, ...rest } = container;
+            if (was === undefined) return;
+            done(setComponentMessages(latest.current.surface, id, rest, catalog), `Put the ${prop} of "${id}" back to ${spaceLabel(spaceDefault(kind, prop), element)}`);
+            focusAgain(selector);
+          }}
+        />
+        <span className="sf-arrange-space-label" aria-hidden="true">
+          {label}
+        </span>
+      </span>
+    );
+  };
+  /** The gap handle a selected container shows: after its first child, across a Row or a Grid of several columns, down a Column. */
+  const gapHandle = (place: { parent: string; index: number; count: number }, viewing: boolean) => {
+    const container = surface?.components[place.parent];
+    if (!container || container.id !== selected || place.index !== 0 || place.count < 2 || !spaceProps(String(container.component), catalog).includes("gap")) return null;
+    const across = container.component === "Row" || (container.component === "Grid" && (typeof container.columns === "number" ? container.columns : 2) > 1);
+    return spaceHandle(container, "gap", across ? "right" : "bottom", viewing);
+  };
+  /** The padding handle a selected container shows, at the inside of its left edge. */
+  const paddingHandle = (component: SurfaceComponent, viewing: boolean) => (component.id === selected && spaceProps(String(component.component), catalog).includes("padding") ? spaceHandle(component, "padding", "right", viewing) : null);
+  /** The variables a frame carries for its handles and insertion line: the gap of what holds it, and its own padding. */
+  const frameStyle = (component: SurfaceComponent, place: { parent: string } | undefined): CSSProperties | undefined => {
+    const parent = place ? surface?.components[place.parent] : undefined;
+    const style: Record<string, string> = {};
+    if (parent && spaceProps(String(parent.component), catalog).includes("gap")) style["--sf-arrange-gap"] = spaceVar(stepOf(parent, "gap"));
+    if (spaceProps(String(component.component), catalog).includes("padding")) style["--sf-arrange-padding"] = spaceVar(stepOf(component, "padding"));
+    return Object.keys(style).length > 0 ? (style as CSSProperties) : undefined;
+  };
+
   /**
    * While nobody is arranging (with `resizeWhileViewing`): only the handles,
    * on a plain box. The width handle between a Grid's or Row's columns, and
@@ -374,7 +504,7 @@ export function useArrange(options: {
     const height = sized ? heightHandle(component, true) : null;
     if (!width && !height) return drawn;
     return (
-      <div className="sf-arrange-view" data-component={component.id}>
+      <div className="sf-arrange-view" data-component={component.id} style={frameStyle(component, place)}>
         {drawn}
         {height}
         {width}
@@ -394,11 +524,20 @@ export function useArrange(options: {
       </div>
     );
     if (!place) {
+      // The root has no bar, but it can be selected (by a click on it, or by the host) and receive what is dropped.
       return (
-        <>
+        <div
+          className="sf-arrange-root"
+          data-component={id}
+          data-selected={selected === id || undefined}
+          data-receiving={receiving === id || undefined}
+          style={frameStyle(component, undefined)}
+          onClick={selectOnClick(id)}
+        >
           {drawn}
           {inside}
-        </>
+          {paddingHandle(component, false)}
+        </div>
       );
     }
     const across = ["Row", "Grid"].includes(String(surface?.components[place.parent]?.component));
@@ -409,8 +548,19 @@ export function useArrange(options: {
         data-dragging={dragId === id || undefined}
         data-over={dropAt?.id === id && dropAt.side !== "inside" ? dropAt.side : undefined}
         data-across={across || undefined}
+        data-selected={selected === id || undefined}
+        data-receiving={receiving === id || undefined}
+        style={frameStyle(component, place)}
+        onClick={selectOnClick(id)}
       >
-        <div className="sf-arrange-bar" onPointerDown={(event) => startDrag(event, id, `${kind} ${id}`)}>
+        <div
+          className="sf-arrange-bar"
+          onPointerDown={(event) => startDrag(event, id, `${kind} ${id}`)}
+          // Reaching a component's controls by keyboard selects it, so its gap and padding handles come next in order.
+          onFocus={() => {
+            if (selected !== id) select(id);
+          }}
+        >
           <span className="sf-arrange-grip" aria-hidden="true">
             ⠿
           </span>
@@ -447,6 +597,10 @@ export function useArrange(options: {
         {inside}
         {heightHandle(component, false)}
         {widthHandle(component, place, false)}
+        {gapHandle(place, false)}
+        {paddingHandle(component, false)}
+        {/* Where a dragged component will land: a line in the gap on that side, not a mark on this frame. */}
+        {dropAt?.id === id && dropAt.side !== "inside" && dragId && <div className="sf-arrange-insert" data-side={dropAt.side} data-across={across || undefined} aria-hidden="true" />}
       </div>
     );
   };
@@ -466,6 +620,10 @@ export function useArrange(options: {
       setArranging((on) => !on);
     },
     frame,
+    /** The component selected: the host's `selected`, or the last one a person clicked or reached by keyboard. */
+    selected,
+    /** Selects a component, as a click on its frame does. An empty id selects nothing. */
+    select,
     /**
      * What to pass to `SurfaceView` as `frame`: Arrange's frames while
      * arranging, the size handles alone while viewing with
@@ -513,8 +671,9 @@ export function ArrangeHelp({ arrange, status }: { arrange: Arrange; status?: { 
   return (
     <div className="sf-arrange-help">
       <p>
-        Drag a component by its bar to move it, to either side of one to put the two side by side, or onto the end of a container. Drag the handle under it to change its height, or at its
-        right edge to change widths. Arrow keys do the same on the bar and the handles; Escape stops a drag.
+        Drag a component by its bar to move it, to either side of one to put the two side by side, or onto the end of a container; a line shows where it will go and the container that
+        takes it is outlined. Drag the handle under it to change its height, or at its right edge to change widths. Select a Row, Column, Grid or Card by clicking it to show handles
+        in its gap and padding, which step through the spacing scale. Arrow keys do the same on the bar and the handles; Escape stops a drag.
       </p>
       {status?.text && <p role={status.error ? "alert" : "status"}>{status.text}</p>}
     </div>

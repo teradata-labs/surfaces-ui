@@ -5,7 +5,7 @@ Several children side by side as panels a person can arrange: drag a panel by it
 ## Props
 
 - `label` (optional): string — What the workspace is, for assistive technology.
-- `panels`: array of { id: string, title: string, short?: string, icon?: "surface" | "agent" | "components" | "table" | "code" | "data" | "history" | "save" | "search" | "map" | "chart" | "grid" | "settings" | "note" | "folder", child: string }
+- `panels`: array of { id: string, title: string, short?: string, icon?: "surface" | "agent" | "components" | "table" | "code" | "data" | "history" | "save" | "search" | "map" | "chart" | "grid" | "settings" | "note" | "folder" | "person" | "bell" | "people", child: string }
 - `layout` (optional): { columns: array of array of string, columnWidths?: array of number, rowHeights?: array of array of number, hidden?: array of string, collapsed?: array of string, places?: { [name]: { column: integer, row: integer, sole?: boolean } } }
 - `rail` (optional): "left" | "right" | "none" — Where the rail of panel toggles sits. Defaults to right.
 - `railLabels` (optional): boolean — Whether the rail shows a short name under each icon. Left out, the rail is icons only and each name shows in a tooltip; a person can turn names on.

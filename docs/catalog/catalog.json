@@ -287,7 +287,7 @@
       "additionalProperties": false
     },
     "Row": {
-      "description": "Places children side by side. Wraps on narrow screens. Children share the width equally unless `widths` gives each its share.",
+      "description": "Places children side by side. Wraps on narrow screens unless `wrap` is false. Children share the width equally unless `widths` gives each its share, or `sizes` says how each is sized (content width, fill, or fixed pixels); `sizes` wins over `widths` when both have one entry per child. `gap` and `padding` are steps of the theme's spacing scale.",
       "type": "object",
       "properties": {
         "id": {
@@ -524,7 +524,7 @@
           ]
         },
         "widths": {
-          "description": "The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child.",
+          "description": "The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child and `sizes` is not used.",
           "minItems": 1,
           "maxItems": 12,
           "type": "array",
@@ -532,6 +532,109 @@
             "type": "number",
             "exclusiveMinimum": 0
           }
+        },
+        "sizes": {
+          "description": "How each child is sized, one per child: \"hug\" keeps its content's width and does not grow, \"fill\" grows to share the space left, { fixed: 240 } is that many pixels wide. Used when it has one entry per child, in place of `widths`. Narrow screens stack the children unless `wrap` is false.",
+          "minItems": 1,
+          "maxItems": 12,
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "hug"
+              },
+              {
+                "type": "string",
+                "const": "fill"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "fixed": {
+                    "type": "number",
+                    "minimum": 24,
+                    "maximum": 1600,
+                    "description": "A width in pixels, 24 to 1600."
+                  }
+                },
+                "required": [
+                  "fixed"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "wrap": {
+          "description": "Whether children move onto a new line when they do not fit, and stack on narrow screens. Defaults to true; false keeps them on one line, each shrinking to fit.",
+          "type": "boolean"
+        },
+        "gap": {
+          "description": "The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or \"none\". Defaults to 4.",
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "none"
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            },
+            {
+              "type": "number",
+              "const": 6
+            },
+            {
+              "type": "number",
+              "const": 8
+            }
+          ]
+        },
+        "padding": {
+          "description": "The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or \"none\". Defaults to \"none\".",
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "none"
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            },
+            {
+              "type": "number",
+              "const": 6
+            },
+            {
+              "type": "number",
+              "const": 8
+            }
+          ]
         },
         "justify": {
           "type": "string",
@@ -569,7 +672,7 @@
       "additionalProperties": false
     },
     "Column": {
-      "description": "Stacks children top to bottom. Use it as the root of most surfaces.",
+      "description": "Stacks children top to bottom. Use it as the root of most surfaces. `gap` and `padding` are steps of the theme's spacing scale.",
       "type": "object",
       "properties": {
         "id": {
@@ -805,6 +908,72 @@
             }
           ]
         },
+        "gap": {
+          "description": "The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or \"none\". Defaults to 4.",
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "none"
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            },
+            {
+              "type": "number",
+              "const": 6
+            },
+            {
+              "type": "number",
+              "const": 8
+            }
+          ]
+        },
+        "padding": {
+          "description": "The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or \"none\". Defaults to \"none\".",
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "none"
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            },
+            {
+              "type": "number",
+              "const": 6
+            },
+            {
+              "type": "number",
+              "const": 8
+            }
+          ]
+        },
         "justify": {
           "type": "string",
           "enum": [
@@ -841,7 +1010,7 @@
       "additionalProperties": false
     },
     "Grid": {
-      "description": "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: \"start\"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height.",
+      "description": "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: \"start\"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height. `gap` is a step of the theme's spacing scale, between rows and columns alike.",
       "type": "object",
       "properties": {
         "id": {
@@ -1103,6 +1272,39 @@
             "stretch"
           ]
         },
+        "gap": {
+          "description": "The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or \"none\". Defaults to 4.",
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "none"
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            },
+            {
+              "type": "number",
+              "const": 6
+            },
+            {
+              "type": "number",
+              "const": 8
+            }
+          ]
+        },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
           "type": "integer",
@@ -1118,7 +1320,7 @@
       "additionalProperties": false
     },
     "Card": {
-      "description": "A bordered container for one child, to group related content.",
+      "description": "A bordered container for one child, to group related content. `padding` is a step of the theme's spacing scale.",
       "type": "object",
       "properties": {
         "id": {
@@ -1331,6 +1533,39 @@
         "child": {
           "type": "string",
           "description": "ID of a child component."
+        },
+        "padding": {
+          "description": "The space inside the edge, around the children, as a step of the theme's spacing scale (`--sf-space-<step>`), or \"none\". Defaults to 4.",
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "none"
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            },
+            {
+              "type": "number",
+              "const": 6
+            },
+            {
+              "type": "number",
+              "const": 8
+            }
+          ]
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
@@ -1829,7 +2064,10 @@
                   "grid",
                   "settings",
                   "note",
-                  "folder"
+                  "folder",
+                  "person",
+                  "bell",
+                  "people"
                 ]
               },
               "child": {

@@ -82,6 +82,7 @@ import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useSta
 import { safeUrl } from "../functions.js";
 import type { ComponentRenderer, RenderProps } from "./Surface.js";
 import { withFilters } from "./renderers.js";
+import { spaceAttributes } from "./layout.js";
 
 const text = (value: unknown): string => (value == null ? "" : typeof value === "object" ? "" : String(value));
 /** Sorts as an agent writes them, as a query takes them. */
@@ -519,6 +520,7 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
         data-align={align}
         data-arrange-container
         data-widths={widths ? true : undefined}
+        {...spaceAttributes(props, { gap: true })}
         style={{ "--sf-grid-columns": columns, ...(align ? { alignItems: align } : {}), ...(widths ? { "--sf-grid-template": widths.map((w) => `minmax(0, ${w}fr)`).join(" ") } : {}) } as CSSProperties}
       >
         {children(component.children)}

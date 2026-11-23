@@ -41,6 +41,27 @@ const FIELDS = z
     });
   });
 
+/**
+ * The steps of the theme's spacing scale a layout can use for its gap and padding: each is `--sf-space-<step>`,
+ * and "none" is no space at all. There is no other value, so a page stays on the theme's spacing.
+ */
+export const SPACE_STEPS = ["none", 1, 2, 3, 4, 6, 8] as const;
+export type SpaceStep = (typeof SPACE_STEPS)[number];
+const SPACE_STEP = z.union([z.literal("none"), z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(6), z.literal(8)]);
+const LAYOUT_GAP = SPACE_STEP.optional().describe("The space between children, as a step of the theme's spacing scale (`--sf-space-<step>`), or \"none\". Defaults to 4.");
+const LAYOUT_PADDING = SPACE_STEP.optional();
+const LAYOUT_PADDING_NOTE = (fallback: string) => `The space inside the edge, around the children, as a step of the theme's spacing scale (\`--sf-space-<step>\`), or "none". Defaults to ${fallback === "none" ? '"none"' : fallback}.`;
+/** The least and most pixels a Row's child can be fixed to. */
+export const FIXED_SIZE = { min: 24, max: 1600 } as const;
+/** How one child of a Row is sized: its content's width, a share of the space left, or a fixed width in pixels. */
+export const LAYOUT_SIZE = z.union([
+  z.literal("hug"),
+  z.literal("fill"),
+  z.strictObject({ fixed: z.number().min(FIXED_SIZE.min).max(FIXED_SIZE.max).describe(`A width in pixels, ${FIXED_SIZE.min} to ${FIXED_SIZE.max}.`) }),
+]);
+export type LayoutSize = z.infer<typeof LAYOUT_SIZE>;
+const LAYOUT_SIZES = z.array(LAYOUT_SIZE).min(1).max(12).optional();
+
 const INPUT_NOTE = "The value is written to the data model at `value.path` as the person types, so other components (a Button's event context, a Text) can bind to it. Nothing is sent until a control sends an event.";
 
 const str = (about: string) => z.string().describe(about);
@@ -68,7 +89,8 @@ const definitions = {
       example: { id: "title", component: "Text", text: "Revenue this quarter", variant: "h2" },
     },
     Row: {
-      description: "Places children side by side. Wraps on narrow screens. Children share the width equally unless `widths` gives each its share.",
+      description:
+        "Places children side by side. Wraps on narrow screens unless `wrap` is false. Children share the width equally unless `widths` gives each its share, or `sizes` says how each is sized (content width, fill, or fixed pixels); `sizes` wins over `widths` when both have one entry per child. `gap` and `padding` are steps of the theme's spacing scale.",
       props: {
         children: childList,
         widths: z
@@ -76,16 +98,24 @@ const definitions = {
           .min(1)
           .max(12)
           .optional()
-          .describe("The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child."),
+          .describe("The share of the width each child takes, one per child: [2, 1] makes the first twice as wide as the second. Used when it has one entry per child and `sizes` is not used."),
+        sizes: LAYOUT_SIZES.describe(
+          "How each child is sized, one per child: \"hug\" keeps its content's width and does not grow, \"fill\" grows to share the space left, { fixed: 240 } is that many pixels wide. Used when it has one entry per child, in place of `widths`. Narrow screens stack the children unless `wrap` is false.",
+        ),
+        wrap: z.boolean().optional().describe("Whether children move onto a new line when they do not fit, and stack on narrow screens. Defaults to true; false keeps them on one line, each shrinking to fit."),
+        gap: LAYOUT_GAP,
+        padding: LAYOUT_PADDING.describe(LAYOUT_PADDING_NOTE("none")),
         justify: z.enum(["start", "center", "end", "spaceBetween", "spaceAround", "spaceEvenly", "stretch"]).optional(),
         align: z.enum(["start", "center", "end", "stretch"]).optional(),
       },
       example: { id: "stats", component: "Row", children: ["revenue", "orders"] },
     },
     Column: {
-      description: "Stacks children top to bottom. Use it as the root of most surfaces.",
+      description: "Stacks children top to bottom. Use it as the root of most surfaces. `gap` and `padding` are steps of the theme's spacing scale.",
       props: {
         children: childList,
+        gap: LAYOUT_GAP,
+        padding: LAYOUT_PADDING.describe(LAYOUT_PADDING_NOTE("none")),
         justify: z.enum(["start", "center", "end", "spaceBetween", "spaceAround", "spaceEvenly", "stretch"]).optional(),
         align: z.enum(["start", "center", "end", "stretch"]).optional(),
       },
@@ -93,7 +123,7 @@ const definitions = {
     },
     Grid: {
       description:
-        "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: \"start\"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height.",
+        "Lays children out in columns that wrap onto new rows. Use it for dashboards: a row of numbers, then charts side by side. Columns are equal unless `widths` gives each its share, as when a person resizes them by hand. Children in a row are stretched to the tallest one; set `align: \"start\"` when the row mixes content of different heights, such as a chart beside a form, so each keeps its own height. `gap` is a step of the theme's spacing scale, between rows and columns alike.",
       props: {
         children: childList,
         columns: z.number().int().min(1).max(6).optional().describe("Columns per row. Defaults to 2. Narrow screens use one."),
@@ -107,12 +137,13 @@ const definitions = {
           .enum(["start", "center", "end", "stretch"])
           .optional()
           .describe("Where each child sits in the height of its row. Defaults to stretch: every child as tall as the tallest. Use start for mixed content, so each keeps its own height."),
+        gap: LAYOUT_GAP,
       },
       example: { id: "tiles", component: "Grid", columns: 3, children: ["revenue", "orders", "average"] },
     },
     Card: {
-      description: "A bordered container for one child, to group related content.",
-      props: { child: childId },
+      description: "A bordered container for one child, to group related content. `padding` is a step of the theme's spacing scale.",
+      props: { child: childId, padding: LAYOUT_PADDING.describe(LAYOUT_PADDING_NOTE("4")) },
       example: { id: "panel", component: "Card", child: "chart" },
     },
     Divider: {

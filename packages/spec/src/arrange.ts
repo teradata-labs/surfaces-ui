@@ -1,4 +1,5 @@
 import { analyticsCatalog } from "./analytics.js";
+import type { SpaceStep } from "./basics.js";
 import type { Catalog } from "./catalog.js";
 import { A2UI_VERSION } from "./dynamic.js";
 import { isLocked } from "./personal.js";
@@ -183,10 +184,36 @@ export function slideShares(shares: number[], index: number, delta: number): num
 export function gridWidthsMessages(surface: Surface | undefined, containerId: string, shares: number[], catalog: Catalog = analyticsCatalog): { messages: SurfaceMessage[] } | { error: string } {
   const container = surface?.components[containerId];
   if (!container || (container.component !== "Grid" && container.component !== "Row")) return { error: `"${containerId}" is not a Grid or a Row, so the widths inside it cannot be set.` };
-  const { id: _id, component: _component, ...props } = container;
+  // A Row's `sizes` would win over the widths a person just dragged, so dragging them gives the children shares instead.
+  const { id: _id, component: _component, sizes: _sizes, ...props } = container;
   const widths = shares.map((w) => Math.round(w * 1000) / 1000);
-  if (JSON.stringify(widths) === JSON.stringify(gridShares(container).map((w) => Math.round(w * 1000) / 1000))) return { messages: [] };
+  if (_sizes === undefined && JSON.stringify(widths) === JSON.stringify(gridShares(container).map((w) => Math.round(w * 1000) / 1000))) return { messages: [] };
   return setComponentMessages(surface, containerId, { ...props, widths }, catalog);
+}
+
+/** Which of `gap` and `padding` a kind of component takes, by its catalog entry. */
+export function spaceProps(kind: string, catalog: Catalog = analyticsCatalog): ("gap" | "padding")[] {
+  const props = catalog.components[kind]?.props;
+  return props ? (["gap", "padding"] as const).filter((prop) => prop in props) : [];
+}
+
+/**
+ * The A2UI message that sets a container's `gap` or `padding` to a step of the spacing scale: the same message an
+ * agent sends. The step the component already has, or the default it falls back to, sends nothing.
+ */
+export function spaceMessages(surface: Surface | undefined, id: string, prop: "gap" | "padding", step: SpaceStep, catalog: Catalog = analyticsCatalog): { messages: SurfaceMessage[] } | { error: string } {
+  const component = surface?.components[id];
+  if (!component) return { error: `There is no "${id}" on this surface.` };
+  const kind = String(component.component);
+  if (!spaceProps(kind, catalog).includes(prop)) return { error: `A ${kind} has no ${prop}.` };
+  if ((component[prop] ?? spaceDefault(kind, prop)) === step) return { messages: [] };
+  const { id: _id, component: _component, ...props } = component;
+  return setComponentMessages(surface, id, { ...props, [prop]: step }, catalog);
+}
+
+/** The step a container's `gap` or `padding` is drawn with when it is not set: a gap of 4, a Card's padding of 4, no padding otherwise. */
+export function spaceDefault(kind: string, prop: "gap" | "padding"): SpaceStep {
+  return prop === "gap" || kind === "Card" ? 4 : "none";
 }
 
 /** Which prop sizes a component's height: its own `height` when its catalog entry has one, the box's `minHeight` otherwise. */
