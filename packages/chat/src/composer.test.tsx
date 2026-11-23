@@ -223,6 +223,29 @@ describe("providers", () => {
     fireEvent.click(screen.getByRole("button", { name: "Manage providers…" }));
     expect(onManageProviders).toHaveBeenCalledOnce();
   });
+
+  it("draws a model's level as rising bars beside its word, which is what is read", () => {
+    const providers = [
+      {
+        id: "server",
+        label: "Anthropic",
+        models: [
+          { id: "1", label: "Claude Haiku", level: { value: 1, of: 3, label: "Quick" } },
+          { id: "2", label: "Claude Sonnet", level: { value: 2, of: 3, label: "Everyday" } },
+          { id: "3", label: "Claude Opus" },
+        ],
+      },
+    ];
+    render(<ChatComposer onSend={() => {}} agents={[]} providers={providers} settings={{}} onSettingsChange={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: /^Model:/ }));
+    const sonnet = screen.getByRole("radio", { name: /Claude Sonnet/ });
+    expect(sonnet.textContent).toContain("Everyday");
+    const bars = sonnet.querySelector(".sf-chat-model-bars")!;
+    expect(bars.getAttribute("aria-hidden")).toBe("true");
+    expect([...bars.children].map((b) => b.hasAttribute("data-on"))).toEqual([true, true, false]);
+    expect([...bars.children].map((b) => (b as HTMLElement).style.blockSize)).toEqual(["33%", "67%", "100%"]);
+    expect(screen.getByRole("radio", { name: /Claude Opus/ }).querySelector(".sf-chat-model-bars")).toBeNull();
+  });
 });
 
 describe("voice", () => {
