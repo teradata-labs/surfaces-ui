@@ -342,8 +342,9 @@ export function swapProblem(state: ExploreState): string | undefined {
 /**
  * The chart for what is on the shelves, or undefined when there is nothing
  * to draw one from (no attribute, or no value). A date is a line over time;
- * categories are bars, largest first. A second attribute, or the split,
- * becomes the series when one value is shown.
+ * categories are bars, largest first. The split becomes the series, with
+ * each measure for each of its values; a second attribute does when one
+ * value is shown.
  */
 export function exploreChart(state: ExploreState): ExploreChart | undefined {
   const rows = state.rows.map((id) => pillOf(state, id)).filter((p): p is Pill => p?.kind === "attribute");
@@ -382,8 +383,9 @@ export function exploreChart(state: ExploreState): ExploreChart | undefined {
     type,
     x: x.column!,
     ...(x.grain ? { xGrain: x.grain } : {}),
-    // Series come from one place: a split when one value is shown, the values themselves otherwise.
-    ...(split?.column && !split.grain && values.length === 1 ? { splitBy: split.column } : {}),
+    // The split makes the series, one per value and measure ("North · Revenue") when there are several measures;
+    // a second attribute on the rows splits only one measure, so more on the rows never multiplies the lines unasked.
+    ...(split?.column && !split.grain && (state.split || values.length === 1) ? { splitBy: split.column } : {}),
     y,
     xTitle: x.label,
     // With two scales each is named, so a reader knows which line is read against which.
