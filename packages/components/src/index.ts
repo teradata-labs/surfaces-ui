@@ -77,6 +77,7 @@ export * from "./controls/SegmentedControl.js";
 export * from "./controls/ConfirmDialog.js";
 export * from "./controls/StatusBadge.js";
 export * from "./controls/Combobox.js";
+export * from "./controls/Popover.js";
 export * from "./table/DataTable.js";
 export * from "./table/SelectionBar.js";
 export * from "./table/Pagination.js";

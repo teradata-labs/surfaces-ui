@@ -5,6 +5,7 @@ import type { ResizeHandleProps } from "./controls/ResizeHandle.js";
 import type { SegmentedControlProps } from "./controls/SegmentedControl.js";
 import type { ComboboxProps } from "./controls/Combobox.js";
 import type { ConfirmDialogProps } from "./controls/ConfirmDialog.js";
+import type { PopoverProps } from "./controls/Popover.js";
 import type { StatusBadgeProps } from "./controls/StatusBadge.js";
 import type { DataTableProps } from "./table/DataTable.js";
 import type { PaginationProps } from "./table/Pagination.js";
@@ -600,7 +601,29 @@ export const comboboxDoc = describeAppComponent<ComboboxProps>()({
 });
 
 /** Every app component of `@surfaces-ui/components`. */
-export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, resizeHandleDoc, segmentedControlDoc, dataTableDoc, selectionBarDoc, paginationDoc, confirmDialogDoc, statusBadgeDoc, comboboxDoc, navBarDoc];
+export const popoverDoc = describeAppComponent<PopoverProps>()({
+  name: "Popover",
+  from: COMPONENTS,
+  description:
+    "A button that opens a small panel of controls beneath it: a view's width, zoom and data state behind one View button on a crowded toolbar. The button carries its label and, optionally, a short summary of what is set now. The panel is a non-modal dialog opened by a disclosure button (`aria-expanded`, `aria-controls`): opening moves focus to its first control, Tab moves through it and on past it (which closes it), Escape closes it and puts focus back on the button, and a press or focus anywhere else closes it. It sits below the button, lined up with its start or end edge, moves along to stay inside the window and goes above the button only when there is no room below. It holds its own open state unless the host passes `open`. For a list of actions use `useContextMenu`; for a question that must be answered first, `ConfirmDialog`.",
+  props: {
+    type: "object",
+    properties: {
+      label: { type: "string", description: 'What the button says, and the panel\'s name for assistive technology: "View".' },
+      summary: { type: "string", description: 'A few words after the label saying what is set now: "Fit · 100% · Real data". Part of the button\'s name.' },
+      align: { type: "string", enum: ["start", "end"], description: "Line the panel up with the button's start edge (the default) or its end edge." },
+      open: { type: "boolean", description: "Open, when the host holds it. Leave out to let the popover hold it." },
+      defaultOpen: { type: "boolean", description: "Open at first, when the popover holds it. Being open when first drawn takes no focus from the page." },
+      disabled: { type: "boolean" },
+    },
+    required: ["label"],
+  },
+  parts: [{ prop: "children", label: "The panel's controls", description: "What the panel holds: selects, a `SegmentedControl`, check boxes. On the page: width, zoom and data state.", required: true }],
+  callbacks: [{ prop: "onOpenChange", description: "Every change asked for: the button, Escape, a press or focus outside. Set `open` from it when the host holds it." }],
+  example: { label: "View", summary: "Fit · 100% · Real data", align: "end" },
+});
+
+export const componentsAppComponents: AppComponentDoc[] = [themePickerDoc, connectionBuilderDoc, modelLineageDoc, checksPanelDoc, objectInfoDoc, certificationBadgeDoc, itemControlsDoc, resizeHandleDoc, segmentedControlDoc, dataTableDoc, selectionBarDoc, paginationDoc, confirmDialogDoc, statusBadgeDoc, comboboxDoc, popoverDoc, navBarDoc];
 
 /** A component's reference page, as Markdown: what it is for, its props, the parts a host supplies and an example. */
 export function appComponentMarkdown(doc: AppComponentDoc): string {

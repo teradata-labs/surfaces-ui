@@ -135,6 +135,9 @@ Everything a pointer can do has a key. A right-click menu opens with the Menu ke
 | `Combobox` | ↓ ↑ | Open the suggestions and move through them; focus stays in the box (`aria-activedescendant`) |
 | `Combobox` | Enter | Choose the highlighted suggestion; with none highlighted, Enter goes to the form, so what was typed stands |
 | `Combobox` | Escape | Close the suggestions; a second Escape clears the box |
+| `Popover` | Enter or Space on its button | Open the panel and move focus to its first control; again on the button closes it |
+| `Popover` | Tab, Shift+Tab | Move through the panel's controls; Tab past the last one goes on to the page and closes it |
+| `Popover` | Escape, or a press outside | Close; Escape puts focus back on the button |
 | Arrange (`useArrange`, `PageStudio` with `arrange`, the Playground), a resize handle | ↑ ↓ on the handle under a component; ← → on the handle at its right edge in a grid or row | Make the component 20 pixels shorter or taller, or move the line between it and its neighbour by 4% of the row; focus stays on the handle. Handles show for the component under the pointer or with focus, and always on a touch screen. With `resizeWhileViewing` (the pages gallery and the Playground) the width handles and the height handle under a component with a height of its own (a chart or a table, say) or one whose height is set stay while nobody is arranging, and work the same |
 | Arrange (`useArrange`, `PageStudio` with `arrange`, the Playground) | The arrow controls on a component's bar (one tab stop, ← → between them), or Up and Down in the Playground's Components panel | Move the component one place earlier or later in its container, as dragging it does; focus stays on the control. Remove takes it off. Escape stops a drag |
 | Workspace (a divider) | ← → between columns, ↑ ↓ between stacked panels | Resize the two sides of the divider (also drag it) |

@@ -749,6 +749,7 @@ a.sf-button {
 /* Secondary text on glass is a step stronger, so it reads over whatever passes behind. */
 .sf-menu,
 .sf-chat-popover,
+.sf-popover-panel,
 .sf-workspace-tip,
 .sf-item-tip,
 .sf-glass {
@@ -9397,6 +9398,98 @@ button > .sf-item-control-icon:only-child {
   color: var(--sf-color-muted);
 }
 
+/* ---- Popover: a button and the small panel of controls it opens ---- */
+
+.sf-popover {
+  display: inline-block;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sf-popover-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-2);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sf-popover-label {
+  flex: none;
+}
+
+/* What is set now: quieter than the label, and the part that gives way when the button is short of room. */
+.sf-popover-summary {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--sf-color-muted);
+  font-weight: var(--sf-font-weight-regular);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A chevron drawn from two edges, so it takes the text's colour; it turns over while the panel is open. */
+.sf-popover-caret {
+  flex: none;
+  width: 0.4em;
+  height: 0.4em;
+  margin-block-end: 0.2em;
+  border: solid currentColor;
+  border-width: 0 0.125em 0.125em 0;
+  rotate: 45deg;
+  transition: rotate var(--sf-duration-fast) var(--sf-ease);
+}
+
+.sf-popover-button[aria-expanded="true"] .sf-popover-caret {
+  margin-block: 0.2em 0;
+  rotate: -135deg;
+}
+
+/*
+ * Fixed to the window and placed by the script (below the button, or above it with no room below), in the top
+ * layer where the browser has one. Its margin is both the gap to the button and the least room kept from the
+ * window's edge, so on a phone it is never wider than the window.
+ */
+.sf-popover-panel {
+  position: fixed;
+  inset: auto;
+  z-index: 1000;
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--sf-space-3);
+  width: max-content;
+  min-width: 14rem;
+  max-width: min(24rem, calc(100vw - 2 * var(--sf-space-1)));
+  height: auto;
+  margin: var(--sf-space-1);
+  padding: var(--sf-space-3);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--sf-glass-edge);
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-glass-thick);
+  -webkit-backdrop-filter: var(--sf-glass-filter);
+  backdrop-filter: var(--sf-glass-filter);
+  box-shadow: inset 0 1px 0 var(--sf-glass-highlight), var(--sf-glass-shadow);
+  animation: sf-pop var(--sf-duration) var(--sf-ease-spring);
+  color: var(--sf-color-text);
+  font-family: var(--sf-font);
+  font-size: var(--sf-font-size-sm);
+}
+
+.sf-popover-panel[hidden] {
+  display: none;
+}
+
+.sf-popover-panel:focus {
+  outline: none;
+}
+
+.sf-popover-panel:focus-visible {
+  outline: 2px solid var(--sf-color-focus);
+  outline-offset: 2px;
+}
+
 @media (hover: none) {
   .sf-data-table-check > input {
     width: 1.4em;
@@ -9408,7 +9501,8 @@ button > .sf-item-control-icon:only-child {
   .sf-status,
   .sf-selection-bar,
   .sf-confirm,
-  .sf-combobox-popup {
+  .sf-combobox-popup,
+  .sf-popover-panel {
     border-color: CanvasText;
   }
 
