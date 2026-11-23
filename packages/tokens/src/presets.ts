@@ -108,6 +108,12 @@ export const presets: readonly Theme[] = [
 
 export const defaultTheme: Theme = presets[0]!;
 
-export function presetByName(name: string): Theme | undefined {
-  return presets.find((p) => p.name.toLowerCase() === name.toLowerCase());
+/**
+ * A theme by name, ignoring case: a built-in preset, or one of the host's own
+ * `themes` (a company's brand themes, say). A built-in name always means the
+ * built-in theme, so a host theme cannot change what "Ink" looks like.
+ */
+export function presetByName(name: string, themes: readonly Theme[] = []): Theme | undefined {
+  const wanted = name.toLowerCase();
+  return presets.find((p) => p.name.toLowerCase() === wanted) ?? themes.find((t) => t.name.toLowerCase() === wanted);
 }

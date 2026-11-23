@@ -115,4 +115,18 @@ describe("ThemePicker", () => {
     expect(screen.queryByLabelText("Corner radius")).toBeNull();
     expect(screen.getByText("Appearance")).toBeTruthy();
   });
+
+  it("offers the provider's own themes after the built-in ones, and not one that reuses a built-in name", () => {
+    const acme = { ...defaultTheme, name: "Acme", radius: 3 };
+    const impostor = { ...defaultTheme, name: "sand", radius: 0 };
+    render(
+      <ThemeProvider storage={null} themes={[acme, impostor]}>
+        <ThemePicker />
+        <Probe />
+      </ThemeProvider>,
+    );
+    expect(screen.getAllByRole("radio", { name: /sand/i })).toHaveLength(1);
+    fireEvent.click(screen.getByRole("radio", { name: "Acme" }));
+    expect(screen.getByTestId("probe").textContent).toBe(`Acme|system|3|${defaultTheme.light.accent}`);
+  });
 });

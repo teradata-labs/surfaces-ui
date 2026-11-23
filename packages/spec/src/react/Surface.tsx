@@ -579,7 +579,8 @@ function SurfaceTheme({ request, children }: { request: ThemeRequest; children: 
   const host = useOptionalTheme();
   const base = host?.theme ?? defaultTheme;
   const key = JSON.stringify(request);
-  const result = useMemo(() => applyThemeRequest(request, base), [key, base]); // eslint-disable-line react-hooks/exhaustive-deps
+  const themes = host?.themes;
+  const result = useMemo(() => applyThemeRequest(request, base, { themes }), [key, base, themes]); // eslint-disable-line react-hooks/exhaustive-deps
   const mode = result.mode ?? host?.mode ?? "system";
   return (
     <ThemeProvider key={`${key}:${JSON.stringify(base)}:${mode}`} scope="scoped" storage={null} initialTheme={result.theme} initialMode={mode}>

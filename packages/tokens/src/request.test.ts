@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { HUES } from "./charts.js";
 import { presetByName } from "./presets.js";
-import { applyThemeRequest } from "./request.js";
+import { applyThemeRequest, themeNames } from "./request.js";
+import type { Theme } from "./theme.js";
 import { defaultTheme } from "./presets.js";
 
 describe("applyThemeRequest", () => {
@@ -27,5 +28,27 @@ describe("applyThemeRequest", () => {
     expect(mode).toBeUndefined();
     expect(problems).toHaveLength(4);
     expect(problems[0]).toContain("There is no theme called Neon.");
+  });
+
+  describe("with the host's own themes", () => {
+    const brand: Theme = { ...defaultTheme, name: "Acme", light: { ...defaultTheme.light, accent: "#1976D2" }, radius: 4 };
+    const impostor: Theme = { ...defaultTheme, name: "aurora", radius: 0 };
+    const themes = [brand, impostor];
+
+    it("chooses one by name, ignoring case, and keeps its name", () => {
+      expect(applyThemeRequest({ preset: "acme" }, defaultTheme, { themes })).toEqual({ theme: brand, problems: [] });
+      expect(applyThemeRequest({ preset: "Acme", radius: 8 }, defaultTheme, { themes }).theme).toMatchObject({ name: "Custom", radius: 8 });
+    });
+
+    it("never lets a host theme stand in for a built-in name", () => {
+      expect(applyThemeRequest({ preset: "Aurora" }, defaultTheme, { themes }).theme).toBe(presetByName("Aurora"));
+      expect(presetByName("AURORA", themes)).toBe(presetByName("Aurora"));
+      expect(themeNames(themes)).toEqual([...themeNames(), "Acme"]);
+    });
+
+    it("is unknown without them, and names them when a request misses", () => {
+      expect(applyThemeRequest({ preset: "Acme" }, defaultTheme).problems[0]).toContain("There is no theme called Acme.");
+      expect(applyThemeRequest({ preset: "Neon" }, defaultTheme, { themes }).problems[0]).toMatch(/Choose from .*Ink.*, Acme\.$/);
+    });
   });
 });

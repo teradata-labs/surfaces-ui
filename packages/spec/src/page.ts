@@ -1,7 +1,7 @@
 import type { Catalog, ValidationIssue } from "./catalog.js";
 import { A2UI_VERSION } from "./dynamic.js";
 import { upgradeComponent, upgradeMessage } from "./upgrade.js";
-import { type ThemeRequest, applyThemeRequest, defaultTheme } from "@surfaces-ui/tokens";
+import { type Theme, type ThemeRequest, applyThemeRequest, defaultTheme } from "@surfaces-ui/tokens";
 import { type Surface, type SurfaceComponent, type SurfaceMessage, metadataTheme, surfaceMetadata } from "./surface.js";
 
 /**
@@ -110,12 +110,17 @@ export interface EditResult {
   rejected: { edit: PageEdit; reason: string }[];
 }
 
+export interface EditPageOptions {
+  /** The host's own themes, which a `theme` edit may name beside the built-in presets (`ThemeRequestOptions.themes`). */
+  themes?: readonly Theme[];
+}
+
 /**
  * Applies edits to a page. Each edit is checked against the catalog before
  * it takes effect; one that would make a component invalid is rejected and
  * reported, so an agent's mistake cannot break a page.
  */
-export function editPage(given: PageDocument, edits: PageEdit[], catalog: Catalog): EditResult {
+export function editPage(given: PageDocument, edits: PageEdit[], catalog: Catalog, options: EditPageOptions = {}): EditResult {
   const page = upgradePage(given);
   let components = page.components;
   let title = page.title;
@@ -133,7 +138,7 @@ export function editPage(given: PageDocument, edits: PageEdit[], catalog: Catalo
         continue;
       }
       // Tried against the default theme: what matters is whether the request itself makes sense.
-      const problems = applyThemeRequest(edit.theme, defaultTheme).problems;
+      const problems = applyThemeRequest(edit.theme, defaultTheme, { themes: options.themes }).problems;
       if (problems.length > 0) rejected.push({ edit, reason: problems.join(" ") });
       else theme = { ...theme, ...edit.theme };
       continue;

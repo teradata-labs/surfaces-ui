@@ -9,7 +9,7 @@ import { DENSITIES, type Density, FONTS, type FontChoice, MODES, type Mode, RADI
  * URL or a setting. Every part is optional; what is left out stays as it is.
  */
 export interface ThemeRequest {
-  /** A built-in theme by name, e.g. "Aurora". */
+  /** A theme by name: a built-in one, e.g. "Aurora", or one the host adds (`ThemeRequestOptions.themes`). */
   preset?: string;
   mode?: Mode;
   /** A hex colour for buttons, links and selection. */
@@ -29,6 +29,15 @@ export interface ThemeRequestResult {
   problems: string[];
 }
 
+export interface ThemeRequestOptions {
+  /**
+   * The host's own themes, chosen by name as the built-in presets are (a
+   * company's brand themes, say). Each should come through `parseTheme`
+   * first. A name a built-in preset has is never looked up here.
+   */
+  themes?: readonly Theme[];
+}
+
 /** The fields a theme request may carry, for an agent's tool or catalog description. */
 export const THEME_REQUEST_FIELDS = {
   presets: presets.map((p) => p.name),
@@ -44,13 +53,14 @@ export const THEME_REQUEST_FIELDS = {
  * would leave text or charts hard to read, is left out and reported: a
  * request can restyle a page but cannot make it unreadable.
  */
-export function applyThemeRequest(request: ThemeRequest, current: Theme): ThemeRequestResult {
+export function applyThemeRequest(request: ThemeRequest, current: Theme, options: ThemeRequestOptions = {}): ThemeRequestResult {
   const problems: string[] = [];
+  const themes = options.themes ?? [];
   let theme = current;
   if (request.preset !== undefined) {
-    const preset = typeof request.preset === "string" ? presetByName(request.preset) : undefined;
+    const preset = typeof request.preset === "string" ? presetByName(request.preset, themes) : undefined;
     if (preset) theme = preset;
-    else problems.push(`There is no theme called ${String(request.preset)}. Choose from ${presets.map((p) => p.name).join(", ")}.`);
+    else problems.push(`There is no theme called ${String(request.preset)}. Choose from ${themeNames(themes).join(", ")}.`);
   }
   if (request.accent !== undefined) {
     if (!isHex(request.accent)) problems.push("The accent must be a hex colour like #2F5BEA.");
@@ -87,7 +97,14 @@ export function applyThemeRequest(request: ThemeRequest, current: Theme): ThemeR
     if (MODES.includes(request.mode)) mode = request.mode;
     else problems.push(`The mode must be one of ${MODES.join(", ")}.`);
   }
-  // A built-in theme keeps its name only while it is unchanged.
-  if (!presets.includes(theme) && theme !== current) theme = { ...theme, name: "Custom" };
+  // A named theme (built in or the host's) keeps its name only while it is unchanged.
+  if (!presets.includes(theme) && !themes.includes(theme) && theme !== current) theme = { ...theme, name: "Custom" };
   return { theme, ...(mode ? { mode } : {}), problems };
+}
+
+/** The names a request may choose from: the built-in presets, then the host's own themes whose names are not taken. */
+export function themeNames(themes: readonly Theme[] = []): string[] {
+  const names = presets.map((p) => p.name);
+  for (const t of themes) if (!names.some((n) => n.toLowerCase() === t.name.toLowerCase())) names.push(t.name);
+  return names;
 }
