@@ -318,3 +318,71 @@ describe("voice", () => {
     expect(speakableText("# Result\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\nSee [the docs](https://x).")).toBe("Result. (table shown on screen) See the docs.");
   });
 });
+
+describe("ChatComposer context and options", () => {
+  function AboutHost({ onSend }: { onSend: ComposerProps["onSend"] }) {
+    const [about, setAbout] = useState<string | undefined>("amount-by-region");
+    const [ways, setWays] = useState(false);
+    return (
+      <ChatComposer
+        onSend={(text, refs) => {
+          onSend(text, refs);
+          setWays(false);
+        }}
+        references={[{ sourceId: "duckdb", kind: "table", table: "orders" } as DataRef]}
+        context={about ? [{ id: about, label: `About Chart ${about}`, onClear: () => setAbout(undefined), clearLabel: "Whole page instead" }] : []}
+        toggles={[{ id: "ways", label: "Try three ways", detail: "three different answers, side by side", checked: ways, onChange: setWays }]}
+      />
+    );
+  }
+
+  it("shows context as a chip beside the attached data, removed through the host", () => {
+    render(<AboutHost onSend={() => {}} />);
+    const attached = screen.getByRole("list", { name: "Attached to this message" });
+    const chips = within(attached).getAllByRole("listitem");
+    expect(chips.map((c) => c.getAttribute("data-kind"))).toEqual(["context", "table"]);
+    expect(chips[0]!.textContent).toContain("About Chart amount-by-region");
+    fireEvent.click(within(attached).getByRole("button", { name: "Whole page instead" }));
+    expect(screen.queryByText("About Chart amount-by-region")).toBeNull();
+    expect(screen.getByText("Removed About Chart amount-by-region.")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText("Message"));
+  });
+
+  it("names a context chip's remove button after it, and has none without onClear", () => {
+    const onClear = vi.fn();
+    const { rerender } = render(<ChatComposer onSend={() => {}} context={[{ label: "About Metric revenue", detail: "on Overview", onClear }]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Remove About Metric revenue" }));
+    expect(onClear).toHaveBeenCalledOnce();
+    expect(screen.getByText("on Overview")).toBeTruthy();
+    rerender(<ChatComposer onSend={() => {}} context={[{ label: "About the whole page" }]} />);
+    expect(screen.getByText("About the whole page")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Remove/ })).toBeNull();
+  });
+
+  it("offers a toggle for the next message as a labelled checkbox the host keeps", () => {
+    const onSend = vi.fn();
+    render(<AboutHost onSend={onSend} />);
+    const group = screen.getByRole("group", { name: "Options for this message" });
+    const ways = within(group).getByRole("checkbox", { name: "Try three ways: three different answers, side by side" }) as HTMLInputElement;
+    expect(ways.checked).toBe(false);
+    fireEvent.click(ways);
+    expect(ways.checked).toBe(true);
+    fireEvent.change(screen.getByLabelText("Message"), { target: { value: "Add headline numbers" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    // The words are sent as before; the host read its own toggle and cleared it.
+    expect(onSend).toHaveBeenCalledWith("Add headline numbers", [expect.objectContaining({ table: "orders" })]);
+    expect(ways.checked).toBe(false);
+  });
+
+  it("disables its toggles with the composer", () => {
+    render(<ChatComposer onSend={() => {}} disabled toggles={[{ id: "t", label: "Try three ways", checked: false, onChange: () => {} }]} />);
+    expect((screen.getByRole("checkbox", { name: "Try three ways" }) as HTMLInputElement).disabled).toBe(true);
+  });
+
+  it("draws neither without the props", () => {
+    const { container } = render(<ChatComposer onSend={() => {}} />);
+    expect(container.querySelector(".sf-chat-options")).toBeNull();
+    expect(screen.queryByRole("list", { name: "Attached to this message" })).toBeNull();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+});

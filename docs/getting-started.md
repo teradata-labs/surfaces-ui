@@ -282,6 +282,28 @@ const { agents } = await agent.describeAgents();
 
 The recipe [A chat for analytics users](recipes/analytics-chat.md) has the whole page.
 
+A host that builds its own chat from the parts (`MessageList`, `ToolSteps`, `Suggestions`, `ChatComposer`) can put its own decisions in the thread and its own choices in the composer. An `actions` part (`ChatActions`) is a row of buttons under a reply, or several alternatives one row each; a press reaches `MessageList`'s `onPartAction(partId, actionId, choiceId?)`, and once it is handled the host sets `outcome`, which replaces the buttons. `ChatComposer` takes `context` (chips for what the message is about that is not data, removable through `onClear`) and `toggles` (checkboxes for the next message, kept by the host):
+
+```tsx
+const reply: ChatPart = {
+  kind: "actions",
+  actions: {
+    id: "p1",
+    title: "Proposed: 2 added",
+    buttons: [
+      { id: "discard", label: "Discard" },
+      { id: "apply", label: "Apply", variant: "primary", disabled: readOnly, reason: "A viewer cannot change this page" },
+    ],
+  },
+};
+<MessageList thread={thread} catalog={catalog} renderers={renderers} onAction={act} onAnswer={answer} onPartAction={(part, action) => decide(part, action)} />
+<ChatComposer
+  onSend={send}
+  context={selected ? [{ label: `About ${selected}`, onClear: () => select(undefined), clearLabel: "Whole page instead" }] : []}
+  toggles={[{ id: "ways", label: "Try three ways", checked: ways, onChange: setWays }]}
+/>
+```
+
 `agent` is any `AgentBackend`:
 
 ```ts

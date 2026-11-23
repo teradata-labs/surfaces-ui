@@ -20,6 +20,7 @@ const PATHS = {
   check: "M5 12l5 5 9-10",
   pin: "M9 4h6l-1 6 3 3H7l3-3z M12 13v7",
   search: "M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12z M20 20l-4.5-4.5",
+  about: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
 } as const;
 
 export type ChatIconName = keyof typeof PATHS;

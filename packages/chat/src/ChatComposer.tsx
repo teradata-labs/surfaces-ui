@@ -69,6 +69,42 @@ export interface ComposerProps {
    * answer (`given`) so it is asked once. Without it, passing `speech` is the consent.
    */
   speechConsent?: SpeechConsent;
+  /** What the message is about beyond attached data, as chips before the attached tables and files. */
+  context?: ComposerContext[];
+  /** Choices for the next message, as checkboxes under the box. */
+  toggles?: ComposerToggle[];
+}
+
+/**
+ * A choice that goes with the next message, drawn as a checkbox under the
+ * box ("Try three ways"). The host keeps `checked`, and clears it after a send
+ * when it holds for one message only.
+ */
+export interface ComposerToggle {
+  id: string;
+  label: string;
+  /** More about it, after the label and part of its name. */
+  detail?: string;
+  checked: boolean;
+  onChange(checked: boolean): void;
+  disabled?: boolean;
+}
+
+/**
+ * Something the message is about that is not a table or a file: the part of
+ * a page a person selected ("About Chart amount-by-region"). Shown as a chip
+ * beside the attached data; the host keeps it and says what it means.
+ */
+export interface ComposerContext {
+  /** Keeps the chip steady across renders; defaults to the label. */
+  id?: string;
+  label: string;
+  /** Shown after the label, smaller. */
+  detail?: string;
+  /** Given, the chip has a remove button that calls it ("Whole page instead"). */
+  onClear?(): void;
+  /** The remove button's name. Default "Remove " and the label. */
+  clearLabel?: string;
 }
 
 /** Whether the person agreed to use voice, kept by the host. */
@@ -86,7 +122,7 @@ type Pending = { key: string; name: string; error?: string };
  * model, skills and connectors, and the microphone. Send is the arrow.
  */
 export function ChatComposer(props: ComposerProps) {
-  const { onSend, onStop, streaming, disabled, placeholder, references: given, onReferencesChange, attachFiles, browse, agents = [], settings = {}, onSettingsChange, onManage, speech } = props;
+  const { onSend, onStop, streaming, disabled, placeholder, references: given, onReferencesChange, attachFiles, browse, agents = [], settings = {}, onSettingsChange, onManage, speech, context = [], toggles = [] } = props;
   const [text, setText] = useState("");
   const [kept, setKept] = useState<DataRef[]>([]);
   const references = given ?? kept;
@@ -229,8 +265,30 @@ export function ChatComposer(props: ComposerProps) {
       onDrop={onDrop}
       onKeyDown={onFormKeyDown}
     >
-      {(references.length > 0 || pending.length > 0) && (
+      {(context.length > 0 || references.length > 0 || pending.length > 0) && (
         <ul className="sf-chat-references sf-chat-attached" aria-label="Attached to this message">
+          {context.map((about) => (
+            <li key={about.id ?? about.label} className="sf-chat-reference" data-kind="context">
+              <ChatIcon name="about" />
+              <span>{about.label}</span>
+              {about.detail && <span className="sf-chat-reference-note">{about.detail}</span>}
+              {about.onClear && (
+                <button
+                  type="button"
+                  className="sf-chat-reference-remove"
+                  aria-label={about.clearLabel ?? `Remove ${about.label}`}
+                  title={about.clearLabel}
+                  onClick={() => {
+                    about.onClear?.();
+                    setSaid(`Removed ${about.label}.`);
+                    textArea.current?.focus({ preventScroll: true });
+                  }}
+                >
+                  <ChatIcon name="close" />
+                </button>
+              )}
+            </li>
+          ))}
           {references.map((ref) => (
             <li key={`${ref.sourceId}/${ref.kind}/${dataRefLabel(ref)}`} className="sf-chat-reference" data-kind={ref.kind}>
               <ChatIcon name={ref.kind === "file" ? "file" : "data"} />
@@ -378,6 +436,19 @@ export function ChatComposer(props: ComposerProps) {
           )}
         </span>
       </div>
+      {toggles.length > 0 && (
+        <div className="sf-chat-options" role="group" aria-label="Options for this message">
+          {toggles.map((toggle) => (
+            <label key={toggle.id} className="sf-chat-option">
+              <input type="checkbox" checked={toggle.checked} disabled={disabled || toggle.disabled} onChange={(e) => toggle.onChange(e.target.checked)} />
+              <span>
+                {toggle.label}
+                {toggle.detail && <span className="sf-chat-option-detail">: {toggle.detail}</span>}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
       {voice.supported && asking && (
         <div className="sf-chat-voice-consent" role="group" aria-label="Use voice?">
           <p>

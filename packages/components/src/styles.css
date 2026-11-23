@@ -3418,6 +3418,96 @@ select.sf-input:disabled {
   gap: var(--sf-space-2);
 }
 
+/* Buttons the host offers under a reply (ChatActions): one row, or a row for each choice. */
+.sf-chat-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sf-space-2);
+  padding: var(--sf-space-3);
+  border: 1px solid var(--sf-color-border);
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-color-surface);
+}
+
+.sf-chat-actions-title {
+  margin: 0;
+  font-weight: var(--sf-font-weight-semibold);
+}
+
+.sf-chat-actions-detail,
+.sf-chat-actions-outcome {
+  margin: 0;
+  color: var(--sf-color-muted);
+  font-size: var(--sf-font-size-sm);
+}
+
+.sf-chat-actions-choice .sf-chat-actions-detail {
+  font-weight: var(--sf-font-weight-regular);
+}
+
+.sf-chat-actions-choices {
+  display: grid;
+  gap: var(--sf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sf-chat-actions-choices > li {
+  display: grid;
+  gap: var(--sf-space-1);
+}
+
+.sf-chat-actions-choice {
+  margin: 0;
+}
+
+.sf-chat-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-2);
+}
+
+/* Shown, reachable and explained, but not pressable. */
+.sf-chat-actions .sf-button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sf-chat-actions .sf-button[aria-disabled="true"]:active {
+  transform: none;
+}
+
+.sf-chat-actions .sf-button[data-variant="primary"][aria-disabled="true"]:is(:hover, :active) {
+  background: var(--sf-color-accent);
+}
+
+/* Choices for the next message, under the composer's box. */
+.sf-chat-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-1) var(--sf-space-3);
+  padding: 0 var(--sf-space-1);
+}
+
+.sf-chat-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-1);
+  min-height: var(--sf-target-min);
+  font-size: var(--sf-font-size-sm);
+  cursor: pointer;
+}
+
+.sf-chat-option:has(input:disabled) {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.sf-chat-option-detail {
+  color: var(--sf-color-muted);
+}
+
 .sf-chat-composer {
   display: flex;
   flex-direction: column;
@@ -3518,6 +3608,11 @@ select.sf-input:disabled {
 
 .sf-chat-reference[data-state="failed"] .sf-chat-reference-note {
   color: var(--sf-color-danger);
+}
+
+/* What a message is about that is not data reads as words, not a name. */
+.sf-chat-reference[data-kind="context"] {
+  font-family: var(--sf-font);
 }
 
 /* The row under the box: add, data, the selectors, then the microphone and Send at the end. */

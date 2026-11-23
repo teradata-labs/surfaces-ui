@@ -65,6 +65,48 @@ export interface ChatApprovalAnswer extends ChatDecision {
   editedSubject?: JsonObject;
 }
 
+/** One button in an actions part. What a press does is the host's to decide. */
+export interface ChatButton {
+  /** Reaches the host with the press; need only be unique within its row. */
+  id: string;
+  label: string;
+  /** "primary" for the one thing most people will do; "danger" for what cannot be taken back. */
+  variant?: "primary" | "danger";
+  /** Shown but cannot be pressed. It stays reachable by keyboard so its reason can be read. */
+  disabled?: boolean;
+  /** Why it cannot be pressed (or, when it can, what it does). Its tooltip, and read with it. */
+  reason?: string;
+  /** A fuller name when the label alone is ambiguous: "Apply “Bold” from the chat". */
+  ariaLabel?: string;
+}
+
+/** One of several alternatives in an actions part, with buttons of its own. */
+export interface ChatChoice {
+  id: string;
+  title: string;
+  detail?: string;
+  buttons: ChatButton[];
+}
+
+/**
+ * What a person can do about a reply, drawn under it: one set of buttons
+ * ("Show on the page", "Discard", "Apply"), or several alternatives one row
+ * each with buttons for the whole set after them ("Discard all"). Presses go
+ * to `MessageList`'s `onPartAction`. Once handled, the host sets `outcome`,
+ * which replaces every button.
+ */
+export interface ChatActions {
+  id: string;
+  title?: string;
+  detail?: string;
+  /** Alternatives to choose between, one row each. */
+  choices?: ChatChoice[];
+  /** Buttons for the whole set, after any choices. */
+  buttons?: ChatButton[];
+  /** What became of it ("Applied.", "Discarded."). Replaces the buttons. */
+  outcome?: string;
+}
+
 /** One piece of a reply, in the order it arrived. */
 export type ChatPart =
   | { kind: "text"; text: string }
@@ -74,6 +116,8 @@ export type ChatPart =
   /** A component the agent drew. `surfaceId` is the key into `ChatThread.surfaces`. */
   | { kind: "surface"; surfaceId: string }
   | { kind: "approval"; approval: ChatApproval }
+  /** Buttons the host offers under a reply. Added by the host, never by an agent's events. */
+  | { kind: "actions"; actions: ChatActions }
   | { kind: "error"; code: string; message: string };
 
 export interface ChatMessage {
@@ -304,7 +348,7 @@ export function reduceThread(thread: ChatThread, action: ChatAction, catalog: Ca
   }
 }
 
-const PART_KINDS = new Set(["text", "references", "steps", "surface", "approval", "error"]);
+const PART_KINDS = new Set(["text", "references", "steps", "surface", "approval", "actions", "error"]);
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
 
 /**
