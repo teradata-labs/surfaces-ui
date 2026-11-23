@@ -8943,8 +8943,11 @@ button > .sf-item-control-icon:only-child {
 }
 
 .sf-site-phone-body {
+  /* Placed by inset, not height: 100%. Safari resolves a percentage height inside a box sized by aspect-ratio
+     against the whole box, padding included, so the screen ran past the bottom bezel and over the corners. */
+  position: absolute;
+  inset: var(--sf-space-2);
   display: grid;
-  height: 100%;
   /* The screen stops above the rounded bottom corners, where a phone keeps its home bar: iOS Safari does not clip a
      scrolling child's canvas to a rounded ancestor, even with clip-path, so the screen must not reach the corners. */
   padding: calc(var(--sf-space-8) + var(--sf-space-2)) var(--sf-space-2)
