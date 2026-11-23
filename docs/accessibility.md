@@ -36,7 +36,7 @@ The browser tests run the playground against DuckDB in the page, in Chromium onl
 | 2.5.3 Label in name | A control's spoken name begins with its visible text. Where more is said than shown (a pill's kind, a pipeline node's status), it follows the visible name as hidden text (`.sf-visually-hidden`) instead of replacing it with `aria-label`. |
 | 2.5.8 Target size (new in 2.2) | Controls have `min-height: var(--sf-target-min)`: 24px, and 44px under `pointer: coarse`. |
 | 3.2.6 Consistent help (new in 2.2) | A host concern; the library adds none of its own. |
-| 3.3.1 / 3.3.3 Errors | Errors are text beside what failed, `role="alert"`, with the reason and, for SQL, the line and column. |
+| 3.3.1 / 3.3.3 Errors | Errors are text beside what failed, `role="alert"`, with the reason and, for SQL, the line and column. A data component given an `errorMessage` says that instead of the engine's text, still as an alert, so a page can say what went wrong in its readers' terms. |
 | 3.3.4 Error prevention | Destructive steps start unticked in `PlanReview`; full refresh needs confirmation on the server too. `DatasetReview` saves only after the person names themselves and approves, shows what changed from the saved version first, and a stale or altered proposal is refused with the reason. |
 | 3.3.7 Redundant entry (new in 2.2) | Flows carry earlier answers forward; a decision made in a card is not asked again. |
 | 3.3.8 Accessible authentication (new in 2.2) | The library has no sign-in and no field for a credential. |

@@ -2,11 +2,12 @@ import { type DataSource, collect } from "@surfaces-ui/data";
 import { useEffect, useState } from "react";
 import { AGGREGATE_FUNCTIONS, type ChartAggregate } from "../chart/Chart.js";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import { numericValue } from "../data/format.js";
 import { label as text, numberFormat } from "../locale/locale.js";
 import { type FilterInit, type TimeTravelInit, messageOf } from "../data/useRowWindow.js";
 
-export interface MetricProps {
+export interface MetricProps extends DataMessages {
   sourceId: string;
   /** The base SQL. The engine reduces it to the one number. */
   sql: string;
@@ -86,11 +87,11 @@ export function Metric(props: MetricProps) {
     <div className={["sf-a2-stat sf-metric", props.className].filter(Boolean).join(" ")} aria-busy={state.loading}>
       <span className="sf-a2-stat-label">{label}</span>
       {state.error ? (
-        <span className="sf-metric-error" role="alert">
-          {state.error}
+        <span className="sf-metric-error" role="alert" data-error={state.error}>
+          {props.errorMessage ?? state.error}
         </span>
       ) : (
-        <span className="sf-a2-stat-value">{state.value === undefined ? text("metric.loading") : state.value === null ? text("metric.none") : formatMetric(state.value, format, currency)}</span>
+        <span className="sf-a2-stat-value">{state.value === undefined ? text("metric.loading") : state.value === null ? (props.emptyMessage ?? text("metric.none")) : formatMetric(state.value, format, currency)}</span>
       )}
     </div>
   );

@@ -107,6 +107,7 @@ export const defaultLabels = {
   "pivot.label": "Pivot table",
   "pivot.loading": "Loading…",
   "pivot.choose": "Choose rows or columns and a measure.",
+  "pivot.empty": "No rows match.",
   "pivot.total": "Total",
   "pivot.none": "(none)",
   "pivot.truncated": "This pivot has more than {limit} cells, so some are missing. Add a filter or choose columns with fewer values.",

@@ -1,12 +1,13 @@
 import type { DataSource } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import type { FilterInit } from "../data/useRowWindow.js";
 import { label as text } from "../locale/locale.js";
 import { type MetricProps, formatMetric } from "../metric/Metric.js";
 import { useMeasure } from "../metric/useMeasure.js";
 import type { ChartAggregate } from "./Chart.js";
 
-export interface BulletGraphProps {
+export interface BulletGraphProps extends DataMessages {
   sourceId: string;
   sql: string;
   column?: string;
@@ -51,7 +52,11 @@ export function BulletGraph(props: BulletGraphProps) {
   const band = value == null ? undefined : bulletBand(value, ranges);
   const reading =
     value == null
-      ? text(state.loading ? "bullet.loading" : "bullet.empty", { label })
+      ? state.loading
+        ? text("bullet.loading", { label })
+        : props.emptyMessage
+          ? `${label}: ${props.emptyMessage}`
+          : text("bullet.empty", { label })
       : text("bullet.reading", {
           label,
           value: write(value),
@@ -64,12 +69,12 @@ export function BulletGraph(props: BulletGraphProps) {
       <div className="sf-bullet-head">
         <span className="sf-bullet-label">{label}</span>
         {state.error ? (
-          <span className="sf-metric-error" role="alert">
-            {state.error}
+          <span className="sf-metric-error" role="alert" data-error={state.error}>
+            {props.errorMessage ?? state.error}
           </span>
         ) : (
           <span className="sf-bullet-value">
-            {value == null ? (state.loading ? text("metric.loading") : text("metric.none")) : write(value)}
+            {value == null ? (state.loading ? text("metric.loading") : (props.emptyMessage ?? text("metric.none"))) : write(value)}
             {band && <span className="sf-bullet-band"> {band.label}</span>}
           </span>
         )}

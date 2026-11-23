@@ -13,6 +13,8 @@ A pivot table over a SQL query: row values down the side, column values across t
 - `totals` (optional): boolean
 - `height` (optional): integer
 - `label` (optional): string — Accessible name for the table.
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 
 ## Example
 

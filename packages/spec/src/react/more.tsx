@@ -536,6 +536,8 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
       label={text(props.label)}
       format={(text(props.format) || undefined) as MetricProps["format"]}
       currency={text(props.currency) || undefined}
+      emptyMessage={text(props.emptyMessage) || undefined}
+      errorMessage={text(props.errorMessage) || undefined}
     />
   )),
   Message: ({ props }) => (
@@ -563,6 +565,8 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
         onContext={reportContext}
         // Each row is drawn by the surface itself, so the template is checked, traced and framed like any component.
         renderRow={(row, index) => rows(component.child, [row]).map((drawn) => <Fragment key={index}>{drawn}</Fragment>)}
+        emptyMessage={text(props.emptyMessage) || undefined}
+        errorMessage={text(props.errorMessage) || undefined}
       />
     )),
   Markdown: ({ props }) => <Markdown text={text(props.text)} />,
@@ -785,6 +789,8 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
       format={(text(props.format) || undefined) as SparklineProps["format"]}
       currency={text(props.currency) || undefined}
       points={typeof props.points === "number" ? props.points : undefined}
+      emptyMessage={text(props.emptyMessage) || undefined}
+      errorMessage={text(props.errorMessage) || undefined}
     />
   )),
   BulletGraph: ({ props }) => withFilters(props.filters, (filters) => (
@@ -799,6 +805,8 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
       ranges={(props.ranges as { to: number; label: string }[]) ?? []}
       format={(text(props.format) || undefined) as SparklineProps["format"]}
       currency={text(props.currency) || undefined}
+      emptyMessage={text(props.emptyMessage) || undefined}
+      errorMessage={text(props.errorMessage) || undefined}
     />
   )),
   StepFlow: ({ props }) => <StepFlow label={text(props.label)} steps={(props.steps as FlowStep[]) ?? []} />,

@@ -4,6 +4,7 @@ import { DENSITY_SCALE } from "@surfaces-ui/tokens";
 import { DataType, type Field } from "apache-arrow";
 import { type CSSProperties, type DragEvent, type KeyboardEvent, type MouseEvent, type PointerEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import { type ColumnFormat, displayCell, formatCellAs, isNumeric } from "../data/format.js";
 import { dateFormat, label as text, numberFormat } from "../locale/locale.js";
 import { type FilterInit, type StoredInfo, type TimeTravelInit, type ValueInit, useRowWindow } from "../data/useRowWindow.js";
@@ -62,7 +63,7 @@ export interface DataGridInfo {
   cancel(): void;
 }
 
-export interface DataGridProps {
+export interface DataGridProps extends DataMessages {
   /** Which source to query. */
   sourceId: string;
   /** The base SQL. Sorting, filtering and paging are applied around it by the backend. */
@@ -572,11 +573,11 @@ export function DataGrid(props: DataGridProps) {
           {rows}
         </div>
         {window.status === "error" && (
-          <p className="sf-grid-message" role="alert">
-            {window.error}
+          <p className="sf-grid-message" role="alert" data-error={window.error}>
+            {props.errorMessage ?? window.error}
           </p>
         )}
-        {window.status === "ready" && total === 0 && <p className="sf-grid-message">{text("grid.noRows")}</p>}
+        {window.status === "ready" && total === 0 && <p className="sf-grid-message">{props.emptyMessage ?? text("grid.noRows")}</p>}
       </div>
       {props.footer === false && mode !== "pages" ? (
         <span className="sf-visually-hidden" aria-live="polite">

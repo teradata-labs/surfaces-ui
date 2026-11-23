@@ -14,6 +14,8 @@ One measure against a target and named bands (poor, fair, good), as a bar from z
 - `ranges`: array of { to: number, label: string } — Where each band ends, lowest first. The last end is the end of the scale.
 - `format` (optional): "number" | "compact" | "currency" | "percent"
 - `currency` (optional): string
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 
 ## Example

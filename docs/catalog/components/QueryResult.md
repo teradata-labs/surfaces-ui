@@ -11,6 +11,8 @@ A query result a person can explore: filters; a table, a chart and a pivot of th
 - `sorts` (optional): array of { column: string, desc?: boolean } — Sort order, most important first. An empty list clears it.
 - `columns` (optional): { order?: array of string, hidden?: array of string, widths?: { [name]: number } } — Which columns show, in what order and how wide.
 - `height` (optional): integer
+- `emptyMessage` (optional): string | binding | call — What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: "No orders this week yet."
+- `errorMessage` (optional): string | binding | call — What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.
 
 ## Example
 

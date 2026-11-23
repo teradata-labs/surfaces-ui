@@ -1,12 +1,13 @@
 import type { DataSource } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import type { DataMessages } from "../data/messages.js";
 import type { FilterInit } from "../data/useRowWindow.js";
 import { label as text } from "../locale/locale.js";
 import { type MetricProps, formatMetric } from "../metric/Metric.js";
 import { useMeasure } from "../metric/useMeasure.js";
 import type { ChartAggregate, ChartGrain } from "./Chart.js";
 
-export interface SparklineProps {
+export interface SparklineProps extends DataMessages {
   sourceId: string;
   sql: string;
   /** The date or time column the line runs along. */
@@ -54,14 +55,14 @@ export function Sparkline(props: SparklineProps) {
   const last = line.at(-1);
   const low = line.reduce<(typeof line)[number] | undefined>((a, p) => (!a || p.value < a.value ? p : a), undefined);
   const high = line.reduce<(typeof line)[number] | undefined>((a, p) => (!a || p.value > a.value ? p : a), undefined);
-  const summary = last && low && high && line[0] ? text("sparkline.summary", { label, now: write(last.value), first: write(line[0].value), low: write(low.value), high: write(high.value), count: line.length, grain }) : text("sparkline.empty", { label });
+  const summary = last && low && high && line[0] ? text("sparkline.summary", { label, now: write(last.value), first: write(line[0].value), low: write(low.value), high: write(high.value), count: line.length, grain }) : props.emptyMessage ? `${label}: ${props.emptyMessage}` : text("sparkline.empty", { label });
 
   return (
     <span className={["sf-spark", props.className].filter(Boolean).join(" ")} aria-busy={state.loading}>
       <span className="sf-spark-label">{label}</span>
       {state.error ? (
-        <span className="sf-metric-error" role="alert">
-          {state.error}
+        <span className="sf-metric-error" role="alert" data-error={state.error}>
+          {props.errorMessage ?? state.error}
         </span>
       ) : (
         <>
@@ -75,7 +76,7 @@ export function Sparkline(props: SparklineProps) {
             )}
             {last && <circle className="sf-spark-last" cx={last.x} cy={last.y} r={2.4} />}
           </svg>
-          <span className="sf-spark-value">{last ? write(last.value) : state.loading ? text("metric.loading") : text("metric.none")}</span>
+          <span className="sf-spark-value">{last ? write(last.value) : state.loading ? text("metric.loading") : (props.emptyMessage ?? text("metric.none"))}</span>
         </>
       )}
     </span>

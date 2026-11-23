@@ -7040,6 +7040,94 @@
           "minLength": 3,
           "maxLength": 3
         },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
           "type": "integer",
@@ -8123,6 +8211,94 @@
         "label": {
           "description": "Accessible name for the table.",
           "type": "string"
+        },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
         }
       },
       "required": [
@@ -8858,6 +9034,94 @@
         "label": {
           "description": "Accessible description of what the chart shows.",
           "type": "string"
+        },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
         }
       },
       "required": [
@@ -9396,6 +9660,94 @@
         "label": {
           "description": "Accessible name for the table.",
           "type": "string"
+        },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
         }
       },
       "required": [
@@ -9838,6 +10190,94 @@
           "type": "integer",
           "minimum": 160,
           "maximum": 1200
+        },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
         }
       },
       "required": [
@@ -10623,6 +11063,94 @@
           "enum": [
             "list",
             "grid"
+          ]
+        },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
           ]
         },
         "minHeight": {
@@ -13457,6 +13985,94 @@
           "minimum": 2,
           "maximum": 120
         },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
           "type": "integer",
@@ -13940,6 +14556,94 @@
           "type": "string",
           "minLength": 3,
           "maxLength": 3
+        },
+        "emptyMessage": {
+          "description": "What the people using the page read when the query answers with no rows, in place of the component's own empty text. Say what is missing and what to try: \"No orders this week yet.\"",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "errorMessage": {
+          "description": "What the people using the page read when the query fails, in place of the database's error text, which is kept for developers. Say what went wrong in their terms and what to do.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
         },
         "minHeight": {
           "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
