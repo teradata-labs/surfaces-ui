@@ -3861,16 +3861,19 @@ select.sf-input:disabled {
 }
 
 /* A model's name with its capability beside it: rising bars, filled up to its level, and the level's word. */
+/* One line: the menu widens for it (up to its most), and only a name too long for that is cut short. */
 .sf-chat-model-name {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, max-content) auto;
+  justify-content: space-between;
   align-items: baseline;
-  column-gap: var(--sf-space-2);
+  column-gap: var(--sf-space-3);
+  white-space: nowrap;
 }
 
-/* A long name wraps; the level keeps its place at the end of the line. */
 .sf-chat-model-name > span:first-child {
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sf-chat-model-level {
