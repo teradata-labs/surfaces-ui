@@ -8962,8 +8962,6 @@ button > .sf-item-control-icon:only-child {
   overflow: hidden;
   border: 1px solid var(--sf-color-divider);
   border-radius: 0 0 var(--sf-radius-lg) var(--sf-radius-lg);
-  /* WebKit does not clip a composited child (a chart's canvas) to a rounded overflow box; clip-path does. */
-  clip-path: inset(0 round 0 0 var(--sf-radius-lg) var(--sf-radius-lg));
   background: var(--sf-color-bg);
 }
 
@@ -8995,13 +8993,12 @@ button > .sf-item-control-icon:only-child {
   position: absolute;
   inset: var(--sf-space-2);
   display: grid;
-  /* The screen stops above the rounded bottom corners, where a phone keeps its home bar: iOS Safari does not clip a
-     scrolling child's canvas to a rounded ancestor, even with clip-path, so the screen must not reach the corners. */
+  /* The screen stops above the rounded bottom corners, where a phone keeps its home bar, so its square corners lie
+     inside the curve and nothing has to be clipped. */
   padding: calc(var(--sf-space-8) + var(--sf-space-2)) var(--sf-space-2)
     max(var(--sf-space-6), calc(var(--sf-radius-xl) * 2.2 * 0.6));
   overflow: hidden;
   border-radius: calc(var(--sf-radius-xl) * 2.2);
-  clip-path: inset(0 round calc(var(--sf-radius-xl) * 2.2));
   background: var(--sf-color-bg);
 }
 
@@ -9010,8 +9007,16 @@ button > .sf-item-control-icon:only-child {
   min-height: 0;
   overflow: auto;
   border-radius: var(--sf-radius-md);
-  clip-path: inset(0 round var(--sf-radius-md));
   scrollbar-width: thin;
+}
+
+/* On the phone, what scrolls up fades out toward the island rather than being cut along a line. The screen reaches
+   up into the space above it by the fade's height and pads that back, so at rest nothing it shows is faded. The mask
+   reads only alpha, so the opaque stop may be any colour. */
+.sf-site-phone-body > .sf-site-screen {
+  margin-top: calc(-1 * var(--sf-space-4));
+  padding-top: var(--sf-space-4);
+  mask-image: linear-gradient(to bottom, transparent, var(--sf-color-bg) var(--sf-space-4));
 }
 
 @container sf-site-devices (max-width: 40rem) {

@@ -56,8 +56,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: Chromium for Playwright
-        run: pnpm --filter @surfaces-ui/e2e exec playwright install --with-deps chromium
+      - name: Chromium and WebKit for Playwright
+        run: pnpm --filter @surfaces-ui/e2e exec playwright install --with-deps chromium webkit
       - name: Browser tests
         run: pnpm e2e
       - name: Keep the report

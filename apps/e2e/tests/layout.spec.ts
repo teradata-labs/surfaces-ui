@@ -3,7 +3,7 @@ import { open } from "./helpers.js";
 
 // The same components are drawn in a page, a chat reply and a side panel, so none may push the page sideways.
 for (const area of ["home", "showcase", "analysis", "workbench", "chat", "pages", "semantic", "discover", "pipelines", "patterns", "docs"]) {
-  test(`${area} has no sideways scroll @phone`, async ({ page }) => {
+  test(`${area} has no sideways scroll @phone @webkit`, async ({ page }) => {
     await open(page, area);
     await page.waitForLoadState("networkidle");
     const { scroll, view } = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, view: document.documentElement.clientWidth }));
@@ -48,4 +48,19 @@ test.describe("Data picker", () => {
     await open(page, "home");
     await expect(page.locator(".home").getByRole("combobox", { name: "Data" })).toBeVisible();
   });
+});
+
+// The home page's phone keeps its screen inside the bezel on every side: in WebKit a percentage height inside the
+// frame (sized by aspect-ratio) once ran the screen past the bottom bezel and over the rounded corners (#205).
+test("the home page's phone keeps its screen inside its bezel @phone @webkit", async ({ page }) => {
+  await open(page, "home");
+  const phone = page.locator(".sf-site-phone:visible").first();
+  await phone.scrollIntoViewIfNeeded();
+  const gaps = await phone.evaluate((root) => {
+    const frame = root.querySelector(".sf-site-phone-frame")!.getBoundingClientRect();
+    const body = root.querySelector(".sf-site-phone-body")!.getBoundingClientRect();
+    return { top: body.top - frame.top, right: frame.right - body.right, bottom: frame.bottom - body.bottom, left: body.left - frame.left };
+  });
+  for (const [side, gap] of Object.entries(gaps)) expect(gap, `the bezel on the ${side} is ${gap}px`).toBeGreaterThan(2);
+  expect(Math.abs(gaps.bottom - gaps.top), "the bezel is as thick at the bottom as at the top").toBeLessThan(1);
 });
