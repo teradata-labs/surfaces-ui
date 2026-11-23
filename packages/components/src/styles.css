@@ -7098,6 +7098,22 @@ select.sf-input:disabled {
   font-size: var(--sf-font-size-sm);
   cursor: pointer;
 }
+.sf-explore-more > summary::-webkit-details-marker {
+  display: none;
+}
+/* A flex summary loses the browser's own triangle, so it draws one that turns when open. */
+.sf-explore-more > summary::before {
+  content: "";
+  inline-size: 0.4em;
+  block-size: 0.4em;
+  border-inline-end: 1.5px solid currentColor;
+  border-block-end: 1.5px solid currentColor;
+  rotate: -45deg;
+  transition: rotate var(--sf-duration-fast) var(--sf-ease);
+}
+.sf-explore-more[open] > summary::before {
+  rotate: 45deg;
+}
 .sf-explore-more[open] > summary {
   margin-block-end: var(--sf-space-2);
 }

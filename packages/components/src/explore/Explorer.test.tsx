@@ -23,6 +23,17 @@ const pill = (name: RegExp) => screen.getAllByRole("button", { name }).find((b) 
 const tableRows = () => Array.from(document.querySelectorAll(".sf-explore-table tbody tr")).map((r) => Array.from(r.querySelectorAll("td")).map((c) => c.textContent));
 
 describe("Explorer", () => {
+  it("starts with a view when asked, with calculations and filters folded until used", async () => {
+    render(<Explorer dataSource={data()} sourceId="memory" sql="SELECT * FROM lines" startWithView />);
+    await waitFor(() => expect(within(group("Break down by")).getByText("Region")).toBeTruthy());
+    expect(within(group("Measure")).getByText("Line amount")).toBeTruthy();
+    const folds = Array.from(document.querySelectorAll("details.sf-explore-more"));
+    expect(folds.map((d) => [d.querySelector("summary")?.textContent, (d as HTMLDetailsElement).open])).toEqual([
+      ["Calculations", false],
+      ["Filters", false],
+    ]);
+  });
+
   it("generates pills from the query's columns, and a press puts one on its shelf", async () => {
     const onChange = vi.fn();
     render(<Explorer dataSource={data()} sourceId="memory" sql="SELECT * FROM lines" onChange={onChange} />);
