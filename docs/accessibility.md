@@ -15,7 +15,7 @@ The standard is **WCAG 2.2, level AA**. This page maps the criteria that matter 
 | No sideways page scroll at phone width (1.4.10) on seven areas | `apps/e2e/tests/layout.spec.ts` |
 | Keyboard paths in a real browser: running SQL, sorting, pills put on shelves and taken off, panels moved from their menu; a `DataTable` sorted and ticked, a `ConfirmDialog` that keeps focus and gives it back, a `Combobox` chosen from with the keys (`app-data.spec.ts`) | `apps/e2e/tests/*.spec.ts` |
 
-The browser tests run the playground against DuckDB in the page, in Chromium only, and in the default theme only. axe's target-size rule is not run inside a pan and zoom canvas, where a diagram fitted to a phone draws its cards small until the person zooms in (every card there is also reached from the keyboard, and in `ModelDiagram` from the list beneath). Not automated yet: other browsers, screenshot tests per theme, and screen reader runs. Those are done by hand; do not assume them.
+The browser tests run the playground against DuckDB in the page, in Chromium (and the checks tagged for phones in WebKit as well, on an iPhone 13), and in the default theme only. axe's target-size rule is not run inside a pan and zoom canvas, where a diagram fitted to a phone draws its cards small until the person zooms in (every card there is also reached from the keyboard, and in `ModelDiagram` from the list beneath). Not automated yet: other browsers, screenshot tests per theme, and screen reader runs. Those are done by hand; do not assume them.
 
 ## Criteria
 
