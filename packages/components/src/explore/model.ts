@@ -118,6 +118,13 @@ export const emptyExplore: ExploreState = { fields: [], rows: [], values: [], fi
 const ID = /^[A-Za-z][A-Za-z0-9_]*$/;
 const MONEY = /(amount|price|cost|revenue|sales|total|refund|paid|charge|fee|balance|margin|spend|value)/i;
 const KEY = /(^id$|_id$|_key$|_no$|_number$|^sku$|code$)/i;
+/**
+ * A number whose name says it adds up: money taken or spent, a count, a
+ * quantity, time spent, energy used. Any other number is read as a reading
+ * (a temperature, a speed, a price, a score, a level, a 0 or 1), which is
+ * averaged: summing a reading over many rows gives a number nobody means.
+ */
+const ADDS_UP = /(amount|cost|revenue|sales|total|refund|paid|charge|fee|spend|income|profit|count|qty|quantity|units|orders|items|hours|minutes|seconds|days|kwh|mwh|energy|volume|clicks|views|visits|sessions|downloads|bytes|calls|tickets|^n_|^num_)/i;
 
 /** A pill id from a label, unlike any already taken: "Refund rate" becomes refund_rate. */
 export function pillId(label: string, taken: Iterable<string> = []): string {
@@ -138,7 +145,8 @@ const words = (column: string) => column.replace(/_/g, " ").replace(/^\w/, (c) =
 
 /**
  * Pills generated from a query's columns: text, true/false and dates become
- * attributes (a date by month), numbers become metrics (summed), and a
+ * attributes (a date by month), numbers become metrics (summed when their
+ * name says they add up, averaged otherwise), and a
  * column that names things (an id, a code) becomes an attribute with a
  * count of its distinct values. There is always a count of rows. This is a
  * reading of names and types only; nothing is looked up in the data.
@@ -152,7 +160,8 @@ export function pillsFromFields(fields: Pick<Field, "name" | "type">[], by = "th
     if (DataType.isTimestamp(type) || DataType.isDate(type)) {
       pills.push({ id: pillId(name, taken()), kind: "attribute", label: `${words(name)} (month)`, column: name, grain: "month", by });
     } else if (isNumeric(type) && !KEY.test(name)) {
-      pills.push({ id: pillId(name, taken()), kind: "metric", label: words(name), column: name, aggregate: "sum", format: MONEY.test(name) ? "currency" : "compact", by });
+      const sums = ADDS_UP.test(name);
+      pills.push({ id: pillId(name, taken()), kind: "metric", label: sums ? words(name) : `Average ${words(name).toLowerCase()}`, column: name, aggregate: sums ? "sum" : "avg", format: MONEY.test(name) ? "currency" : sums ? "compact" : "number", by });
     } else {
       pills.push({ id: pillId(name, taken()), kind: "attribute", label: words(name), column: name, by });
       if (KEY.test(name)) pills.push({ id: pillId(`${name}_count`, taken()), kind: "metric", label: `Distinct ${words(name).toLowerCase()}`, column: name, aggregate: "count_distinct", format: "compact", by });
@@ -394,4 +403,18 @@ export function pillNumber(value: unknown, format: PillFormat | undefined): stri
   if (format === "currency") return numberFormat({ style: "currency", currency: "USD", notation: Math.abs(n) >= 100_000 ? "compact" : "standard", maximumFractionDigits: Math.abs(n) >= 100_000 ? 1 : 2 }).format(n);
   if (format === "compact") return numberFormat({ notation: "compact", maximumFractionDigits: 1 }).format(n);
   return numberFormat({ maximumFractionDigits: 2 }).format(n);
+}
+
+/**
+ * A first view to start from, so there is something drawn before anyone
+ * presses a pill: the first category (not an id, not a date) broken down
+ * by the first measure (not a count of ids). A date stands in when there is
+ * no category, and a count of rows when there is no measure.
+ */
+export function suggestedView(fields: Pill[]): Pick<ExploreState, "rows" | "values"> {
+  const attributes = fields.filter((p) => p.kind === "attribute");
+  const by = attributes.find((p) => !p.grain && !KEY.test(p.column ?? "")) ?? attributes.find((p) => p.grain);
+  const metrics = fields.filter((p) => p.kind === "metric");
+  const measure = metrics.find((p) => p.column && p.aggregate !== "count_distinct") ?? metrics.find((p) => !p.column) ?? metrics[0];
+  return by && measure ? { rows: [by.id], values: [measure.id] } : { rows: [], values: [] };
 }

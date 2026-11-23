@@ -6917,10 +6917,13 @@ select.sf-input:disabled {
   align-items: start;
 }
 
-/* Stacked, the fields keep to a box of their own so the shelves stay near the pills a person presses; opening a field's editor lifts the limit. */
+/* Stacked, the shelves and what they draw come first, so pressing a pill below shows its effect without scrolling; the fields keep to a box of their own under them. Opening a field's editor lifts the limit. */
 @container sf-explore (max-width: 40rem) {
+  .sf-explore-main {
+    order: -1;
+  }
   .sf-explore-fields:not(:has(.sf-explore-editor)) {
-    max-block-size: min(22rem, 55vh);
+    max-block-size: min(18rem, 45vh);
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-block-end: var(--sf-space-2);
@@ -7076,6 +7079,39 @@ select.sf-input:disabled {
   background: none;
   color: var(--sf-color-muted);
   cursor: pointer;
+}
+
+/* A field's edit button waits for the pointer or focus where there is a pointer, so the list reads as fields first; on touch it stays. */
+@media (hover: hover) {
+  .sf-explore-pills > .sf-pill-wrap:not(:hover, :focus-within) > .sf-pill-x[data-control="edit"] {
+    opacity: 0;
+  }
+}
+
+/* What is for later (calculations, filters) folds under a summary that says how many there are. */
+.sf-explore-more > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-2);
+  min-block-size: var(--sf-target-min);
+  color: var(--sf-color-muted);
+  font-size: var(--sf-font-size-sm);
+  cursor: pointer;
+}
+.sf-explore-more[open] > summary {
+  margin-block-end: var(--sf-space-2);
+}
+.sf-explore-more > summary:focus-visible {
+  outline: 2px solid var(--sf-color-focus);
+  outline-offset: 1px;
+}
+.sf-explore-count {
+  min-inline-size: 1.25rem;
+  padding: 0 var(--sf-space-1);
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-color-fill-2);
+  color: var(--sf-color-text);
+  text-align: center;
 }
 
 .sf-pill:focus-visible,

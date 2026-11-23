@@ -31,6 +31,7 @@ import {
   pillNumber,
   pillProblem,
   pillsFromFields,
+  suggestedView,
   removeFromShelf,
   setChartSettings,
   setMeasureStyle,
@@ -77,6 +78,12 @@ export interface ExplorerProps {
   controls?: ItemControl[];
   /** Height of the chart in px. Defaults to 300. */
   chartHeight?: number;
+  /**
+   * When it generates its pills and nothing is on the shelves, put a first
+   * view there (see `suggestedView`), so something is drawn before anyone
+   * presses a pill. Off by default: a host that holds the shelves decides.
+   */
+  startWithView?: boolean;
   dataSource?: DataSource;
   className?: string;
 }
@@ -496,6 +503,9 @@ export function Explorer(props: ExplorerProps) {
     context.current?.({ kind, summary, ...(subject ? { subject } : {}) });
   };
   const [ask, setAsk] = useState("");
+  // Calculations and filters start folded unless there are some already; then each stays as a person leaves it.
+  const [calculationsOpen, setCalculationsOpen] = useState(() => (props.value ?? props.defaultValue)?.fields?.some((p) => p.kind === "derived") ?? false);
+  const [filtersOpen, setFiltersOpen] = useState(() => ((props.value ?? props.defaultValue)?.filters?.length ?? 0) > 0);
   const [view, setView] = useState<"chart" | "table">("chart");
   const shown = state.view ?? view;
 
@@ -510,7 +520,8 @@ export function Explorer(props: ExplorerProps) {
         setColumns(found);
         if (latest.current.fields.length === 0) {
           const fields = modelRef.current ? pillsWithModel(modelRef.current, found) : pillsFromFields(found);
-          set({ ...latest.current, fields });
+          const empty = latest.current.rows.length === 0 && latest.current.values.length === 0 && !latest.current.split;
+          set({ ...latest.current, fields, ...(props.startWithView && empty ? suggestedView(fields) : {}) });
           const own = fields.filter((p) => p.model).length;
           say(
             "fields.generated",
@@ -759,7 +770,7 @@ export function Explorer(props: ExplorerProps) {
           </button>
         ) : (
           <>
-            <button type="button" className="sf-pill-x" aria-label={`Edit ${target.label}`} onClick={() => setEditing({ pill: target, isNew: false })}>
+            <button type="button" className="sf-pill-x" data-control="edit" aria-label={`Edit ${target.label}`} onClick={() => setEditing({ pill: target, isNew: false })}>
               <ControlIcon icon="edit" />
             </button>
             {/* A pill in use can be taken off from where it is picked, without finding it on its shelf. */}
@@ -793,8 +804,8 @@ export function Explorer(props: ExplorerProps) {
       <div className="sf-explore-frame">
       <aside className="sf-explore-fields" aria-label="Fields">
         <input className="sf-input" type="search" placeholder="Find a field" aria-label="Find a field" value={search} onChange={(e) => setSearch(e.target.value)} />
-        {(["attribute", "metric", "derived"] as PillKind[]).map((kind) => (
-          <section key={kind} aria-label={kind === "attribute" ? "Attributes" : kind === "metric" ? "Metrics" : "Calculations"}>
+        {(["attribute", "metric"] as PillKind[]).map((kind) => (
+          <section key={kind} aria-label={kind === "attribute" ? "Attributes" : "Metrics"}>
             <h4 className="sf-explore-heading">
               {kind === "attribute" ? "Attributes" : kind === "metric" ? "Metrics" : "Calculations"}
               <button type="button" className="sf-explore-add" aria-label={`New ${KIND_WORD[kind]}`} onClick={() => setEditing({ pill: blank(kind), isNew: true })}>
@@ -803,13 +814,32 @@ export function Explorer(props: ExplorerProps) {
             </h4>
             <div className="sf-explore-pills">
               {group(kind).map((p) => drawPill(p))}
-              {group(kind).length === 0 && <p className="sf-explore-hint">{words ? "None match." : kind === "derived" ? "None yet. A calculation is arithmetic over metrics: a rate, a margin, an average." : "None."}</p>}
+              {group(kind).length === 0 && <p className="sf-explore-hint">{words ? "None match." : "None."}</p>}
             </div>
           </section>
         ))}
-        <button type="button" className="sf-button" onClick={suggest}>
-          Suggest calculations
-        </button>
+        {/* Calculations are for later: folded unless there were some to begin with, or a search finds one. */}
+        <details className="sf-explore-more" open={calculationsOpen || (!!words && group("derived").length > 0)} onToggle={(e) => setCalculationsOpen(e.currentTarget.open)}>
+          <summary>
+            Calculations
+            {state.fields.some((p) => p.kind === "derived") && <span className="sf-explore-count">{state.fields.filter((p) => p.kind === "derived").length}</span>}
+          </summary>
+          <section aria-label="Calculations">
+            <h4 className="sf-explore-heading">
+              Calculations
+              <button type="button" className="sf-explore-add" aria-label={`New ${KIND_WORD.derived}`} onClick={() => setEditing({ pill: blank("derived"), isNew: true })}>
+                <ControlIcon icon="add" />
+              </button>
+            </h4>
+            <div className="sf-explore-pills">
+              {group("derived").map((p) => drawPill(p))}
+              {group("derived").length === 0 && <p className="sf-explore-hint">{words ? "None match." : "None yet. A calculation is arithmetic over metrics: a rate, a margin, an average."}</p>}
+            </div>
+          </section>
+          <button type="button" className="sf-button" onClick={suggest}>
+            Suggest calculations
+          </button>
+        </details>
         {editing && (
           <PillEditor
             key={`${editing.pill.id}-${editing.isNew}`}
@@ -914,7 +944,14 @@ export function Explorer(props: ExplorerProps) {
             )}
           </div>
         )}
-        <QueryFilters sourceId={sourceId} sql={sql} filters={state.filters} onChange={(next: FilterSpec[]) => set({ ...state, filters: next })} onContext={props.onContext} dataSource={dataSource} />
+        {/* Filters fold away until there are some. */}
+        <details className="sf-explore-more" open={filtersOpen} onToggle={(e) => setFiltersOpen(e.currentTarget.open)}>
+          <summary>
+            Filters
+            {state.filters.length > 0 && <span className="sf-explore-count">{state.filters.length}</span>}
+          </summary>
+          <QueryFilters sourceId={sourceId} sql={sql} filters={state.filters} onChange={(next: FilterSpec[]) => set({ ...state, filters: next })} onContext={props.onContext} dataSource={dataSource} />
+        </details>
 
         {problem && (
           <p className="sf-filter-problem" role="alert">
