@@ -23,6 +23,13 @@ const grid = (extra: Partial<Parameters<typeof DataGrid>[0]> = {}) => render(<Da
 const ready = () => waitFor(() => expect(screen.getAllByRole("gridcell").length).toBeGreaterThan(0));
 
 describe("column layout", () => {
+  it("heads columns with their labels, while sorting and the menus keep working by name", async () => {
+    grid({ columns: { labels: { city: "Home city", name: "" } } });
+    await ready();
+    expect(headers()).toEqual(["id", "name", "Home city"]);
+    expect(header("Home city").getAttribute("title")).toMatch(/^city · /);
+  });
+
   it("orders, hides and moves columns as plain data", () => {
     const names = ["id", "name", "city"];
     expect(arrangeColumns(names)).toEqual(names);

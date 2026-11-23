@@ -38,6 +38,8 @@ describe("locale", () => {
     expect(formatCell(1234.5, new Float64()).text).toBe("1.234,5");
     expect(formatMetric(0.125, "percent")).toMatch(/^12,5\s%$/);
     setLocale("en-US");
+    // Money is written one way: cents under a thousand, whole dollars to a hundred thousand, then compact.
+    expect([formatMetric(19.5, "currency"), formatMetric(1904.37, "currency"), formatMetric(498_200, "currency")]).toEqual(["$19.50", "$1,904", "$498.2K"]);
     expect(formatCell(1234.5, new Float64()).text).toBe("1,234.5");
   });
 

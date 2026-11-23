@@ -8436,10 +8436,21 @@
                 "minimum": 60,
                 "maximum": 1200
               }
+            },
+            "labels": {
+              "description": "Headers to show in place of column names, by column name (\"Starts\" for starts_at).",
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 120
+              }
             }
           },
           "additionalProperties": false,
-          "description": "Which columns show, in what order and how wide."
+          "description": "Which columns show, in what order, how wide, and under what headers."
         },
         "height": {
           "type": "integer",
@@ -10419,10 +10430,21 @@
                 "minimum": 60,
                 "maximum": 1200
               }
+            },
+            "labels": {
+              "description": "Headers to show in place of column names, by column name (\"Starts\" for starts_at).",
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 120
+              }
             }
           },
           "additionalProperties": false,
-          "description": "Which columns show, in what order and how wide."
+          "description": "Which columns show, in what order, how wide, and under what headers."
         },
         "height": {
           "type": "integer",

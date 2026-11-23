@@ -99,8 +99,9 @@ const COLUMNS = z
     order: z.array(z.string()).max(500).optional().describe("Column names in display order; the rest follow in the query's order."),
     hidden: z.array(z.string()).max(500).optional(),
     widths: z.record(z.string(), z.number().min(60).max(1200)).optional().describe("Widths in px by column name."),
+    labels: z.record(z.string(), z.string().max(120)).optional().describe('Headers to show in place of column names, by column name ("Starts" for starts_at).'),
   })
-  .describe("Which columns show, in what order and how wide.");
+  .describe("Which columns show, in what order, how wide, and under what headers.");
 const DIMENSION = z.union([
   z.string(),
   z.strictObject({

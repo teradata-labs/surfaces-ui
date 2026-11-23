@@ -23,11 +23,12 @@ describe("PivotTable", () => {
       <PivotTable dataSource={dataSource} sourceId="memory" sql={sql} rows={["region"]} columns={["status"]} measures={[{ column: "amount", aggregate: "avg" }]} />,
     );
     await waitFor(() => expect(screen.getByRole("rowheader", { name: "EU" })).toBeTruthy());
-    expect(screen.getAllByRole("columnheader").map((h) => h.textContent)).toEqual(["region", "open", "shipped", "Total"]);
-    // The total of an average is the average of all rows, not the sum of the cells.
+    // An average over everything is not a total, so it is headed "All".
+    expect(screen.getAllByRole("columnheader").map((h) => h.textContent)).toEqual(["region", "open", "shipped", "All"]);
+    // The average of all rows, not the sum of the cells.
     expect(cells(screen.getByRole("rowheader", { name: "EU" }).closest("tr")!)).toEqual(["20", "5", "15"]);
     expect(cells(screen.getByRole("rowheader", { name: "NA" }).closest("tr")!)).toEqual(["", "100", "100"]);
-    expect(cells(screen.getByRole("rowheader", { name: "Total" }).closest("tr")!)).toEqual(["20", "52.5", "36.25"]);
+    expect(cells(screen.getByRole("rowheader", { name: "All" }).closest("tr")!)).toEqual(["20", "52.5", "36.25"]);
   });
 
   it("groups dates by a grain and works without columns", async () => {

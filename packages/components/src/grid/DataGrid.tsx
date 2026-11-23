@@ -24,6 +24,8 @@ export interface GridColumns {
   hidden?: string[];
   /** Widths in px, by column name. */
   widths?: Record<string, number>;
+  /** Headers to show in place of column names, by column name ("Starts" for `starts_at`). Sorting, filters and the layout keep the names. */
+  labels?: Record<string, string>;
 }
 
 /** The names to show, in order, for the columns a query returned. */
@@ -207,6 +209,7 @@ export function DataGrid(props: DataGridProps) {
   const names = fields.map((f) => f.name);
   const shown = arrangeColumns(names, layout).map((name) => ({ field: fields[names.indexOf(name)]!, source: names.indexOf(name) }));
   const sizes = layout.widths ?? {};
+  const headerOf = (name: string) => layout.labels?.[name] || name;
   const setSize = (name: string, width: number | undefined) => {
     const { [name]: _, ...rest } = layoutRef.current.widths ?? {};
     setColumns({ ...layoutRef.current, widths: width === undefined ? rest : { ...rest, [name]: Math.max(MIN_COLUMN, Math.min(MAX_COLUMN, Math.round(width))) } });
@@ -471,7 +474,7 @@ export function DataGrid(props: DataGridProps) {
               onMouseDown={() => setActive({ row: index, column })}
               onContextMenu={(event) => {
                 setActive({ row: index, column });
-                menu.open(event, text("grid.cellMenu", { name: field.name }), cellMenu(index, column));
+                menu.open(event, text("grid.cellMenu", { name: headerOf(field.name) }), cellMenu(index, column));
               }}
             >
               {cell.text}
@@ -540,17 +543,17 @@ export function DataGrid(props: DataGridProps) {
                 onDragLeave={() => setDropBefore(undefined)}
                 onDragEnd={() => setDropBefore(undefined)}
                 onDrop={onHeaderDrop(field.name, index)}
-                onContextMenu={(event) => menu.open(event, text("grid.columnMenu", { name: field.name }), headerMenu(field.name, index))}
+                onContextMenu={(event) => menu.open(event, text("grid.columnMenu", { name: headerOf(field.name) }), headerMenu(field.name, index))}
               >
                 <button
                   type="button"
                   className="sf-grid-sort"
-                  title={`${field.name} · ${String(field.type)}`}
+                  title={`${headerOf(field.name) === field.name ? "" : `${field.name} · `}${String(field.type)}`}
                   aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Shift+ArrowLeft Shift+ArrowRight Shift+F10"
                   onClick={(event) => toggleSort(field.name, event)}
                   onKeyDown={onHeaderKeyDown(field.name, index)}
                 >
-                  <span className="sf-grid-name">{field.name}</span>
+                  <span className="sf-grid-name">{headerOf(field.name)}</span>
                   {sort && (
                     <span className="sf-grid-arrow" aria-hidden="true">
                       {sort.desc ? "↓" : "↑"}
