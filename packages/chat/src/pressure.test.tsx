@@ -80,8 +80,9 @@ describe("an agent-built page, end to end", () => {
     fireEvent.change(screen.getByRole("textbox", { name: /message/i }), { target: { value: "Help me set a budget" } });
     fireEvent.click(screen.getByRole("button", { name: /send/i }));
 
-    // The layout, the repeated list and the live table are all drawn.
-    expect(await screen.findByRole("heading", { name: "Set a budget" })).toBeTruthy();
+    // The layout, the repeated list and the live table are all drawn. Chat draws with lazyAnalyticsRenderers, so the
+    // first surface waits for that chunk to load, which on a busy CI runner can take longer than findBy's default second.
+    expect(await screen.findByRole("heading", { name: "Set a budget" }, { timeout: 10_000 })).toBeTruthy();
     expect(screen.getByText("Americas", { selector: ".sf-badge, .sf-a2-badge, span" })).toBeTruthy();
     await screen.findByRole("columnheader", { name: /^region/ });
 
