@@ -22,6 +22,9 @@ export default defineConfig({
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 860 } } },
     { name: "phone", use: { ...devices["Pixel 7"] }, grep: /@phone/ },
+    // Safari's engine on an iPhone: layout that Chromium and WebKit read differently (a percentage height inside a
+    // box sized by aspect-ratio, #205) only shows here.
+    { name: "iphone", use: { ...devices["iPhone 13"] }, grep: /@phone/ },
   ],
   webServer: {
     command: `pnpm --filter @surfaces-ui/playground exec vite --port ${PORT} --strictPort`,

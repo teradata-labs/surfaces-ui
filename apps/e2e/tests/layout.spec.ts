@@ -49,3 +49,18 @@ test.describe("Data picker", () => {
     await expect(page.locator(".home").getByRole("combobox", { name: "Data" })).toBeVisible();
   });
 });
+
+// The home page's phone keeps its screen inside the bezel on every side: in WebKit a percentage height inside the
+// frame (sized by aspect-ratio) once ran the screen past the bottom bezel and over the rounded corners (#205).
+test("the home page's phone keeps its screen inside its bezel @phone", async ({ page }) => {
+  await open(page, "home");
+  const phone = page.locator(".sf-site-phone:visible").first();
+  await phone.scrollIntoViewIfNeeded();
+  const gaps = await phone.evaluate((root) => {
+    const frame = root.querySelector(".sf-site-phone-frame")!.getBoundingClientRect();
+    const body = root.querySelector(".sf-site-phone-body")!.getBoundingClientRect();
+    return { top: body.top - frame.top, right: frame.right - body.right, bottom: frame.bottom - body.bottom, left: body.left - frame.left };
+  });
+  for (const [side, gap] of Object.entries(gaps)) expect(gap, `the bezel on the ${side} is ${gap}px`).toBeGreaterThan(2);
+  expect(Math.abs(gaps.bottom - gaps.top), "the bezel is as thick at the bottom as at the top").toBeLessThan(1);
+});
