@@ -3862,11 +3862,15 @@ select.sf-input:disabled {
 
 /* A model's name with its capability beside it: rising bars, filled up to its level, and the level's word. */
 .sf-chat-model-name {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  justify-content: space-between;
   column-gap: var(--sf-space-2);
+}
+
+/* A long name wraps; the level keeps its place at the end of the line. */
+.sf-chat-model-name > span:first-child {
+  overflow-wrap: anywhere;
 }
 
 .sf-chat-model-level {
@@ -3882,11 +3886,11 @@ select.sf-input:disabled {
   display: inline-flex;
   align-items: flex-end;
   gap: 2px;
-  block-size: 0.8em;
+  block-size: 0.9em;
 }
 
 .sf-chat-model-bars > span {
-  inline-size: 3px;
+  inline-size: var(--sf-space-1);
   border-radius: 1px;
   background: var(--sf-color-border-strong);
 }
