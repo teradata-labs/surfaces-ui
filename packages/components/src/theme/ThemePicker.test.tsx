@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { HUES, defaultTheme, presets } from "@surfaces-ui/tokens";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ThemePicker } from "./ThemePicker.js";
 import type { StateStorage } from "@surfaces-ui/data";
@@ -70,7 +70,8 @@ describe("ThemePicker", () => {
     const fern = presets.find((p) => p.name === "Sand")!;
     setup(memoryStore({ theme: fern, mode: "light" }).store);
     expect(await screen.findByText(/^Sand\|light/)).toBeTruthy();
-    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    // The saved choice arrives in a promise, so the text can be drawn before the effect that marks the page has run.
+    await waitFor(() => expect(document.documentElement.getAttribute("data-theme")).toBe("light"));
   });
 
   it("keeps a choice made before the saved one loads, and ignores saved text it cannot read", async () => {
