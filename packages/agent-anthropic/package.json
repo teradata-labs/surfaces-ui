@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/agent-anthropic",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An AgentBackend over Claude through the Anthropic SDK, for Surfaces UI chat",
   "keywords": [
     "surfaces-ui",

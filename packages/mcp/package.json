@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP Apps delivery for Surfaces UI: tools, ui:// resources and a stdio server",
   "keywords": [
     "surfaces-ui",

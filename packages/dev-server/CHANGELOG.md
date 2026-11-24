@@ -1,5 +1,25 @@
 # @surfaces-ui/dev-server
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies [caab7c1]
+- Updated dependencies [7343db7]
+  - @surfaces-ui/agent@0.2.0
+  - @surfaces-ui/seeds@0.2.0
+  - @surfaces-ui/data@0.2.0
+  - @surfaces-ui/proto@0.2.0
+  - @surfaces-ui/discovery@0.2.0
+  - @surfaces-ui/engine-service@0.2.0
+  - @surfaces-ui/pipelines@0.2.0
+  - @surfaces-ui/pipelines-dbt@0.2.0
+  - @surfaces-ui/sql@0.2.0
+  - @surfaces-ui/engine@0.2.0
+  - @surfaces-ui/engine-datafusion@0.2.0
+  - @surfaces-ui/engine-duckdb@0.2.0
+  - @surfaces-ui/engine-teradata@0.2.0
+
 ## 0.1.0
 
 ### Patch Changes

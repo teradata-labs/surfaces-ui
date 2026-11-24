@@ -1,5 +1,82 @@
 # @surfaces-ui/spec
 
+## 0.2.0
+
+### Minor Changes
+
+- febcda0: Analytics components say what their numbers are:
+  
+  - `PivotTable` heads its totals "Total" only when every measure adds up (sum, count, count distinct); otherwise "All" (`pivot.all`), since a maximum or an average over everything is not a total.
+  - `formatMetric` writes money one way: cents under a thousand, whole units to a hundred thousand, then compact. A `Sparkline` beside a `Metric` reads "$1,904" and "$498.2K", not "$1,904.00".
+  - `DataGrid` takes `columns.labels`, headers to show in place of column names ("Starts" for `starts_at`); sorting, filters and the layout keep the names. The catalog's `DataGrid` takes it too.
+  - `exploreChart` keeps the split when several measures are shown: each measure for each of the split's values, as `Chart` draws it ("North · Revenue"). A second attribute on the rows still splits one measure only. A chart on a page with a split and several measures now opens in Explore and goes back unchanged.
+- 05b01f6: `useArrange` takes `kindName(kind)`, so a host can name a kind of component in its own words on the arrange bar and in the controls' labels ("Stack across" for a Row, say). Without it, the catalog's names are used as before.
+- cc51d18: Arranging, Tab stops once on each component: at its controls, which select it. Its size handles join the order only while it is selected, as its gap and padding handles already did. `ResizeHandle` takes `tabbable` (default true) for this; viewing, with no controls, keeps every handle in order.
+- 7edc469: `basicsCatalog`: the components every catalog shares (layout, text, links, buttons, inputs and forms, navigation and the theme switch) as a catalog of their own, with `basicComponents` and `basicsRenderers`. The analytics catalog is built on the same definitions and is unchanged. A catalog that needs no data components can now be built with `extendCatalog(basicsCatalog, …)`.
+- 9b07da7: Layout props for the basic containers, so a page can be laid out like frames with auto layout while staying on the theme's spacing:
+  
+  - `gap` on Row, Column and Grid, and `padding` on Row, Column and Card: a step of the spacing scale, `"none" | 1 | 2 | 3 | 4 | 6 | 8` (`--sf-space-<step>`). Gap defaults to 4; padding to "none", and to 4 on a Card.
+  - `wrap` on Row (default true): false keeps the children on one line, even in a narrow container.
+  - `sizes` on Row: one per child, `"hug"`, `"fill"` or `{ fixed: px }` (24 to 1600). It wins over `widths` when both have one entry per child; with neither, the children share the width as before. Resizing a Row's children by hand gives them `widths` and takes `sizes` off.
+  - A page that uses none of them is drawn exactly as before: the props add `data-gap`, `data-padding`, `data-wrap` and `data-sizes` only when they are set.
+  - `spaceStep`, `spaceVar`, `spaceName`, `nextSpaceStep`, `rowSizes`, `spaceMessages`, `spaceProps` and `spaceDefault` read and set them.
+  
+  Arrange (`useArrange`): a drag shows a line in the gap where the component will land and outlines the container that takes it, in place of a shadow on the neighbour. Clicking a frame, or reaching its bar by keyboard, selects it (`selected`, `select`, and the `selected` and `onSelect` options for a host with its own selection); a selected Row, Column or Grid shows a handle in its gap and at its padding (a Card at its padding) that drags, or steps by arrow key, from one token to the next, labelled "16 px · space-4", and sends the change through `apply` like any other arrangement. The root is wrapped in `.sf-arrange-root` while arranging so it can be selected and outlined.
+  
+  Icons: `bell` and `person` for a workspace's rail (and the Workspace panel `icon` enum, which now also lists `people`); `more` and `bell` for ChatIcon, so `<MenuButton iconOnly icon="more" label="More for …">` is an overflow menu.
+- caab7c1: Fixes and catalog additions from the Surfaces Studio pressure tests.
+  
+  - `extractSurfaces` reads an A2UI message written over several lines, and a list of messages; a block holding text that is not a message ends in one `error` event (`UNREAD_SURFACE`) instead of losing the change in silence.
+  - The catalog prompt writes every prop's shape (`array of { column: string, desc?: boolean }`; `shapeText`), lists each function's arguments, and shows both forms of a control's `action`. A value that fits no form of a union is refused with the problems of the closest form, never a bare "Invalid input".
+  - `formatString` takes `${path|words}` for a value that is not there yet.
+  - New catalog components: `RowList` (one component drawn per row of a query, with the row's key in a Button's event; `RowList` in `@surfaces-ui/components`) and `Message` (one turn of a conversation).
+  - Every catalog component takes `visibleWhen: { path, equals }` (or `in`). `TextField`, `NumberField`, `ChoicePicker`, `CheckBox` and `DateTimeInput` take `required` (`TextField` also `pattern`) and say what is wrong beside the field once it has been left.
+  - Charts: a row with no x is left off a time or number axis and no longer sizes the y axis, and the chart says so; axis titles are placed from their tick labels and no longer clipped.
+  - Series colours: every named order is rearranged so any two of its first five colours can be told apart, not only neighbours (blue and indigo no longer both lead). `checkSeries` reports such pairs. A saved theme holding an earlier order is moved to the current one when read.
+  - `SideNav`: the menu button of a folded navigation sits in its own container (sticky), not fixed to the window, and tells what follows it the room to leave (`--sf-sidenav-inset`); its accessible name no longer says "navigation" twice.
+  - `KeyValue` rows are no wider than 36rem, so a label and its value stay a pair on a wide page.
+  - Seeds: a seed number above 22018 no longer overflows a 32-bit integer in DuckDB.
+- 7343db7: The rest of three issues from the Surfaces Studio pressure tests.
+  
+  - Series colours can be told apart with red-green colour blindness: any two of an order's first five now differ for those readers too, because the series hues no longer share one lightness (on light surfaces red is a crimson and green a forest green, pink and magenta are deeper; on dark surfaces green and teal are brighter). `HUES` holds the new steps and `RETIRED_HUES` the old; a saved theme using a named order is moved to them when read (`currentSeries`, `currentHue`). `checkSeries` warns about two of the first five that only colour blindness brings together.
+  - A `Button` waits for loose inputs it names in `requires`: while one is missing or wrong it is marked unavailable, and a press sends nothing, says what is wrong beside each and moves to the first (`useInputCheck`, `useRequiredInputs` for your own renderers).
+  - A `Form` field takes `visibleWhen: { field, equals }` (or `in`): it is asked for only while another field holds that value, and is not required and stored as null otherwise. `FormField.visible_when` in the contract, `fieldAsked` in `@surfaces-ui/data`, checked the same way by `checkSubmission`.
+  - A folded `SideNav` keeps a slim strip for its menu button instead of floating over the page, so nothing needs to step aside for it (`--sf-sidenav-inset` is gone). Its drawer opens over the surface it is drawn in, not the window, when it is inside one, and it folds for a narrow surface as it does for a narrow window.
+- bbb0b52: One resize handle, for Arrange and for apps.
+  
+  - `ResizeHandle` (`@surfaces-ui/components`): a handle on the right or bottom edge of a positioned parent that sizes a width or a height. A focusable `separator` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`; dragged with pointer events, so a mouse, a pen and a finger all work; arrows (Shift for five steps), Home and End move it, Enter or a double click resets it, Escape gives up a drag, and so does the handle going away mid-drag. Props: `edge`, `value`, `min`, `max`, `snap`, `step`, `unitPixels`, `startFrom`, `onChange`, `onChangeEnd`, `onReset`, `label`, `valueText`, `always`. Its maths are plain functions: `clampResize`, `dragResize`, `keyResize`, `defaultResizeStep`. Described as an app component, with a demo in the playground.
+  - Arrange draws its height and width handles with `ResizeHandle`. Each press target is now at least `--sf-target-min` across, and Enter or a double click puts a size back (the widths and height the page shipped with when `useArrange` is given `shipped`; equal widths and the height the component chooses otherwise).
+  - `useArrange({ resizeWhileViewing: true })` keeps the width handles between a `Grid`'s or `Row`'s columns, and the height handle under a component with a height of its own (a chart or a table, say) or one whose height is set, while nobody is arranging. A drag sends the same messages Arrange sends, as one step. Pass the new `arrange.surfaceFrame` to `SurfaceView` as `frame`; `arrange.shown(surface)` is the surface itself when nothing is being sized, so it can be drawn always.
+  - `PageStudio` takes `resizeWhileViewing` beside `arrange`.
+- c3481a2: Add the site catalog: `siteCatalog` (the basic components plus Hero, Section, FeatureGrid, DeviceFrame, PromptReveal, Showcase, NavBar, Footer, Media, Quote, Callout, PostCard and PostList), `siteRenderers`, `siteMarkup`, `siteLink` and `MediaPolicyProvider`, with the components themselves in `@surfaces-ui/components` and their `sf-site-*` styles. A Media loads only an address the page gives or an origin it allows. `catalogDocs` takes a `markup` name.
+
+### Patch Changes
+
+- 6384252: A Form stretched taller than its fields keeps them together at the top, instead of spreading the fields, and each field's label and control, down its height. Grid takes `align` (`start`, `center`, `end`, `stretch`; default `stretch`) so each child can keep its own height in a row of mixed content.
+- 0487cde: `SurfaceView` no longer records two trace events with one id. A component drawn under an id that another kind of component held before (or drawn again after a frame was put around it) reused the first one's span, so the dev tools Timeline held rows with the same key and React warned about it. A scope now belongs to a component's place, id and kind, is recorded once, and is let go when the component is gone.
+- Updated dependencies [febcda0]
+- Updated dependencies [62a8fce]
+- Updated dependencies [cc51d18]
+- Updated dependencies [32556a0]
+- Updated dependencies [2e1d220]
+- Updated dependencies [695a82a]
+- Updated dependencies [a07ca52]
+- Updated dependencies [6384252]
+- Updated dependencies [9b07da7]
+- Updated dependencies [432f0fc]
+- Updated dependencies [b4b5fb0]
+- Updated dependencies [d118da4]
+- Updated dependencies [caab7c1]
+- Updated dependencies [7343db7]
+- Updated dependencies [bbb0b52]
+- Updated dependencies [f481687]
+- Updated dependencies [c3481a2]
+  - @surfaces-ui/components@0.2.0
+  - @surfaces-ui/tokens@0.2.0
+  - @surfaces-ui/data@0.2.0
+  - @surfaces-ui/proto@0.2.0
+  - @surfaces-ui/trace@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
