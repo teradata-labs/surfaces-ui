@@ -23,92 +23,57 @@ import { ThemeGallery } from "./areas/ThemeGallery.js";
 import { ThemePage } from "./areas/ThemePage.js";
 import { Workbench } from "./areas/Workbench.js";
 import { ThemeMenu } from "./ThemeMenu.js";
+import { AREA_GROUPS, AREA_INFO, type AreaInfo, HOME_INFO, VIEW_INFO, currentRoute, followLinks, go, hrefOf, onRoute, routePath } from "./routes.js";
 import { type ActiveSource, type LoadingStatus, SERVER, chooseSource, engineLabel, isRealSource, sampleSource } from "./source.js";
 
-interface Area {
-  id: string;
-  label: string;
-  /** One line under the label, saying what the area is for. */
-  hint: string;
-  /** True when the area works on the model picked in the sidebar; others use the sample orders they were written for. */
-  picked?: boolean;
-  /** False when nothing on the area reads the picked data (each saved surface, model or source names its own), so it has no data picker. */
-  data?: false;
-  /** True when the area is a demo written against a sample model's measures and categories. On a real source it stays on sample data and says so. */
-  demo?: boolean;
+interface Area extends AreaInfo {
   /** `picker` is the data picker, for an area with no heading of its own to put it in. */
   render(source: ActiveSource, picker: ReactNode): ReactNode;
 }
 
 // The guides carry the text of every doc, so they load only when Docs is opened.
 const DocsPage = lazy(() => import("./areas/DocsPage.js").then((m) => ({ default: m.DocsPage })));
-/** Every area of the playground, grouped as the sidebar shows them. The id is the URL hash. */
-const GROUPS: { label: string; areas: Area[] }[] = [
-  {
-    label: "Build",
-    areas: [
-      { id: "composer", label: "Playground", hint: "Build a surface with an agent or by hand, over sample data or your own", render: (s) => <ComposerPage source={s} /> },
-      { id: "pages", demo: true, label: "Reports and pages", hint: "A report builder with pills, and pages edited by plain-language instructions", render: (s) => <ExamplesPage source={s} /> },
-      { id: "chat", label: "Chat", hint: "An agent drawing live components in a thread", render: (s) => <ChatPage source={s} /> },
-      { id: "analysis", demo: true, label: "Sample analysis", hint: "Written conversations that go end to end: connect a source, clean it, run a pipeline, agree a model, build a report and keep a dashboard", render: (s) => <AnalysisPage source={s} /> },
-      { id: "models", data: false, label: "Models", hint: "Which model each agent runs, and the agent the Playground, Chat and Pages use", render: (s) => <ModelsPage source={s} /> },
-    ],
-  },
-  {
-    label: "Components",
-    areas: [
-      { id: "catalog", demo: true, label: "Catalog", hint: "Every component: live props, preview, the events it sends and its API", render: (s) => <ComponentCatalog source={s} /> },
-      { id: "patterns", demo: true, label: "Patterns", hint: "Comparisons, chart advice and every human-in-the-loop pattern", render: (s) => <PatternsPage source={s} /> },
-      { id: "themes", demo: true, label: "Themes", hint: "Every preset over the same data", render: (s) => <ThemeGallery source={s} /> },
-      { id: "theme", demo: true, label: "Theme editor", hint: "Accent, radius, density and chart colours", render: (s) => <ThemePage source={s} /> },
-    ],
-  },
-  {
-    label: "Data",
-    areas: [
-      { id: "workbench", picked: true, label: "SQL workbench", hint: "Browse, write SQL, read the result", render: (s) => <Workbench source={s} /> },
-      { id: "model", picked: true, label: "Data model", hint: "Drag tables and columns to build joins", render: (s) => <ModelPage source={s} /> },
-      { id: "semantic", picked: true, label: "Semantic models", hint: "Dimensions, measures and metrics, defined once for every report", render: (s) => <SemanticPage source={s} /> },
-      { id: "discover", picked: true, label: "Data catalog", hint: "Search, table detail, ask and agent context", render: (s) => <Discover source={s} /> },
-      { id: "pipelines", label: "Pipelines", hint: "Datasets built from one another, with quality rules", render: (s) => <PipelinePage source={s} /> },
-      { id: "sources", data: false, label: "Sources", hint: "What the backend offers and how it connects", render: (s) => <SourcesPage source={s} /> },
-    ],
-  },
-  {
-    label: "Library",
-    areas: [{ id: "library", data: false, label: "Saved surfaces", hint: "Pages, charts, forms and explorers, by kind, with versions", render: (s) => <LibraryPage source={s} /> }],
-  },
-  {
-    label: "Docs",
-    areas: [{ id: "docs", data: false, label: "Guides", hint: "Getting started, agent integration, accessibility, the recipes and the app components", render: () => <Suspense fallback={<p className="hint" role="status">Loading the guides…</p>}><DocsPage /></Suspense> }],
-  },
-  {
-    label: "Showcase",
-    areas: [
-      { id: "showcase", demo: true, label: "By role", hint: "Setups for the people who work with data, each made from the same components", render: (s) => <ShowcasePage source={s} onOpen={openArea} /> },
-      { id: "hosts", label: "Hosts", hint: "One saved surface in a page, a chat reply, a side panel and an MCP frame", render: (s) => <HostsPage source={s} /> },
-      { id: "mcp", demo: true, label: "MCP app", hint: "The real MCP app page with this page as its host", render: (s) => <McpPreview source={s} /> },
-    ],
-  },
-];
-/** Opens an area by its hash, with anything after "?" for the area itself (`showcase?persona=analyst`). */
+/** What each area draws. Its path, name and description are in `routes.ts`, which the build reads as well. */
+const RENDER: Record<string, Area["render"]> = {
+  home: (s, picker) => <HomePage source={s} onOpen={openArea} picker={picker} />,
+  view: (s) => <PageView source={s} />,
+  composer: (s) => <ComposerPage source={s} />,
+  pages: (s) => <ExamplesPage source={s} />,
+  chat: (s) => <ChatPage source={s} />,
+  analysis: (s) => <AnalysisPage source={s} />,
+  models: (s) => <ModelsPage source={s} />,
+  catalog: (s) => <ComponentCatalog source={s} />,
+  patterns: (s) => <PatternsPage source={s} />,
+  themes: (s) => <ThemeGallery source={s} />,
+  theme: (s) => <ThemePage source={s} />,
+  workbench: (s) => <Workbench source={s} />,
+  model: (s) => <ModelPage source={s} />,
+  semantic: (s) => <SemanticPage source={s} />,
+  discover: (s) => <Discover source={s} />,
+  pipelines: (s) => <PipelinePage source={s} />,
+  sources: (s) => <SourcesPage source={s} />,
+  library: (s) => <LibraryPage source={s} />,
+  docs: () => (
+    <Suspense fallback={<p className="hint" role="status">Loading the guides…</p>}>
+      <DocsPage />
+    </Suspense>
+  ),
+  showcase: (s) => <ShowcasePage source={s} onOpen={openArea} />,
+  hosts: (s) => <HostsPage source={s} />,
+  mcp: (s) => <McpPreview source={s} />,
+};
+const withRender = (info: AreaInfo): Area => ({ ...info, render: RENDER[info.id]! });
+/** Opens an area by name, with anything after "?" for the area itself (`showcase?persona=analyst`). */
 function openArea(target: string) {
-  location.hash = target;
-  window.scrollTo({ top: 0 });
+  go(target);
 }
-/** The overview the site opens on. The brand in the bar goes back to it; it is not a section of its own. */
-const HOME: Area = { id: "home", demo: true, label: "Overview", hint: "", render: (s, picker) => <HomePage source={s} onOpen={openArea} picker={picker} /> };
-/** One example page alone, with no playground around it (`#view`), for showing the same page on several screens. Not in the navigation. */
-const VIEW: Area = { id: "view", demo: true, label: "Page", hint: "", render: (s) => <PageView source={s} /> };
-const AREAS = [HOME, VIEW, ...GROUPS.flatMap((g) => g.areas)];
+const HOME = withRender(HOME_INFO);
+const VIEW = withRender(VIEW_INFO);
+const AREAS = AREA_INFO.map(withRender);
 /** The areas as the navigation lists them: each group a section in the top bar, its areas the pages beneath. */
-const NAV = GROUPS.map((group) => ({ label: group.label, items: group.areas.map((area) => ({ id: area.id, label: area.label, href: `#${area.id}` })) }));
-// The overview is what opens first; the playground keeps its hash "composer", so saved links keep working.
+const NAV = AREA_GROUPS.map((group) => ({ label: group.label, items: group.areas.map((area) => ({ id: area.id, label: area.label, href: hrefOf(area.id) })) }));
 const DEFAULT = "home";
-/** The area in the hash; anything after "?" (such as `?surface=<id>`) belongs to the area. */
-const hashArea = () => location.hash.slice(1).split("?")[0] ?? "";
-const hashQuery = () => location.hash.split("?")[1];
-const areaFromHash = () => AREAS.find((a) => a.id === hashArea())?.id ?? DEFAULT;
+const areaFromRoute = () => currentRoute().area;
 
 const BACKEND: Record<ActiveSource["kind"], { label: string; detail: string }> = {
   server: { label: "Dev server", detail: `The local server at ${SERVER.replace(/^https?:\/\//, "")}` },
@@ -161,7 +126,7 @@ const choosing = chooseSource();
 
 export function App() {
   const [source, setSource] = useState<ActiveSource | undefined>();
-  const [areaId, setArea] = useState(areaFromHash);
+  const [areaId, setArea] = useState(areaFromRoute);
   // Changing area cross-fades the page under the bar where the browser has view transitions and motion is wanted;
   // elsewhere it simply changes.
   const setAreaId = useCallback((next: string) => {
@@ -223,18 +188,27 @@ export function App() {
   }, []);
   // The dev server can stop after the page loaded; say so instead of leaving bare "Failed to fetch" errors.
   const serverGone = useServerGone(source?.kind === "server");
+  // The address names the page: a link, the navigation, Back and Forward all move it, and the area follows.
   useEffect(() => {
-    const onHash = () => {
-      const next = areaFromHash();
+    const onMove = () => {
+      const next = areaFromRoute();
       if (next !== areaRef.current) setAreaId(next);
     };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    const stop = onRoute(onMove);
+    const unfollow = followLinks();
+    return () => {
+      stop();
+      unfollow();
+    };
   }, [setAreaId]);
   useEffect(() => {
-    const query = hashArea() === areaId ? hashQuery() : undefined;
-    history.replaceState(null, "", `${location.pathname}${location.search}${areaId === DEFAULT && !query ? "" : `#${areaId}${query ? `?${query}` : ""}`}`);
-    document.title = `${area.label} · Surfaces UI`;
+    // An area chosen in the app (the navigation, a menu) becomes the address; an address from before paths
+    // (`#chat`) is moved to its path, keeping what it named.
+    const route = currentRoute();
+    const target = route.area === areaId ? route : { area: areaId, params: new URLSearchParams() };
+    const url = routePath(target, import.meta.env.BASE_URL, new URLSearchParams(location.search));
+    if (url !== `${location.pathname}${location.search}` || location.hash) history[route.area === areaId ? "replaceState" : "pushState"](null, "", url);
+    document.title = areaId === DEFAULT ? "Surfaces UI: data and analytics components for people and agents" : `${area.label} · Surfaces UI`;
   }, [areaId, area.label]);
 
   // How tall the bars really are, which changes with the width (two rows, one that wraps, or a phone's one row):
@@ -274,7 +248,7 @@ export function App() {
         current={areaId}
         onSelect={setAreaId}
         brand={
-          <a className="shell-brand" href={`#${DEFAULT}`} onClick={() => setAreaId(DEFAULT)}>
+          <a className="shell-brand" href={hrefOf(DEFAULT)}>
             <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={26} height={26} />
             Surfaces UI
           </a>

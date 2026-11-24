@@ -1,17 +1,16 @@
 import type { SavedSurface } from "@surfaces-ui/proto";
 import type { PageDocument } from "@surfaces-ui/spec";
+import { hrefOf, routeParam } from "./routes.js";
 
 /** The link to one saved surface in the Library area. */
-export const surfaceLink = (id: string) => `#library?surface=${encodeURIComponent(id)}`;
+export const surfaceLink = (id: string) => hrefOf(`library?surface=${encodeURIComponent(id)}`);
 
 /** The link that opens a saved surface in the composer. */
-export const composerLink = (id: string) => `#composer?surface=${encodeURIComponent(id)}`;
+export const composerLink = (id: string) => hrefOf(`composer?surface=${encodeURIComponent(id)}`);
 
-/** The `surface` parameter of an address like `#library?surface=<id>`, or undefined. */
-export function surfaceFromHash(hash = location.hash): string | undefined {
-  const query = hash.indexOf("?");
-  if (query < 0) return undefined;
-  return new URLSearchParams(hash.slice(query + 1)).get("surface") || undefined;
+/** The `surface` parameter of the current page's address (`/library/?surface=<id>`), or undefined. */
+export function surfaceFromHash(): string | undefined {
+  return routeParam("surface") || undefined;
 }
 
 /** A saved surface's document as a page. The library keeps it as plain JSON. */

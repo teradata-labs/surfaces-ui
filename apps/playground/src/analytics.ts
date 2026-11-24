@@ -1,3 +1,4 @@
+import { type Route, currentRoute, onRoute } from "./routes.js";
 import { PUBLISHED } from "./source.js";
 
 /**
@@ -10,16 +11,16 @@ import { PUBLISHED } from "./source.js";
  */
 const MEASUREMENT_ID = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_GA_MEASUREMENT_ID ?? "";
 
-/** The parts of a hash that name a page of the site. Anything else (a saved surface's id, say) is a person's own and is left out. */
+/** The parameters that name a page of the site. Anything else (a saved surface's id, say) is a person's own and is left out. */
 const PAGE_KEYS = ["page", "persona", "component"];
 
 /** A measurement id as Google writes one, so a mistyped variable loads nothing. */
 export const isMeasurementId = (id: string): boolean => /^G-[A-Z0-9]{4,}$/.test(id);
 
-/** The page a hash names, as a path: `#docs?page=getting-started.md&surface=x` is `/docs?page=getting-started.md`. */
-export function pagePath(hash: string): string {
-  const [area = "", query = ""] = hash.replace(/^#/, "").split("?");
-  const given = new URLSearchParams(query);
+/** The page a route names, as a path: `docs` with `page=getting-started&surface=x` is `/docs?page=getting-started`. */
+export function pagePath(route: Route): string {
+  const area = route.area === "home" ? "" : route.area;
+  const given = route.params;
   const kept = new URLSearchParams();
   for (const key of PAGE_KEYS) {
     const value = given.get(key);
@@ -44,14 +45,14 @@ export function startAnalytics(): void {
     layer.push(arguments);
   }
   gtag("js", new Date());
-  // The playground routes by hash, which Google does not follow, so each view is sent by hand.
+  // The playground moves between pages without loading one, which Google does not see, so each view is sent by hand.
   gtag("config", MEASUREMENT_ID, { send_page_view: false });
   const view = () => {
-    const path = pagePath(location.hash);
+    const path = pagePath(currentRoute());
     gtag("event", "page_view", { page_location: `${location.origin}${path}`, page_path: path, page_title: document.title });
   };
   view();
-  window.addEventListener("hashchange", view);
+  onRoute(view);
   const script = document.createElement("script");
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(MEASUREMENT_ID)}`;

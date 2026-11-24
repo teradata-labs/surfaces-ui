@@ -5,6 +5,7 @@ import { examplePages } from "../examples.js";
 import { focusFor } from "../focus.js";
 import { type ActiveSource, firstTable } from "../source.js";
 import { Devices } from "./Devices.js";
+import { go, onRoute, routeParam } from "../routes.js";
 
 export interface Persona {
   id: string;
@@ -154,20 +155,18 @@ export function personaPage(persona: Persona, source: ActiveSource): PageDocumen
   }
 }
 
-const personaFromHash = () => new URLSearchParams(location.hash.split("?")[1] ?? "").get("persona") ?? PERSONAS[0]!.id;
+const personaFromHash = () => routeParam("persona") ?? PERSONAS[0]!.id;
 
 export function ShowcasePage({ source, onOpen }: { source: ActiveSource; onOpen(area: string): void }) {
   const [id, setId] = useState(personaFromHash);
   useEffect(() => {
-    const onHash = () => setId(personaFromHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    return onRoute(() => setId(personaFromHash()));
   }, []);
   const persona = PERSONAS.find((p) => p.id === id) ?? PERSONAS[0]!;
   const page = useMemo(() => personaPage(persona, source), [persona, source]);
   const choose = (next: string) => {
     setId(next);
-    history.replaceState(null, "", `${location.pathname}${location.search}#showcase?persona=${next}`);
+    go(`showcase?persona=${next}`, { replace: true });
   };
 
   return (

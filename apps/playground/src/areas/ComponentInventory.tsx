@@ -2,6 +2,7 @@ import { type PageDocument, pageSurface } from "@surfaces-ui/spec";
 import { SurfaceView } from "@surfaces-ui/spec/react";
 import { catalogOf, renderersOf } from "../componentCatalogs.js";
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { hrefOf } from "../routes.js";
 
 export interface InventoryItem {
   name: string;
@@ -104,7 +105,7 @@ export function ComponentInventory({
           <ul className="inventory-grid">
             {items.map((item) => (
               <li key={item.name}>
-                <a className="inventory-card" href={`?component=${encodeURIComponent(item.name)}#catalog`} onClick={(e) => open(e, item.name)}>
+                <a className="inventory-card" href={hrefOf(`catalog?component=${encodeURIComponent(item.name)}`)} onClick={(e) => open(e, item.name)}>
                   {item.page ? (
                     <Thumb>{() => <CatalogExample page={item.page!} />}</Thumb>
                   ) : item.draw ? (
