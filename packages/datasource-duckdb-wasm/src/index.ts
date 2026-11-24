@@ -122,8 +122,15 @@ export async function openBrowserDuckDb(bundles: DuckDbWasmBundles): Promise<{ b
   const duckdb = await import("@duckdb/duckdb-wasm");
   const bundle = await duckdb.selectBundle({ mvp: bundles.mvp, eh: bundles.eh } as Parameters<typeof duckdb.selectBundle>[0]);
   const worker = new Worker(bundle.mainWorker!);
+  // A worker that fails to load or crashes (a browser out of memory, a module it cannot compile) answers nothing, so
+  // without this the calls below would wait for ever instead of failing and letting the host fall back.
+  const failed = new Promise<never>((_, reject) => {
+    worker.addEventListener("error", (event) => reject(new Error(`The database worker stopped: ${event.message || "no reason given"}.`)));
+    worker.addEventListener("messageerror", () => reject(new Error("The database worker sent a message that could not be read.")));
+  });
+  failed.catch(() => {});
   const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
-  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-  await db.open({ query: { castBigIntToDouble: false } });
+  await Promise.race([db.instantiate(bundle.mainModule, bundle.pthreadWorker), failed]);
+  await Promise.race([db.open({ query: { castBigIntToDouble: false } }), failed]);
   return { bindings: db, connect: () => db.connectInternal(), terminate: () => db.terminate() };
 }

@@ -157,6 +157,18 @@ async function serverSource(): Promise<Omit<ActiveSource, "library" | "semantics
   }
 }
 
+/** How long a step that downloads nothing may take before the page gives up on the database and uses rows in memory. */
+const STEP_LIMIT_MS = 30_000;
+
+/** Settles as `work` does, or fails once `ms` have passed, so a step that never answers cannot leave the page waiting. */
+function withinTime<T>(work: Promise<T>, ms: number, what: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${what} did not finish in ${ms / 1000} s.`)), ms);
+  });
+  return Promise.race([work, late]).finally(() => clearTimeout(timer));
+}
+
 /**
  * DuckDB running in this page (WebAssembly): the same sample orders file the
  * server reads, and the six industry models, each loaded from its Parquet
@@ -169,17 +181,23 @@ function browserSource(): Omit<ActiveSource, "library" | "semantics"> {
   // What is still loading: the engine first, then any sample model asked for.
   const status = loadingStatus();
   let engineReady = false;
+  // Which step the engine is on, so a page that stays on one says where.
+  let step = "Downloading the sample database and SQL parser, about 15 MB.";
   const seedsLoading = new Set<string>();
   const say = () =>
     status.set(
       !engineReady
-        ? "Loading the sample database and SQL parser, about 15 MB. Tables and charts fill in when they are ready."
+        ? `${step} Tables and charts fill in when they are ready.`
         : seedsLoading.size
           ? `Loading the ${[...seedsLoading].map((id) => seedById(id)?.title ?? id).join(", ")} sample…`
           : undefined,
     );
   say();
   const fetchBytes = async (url: string) => new Uint8Array(await (await fetch(url)).arrayBuffer());
+  const next = (text: string) => {
+    step = text;
+    say();
+  };
   const started = (async () => {
     const [{ createDuckDbWasmDataSource, fileFormatOf, loadSeed, openBrowserDuckDb, tableNameOf }, mvpModule, mvpWorker, ehModule, ehWorker, ordersUrl] = await Promise.all([
       import("@surfaces-ui/datasource-duckdb-wasm"),
@@ -189,6 +207,7 @@ function browserSource(): Omit<ActiveSource, "library" | "semantics"> {
       import("@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url"),
       import("../../../fixtures/lake/orders.parquet?url"),
     ]);
+    next("Starting the sample database and downloading the SQL parser, about 15 MB.");
     const [duck] = await Promise.all([
       openBrowserDuckDb({
         mvp: { mainModule: mvpModule.default, mainWorker: mvpWorker.default },
@@ -197,12 +216,22 @@ function browserSource(): Omit<ActiveSource, "library" | "semantics"> {
       // Without this the parser starts downloading only once the database is open.
       import("@surfaces-ui/sql").then(({ initSql }) => initSql()),
     ]);
-    const wasm = await createDuckDbWasmDataSource({
-      bindings: duck.bindings,
-      connect: duck.connect,
-      sources: [{ id: "lake", displayName: "Sample orders" }, ...seeds.map((s) => ({ id: s.id, displayName: `${s.title} (sample)` }))],
-    });
-    await wasm.engine("lake").registerParquet("orders", await fetchBytes(ordersUrl.default), { comment: "Sample orders (Parquet, 5,000 rows)", model: { primaryKey: ["order_id"] } });
+    next("Opening the sample database.");
+    const wasm = await withinTime(
+      createDuckDbWasmDataSource({
+        bindings: duck.bindings,
+        connect: duck.connect,
+        sources: [{ id: "lake", displayName: "Sample orders" }, ...seeds.map((s) => ({ id: s.id, displayName: `${s.title} (sample)` }))],
+      }),
+      STEP_LIMIT_MS,
+      "Opening the sample database",
+    );
+    next("Loading the sample orders.");
+    await withinTime(
+      fetchBytes(ordersUrl.default).then((bytes) => wasm.engine("lake").registerParquet("orders", bytes, { comment: "Sample orders (Parquet, 5,000 rows)", model: { primaryKey: ["order_id"] } })),
+      STEP_LIMIT_MS,
+      "Loading the sample orders",
+    );
     return { wasm, loadSeed, fileFormatOf, tableNameOf };
   })().finally(() => {
     engineReady = true;
