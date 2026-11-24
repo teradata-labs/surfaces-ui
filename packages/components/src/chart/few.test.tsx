@@ -33,6 +33,17 @@ describe("chartAdvice", () => {
     expect(rules({ type: "area", series: 3 })).toEqual(["overlapping-areas"]);
     expect(chartAdvice({ type: "pie", categories: 9 })[0]!.instead).toContain("bar chart");
   });
+  it("flags bars over a long time series, a pie over ordered values and a legend for one series", () => {
+    expect(rules({ type: "bar", categories: 36, orderedX: true })).toEqual(["bars-over-time"]);
+    // A histogram's bins are bars by right, and a few periods are fine as bars.
+    expect(rules({ type: "bar", categories: 36, orderedX: true, binned: true })).toEqual([]);
+    expect(rules({ type: "bar", categories: 12, orderedX: true })).toEqual([]);
+    expect(rules({ type: "pie", categories: 4, orderedX: true })).toEqual(["pie-in-order"]);
+    expect(rules({ type: "line", series: 1, orderedX: true, legend: "top" })).toEqual(["one-series-legend"]);
+    expect(rules({ type: "line", series: 1, orderedX: true, legend: "none" })).toEqual([]);
+    expect(rules({ type: "line", series: 3, orderedX: true, legend: "right" })).toEqual([]);
+    expect(rules({ type: "pie", categories: 4, legend: "right" })).toEqual([]);
+  });
 });
 
 describe("Sparkline", () => {
@@ -112,5 +123,10 @@ describe("chart defaults follow the rules", () => {
     expect(chartAdvice(shape).map((a) => a.rule)).toEqual(["two-scales"]);
     expect(drawnShape({ type: "line", x: "year", y, seriesCount: 1, binned: false, fields, rows: regions }).orderedX).toBe(true);
     expect(chartAdvice(drawnShape({ type: "pie", x: "region", y, seriesCount: 1, binned: false, fields, rows: [] }))).toEqual([]);
+    // Bars over months are told to be a line; bars over numeric bins (a histogram) are not.
+    const months = Array.from({ length: 30 }, (_, i) => ({ ...regions[0], year: 2000 + i }));
+    expect(chartAdvice(drawnShape({ type: "bar", x: "year", y, seriesCount: 1, binned: true, fields, rows: months })).map((a) => a.rule)).toEqual(["bars-over-time"]);
+    expect(chartAdvice(drawnShape({ type: "bar", x: "year", y, seriesCount: 1, binned: true, histogram: true, fields, rows: months }))).toEqual([]);
+    expect(chartAdvice(drawnShape({ type: "line", x: "year", y, legend: "bottom", seriesCount: 1, binned: false, fields, rows: regions })).map((a) => a.rule)).toEqual(["one-series-legend"]);
   });
 });
