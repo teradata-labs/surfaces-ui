@@ -322,6 +322,8 @@ export function useArrange(options: {
       <ResizeHandle
         className="sf-arrange-resize"
         edge="bottom"
+        // Arranging, Tab stops once on each component (its controls) and its size handles only while it is selected; viewing, the handles are all there is.
+        tabbable={viewing || selected === id}
         label={`Resize ${named(kind)} ${id}: taller or shorter`}
         value={now}
         {...(limits?.minimum !== undefined ? { min: limits.minimum } : {})}
@@ -375,6 +377,7 @@ export function useArrange(options: {
       <ResizeHandle
         className="sf-arrange-resize"
         edge="right"
+        tabbable={viewing || selected === id}
         label={`Resize ${named(component.component)} ${id} and what is to its right: wider or narrower`}
         value={(shares[at] ?? 0) * 100}
         min={MIN_COLUMN_SHARE * 100}

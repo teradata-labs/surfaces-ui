@@ -200,3 +200,18 @@ describe("names", () => {
     expect(frame("stats").querySelector(".sf-arrange-name")!.textContent).toBe("Row stats");
   });
 });
+
+describe("the order Tab goes in while arranging", () => {
+  it("stops once on each component, at its controls, and on its size handles only once it is selected", () => {
+    render(<Host steps={[]} />);
+    arrangeOn();
+    const widthOf = (id: string) => frame(id).querySelector<HTMLElement>(':scope > .sf-resize-handle[data-edge="right"]')!;
+    expect(widthOf("one").tabIndex).toBe(-1);
+    // Reaching its controls by keyboard selects it, and its handles come next.
+    const control = frame("one").querySelector<HTMLElement>(':scope > .sf-arrange-bar [tabindex="0"]')!;
+    act(() => control.focus());
+    expect(frame("one").hasAttribute("data-selected")).toBe(true);
+    expect(widthOf("one").tabIndex).toBe(0);
+    expect(frame("two").querySelector<HTMLElement>(":scope > .sf-resize-handle")?.tabIndex ?? -1).toBe(-1);
+  });
+});
