@@ -17,8 +17,8 @@ export interface CreateOptions {
   /** Where to create the app. Must not exist, or be empty. */
   dir: string;
   /**
-   * A Surfaces UI checkout to take the packages from, for before they are
-   * published: each is packed into `vendor/` and referenced by file.
+   * A Surfaces UI checkout to take the packages from, to try changes that are
+   * not released yet: each is packed into `vendor/` and referenced by file.
    */
   fromRepo?: string;
   /** Print progress. Default true. */
