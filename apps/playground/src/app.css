@@ -3127,6 +3127,20 @@ main details[open]::details-content {
   min-width: 0;
   max-width: 48rem;
 }
+/* The page-wide th and td rule above is for data: one line per row. A guide's table holds sentences, so its cells wrap. */
+.docs-article .sf-markdown-table :is(th, td) {
+  height: auto;
+  padding: var(--sf-space-2) var(--sf-space-3);
+  vertical-align: top;
+  white-space: normal;
+}
+
+/* A package or column name stays whole; the sentences around it wrap. */
+.docs-article .sf-markdown-table code {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
 .docs-article .sf-markdown {
   gap: var(--sf-space-3);
   line-height: var(--sf-line-height);
