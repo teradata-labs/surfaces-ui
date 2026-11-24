@@ -7,6 +7,7 @@ import { useEffect, useId, useMemo, useRef } from "react";
 import type { ContextNote } from "../controls/context.js";
 import { useOptionalTheme } from "../theme/ThemeProvider.js";
 import { GRAPH_NODE_LIMIT, type GraphLink, type GraphNode, buildGraphOption, graphGroups, graphNeighbours, graphWindow, linkCounts } from "./model.js";
+import { wheelScrollsThePage } from "../chart/wheel.js";
 
 echarts.use([GraphChart, TooltipComponent, LegendComponent, AriaComponent, CanvasRenderer]);
 
@@ -82,7 +83,9 @@ export function NodeGraph({ label, nodes, links, selected, onSelect, groups, lev
     });
     const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(() => made.resize());
     observer?.observe(element);
+    const unwheel = wheelScrollsThePage(element);
     return () => {
+      unwheel();
       observer?.disconnect();
       made.dispose();
       chart.current = undefined;

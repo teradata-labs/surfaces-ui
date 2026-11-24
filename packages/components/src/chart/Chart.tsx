@@ -22,6 +22,7 @@ import { label as text, numberFormat } from "../locale/locale.js";
 import { type FilterInit, type TimeTravelInit, type ValueInit, messageOf } from "../data/useRowWindow.js";
 import { useOptionalTheme } from "../theme/ThemeProvider.js";
 import { type ChartShape, chartAdvice } from "./advice.js";
+import { wheelScrollsThePage } from "./wheel.js";
 import { type AxisFormat, type ChartOptionInput, type ChartType, type LegendPlacement, type SeriesType, buildChartOption, isOrdered, niceBinWidth, rowsWithoutX } from "./option.js";
 
 echarts.use([
@@ -430,7 +431,9 @@ export function Chart(props: ChartProps) {
     });
     const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(() => chart.resize());
     observer?.observe(element.current);
+    const unwheel = wheelScrollsThePage(element.current);
     return () => {
+      unwheel();
       observer?.disconnect();
       chart.dispose();
     };
