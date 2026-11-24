@@ -1,5 +1,6 @@
 import type { DataSource } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import { DataNotes } from "../data/DataNotes.js";
 import type { DataMessages } from "../data/messages.js";
 import type { FilterInit } from "../data/useRowWindow.js";
 import { label as text } from "../locale/locale.js";
@@ -79,6 +80,7 @@ export function Sparkline(props: SparklineProps) {
           <span className="sf-spark-value">{last ? write(last.value) : state.loading ? text("metric.loading") : (props.emptyMessage ?? text("metric.none"))}</span>
         </>
       )}
+      <DataNotes notes={state.notes} />
     </span>
   );
 }

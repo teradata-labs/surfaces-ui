@@ -472,6 +472,35 @@ export function rewriteQuery(query: ViewQuery, dialect: SqlDialect): Rewritten {
   return placeholders({ sql, params, mode: parts.parsed ? RewriteMode.PARSED : RewriteMode.WRAPPED, notices }, dialect);
 }
 
+/**
+ * A query that returns no rows but the columns the base query gives, to learn
+ * which columns a view can be filtered on. Its parameters are bound as usual.
+ */
+export function columnsQuery(query: ViewQuery, dialect: SqlDialect): Rewritten {
+  if (!ready) throw new Error("call initSql() before columnsQuery()");
+  const bare = create(ViewQuerySchema, { baseSql: query.baseSql, parameters: query.parameters });
+  const { parts, from, params } = wrap(bare, dialect);
+  return placeholders({ sql: `${parts.prefix}${parts.with}SELECT *${from} WHERE 1 = 0`, params, mode: parts.parsed ? RewriteMode.PARSED : RewriteMode.WRAPPED, notices: [] }, dialect);
+}
+
+/**
+ * Drops each filter on a column the base query does not return, so a view
+ * under a page-wide filter it cannot take is drawn unfiltered by it instead of
+ * failing, and says so. Names are compared without regard to case.
+ */
+export function withoutMissingFilters(query: ViewQuery, columns: readonly string[]): { query: ViewQuery; notices: Notice[] } {
+  const has = new Set(columns.map((c) => c.toLowerCase()));
+  const missing = query.filters.filter((f) => !has.has(f.column.toLowerCase()));
+  if (missing.length === 0) return { query, notices: [] };
+  const kept = clone(ViewQuerySchema, query);
+  kept.filters = kept.filters.filter((f) => has.has(f.column.toLowerCase()));
+  const names = [...new Set(missing.map((f) => f.column))];
+  const notices = names.map((name) =>
+    notice(NoticeSeverity.WARNING, "FILTER_COLUMN_MISSING", `Not filtered by ${name}: its rows have no ${name} column.`),
+  );
+  return { query: kept, notices };
+}
+
 /** Dialects whose parameters are written as a dollar sign and a number instead of a question mark. */
 const NUMBERED = new Set<SqlDialect>([SqlDialect.DATAFUSION, SqlDialect.POSTGRES]);
 

@@ -16,6 +16,7 @@ import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import { dataNotes } from "../data/DataNotes.js";
 import type { DataMessages } from "../data/messages.js";
 import { chartValue, numericValue } from "../data/format.js";
 import { label as text, numberFormat } from "../locale/locale.js";
@@ -187,6 +188,8 @@ interface Loaded extends Pick<ChartOptionInput, "fields" | "rows"> {
   cut: "first" | "sample" | undefined;
   /** How the categories were ordered, so the drawing and the notes agree with the query. */
   sort: "value" | "x";
+  /** What the chart was not filtered by, for its readers (see `DataNotes`). */
+  notes: string[];
 }
 
 /** Output column and label for each measure. */
@@ -371,7 +374,7 @@ export function Chart(props: ChartProps) {
       const rows = Array.from({ length: result.table.numRows }, (_, r) =>
         Object.fromEntries(fields.map((f, c) => [f.name, chartValue(columns[c]!.get(r), f.type)])),
       );
-      return { fields, rows, sort, cut: rows.length < limit ? undefined : aggregated ? "first" : "sample" };
+      return { fields, rows, sort, cut: rows.length < limit ? undefined : aggregated ? "first" : "sample", notes: dataNotes(result.header.notices) };
     };
     load()
       .then((loaded) => {
@@ -472,6 +475,11 @@ export function Chart(props: ChartProps) {
           {text("chart.advice", { message: item.message, instead: item.instead })}
         </figcaption>
       ))}
+      {state.loaded && state.loaded.notes.length > 0 && (
+        <figcaption className="sf-chart-note" role="note">
+          {state.loaded.notes.join(" ")}
+        </figcaption>
+      )}
       {state.loaded?.cut && (
         <figcaption className="sf-chart-note">
           {state.loaded.cut === "sample"

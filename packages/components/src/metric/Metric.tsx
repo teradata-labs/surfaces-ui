@@ -2,6 +2,7 @@ import { type DataSource, collect } from "@surfaces-ui/data";
 import { useEffect, useState } from "react";
 import { AGGREGATE_FUNCTIONS, type ChartAggregate } from "../chart/Chart.js";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import { DataNotes, dataNotes } from "../data/DataNotes.js";
 import type { DataMessages } from "../data/messages.js";
 import { numericValue } from "../data/format.js";
 import { label as text, numberFormat } from "../locale/locale.js";
@@ -55,7 +56,7 @@ export function formatMetric(value: number, format: MetricProps["format"] = "num
 export function Metric(props: MetricProps) {
   const { sourceId, sql, column, aggregate, percentile, label, format, currency, filters, timeTravel, notBefore } = props;
   const dataSource = useDataSource(props.dataSource);
-  const [state, setState] = useState<{ value?: number | null; error?: string; loading: boolean }>({ loading: true });
+  const [state, setState] = useState<{ value?: number | null; error?: string; loading: boolean; notes?: string[] }>({ loading: true });
   const key = JSON.stringify([sourceId, sql, column, aggregate, percentile, filters, timeTravel, notBefore], (_, v) => (typeof v === "bigint" ? `${v}n` : v));
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export function Metric(props: MetricProps) {
         if (controller.signal.aborted) return;
         const field = result.table.schema.fields.find((f) => f.name === "value");
         const raw = result.table.getChild("value")?.get(0);
-        setState({ value: field ? numericValue(raw, field.type) : null, loading: false });
+        setState({ value: field ? numericValue(raw, field.type) : null, loading: false, notes: dataNotes(result.header.notices) });
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setState({ error: messageOf(error), loading: false });
@@ -98,6 +99,7 @@ export function Metric(props: MetricProps) {
       ) : (
         <span className="sf-a2-stat-value">{state.value === undefined ? text("metric.loading") : state.value === null ? (props.emptyMessage ?? text("metric.none")) : formatMetric(state.value, format, currency)}</span>
       )}
+      <DataNotes notes={state.notes} />
     </div>
   );
 }

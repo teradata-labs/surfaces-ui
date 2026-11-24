@@ -5,6 +5,7 @@ import type { DataType, Table } from "apache-arrow";
 import { useEffect, useMemo, useState } from "react";
 import { AGGREGATE_FUNCTIONS, type ChartAggregate, type ChartGrain, TIME_GRAINS, measureOutputs } from "../chart/Chart.js";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import { dataNotes } from "../data/DataNotes.js";
 import type { DataMessages } from "../data/messages.js";
 import { formatCell } from "../data/format.js";
 import { label, numberFormat } from "../locale/locale.js";
@@ -188,6 +189,8 @@ interface Loaded {
   truncated: boolean;
   /** The query answered with no rows. */
   empty: boolean;
+  /** What the table was not filtered by, for its readers (see `DataNotes`). */
+  notes: string[];
 }
 
 const count = { format: (n: number | bigint) => numberFormat().format(n) };
@@ -219,7 +222,11 @@ export function PivotTable(props: PivotTableProps) {
     const run = (dimensions: PivotDimension[]) =>
       collect(
         dataSource.execute({ sourceId, timeTravel, notBefore, query: buildPivotQuery(dimensions, measures, base) }, { signal: controller.signal }),
-      ).then((result) => result.table);
+      ).then((result) => {
+        notes.push(...dataNotes(result.header.notices));
+        return result.table;
+      });
+    const notes: string[] = [];
     const crossed = columns.length > 0 && rows.length > 0;
     Promise.all([
       run([...rows, ...columns]),
@@ -230,7 +237,7 @@ export function PivotTable(props: PivotTableProps) {
       .then(([cells, rowTotals, columnTotals, grandTotal]) => {
         if (controller.signal.aborted) return;
         const model = pivotModel({ rows, columns, aliases: outputs.map((o) => o.column), cells, rowTotals, columnTotals, grandTotal, maxColumns });
-        setState({ loaded: { model, truncated: cells.numRows > limit, empty: cells.numRows === 0 }, loading: false });
+        setState({ loaded: { model, truncated: cells.numRows > limit, empty: cells.numRows === 0, notes: [...new Set(notes)] }, loading: false });
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setState({ error: messageOf(error), loading: false });
@@ -344,6 +351,11 @@ export function PivotTable(props: PivotTableProps) {
           )}
         </table>
       </div>
+      {state.loaded && state.loaded.notes.length > 0 && (
+        <p className="sf-chart-note" role="note">
+          {state.loaded.notes.join(" ")}
+        </p>
+      )}
       {state.loaded?.truncated && (
         <p className="sf-chart-note">{label("pivot.truncated", { limit: count.format(limit) })}</p>
       )}

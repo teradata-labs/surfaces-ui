@@ -242,11 +242,14 @@ export function memoryDataSource(options: MemoryDataSourceOptions): DataSource {
   };
 
   /** Rows after filtering, grouping and sorting, with the Arrow type of each output column. */
-  const shaped = (query: ViewQuery | undefined): { rows: Row[]; types: Map<string, DataType> } => {
+  const shaped = (query: ViewQuery | undefined): { rows: Row[]; types: Map<string, DataType>; missing: string[] } => {
     const table = find(query);
     let rows = table.toArray().map((r) => (r as { toJSON(): Row }).toJSON());
-    for (const filter of query?.filters ?? []) rows = rows.filter((row) => matches(row, filter));
     const types = new Map<string, DataType>(table.schema.fields.map((f) => [f.name, f.type]));
+    // A filter on a column the rows lack is left out and reported, as the engines do.
+    const known = new Set([...types.keys()].map((n) => n.toLowerCase()));
+    const missing = [...new Set((query?.filters ?? []).filter((f) => !known.has(f.column.toLowerCase())).map((f) => f.column))];
+    for (const filter of query?.filters ?? []) if (known.has(filter.column.toLowerCase())) rows = rows.filter((row) => matches(row, filter));
 
     const groupBy = query?.groupBy ?? [];
     const aggregates = query?.aggregates ?? [];
@@ -306,7 +309,7 @@ export function memoryDataSource(options: MemoryDataSourceOptions): DataSource {
       });
       rows = order.map((i) => rows[i]!);
     }
-    return { rows, types };
+    return { rows, types, missing };
   };
 
   const build = (rows: Row[], types: Map<string, DataType>, columns: string[]): Table => {
@@ -329,7 +332,7 @@ export function memoryDataSource(options: MemoryDataSourceOptions): DataSource {
       const started = Date.now();
       const request = create(ExecuteRequestSchema, init);
       const query = request.query;
-      const { rows, types } = shaped(query);
+      const { rows, types, missing } = shaped(query);
       const offset = Number(query?.page?.offset ?? 0n);
       const limit = query?.page?.limit ?? 0;
       const window = limit > 0 ? rows.slice(offset, offset + limit) : rows.slice(offset);
@@ -349,10 +352,12 @@ export function memoryDataSource(options: MemoryDataSourceOptions): DataSource {
             sortable: true,
             filterable: true,
           })),
-          notices:
-            limit > 0 && (query?.sorts.length ?? 0) === 0 && !query?.sample?.rows
+          notices: [
+            ...missing.map((name) => ({ severity: NoticeSeverity.WARNING, code: "FILTER_COLUMN_MISSING", message: `Not filtered by ${name}: its rows have no ${name} column.` })),
+            ...(limit > 0 && (query?.sorts.length ?? 0) === 0 && !query?.sample?.rows
               ? [{ severity: NoticeSeverity.INFO, code: "UNSTABLE_PAGE_ORDER", message: "Paging without a sort." }]
-              : [],
+              : []),
+          ],
         },
       } as ExecuteResponse["part"]);
       for (const batch of encoded.batches) {

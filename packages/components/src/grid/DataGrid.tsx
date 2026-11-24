@@ -4,6 +4,7 @@ import { DENSITY_SCALE } from "@surfaces-ui/tokens";
 import { DataType, type Field } from "apache-arrow";
 import { type CSSProperties, type DragEvent, type KeyboardEvent, type MouseEvent, type PointerEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import { DataNotes, dataNotes } from "../data/DataNotes.js";
 import type { DataMessages } from "../data/messages.js";
 import { type ColumnFormat, displayCell, formatCellAs, isNumeric } from "../data/format.js";
 import { dateFormat, label as text, numberFormat } from "../locale/locale.js";
@@ -619,6 +620,7 @@ export function DataGrid(props: DataGridProps) {
           )}
         </div>
       )}
+      <DataNotes notes={dataNotes(window.notices)} />
       {menu.element}
     </div>
   );
