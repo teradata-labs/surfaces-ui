@@ -324,6 +324,9 @@ importers:
         specifier: workspace:*
         version: link:../trace
     devDependencies:
+      '@codemirror/view':
+        specifier: ^6.43.15
+        version: 6.43.15
       '@surfaces-ui/data':
         specifier: workspace:*
         version: link:../data

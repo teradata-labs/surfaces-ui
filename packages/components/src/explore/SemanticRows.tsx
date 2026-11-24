@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { messageOf } from "../data/useRowWindow.js";
 import { type DataModel, type JoinKind, ModelDiagram, type ModelJoin, type ModelSql, joinId, joinText, kindText, modelSql } from "../model/ModelDiagram.js";
 import { CodeBlock } from "../text/Markdown.js";
+import { SqlEditor } from "../editor/SqlEditor.js";
 
 export const INFERRED_BY = "inferred from names";
 export const DECLARED_BY = "declared by the source";
@@ -255,8 +256,15 @@ export function SemanticRows(props: SemanticRowsProps) {
       )}
       {editable && writing && (
         <div className="sf-semantic-write">
-          <label htmlFor={`${id}-sql`}>The model's query, one read-only SELECT</label>
-          <textarea id={`${id}-sql`} className="sf-input" rows={6} spellCheck={false} value={model.sql} onChange={(e) => set({ sql: e.target.value, tables: [], joins: [] })} onBlur={() => set({}, "The query was rewritten.")} />
+          <p id={`${id}-sql`}>The model's query, one read-only SELECT</p>
+          {/* The editor's own focus leaving the box is when a rewrite is told to the agent, as the plain box did on blur. */}
+          <div
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) set({}, "The query was rewritten.");
+            }}
+          >
+            <SqlEditor value={model.sql} onChange={(sql) => set({ sql, tables: [], joins: [] })} label="The model's query, one read-only SELECT" minHeight={120} maxHeight={320} />
+          </div>
         </div>
       )}
     </section>

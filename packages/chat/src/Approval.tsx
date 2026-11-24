@@ -1,6 +1,6 @@
 import type { JsonObject } from "@bufbuild/protobuf";
 import { CONFIRM_WORD, approvalDigest } from "@surfaces-ui/agent";
-import { CodeBlock } from "@surfaces-ui/components";
+import { CodeBlock, SqlEditor } from "@surfaces-ui/components";
 import { type FormEvent, useEffect, useId, useState } from "react";
 import type { ChatApproval, ChatDecision } from "./thread.js";
 import type { ApprovalReply } from "./useChat.js";
@@ -133,10 +133,11 @@ export function ApprovalCard({ approval, onAnswer, now = Date.now }: ApprovalCar
       {editing && !answered ? (
         <>
           {approval.sql && (
-            <label className="sf-chat-approval-field">
-              <span>SQL</span>
-              <textarea className="sf-input" value={sql} spellCheck={false} rows={Math.min(12, sql.split("\n").length + 1)} onChange={(e) => setSql(e.target.value)} />
-            </label>
+            // The SQL editor, so the query a person changes is highlighted as the one they read was.
+            <div className="sf-chat-approval-field">
+              <span aria-hidden="true">SQL</span>
+              <SqlEditor value={sql} onChange={setSql} label="SQL" minHeight={80} maxHeight={320} />
+            </div>
           )}
           {approval.subject && (
             <label className="sf-chat-approval-field">

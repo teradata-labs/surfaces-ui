@@ -15,6 +15,7 @@ import { DataGrid, type DataGridInfo, type GridColumns, type GridSort } from "..
 import { type LabelKey, label as text, numberFormat } from "../locale/locale.js";
 import { PivotTable } from "../pivot/PivotTable.js";
 import { QueryPlan } from "../plan/QueryPlan.js";
+import { CodeBlock } from "../text/Markdown.js";
 
 export type ResultView = "grid" | "chart" | "pivot";
 
@@ -597,7 +598,7 @@ export function QueryResult(props: QueryResultProps) {
       {view === "grid" && info?.executedSql && (
         <details className="sf-result-sql">
           <summary>{text("result.sqlSent")}</summary>
-          <pre tabIndex={0}>{info.executedSql}</pre>
+          <CodeBlock code={info.executedSql} language="sql" label={text("result.sqlSent")} />
           {info.stored && (
             <p className="sf-result-notice">
               {text("result.stored")}
