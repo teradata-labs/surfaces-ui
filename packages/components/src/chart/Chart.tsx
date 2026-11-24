@@ -221,7 +221,7 @@ export type ChartQueryInput = Pick<ChartProps, "sql" | "type" | "x" | "xGrain" |
 };
 
 /** The shape of a loaded chart, in the terms `chartAdvice` checks. Nothing drawn gives no advice. */
-export function drawnShape(input: Pick<ChartProps, "type" | "x" | "y" | "stacked"> & Pick<ChartOptionInput, "fields" | "rows"> & { seriesCount: number; binned: boolean }): ChartShape {
+export function drawnShape(input: Pick<ChartProps, "type" | "x" | "y" | "stacked" | "legend"> & Pick<ChartOptionInput, "fields" | "rows"> & { seriesCount: number; binned: boolean; histogram?: boolean }): ChartShape {
   if (input.rows.length === 0) return { type: input.type, categories: 0, series: 0 };
   return {
     type: input.type,
@@ -230,6 +230,8 @@ export function drawnShape(input: Pick<ChartProps, "type" | "x" | "y" | "stacked
     stacked: input.stacked,
     rightAxis: input.y.some((m) => m.axis === "right"),
     orderedX: input.binned || isOrdered(input.fields.find((f) => f.name === input.x)),
+    ...(input.histogram ? { binned: true } : {}),
+    ...(input.legend ? { legend: input.legend } : {}),
   };
 }
 
@@ -437,7 +439,7 @@ export function Chart(props: ChartProps) {
   }, [option, themeDocument, mode]);
 
   // Advice is worked out from what was actually drawn, so it follows filters and the data.
-  const advice = props.advice === false || !state.loaded ? [] : chartAdvice(drawnShape({ type, x, y, stacked, seriesCount, binned: Boolean(xGrain || xBinWidth || xBins), fields: state.loaded.fields, rows: state.loaded.rows }));
+  const advice = props.advice === false || !state.loaded ? [] : chartAdvice(drawnShape({ type, x, y, stacked, legend, seriesCount, binned: Boolean(xGrain || xBinWidth || xBins), histogram: Boolean(xBinWidth || xBins), fields: state.loaded.fields, rows: state.loaded.rows }));
 
   // Rows a time or number axis cannot place are left out, and the chart says so with what they hold.
   const unplaced = state.loaded ? rowsWithoutX({ type, x, series: outputs.map((o) => ({ column: o.column, label: o.label, type: o.measure.type })), fields: state.loaded.fields, rows: state.loaded.rows }) : [];
