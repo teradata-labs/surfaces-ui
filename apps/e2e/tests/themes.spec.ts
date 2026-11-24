@@ -49,7 +49,8 @@ test.describe("Appearance menu in the top bar", () => {
     if (narrow) await page.getByRole("button", { name: /Show .* navigation/ }).click();
     const button = page.getByRole("button", { name: /^(Ink|Aurora|Sand|Berry|Harbor|Moss|Mono|High contrast|Custom) (Light|Dark)$/ });
     await button.click();
-    const panel = page.getByRole("group", { name: "Appearance" });
+    // The menu's own panel: the theme editor it opens has an "Appearance" control of its own.
+    const panel = page.locator(".theme-menu").getByRole("group", { name: "Appearance" });
     await panel.getByRole("button", { name: "Mono" }).click();
     await panel.getByText("Light", { exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");

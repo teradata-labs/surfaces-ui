@@ -40,6 +40,12 @@ export interface ActiveSource {
   semantics: Semantics;
   /** In the browser only: rerun a seed's SQL into this page's working copy, or reset it to the shipped files. Never touches the repo. */
   seedCopy?: SeedWorkingCopy;
+  /** In the browser only: settles once the database in the page has started. */
+  started?: Promise<void>;
+  /** In the browser only: what is still loading, for the page to say. */
+  loading?: LoadingStatus;
+  /** In the browser only: rows held in the page, given when the database could not start there. */
+  fallback?: Promise<ActiveSource | undefined>;
 }
 
 /** The table each model opens on: the one that records what happened. */
@@ -156,40 +162,96 @@ async function serverSource(): Promise<Omit<ActiveSource, "library" | "semantics
  * server reads, and the six industry models, each loaded from its Parquet
  * files the first time it is picked. Nothing leaves the browser.
  */
-async function browserSource(): Promise<Omit<ActiveSource, "library" | "semantics">> {
-  const [{ createDuckDbWasmDataSource, fileFormatOf, loadSeed, openBrowserDuckDb, tableNameOf },mvpModule, mvpWorker, ehModule, ehWorker, ordersUrl] = await Promise.all([
-    import("@surfaces-ui/datasource-duckdb-wasm"),
-    import("@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url"),
-    import("@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url"),
-    import("@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url"),
-    import("@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url"),
-    import("../../../fixtures/lake/orders.parquet?url"),
-  ]);
-  const duck = await openBrowserDuckDb({
-    mvp: { mainModule: mvpModule.default, mainWorker: mvpWorker.default },
-    eh: { mainModule: ehModule.default, mainWorker: ehWorker.default },
-  });
-  const wasm = await createDuckDbWasmDataSource({
-    bindings: duck.bindings,
-    connect: duck.connect,
-    sources: [{ id: "lake", displayName: "Sample orders" }, ...seeds.map((s) => ({ id: s.id, displayName: `${s.title} (sample)` }))],
-  });
+function browserSource(): Omit<ActiveSource, "library" | "semantics"> {
+  // The database (DuckDB, about 8 MB compressed) and the SQL parser every query goes through (about 7 MB) download
+  // side by side, starting now. The page does not wait for them: the data source below is handed out at once, and each
+  // call waits for the engine, and for its sample model's tables, itself.
+  // What is still loading: the engine first, then any sample model asked for.
+  const status = loadingStatus();
+  let engineReady = false;
+  const seedsLoading = new Set<string>();
+  const say = () =>
+    status.set(
+      !engineReady
+        ? "Loading the sample database and SQL parser, about 15 MB. Tables and charts fill in when they are ready."
+        : seedsLoading.size
+          ? `Loading the ${[...seedsLoading].map((id) => seedById(id)?.title ?? id).join(", ")} sample…`
+          : undefined,
+    );
+  say();
   const fetchBytes = async (url: string) => new Uint8Array(await (await fetch(url)).arrayBuffer());
-  await wasm.engine("lake").registerParquet("orders", await fetchBytes(ordersUrl.default), { comment: "Sample orders (Parquet, 5,000 rows)", model: { primaryKey: ["order_id"] } });
-  // Every value in these sources is made up, so they may be shown and profiled.
-  const discovery = createDiscovery({ dataSource: wasm.dataSource, allowSampleValues: ["lake", ...seeds.map((s) => s.id)] });
+  const started = (async () => {
+    const [{ createDuckDbWasmDataSource, fileFormatOf, loadSeed, openBrowserDuckDb, tableNameOf }, mvpModule, mvpWorker, ehModule, ehWorker, ordersUrl] = await Promise.all([
+      import("@surfaces-ui/datasource-duckdb-wasm"),
+      import("@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url"),
+      import("@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url"),
+      import("@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url"),
+      import("@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url"),
+      import("../../../fixtures/lake/orders.parquet?url"),
+    ]);
+    const [duck] = await Promise.all([
+      openBrowserDuckDb({
+        mvp: { mainModule: mvpModule.default, mainWorker: mvpWorker.default },
+        eh: { mainModule: ehModule.default, mainWorker: ehWorker.default },
+      }),
+      // Without this the parser starts downloading only once the database is open.
+      import("@surfaces-ui/sql").then(({ initSql }) => initSql()),
+    ]);
+    const wasm = await createDuckDbWasmDataSource({
+      bindings: duck.bindings,
+      connect: duck.connect,
+      sources: [{ id: "lake", displayName: "Sample orders" }, ...seeds.map((s) => ({ id: s.id, displayName: `${s.title} (sample)` }))],
+    });
+    await wasm.engine("lake").registerParquet("orders", await fetchBytes(ordersUrl.default), { comment: "Sample orders (Parquet, 5,000 rows)", model: { primaryKey: ["order_id"] } });
+    return { wasm, loadSeed, fileFormatOf, tableNameOf };
+  })().finally(() => {
+    engineReady = true;
+    say();
+  });
   const loading = new Map<string, Promise<void>>();
+  const seedFiles = (id: string) => (table: string) => fetchBytes(SEED_FILES[`${SEED_DIR}/${id}/${table}.parquet`]!);
+  // A seed's tables load the first time anything asks for that source.
+  const prepare = (sourceId: string): Promise<void> => {
+    const seed = seedById(sourceId);
+    if (!seed) return started.then(() => undefined);
+    let pending = loading.get(sourceId);
+    if (!pending) {
+      seedsLoading.add(sourceId);
+      say();
+      pending = started
+        .then(async ({ wasm, loadSeed }) => {
+          await loadSeed(wasm.engine(sourceId), seed, { fetchTable: seedFiles(sourceId) });
+          wasm.refresh();
+          discovery.refresh?.();
+        })
+        .finally(() => {
+          seedsLoading.delete(sourceId);
+          say();
+        });
+      loading.set(sourceId, pending);
+    }
+    return pending;
+  };
+  const dataSource = waitingDataSource(
+    started.then(({ wasm }) => wasm.dataSource),
+    (sourceId) => (sourceId ? prepare(sourceId) : started.then(() => undefined)),
+  );
+  // Every value in these sources is made up, so they may be shown and profiled.
+  const discovery = createDiscovery({ dataSource, allowSampleValues: ["lake", ...seeds.map((s) => s.id)] });
   return {
-    dataSource: wasm.dataSource,
+    dataSource,
     discovery,
     sourceId: "lake",
     sampleId: "lake",
     sources: [{ id: "lake", label: "Sample orders", table: "orders", seed: false }, ...seedOptions()],
     kind: "browser",
+    started: started.then(() => undefined),
+    loading: status,
     seedCopy: {
       async run(id, statements) {
         const seed = seedById(id);
         if (!seed) throw new Error(`No seed named ${id}.`);
+        const { wasm, loadSeed } = await started;
         const done = loadSeed(wasm.engine(id), { ...seed, sql: () => statements }, { params: {} });
         loading.set(id, done.catch(() => {}));
         await done;
@@ -199,13 +261,15 @@ async function browserSource(): Promise<Omit<ActiveSource, "library" | "semantic
       async reset(id) {
         const seed = seedById(id);
         if (!seed) throw new Error(`No seed named ${id}.`);
-        const done = loadSeed(wasm.engine(id), seed, { fetchTable: (table) => fetchBytes(SEED_FILES[`${SEED_DIR}/${id}/${table}.parquet`]!) });
+        const { wasm, loadSeed } = await started;
+        const done = loadSeed(wasm.engine(id), seed, { fetchTable: seedFiles(id) });
         loading.set(id, done);
         await done;
         wasm.refresh();
         discovery.refresh?.();
       },
       async addFiles(id, files) {
+        const { wasm, fileFormatOf, tableNameOf } = await started;
         // A seed loads on first pick; its own tables must be there before files join them.
         await loading.get(id);
         const names: string[] = [];
@@ -225,19 +289,68 @@ async function browserSource(): Promise<Omit<ActiveSource, "library" | "semantic
         return names;
       },
     },
-    prepare(sourceId) {
-      const seed = seedById(sourceId);
-      if (!seed) return Promise.resolve();
-      let pending = loading.get(sourceId);
-      if (!pending) {
-        pending = loadSeed(wasm.engine(sourceId), seed, { fetchTable: (table) => fetchBytes(SEED_FILES[`${SEED_DIR}/${sourceId}/${table}.parquet`]!) }).then(() => {
-          wasm.refresh();
-          discovery.refresh?.();
-        });
-        loading.set(sourceId, pending);
-      }
-      return pending;
+    prepare,
+  };
+}
+
+/** What the page is still loading, as one sentence, or nothing once everything asked for has arrived. */
+export interface LoadingStatus {
+  get(): string | undefined;
+  set(text: string | undefined): void;
+  subscribe(listener: () => void): () => void;
+}
+
+function loadingStatus(): LoadingStatus {
+  let text: string | undefined;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => text,
+    set(next) {
+      if (next === text) return;
+      text = next;
+      for (const listener of listeners) listener();
     },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+}
+
+/**
+ * A data source that can be handed out before its engine has started: each call waits for the engine, and for the
+ * source it names to be ready, then goes through.
+ */
+function waitingDataSource(target: Promise<DataSource>, ready: (sourceId: string) => Promise<void>): DataSource {
+  const wait = async (request: unknown): Promise<DataSource> => {
+    const sourceId = (request as { sourceId?: string } | undefined)?.sourceId ?? "";
+    const [ds] = await Promise.all([target, ready(sourceId)]);
+    return ds;
+  };
+  type Call = (request: never, options?: never) => Promise<unknown>;
+  const unary = (name: keyof DataSource) =>
+    ((request: never, options?: never) =>
+      wait(request).then((ds) => {
+        const method = ds[name] as Call | undefined;
+        if (!method) throw new Error(`This source cannot ${String(name)}.`);
+        return method.call(ds, request, options);
+      })) as never;
+  return {
+    async *execute(request, options) {
+      const ds = await wait(request);
+      yield* ds.execute(request, options);
+    },
+    count: unary("count"),
+    explain: unary("explain"),
+    // Cancelling names a query that has started, so it waits for nothing.
+    cancel: ((request: never, options?: never) => target.then((ds) => ds.cancel(request, options))) as never,
+    listSources: unary("listSources"),
+    testSource: unary("testSource"),
+    listCatalogs: unary("listCatalogs"),
+    listSchemas: unary("listSchemas"),
+    listTables: unary("listTables"),
+    describeTable: unary("describeTable"),
+    listSnapshots: unary("listSnapshots"),
   };
 }
 
@@ -283,14 +396,17 @@ export async function chooseSource(): Promise<ActiveSource> {
       models: seeds.flatMap((seed) => seedSemanticModels(seed).map((json) => semanticModelFromJson(json as never))),
       check: (model) => semanticModelDataProblems(model, dataSource),
     });
-  try {
-    const browser = await browserSource();
-    return { ...browser, library, semantics: local(browser.dataSource) };
-  } catch (error) {
-    console.warn("[playground] DuckDB could not start in this browser; using rows in memory.", error);
-    const memory = memorySource();
-    return { ...memory, library, semantics: local(memory.dataSource) };
-  }
+  const browser = browserSource();
+  const fallback = browser.started!.then(
+    () => undefined,
+    (error: unknown) => {
+      console.warn("[playground] DuckDB could not start in this browser; using rows in memory.", error);
+      browser.loading?.set(undefined);
+      const memory = memorySource();
+      return { ...memory, library, semantics: local(memory.dataSource) };
+    },
+  );
+  return { ...browser, library, semantics: local(browser.dataSource), fallback };
 }
 
 /** The table an area opens on for the source it is given. */
