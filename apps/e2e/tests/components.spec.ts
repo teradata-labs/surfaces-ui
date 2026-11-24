@@ -11,7 +11,7 @@ test.describe("All components", () => {
     await expect(page.getByRole("status").filter({ hasText: /match "pivot"/ })).toBeVisible();
     await expect(views.getByRole("link", { name: /^Chart/ })).toHaveCount(0);
     await views.getByRole("link", { name: /^PivotTable/ }).click();
-    await expect(page).toHaveURL(/component=PivotTable/);
+    await expect(page).toHaveURL(/\/catalog\/PivotTable\/\?/);
     await expect(page.locator(".catalog-name")).toHaveText("PivotTable");
   });
 });
@@ -83,10 +83,10 @@ test.describe("Live device screens", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Surfaces UI" })).toBeVisible();
     const roles = page.getByRole("region", { name: "Showcase" });
     await roles.getByRole("button", { name: /Data steward/ }).click();
-    await expect(page).toHaveURL(/#showcase\?persona=data-steward/);
+    await expect(page).toHaveURL(/\/showcase\/\?.*persona=data-steward/);
     await page.goto("/?source=retail#home");
     await page.getByRole("button", { name: "Browse components" }).click();
-    await expect(page).toHaveURL(/#catalog/);
+    await expect(page).toHaveURL(/\/catalog\/\?/);
   });
 
   test("lets a person change the analyst's Explorer on the showcase", async ({ page }) => {

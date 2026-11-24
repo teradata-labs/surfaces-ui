@@ -14,6 +14,7 @@ import { AppDemo } from "../appDemos.js";
 import { ComponentInventory, type InventoryItem } from "./ComponentInventory.js";
 import { focusFor, useThirds } from "../focus.js";
 import { type ActiveSource, firstTable } from "../source.js";
+import { currentRoute, go, onRoute, routeParam } from "../routes.js";
 
 const SCHEMA = COMPONENT_SCHEMA as Record<
   string,
@@ -157,7 +158,7 @@ function PreviewAppearance({ preset, mode, children }: { preset: string; mode: P
 }
 
 export function ComponentCatalog({ source }: { source: ActiveSource }) {
-  const [name, setName] = useState(() => new URLSearchParams(location.search).get("component") ?? OVERVIEW);
+  const [name, setName] = useState(() => routeParam("component") ?? OVERVIEW);
   const [filter, setFilter] = useState("");
   const [text, setText] = useState(() => JSON.stringify(exampleProps(name, source), null, 2));
   const [events, setEvents] = useState<SurfaceAction[]>([]);
@@ -179,12 +180,26 @@ export function ComponentCatalog({ source }: { source: ActiveSource }) {
     setText(JSON.stringify(exampleProps(next, source, thirds), null, 2));
     setEvents([]);
     setData(undefined);
-    const url = new URL(location.href);
-    if (next === OVERVIEW) url.searchParams.delete("component");
-    else url.searchParams.set("component", next);
-    history.replaceState(null, "", url);
+    // Each component has a page of its own (`/catalog/Chart/`), so Back returns to the one before.
+    if (next !== (routeParam("component") ?? OVERVIEW)) go(next === OVERVIEW ? "catalog" : `catalog?component=${encodeURIComponent(next)}`, { scroll: false });
     if (next !== name) window.scrollTo({ top: 0 });
   };
+  // Back and Forward move between component pages, so the page follows the address.
+  const nameNow = useRef(name);
+  nameNow.current = name;
+  useEffect(
+    () =>
+      onRoute(() => {
+        if (currentRoute().area !== "catalog") return;
+        const next = routeParam("component") ?? OVERVIEW;
+        if (next === nameNow.current) return;
+        setName(next);
+        setText(JSON.stringify(exampleProps(next, source, thirds), null, 2));
+        setEvents([]);
+        setData(undefined);
+      }),
+    [source, thirds],
+  );
 
   // Every component as a card: the catalog's own example over the picked data, or an app component's description.
   // biome-ignore lint/correctness/useExhaustiveDependencies: the examples change only with the source and the bands.

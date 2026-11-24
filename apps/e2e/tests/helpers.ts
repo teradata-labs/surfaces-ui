@@ -7,7 +7,9 @@ export async function open(page: Page, area: string, source = "retail") {
   // would be on the page, so put it there first.
   const size = page.viewportSize();
   if (size) await page.mouse.move(size.width - 2, size.height - 2);
-  await page.goto(`/?source=${source}#${area}`);
+  // An area with its own parameters (`docs?page=styling`) keeps them in the query beside the data picked.
+  const [name = "home", query] = area.split("?");
+  await page.goto(`/${name === "home" ? "" : `${name}/`}?${query ? `${query}&` : ""}source=${source}`);
   // The backend badge says which backend answers once the sample is loaded.
   await expect(page.locator("main")).toBeVisible();
 }

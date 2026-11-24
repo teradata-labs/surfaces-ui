@@ -10,6 +10,7 @@ import { examplePages } from "../examples.js";
 import { focusFor } from "../focus.js";
 import { composerLink, documentOf, pageOf, sourcesOf, surfaceFromHash, surfaceLink } from "../libraryLinks.js";
 import type { ActiveSource } from "../source.js";
+import { go, hrefOf, onRoute } from "../routes.js";
 
 /** Every saved surface's summary, page by page. The list is the library's own metadata, not query rows. */
 export async function listAll(library: SurfaceLibrary): Promise<SurfaceSummary[]> {
@@ -483,7 +484,7 @@ function Detail({ source, surface, all, onChanged, onReload }: { source: ActiveS
 
       <div className="actions">
         {conversation ? (
-          <a className="sf-button" href="#analysis">
+          <a className="sf-button" href={hrefOf("analysis")}>
             Open sample analysis
           </a>
         ) : (
@@ -618,13 +619,11 @@ export function LibraryPage({ source }: { source: ActiveSource }) {
 
   // The address names the open surface, so a surface can be linked.
   useEffect(() => {
-    const onHash = () => setSelected(surfaceFromHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    return onRoute(() => setSelected(surfaceFromHash()));
   }, []);
   const select = (next: string | undefined) => {
     setSelected(next);
-    history.replaceState(null, "", `${location.pathname}${location.search}${next ? surfaceLink(next) : "#library"}`);
+    go(next ? `library?surface=${encodeURIComponent(next)}` : "library", { replace: true });
   };
 
   useEffect(() => {

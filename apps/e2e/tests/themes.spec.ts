@@ -59,7 +59,7 @@ test.describe("Appearance menu in the top bar", () => {
     expect(kept.theme.name).toBe("Mono");
     expect(kept.mode).toBe("light");
     await panel.getByRole("button", { name: "Theme editor" }).click();
-    await expect(page).toHaveURL(/#theme$/);
+    await expect(page).toHaveURL(/\/theme\/\?/);
     if (!narrow) {
       await button.click();
       await page.keyboard.press("Escape");
