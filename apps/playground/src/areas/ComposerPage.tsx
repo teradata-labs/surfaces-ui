@@ -32,6 +32,7 @@ import { type JsonSchema, SchemaForm } from "../SchemaForm.js";
 import { type ActiveSource, engineLabel, firstTable, isRealSource } from "../source.js";
 import { type ComposerState, useComposerAgent } from "../useComposerAgent.js";
 import { type HistoryEntry, composerPanels } from "./ComposerSide.js";
+import { onRoute, routeParam } from "../routes.js";
 
 type SavedDocument = NonNullable<NonNullable<Parameters<SurfaceLibrary["saveSurface"]>[0]["surface"]>["document"]>;
 
@@ -129,8 +130,8 @@ export function toPage(surface: Surface, title: string, controls: Record<string,
   };
 }
 
-/** `#composer?surface=<id>` names a saved surface to open. */
-const surfaceFromHash = () => new URLSearchParams(location.hash.split("?")[1] ?? "").get("surface") ?? "";
+/** `/composer/?surface=<id>` names a saved surface to open. */
+const surfaceFromHash = () => routeParam("surface") ?? "";
 
 /** Pipeline components need a pipeline backend; only the dev server has one. */
 function MaybePipelines({ source, children }: { source: ActiveSource; children: ReactNode }) {
@@ -292,9 +293,7 @@ export function ComposerPage({ source }: { source: ActiveSource }) {
   );
   useEffect(() => {
     void open(surfaceFromHash());
-    const onHash = () => void open(surfaceFromHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    return onRoute(() => void open(surfaceFromHash()));
   }, [open]);
 
   // Saving uses every message, not only the ones stepped to.

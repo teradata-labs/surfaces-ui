@@ -1,5 +1,7 @@
 import { Markdown } from "@surfaces-ui/components";
 import { useEffect, useMemo, useState } from "react";
+import { START, guideId, guideLink, guideSections, guideText, guideTitle } from "../guides.js";
+import { go, hrefOf, onRoute, parseRoute, routeParam } from "../routes.js";
 
 /**
  * The repository's written guides, drawn on the site with the library's own `Markdown`: getting started, agent
@@ -18,70 +20,25 @@ const TEXTS = import.meta.glob<string>(["../../../../docs/*.md", "../../../../do
 const IMAGES = import.meta.glob<string>("../../../../docs/images/*.{png,jpg,gif,svg}", { query: "?url", import: "default", eager: true });
 
 const PREFIX = "../../../../docs/";
-const REPO = "https://github.com/teradata-labs/surfaces-ui/blob/main/";
+const idOf = (file: string) => guideId(file.slice(PREFIX.length));
+const textOf = (id: string) => TEXTS[`${PREFIX}${id}.md`];
+const titleOf = (id: string) => guideTitle(id, textOf(id));
 
-/** A guide's id is its path under `docs/` without `.md` (`recipes/analytics-chat`). */
-const idOf = (file: string) => file.slice(PREFIX.length).replace(/\.md$/, "");
+const sections = () => guideSections(Object.keys(TEXTS).map(idOf), titleOf);
 
-interface Guide {
-  id: string;
-  title: string;
-}
-
-/** The sections of the guide list, in reading order. Anything not named here is listed under its folder by name. */
-const START = ["getting-started", "packages", "agent-integration", "styling", "accessibility"];
-const TITLES: Record<string, string> = {
-  "getting-started": "Getting started",
-  packages: "Packages",
-  "agent-integration": "Agent integration",
-  styling: "Styling",
-  accessibility: "Accessibility",
-  "recipes/README": "All recipes",
-  "components/README": "All app components",
-  "catalog/patterns": "Human-in-the-loop patterns",
-};
-
-/** A guide's title: a name given above, or its first heading. */
-const titleOf = (id: string) => TITLES[id] ?? /^#\s+(.+)$/m.exec(TEXTS[`${PREFIX}${id}.md`] ?? "")?.[1]?.replace(/[`*]/g, "").trim() ?? id;
-
-function sections(): { label: string; guides: Guide[] }[] {
-  const ids = Object.keys(TEXTS).map(idOf);
-  const list = (pick: (id: string) => boolean) =>
-    ids
-      .filter(pick)
-      .sort((a, b) => Number(b.endsWith("README")) - Number(a.endsWith("README")) || a.localeCompare(b))
-      .map((id) => ({ id, title: titleOf(id) }));
-  return [
-    { label: "Start here", guides: START.filter((id) => ids.includes(id)).map((id) => ({ id, title: titleOf(id) })) },
-    { label: "Recipes", guides: list((id) => id.startsWith("recipes/")) },
-    { label: "App components", guides: list((id) => id.startsWith("components/")) },
-    { label: "Patterns", guides: list((id) => id.startsWith("catalog/")) },
-    { label: "More", guides: list((id) => !id.includes("/") && !START.includes(id)) },
-  ].filter((section) => section.guides.length > 0);
-}
-
-/** The guide in the hash: `#docs?page=recipes/analytics-chat`. */
-const pageFromHash = () => new URLSearchParams(location.hash.split("?")[1] ?? "").get("page") ?? START[0]!;
+/** The guide the address names: `/docs/recipes/analytics-chat/`. */
+const pageFromHash = () => routeParam("page") ?? START[0]!;
 
 /** The site's own address of a guide, or of the catalog page for a component. */
-const site = () => `${location.origin}${location.pathname}`;
-const guideUrl = (id: string) => `${site()}#docs?page=${id}`;
+const site = () => `${location.origin}${import.meta.env.BASE_URL}`;
+const absolute = (target: string) => `${location.origin}${hrefOf(target)}`;
 
 /** Turns a path a guide links to into an address: another guide here, a component in Components, or the repository. */
 function resolver(from: string) {
-  const base = new URL(`https://docs.invalid/docs/${from}`);
   return (href: string): string | undefined => {
-    if (href.startsWith("#")) return undefined;
-    const url = new URL(href, base);
-    if (url.origin !== base.origin) return undefined;
-    const path = decodeURIComponent(url.pathname.slice(1));
-    const component = /^docs\/catalog\/components\/(\w+)\.md$/.exec(path);
-    if (component) return `${site()}?component=${component[1]}#catalog`;
-    if (/^docs\/catalog\/components\/?$/.test(path)) return `${site()}#catalog`;
-    const guide = /^docs\/(.+)\.md$/.exec(path)?.[1];
-    if (guide && `${PREFIX}${guide}.md` in TEXTS) return guideUrl(guide);
-    if (/^docs\/(recipes|components)\/?$/.test(path)) return guideUrl(`${path.slice(5).replace(/\/$/, "")}/README`);
-    return `${REPO}${path}`;
+    const to = guideLink(from, href, (id) => textOf(id) !== undefined);
+    if (!to) return undefined;
+    return "target" in to ? absolute(to.target) : to.url;
   };
 }
 
@@ -94,26 +51,22 @@ function imageResolver(from: string) {
   };
 }
 
-/** Follows a link to a page of this site in this tab: another guide by its hash alone, keeping the data picked; a catalog page by its address. */
+/** Follows a link to a page of this site in this tab, without loading the page again, keeping the data picked. */
 function openLink(href: string): boolean {
   if (!href.startsWith(site())) return false;
   const url = new URL(href);
-  if (url.search) location.assign(href);
-  else location.hash = url.hash;
-  window.scrollTo({ top: 0 });
+  go(parseRoute(url.pathname, url.search, import.meta.env.BASE_URL));
   return true;
 }
 
 export function DocsPage() {
   const all = useMemo(sections, []);
   const [page, setPage] = useState(pageFromHash);
-  // A note left for whoever edits the file (`<!-- Generated by … -->`) is not part of the guide.
-  const text = TEXTS[`${PREFIX}${page}.md`]?.replace(/<!--[\s\S]*?-->\s*/g, "");
+  const raw = textOf(page);
+  const text = raw === undefined ? undefined : guideText(raw);
   // The guide follows the address: a link, the list, Back and Forward all change the hash.
   useEffect(() => {
-    const onHash = () => setPage(pageFromHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    return onRoute(() => setPage(pageFromHash()));
   }, []);
 
   const current = all.flatMap((s) => s.guides).find((g) => g.id === page);
@@ -129,7 +82,7 @@ export function DocsPage() {
           <ul>
             {section.guides.map((guide) => (
               <li key={guide.id}>
-                <a href={`#docs?page=${guide.id}`} aria-current={guide.id === page ? "page" : undefined} onClick={() => window.scrollTo({ top: 0 })}>
+                <a href={hrefOf(`docs?page=${guide.id}`)} aria-current={guide.id === page ? "page" : undefined}>
                   {guide.title}
                 </a>
               </li>

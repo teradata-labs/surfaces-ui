@@ -91,3 +91,31 @@ test("the chat composer's tools fit one row on a phone @phone", async ({ page })
   const { height, send } = await toolbar.evaluate((el) => ({ height: el.getBoundingClientRect().height, send: el.querySelector(".sf-chat-send")!.getBoundingClientRect().height }));
   expect(height).toBeLessThanOrEqual(send + 1);
 });
+
+// Every page has an address of its own, so search engines, link previews and bookmarks each name one page.
+test.describe("Addresses", () => {
+  test("open a page by its path, move without loading the page again, and go Back", async ({ page }) => {
+    test.skip(test.info().project.name !== "desktop", "the same on every screen");
+    await page.goto("/catalog/Chart/?source=retail");
+    await expect(page.locator(".catalog-name")).toHaveText("Chart");
+    const marker = await page.evaluate(() => {
+      (window as unknown as { stayed: boolean }).stayed = true;
+      return true;
+    });
+    expect(marker).toBe(true);
+    await page.locator('a[href^="/patterns/"]').first().click();
+    await expect(page).toHaveURL(/\/patterns\/\?source=retail$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Patterns" })).toBeVisible();
+    expect(await page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed)).toBe(true);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/catalog\/Chart\/\?source=retail$/);
+    await expect(page.locator(".catalog-name")).toHaveText("Chart");
+  });
+
+  test("move an address from before paths to its path", async ({ page }) => {
+    test.skip(test.info().project.name !== "desktop", "the same on every screen");
+    await page.goto("/?source=retail#docs?page=styling");
+    await expect(page).toHaveURL(/\/docs\/styling\/\?source=retail$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Styling" })).toBeVisible();
+  });
+});

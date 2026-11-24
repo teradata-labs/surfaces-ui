@@ -36,10 +36,13 @@ jobs:
         run: pnpm --filter @surfaces-ui/playground exec vite build --outDir ../../site --emptyOutDir
         env:
           SURFACES_BASE: ${{ steps.pages.outputs.base_path }}/
+          # Canonical addresses, link previews and the sitemap name the site where Pages serves it.
+          SURFACES_SITE_URL: ${{ steps.pages.outputs.base_url }}/
           VITE_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
           VITE_SURFACES_PUBLISHED: "1"
-      # Pages has no rewrites; the playground routes by hash, so one page is enough, and a wrong path shows it too.
-      - run: cp site/index.html site/404.html
+      # The build writes a page for every route (each with its own title, description and text for search engines and
+      # link previews), the sitemap, robots.txt and a 404.html that asks not to be indexed. Pages has no rewrites, so a
+      # path with no page of its own gets the 404, which still starts the app.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

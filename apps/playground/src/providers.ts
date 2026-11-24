@@ -2,6 +2,7 @@ import type { ChatProvider, ChatSettings } from "@surfaces-ui/chat";
 import { useMemo } from "react";
 import type { AgentChoice } from "./agentChoice.js";
 import type { AgentOption } from "./composerAgent.js";
+import { go } from "./routes.js";
 
 /**
  * The playground's options as providers for a Model menu: where a model runs
@@ -88,7 +89,7 @@ export function useProviderMenu(choice: AgentChoice) {
     settings: providerSettings(choice),
     onSettingsChange: (next: ChatSettings) => void pickProvider(choice, next),
     onManageProviders: () => {
-      location.hash = "#models";
+      go("models");
     },
   };
 }

@@ -8,6 +8,7 @@ import { App } from "./App.js";
 import { startAnalytics } from "./analytics.js";
 import { ComposerPopout } from "./areas/ComposerPopout.js";
 import "./app.css";
+import { currentRoute } from "./routes.js";
 
 // The published site counts page views; every other build does nothing here.
 startAnalytics();
@@ -23,7 +24,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider initialTheme={linkedTheme ?? presetByName("Aurora")} initialMode={linkedMode ?? "dark"} storage={linked ? null : undefined}>
       {/* Dev tools for every page: on while developing, absent from a published build. `#view` frames one page alone, with nothing over it. */}
-      <SurfacesDevTools enabled={import.meta.env.DEV && !location.hash.startsWith("#view")}>{params.get("popout") === "composer" ? <ComposerPopout /> : <App />}</SurfacesDevTools>
+      <SurfacesDevTools enabled={import.meta.env.DEV && currentRoute().area !== "view"}>{params.get("popout") === "composer" ? <ComposerPopout /> : <App />}</SurfacesDevTools>
     </ThemeProvider>
   </StrictMode>,
 );

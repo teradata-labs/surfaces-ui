@@ -1,20 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { isMeasurementId, optedOut, pagePath } from "./analytics.js";
+import { targetRoute } from "./routes.js";
 
 describe("pagePath", () => {
   it("names the area", () => {
-    expect(pagePath("#chat")).toBe("/chat");
-    expect(pagePath("")).toBe("/");
+    expect(pagePath(targetRoute("chat"))).toBe("/chat");
+    expect(pagePath(targetRoute("home"))).toBe("/");
   });
 
   it("keeps what names a page of the site", () => {
-    expect(pagePath("#docs?page=getting-started.md")).toBe("/docs?page=getting-started.md");
-    expect(pagePath("#showcase?persona=analyst")).toBe("/showcase?persona=analyst");
+    expect(pagePath(targetRoute("docs?page=getting-started.md"))).toBe("/docs?page=getting-started.md");
+    expect(pagePath(targetRoute("showcase?persona=analyst"))).toBe("/showcase?persona=analyst");
   });
 
   it("leaves out a person's own things", () => {
-    expect(pagePath("#composer?surface=my-private-board")).toBe("/composer");
-    expect(pagePath("#docs?page=a.md&surface=x&q=secret")).toBe("/docs?page=a.md");
+    expect(pagePath(targetRoute("composer?surface=my-private-board"))).toBe("/composer");
+    expect(pagePath(targetRoute("docs?page=a.md&surface=x&q=secret"))).toBe("/docs?page=a.md");
   });
 });
 

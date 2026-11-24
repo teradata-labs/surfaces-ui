@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { examplePages } from "../examples.js";
 import { focusFor } from "../focus.js";
 import { type ActiveSource, firstTable } from "../source.js";
+import { routeParam } from "../routes.js";
 
 /**
  * One example page drawn alone, the way an app built on the library would show it: no playground around it, just the
@@ -13,7 +14,7 @@ import { type ActiveSource, firstTable } from "../source.js";
 export function PageView({ source }: { source: ActiveSource }) {
   const focus = useMemo(() => focusFor(source.sourceId, firstTable(source)), [source]);
   const pages = useMemo(() => examplePages(focus), [focus]);
-  const index = Number(new URLSearchParams(location.hash.split("?")[1] ?? "").get("page") ?? 0);
+  const index = Number(routeParam("page") ?? 0);
   const page = pages[Number.isInteger(index) && index >= 0 && index < pages.length ? index : 0]!;
   const surface = useMemo(() => pageSurface(page), [page]);
   return (

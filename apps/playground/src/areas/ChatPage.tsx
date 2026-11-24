@@ -11,6 +11,7 @@ import { ARCHIVE_STARTER, demoAgent } from "../demoAgent.js";
 import { focusFor } from "../focus.js";
 import { pickProvider, providerSettings, providersOf } from "../providers.js";
 import { type ActiveSource, firstTable, isRealSource, sampleSource } from "../source.js";
+import { go } from "../routes.js";
 
 const LAYOUT_KEY = "surfaces-playground:chat-layout";
 const VOICE_KEY = "surfaces-playground:chat-voice";
@@ -109,14 +110,14 @@ export function ChatPage({ source: pickedSource }: { source: ActiveSource }) {
         }}
         providers={providers}
         onManageProviders={() => {
-          location.hash = "#models";
+          go("models");
         }}
         sessions={sessions}
         attachFiles={attachFiles}
         browse={{ sourceId: source.sourceId, sourceLabel: label(source.sourceId) }}
         sources={pickedSource.sources.map((s) => ({ id: s.id, label: s.label }))}
         onAddConnection={() => {
-          location.hash = "#sources";
+          go("sources");
         }}
         onConnect={(connector) => {
           const url = safeUrl(connector.signInUrl);

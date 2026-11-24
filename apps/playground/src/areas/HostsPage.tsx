@@ -14,6 +14,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { pageOf, surfaceLink } from "../libraryLinks.js";
 import type { ActiveSource } from "../source.js";
 import { MaybePipelines, listAll, usePrepared } from "./LibraryPage.js";
+import { hrefOf } from "../routes.js";
 
 /**
  * The real MCP App page in a sandboxed frame, with this page as its host
@@ -162,7 +163,7 @@ export function HostsPage({ source }: { source: ActiveSource }) {
         )}
         {all && all.length === 0 ? (
           <p className="hint">
-            The library is empty. Open <a href="#library">the library</a> once to load the examples, or save a page.
+            The library is empty. Open <a href={hrefOf("library")}>the library</a> once to load the examples, or save a page.
           </p>
         ) : (
           <div className="actions">
