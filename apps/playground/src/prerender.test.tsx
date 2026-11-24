@@ -27,6 +27,15 @@ describe("prerenderSite", () => {
     expect(page).toContain('<script type="module" src="/assets/app.js"></script>');
   });
 
+  it("hides the plain words where JavaScript runs, before the first paint, and keeps them in the file", () => {
+    const page = site()["docs/getting-started/index.html"]!;
+    const hide = page.indexOf('document.documentElement.classList.add("sf-scripted")');
+    expect(hide).toBeGreaterThan(-1);
+    expect(hide).toBeLessThan(page.indexOf("<body>"));
+    expect(page).toContain(".sf-scripted .prerender{display:none}");
+    expect(page).toContain("Install the packages and draw your first grid.");
+  });
+
   it("puts the guide's words in the page, with links to other pages of the site, and leaves editors' notes out", () => {
     const files = site("/sub/");
     const guide = files["docs/getting-started/index.html"]!;

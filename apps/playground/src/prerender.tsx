@@ -2,7 +2,8 @@
  * The published site as HTML a search engine and a link preview can read without running the app: one file per page
  * (`chat/index.html`, `docs/styling/index.html`, `catalog/Chart/index.html`), each with its own title, description,
  * canonical address and preview card, and the page's words in the body: the guides and the component reference in
- * full, the other pages their name, what they are for and links to the rest. The app replaces the body when it starts.
+ * full, the other pages their name, what they are for and links to the rest. Where JavaScript runs those words are
+ * hidden from the first paint and the app draws the page; the app replaces them when it starts.
  * Also `sitemap.xml`, `robots.txt` and a `404.html` that asks not to be indexed.
  *
  * Run by the build (`vite.config.ts`) after the app is written, through Vite so this file can use the library's own
@@ -231,8 +232,15 @@ export function prerenderSite(input: PrerenderInput): Record<string, string> {
   return files;
 }
 
-/** Plain styles for the words before the app starts: the system's own colours and fonts, light or dark as the reader's. */
-const STYLE = `<style>.prerender{color-scheme:light dark;max-width:48rem;margin:0 auto;padding:1.5rem 1rem;font:1rem/1.6 system-ui,sans-serif;color:CanvasText;background:Canvas}.prerender nav ul{display:flex;flex-wrap:wrap;gap:.25rem 1rem;padding:0;list-style:none}.prerender nav h2{font-size:.875rem;margin:.75rem 0 .25rem}.prerender pre{overflow-x:auto}.prerender img{max-width:100%;height:auto}</style>`;
+/**
+ * Where JavaScript runs, the app draws the page itself, so the plain words are hidden from the first paint and a person
+ * never sees them flash by before the app (on a phone on 4G that was about seven seconds). They stay in the file for
+ * search engines and link previews, which read the HTML, and are shown wherever JavaScript does not run.
+ */
+const HIDE_WHEN_SCRIPTED = `<script>document.documentElement.classList.add("sf-scripted")</script>`;
+
+/** Plain styles for the words when no script runs: the system's own colours and fonts, light or dark as the reader's. */
+const STYLE = `<style>.sf-scripted .prerender{display:none}.prerender{color-scheme:light dark;max-width:48rem;margin:0 auto;padding:1.5rem 1rem;font:1rem/1.6 system-ui,sans-serif;color:CanvasText;background:Canvas}.prerender nav ul{display:flex;flex-wrap:wrap;gap:.25rem 1rem;padding:0;list-style:none}.prerender nav h2{font-size:.875rem;margin:.75rem 0 .25rem}.prerender pre{overflow-x:auto}.prerender img{max-width:100%;height:auto}</style>`;
 
 function pageHtml(input: PrerenderInput, page: Page, { noindex = false } = {}): string {
   const url = new URL(page.path, input.siteUrl).href;
@@ -252,6 +260,7 @@ function pageHtml(input: PrerenderInput, page: Page, { noindex = false } = {}): 
     `<meta property="og:image:alt" content="A dashboard drawn with Surfaces UI on a desktop, a tablet and a phone" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     page.jsonLd && `<script type="application/ld+json">${scriptJson(page.jsonLd)}</script>`,
+    HIDE_WHEN_SCRIPTED,
     STYLE,
   ]
     .filter(Boolean)
