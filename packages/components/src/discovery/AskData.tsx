@@ -3,6 +3,7 @@ import type { DataObject } from "@surfaces-ui/proto";
 import { type FormEvent, type ReactNode, useRef, useState } from "react";
 import { messageOf } from "../data/useRowWindow.js";
 import { useDiscovery } from "./shared.js";
+import { CodeBlock } from "../text/Markdown.js";
 
 export interface AskDataProps {
   /** Called when a cited table is chosen. */
@@ -104,7 +105,7 @@ export function AskData(props: AskDataProps) {
           )}
           {answer.sql && (
             <div className="sf-ask-sql">
-              <pre tabIndex={0}>{answer.sql}</pre>
+              <CodeBlock code={answer.sql} language="sql" label="Proposed SQL" />
               {props.onUseSql && (
                 <button type="button" className="sf-button" onClick={() => props.onUseSql?.(answer.sql!)}>
                   Use this SQL

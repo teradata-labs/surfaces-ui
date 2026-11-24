@@ -152,6 +152,8 @@ const data = memoryDataSource({ tables: { sales: [{ region: "Europe", amount: 10
 </ThemeProvider>;
 ```
 
+Most apps install two to six packages; [docs/packages.md](docs/packages.md) lists all of them, what each is for and what it brings with it.
+
 To change how it looks, start with a theme: eight presets, or your own palette, checked for contrast in light and dark. [docs/styling.md](docs/styling.md) covers scoped themes, the `--sf-*` variables, `className`, and `styles.layer.css` for apps whose own CSS should win.
 
 ## How it fits together

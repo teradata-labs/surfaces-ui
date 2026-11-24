@@ -214,7 +214,10 @@ describe("modelSql", () => {
     await screen.findByText("name");
     // The join on a column that does not exist is kept visible, explained and left out of the SQL.
     expect(joinsList().getByText(/Will not work, left out of the SQL\. customers has no column missing\./)).toBeTruthy();
-    expect(screen.getByText(/JOIN customers ON/).textContent).not.toContain("missing");
+    // The SQL is highlighted, so it is read whole from its block rather than matched as one text node.
+    const sql = screen.getByLabelText("SQL for this model").textContent ?? "";
+    expect(sql).toContain("JOIN customers ON");
+    expect(sql).not.toContain("missing");
 
     fireEvent.click(screen.getByRole("button", { name: "Remove the line orders.order_id = customers.region_id" }));
     expect(changes.at(-1)!.joins[0]!.keys).toEqual([{ leftColumn: "customer_id", rightColumn: "customer_id" }]);

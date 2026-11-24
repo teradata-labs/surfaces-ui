@@ -1,6 +1,6 @@
 # Surfaces UI — guide for agents
 
-Guides for people and agents using the library in their own projects: [docs/getting-started.md](docs/getting-started.md), [docs/agent-integration.md](docs/agent-integration.md), [llms.txt](llms.txt). Keep them current when an exported API changes.
+Guides for people and agents using the library in their own projects: [docs/getting-started.md](docs/getting-started.md), [docs/agent-integration.md](docs/agent-integration.md), [llms.txt](llms.txt). Keep them current when an exported API changes. [docs/packages.md](docs/packages.md) and each package's README are written from its `package.json` by `scripts/package-readmes.mjs` (`--check` in `pnpm check:release`); a new package goes into one of its `GROUPS`.
 
 Surfaces UI is a UI library for data and analytics users: exploring schemas, querying, charting, tables at scale, chat, and composing pages and apps. The approved plan with the full architecture and phases is in [docs/plan.md](docs/plan.md). Read it before adding a package.
 

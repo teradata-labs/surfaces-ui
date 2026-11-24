@@ -104,7 +104,8 @@ import { type ModelChunk, type ModelMessage, toolCallingAgent } from "@surfaces-
 import { Chat } from "@surfaces-ui/chat";
 import { DataSourceProvider } from "@surfaces-ui/components";
 import { memoryDataSource } from "@surfaces-ui/data";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { EditorView } from "@codemirror/view";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { approvedQueryTool } from "./tools.js";
 
@@ -145,7 +146,9 @@ describe("an approval before SQL runs", () => {
     expect(await screen.findByText("Run this query?")).toBeTruthy();
     expect(screen.getByText("Count orders")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Edit before allowing" }));
-    fireEvent.change(screen.getByLabelText("SQL"), { target: { value: "SELECT * FROM returns" } });
+    // The SQL is edited in the SQL editor (CodeMirror), so the test types through its view.
+    const editor = EditorView.findFromDOM(screen.getByLabelText("SQL"))!;
+    act(() => editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: "SELECT * FROM returns" } }));
     const allow = screen.getByRole("button", { name: "Allow my version" });
     await waitFor(() => expect((allow as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(allow);

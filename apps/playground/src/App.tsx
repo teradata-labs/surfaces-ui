@@ -209,6 +209,8 @@ export function App() {
   // are there already.
   const preparing = ready !== pickedId && source?.kind !== "browser";
   const loading = useLoading(source?.loading);
+  // The guides read no data, so the database loading behind them is not worth a word there.
+  const shownLoading = area.id === "docs" ? undefined : loading;
 
   useEffect(() => {
     void choosing.then((chosen) => {
@@ -300,8 +302,8 @@ export function App() {
         </p>
       )}
       {/* Always in the page, so a screen reader hears the sentence change and then go. */}
-      <p className="shell-loading" role="status" data-shown={loading ? "" : undefined}>
-        {loading}
+      <p className="shell-loading" role="status" data-shown={shownLoading ? "" : undefined}>
+        {shownLoading}
       </p>
       <div className="shell-main">
         {area.id !== HOME.id && area.id !== VIEW.id && area.id !== "docs" && (

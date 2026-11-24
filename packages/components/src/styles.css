@@ -1357,21 +1357,14 @@ select.sf-input:disabled {
   cursor: pointer;
 }
 
-.sf-result-sql summary:focus-visible,
-.sf-result-sql pre:focus-visible {
+.sf-result-sql summary:focus-visible {
   outline: 2px solid var(--sf-color-focus);
   outline-offset: 2px;
 }
 
-.sf-result-sql pre {
-  margin: var(--sf-space-2) 0 0;
-  padding: var(--sf-space-3);
-  border-radius: var(--sf-radius);
-  background: var(--sf-color-surface);
-  color: var(--sf-color-text);
-  font-family: var(--sf-font-mono);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+/* The SQL is a CodeBlock, highlighted by the theme's code colours like every other read-only query. */
+.sf-result-sql > .sf-code {
+  margin-top: var(--sf-space-2);
 }
 
 .sf-result-notice {
@@ -1914,8 +1907,7 @@ select.sf-input:disabled {
   font-size: var(--sf-font-size-sm);
 }
 
-.sf-context-preview,
-.sf-ask-sql pre {
+.sf-context-preview {
   max-height: 320px;
   margin: 0;
   padding: var(--sf-space-3);
@@ -1930,10 +1922,15 @@ select.sf-input:disabled {
   overflow-wrap: anywhere;
 }
 
-.sf-context-preview:focus-visible,
-.sf-ask-sql pre:focus-visible {
+.sf-context-preview:focus-visible {
   outline: 2px solid var(--sf-color-focus);
   outline-offset: 2px;
+}
+
+/* A proposal is a CodeBlock, highlighted like every other read-only query; a long one scrolls inside its block. */
+.sf-ask-sql .sf-code pre {
+  max-height: 320px;
+  overflow: auto;
 }
 
 .sf-context-actions {
@@ -2091,7 +2088,7 @@ select.sf-input:disabled {
   justify-items: start;
 }
 
-.sf-ask-sql pre {
+.sf-ask-sql > .sf-code {
   width: 100%;
 }
 
@@ -8049,10 +8046,14 @@ button > .sf-item-control-icon:only-child {
 }
 
 .sf-semantic-identity label,
-.sf-semantic-write label,
+.sf-semantic-write > p,
 .sf-semantic-ask label {
   font-size: var(--sf-font-size-sm);
   color: var(--sf-color-muted);
+}
+
+.sf-semantic-write > p {
+  margin: 0;
 }
 
 .sf-semantic-write textarea {

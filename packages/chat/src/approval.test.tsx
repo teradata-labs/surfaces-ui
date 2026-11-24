@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { type SendInit, agentEvent, approvalDigest, scriptedAgent, withDigest } from "@surfaces-ui/agent";
 import { ApprovalKind, ApprovalRisk } from "@surfaces-ui/proto";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { EditorView } from "@codemirror/view";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { Chat } from "./index.js";
 
@@ -43,7 +44,9 @@ describe("ApprovalCard", () => {
   it("sends the person's edited SQL with the digest of their version", async () => {
     const seen = ask(await withDigest({ id: "a1", kind: ApprovalKind.PERMISSION, title: "Run this?", sql: "SELECT * FROM orders", editable: true }));
     fireEvent.click(await screen.findByRole("button", { name: "Edit before allowing" }));
-    fireEvent.change(screen.getByLabelText("SQL"), { target: { value: "SELECT * FROM orders LIMIT 10" } });
+    // The SQL is edited in the SQL editor (CodeMirror), so the test types through its view.
+    const editor = EditorView.findFromDOM(screen.getByLabelText("SQL"))!;
+    act(() => editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: "SELECT * FROM orders LIMIT 10" } }));
     const allow = screen.getByRole("button", { name: "Allow my version" });
     await waitFor(() => expect((allow as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(allow);

@@ -7,6 +7,7 @@ import { CertificationBadge, useOptionalDiscovery } from "../discovery/shared.js
 import { PanZoomControls, usePanZoom } from "../panzoom/usePanZoom.js";
 import { SCHEMA_REF_MIME, type SchemaRef } from "../schema/SchemaExplorer.js";
 import { ControlIcon } from "../controls/ItemControls.js";
+import { CodeBlock } from "../text/Markdown.js";
 
 export interface ModelJoinKey {
   leftColumn: string;
@@ -1088,7 +1089,7 @@ export function ModelDiagram(props: ModelDiagramProps) {
       {generated.sql && (
         <details className="sf-result-sql">
           <summary>SQL for this model</summary>
-          <pre tabIndex={0}>{generated.sql}</pre>
+          <CodeBlock code={generated.sql} language="sql" label="SQL for this model" />
           {generated.unjoined.length > 0 && <p className="sf-result-notice">Not joined to the rest, so left out: {generated.unjoined.join(", ")}.</p>}
           {unreadable.length > 0 && <p className="sf-result-notice">Could not be read, so left out: {unreadable.join(", ")}.</p>}
           {broken.size > 0 && <p className="sf-result-notice">{broken.size === 1 ? "One join" : `${broken.size} joins`} cannot work and {broken.size === 1 ? "is" : "are"} left out. See the list above.</p>}
