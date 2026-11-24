@@ -105,7 +105,7 @@ You choose the layers you need. The UI layer never depends on the data layer, so
 | SQL in the browser with no server | add `@surfaces-ui/datasource-duckdb-wasm` and `@duckdb/duckdb-wasm` |
 | An agent backend | `@surfaces-ui/agent-anthropic` (Claude), `@surfaces-ui/agent-openai` (OpenAI-compatible servers), `@surfaces-ui/agent-loom`, or `toolCallingAgent` from `@surfaces-ui/agent` over any model |
 
-React 19 is a peer dependency.
+React 18 or 19 is a peer dependency. [Packages](packages.md) lists all of them: what each is for, whether you install it yourself, and what it brings with it.
 
 ```bash
 npm install @surfaces-ui/components @surfaces-ui/data react react-dom
