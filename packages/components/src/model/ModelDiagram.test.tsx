@@ -292,7 +292,10 @@ describe("ModelDiagram keys", () => {
     await waitFor(() => expect(joinsList().getByText("orders.customer_id = customers.customer_id")).toBeTruthy());
     expect(joinsList().getByText("Declared")).toBeTruthy();
     expect(joinsList().queryByText("Inferred")).toBeNull();
-    expect(onChange).toHaveBeenLastCalledWith({ tables: ["orders", "customers"], joins: [expect.objectContaining({ declared: true })] }, expect.anything());
+    // onChange is called from an effect once the declared join is drawn, so it can trail the list by a moment.
+    await waitFor(() =>
+      expect(onChange).toHaveBeenLastCalledWith({ tables: ["orders", "customers"], joins: [expect.objectContaining({ declared: true })] }, expect.anything()),
+    );
   });
 });
 
