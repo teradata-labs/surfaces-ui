@@ -52,3 +52,11 @@ describe("prerenderSite", () => {
     expect(json["@graph"].map((item: { "@type": string }) => item["@type"])).toEqual(["WebSite", "SoftwareSourceCode"]);
   });
 });
+
+describe("guideText", () => {
+  it("leaves no editors' note behind, even one that rejoins once another is taken out", async () => {
+    const { guideText } = await import("./guides.js");
+    expect(guideText("<!-- a -->Text")).toBe("Text");
+    expect(guideText("<!<!-- x -->-- hidden -->Text")).toBe("Text");
+  });
+});
