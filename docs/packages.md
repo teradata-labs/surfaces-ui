@@ -2,7 +2,7 @@
 
 # Packages
 
-Surfaces UI is 30 packages on npm, released together at one version (now 0.2.0), so any two of them always work together. Most apps install two to six of them; the rest come along as dependencies, or are parts of the server.
+Surfaces UI is 30 packages on npm, released together at one version, so any two of them always work together. Most apps install two to six of them; the rest come along as dependencies, or are parts of the server.
 
 ## What an app installs
 
