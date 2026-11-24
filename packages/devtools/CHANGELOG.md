@@ -1,5 +1,34 @@
 # @surfaces-ui/devtools
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies [febcda0]
+- Updated dependencies [62a8fce]
+- Updated dependencies [05b01f6]
+- Updated dependencies [cc51d18]
+- Updated dependencies [7edc469]
+- Updated dependencies [32556a0]
+- Updated dependencies [2e1d220]
+- Updated dependencies [695a82a]
+- Updated dependencies [a07ca52]
+- Updated dependencies [6384252]
+- Updated dependencies [9b07da7]
+- Updated dependencies [432f0fc]
+- Updated dependencies [b4b5fb0]
+- Updated dependencies [d118da4]
+- Updated dependencies [caab7c1]
+- Updated dependencies [7343db7]
+- Updated dependencies [0487cde]
+- Updated dependencies [bbb0b52]
+- Updated dependencies [f481687]
+- Updated dependencies [c3481a2]
+  - @surfaces-ui/components@0.2.0
+  - @surfaces-ui/spec@0.2.0
+  - @surfaces-ui/data@0.2.0
+  - @surfaces-ui/trace@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/chat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Chat thread components for Surfaces UI: streaming replies, tool steps, approvals and inline agent-drawn components",
   "keywords": [
     "surfaces-ui",

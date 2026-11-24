@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/spec",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Component catalog, A2UI surface model and React renderer for agent-generated UI",
   "keywords": [
     "surfaces-ui",

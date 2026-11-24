@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/devtools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Developer tools for Surfaces UI: one component that records and shows the messages, components, problems, state, events, agent turns and service calls of agent-generated UI, with time travel",
   "keywords": [
     "surfaces-ui",

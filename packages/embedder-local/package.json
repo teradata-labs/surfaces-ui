@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/embedder-local",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local embedding model for semantic search; the model is downloaded on first use to a cache outside the repo",
   "keywords": [
     "surfaces-ui",

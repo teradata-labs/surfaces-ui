@@ -1,5 +1,13 @@
 # @surfaces-ui/state
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies [7343db7]
+  - @surfaces-ui/data@0.2.0
+  - @surfaces-ui/proto@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes

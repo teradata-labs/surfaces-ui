@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/engine-datafusion",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DataFusion engine adapter for Surfaces UI: talks to a DataFusion server over HTTP and reads Arrow",
   "keywords": [
     "surfaces-ui",
