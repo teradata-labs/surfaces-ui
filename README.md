@@ -136,7 +136,7 @@ The [getting started guide](docs/getting-started.md) walks through each area and
 npx create-surfaces my-app   # a dashboard, a chat that draws live components, and a data server with sample data
 ```
 
-> The packages are not on npm yet. From a checkout, run `pnpm build` and then `node packages/create-surfaces/dist/cli.js my-app --from-repo .`, which packs the packages into the new app.
+> To try changes that are not released yet, run `pnpm build` in a checkout and then `node packages/create-surfaces/dist/cli.js my-app --from-repo .`, which packs that checkout's packages into the new app.
 
 ```tsx
 import { Chart, DataSourceProvider, ThemeProvider } from "@surfaces-ui/components";

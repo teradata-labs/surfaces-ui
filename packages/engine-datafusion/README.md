@@ -16,6 +16,9 @@ npm install @surfaces-ui/engine-datafusion
 
 Surfaces UI is a UI library for data and analytics: exploring schemas, querying, charting, tables at scale, chat, and pages an agent can build.
 
+Every Surfaces UI package is released at the same version; install them all at that one version, since mixing releases is not supported.
+
+- [The guides on surfaces-ui.com](https://surfaces-ui.com/#docs)
 - [Getting started](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/getting-started.md)
 - [Building with an agent](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/agent-integration.md)
 - [Styling](https://github.com/teradata-labs/surfaces-ui/blob/main/docs/styling.md)

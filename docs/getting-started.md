@@ -86,7 +86,7 @@ npm run serve   # the data server, with six sample datasets; set ANTHROPIC_API_K
 npm run dev     # the app: a dashboard, and a chat that draws live components
 ```
 
-The app it writes is small and yours to change: `src/dashboard.ts` is a page as plain JSON, `src/App.tsx` wires the providers, and `surfaces.config.ts` sets up the server and the agent. Before the packages are on npm, run it from a checkout of this repo after `pnpm build`: `node packages/create-surfaces/dist/cli.js my-app --from-repo .` packs the packages into `my-app/vendor` and points the app at them.
+The app it writes is small and yours to change: `src/dashboard.ts` is a page as plain JSON, `src/App.tsx` wires the providers, and `surfaces.config.ts` sets up the server and the agent. It installs the released packages from npm. To try changes that are not released yet, run it from a checkout of this repo after `pnpm build`: `node packages/create-surfaces/dist/cli.js my-app --from-repo .` packs that checkout's packages into `my-app/vendor` and points the app at them.
 
 [Recipes](recipes/README.md) show common jobs as code that is tested in CI.
 
@@ -111,7 +111,7 @@ React 18 or 19 is a peer dependency. [Packages](packages.md) lists all of them: 
 npm install @surfaces-ui/components @surfaces-ui/data react react-dom
 ```
 
-> The packages are not published to npm yet. Until they are, `create-surfaces --from-repo` (above) packs them for you. To do it by hand: run `pnpm build`, then `pnpm pack` in each package, point your `package.json` at the files (`"@surfaces-ui/components": "file:./vendor/surfaces-components-0.0.0.tgz"`), and list every packed package under `overrides` the same way, because they depend on one another by version.
+> Every package is released at the same version, so give them all the same one; mixing releases is not supported. To try changes that are not released yet, `create-surfaces --from-repo` (above) packs a checkout's packages into the app.
 
 ## The three providers
 
