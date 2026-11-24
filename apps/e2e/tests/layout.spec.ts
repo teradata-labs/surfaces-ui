@@ -64,3 +64,30 @@ test("the home page's phone keeps its screen inside its bezel @phone @webkit", a
   for (const [side, gap] of Object.entries(gaps)) expect(gap, `the bezel on the ${side} is ${gap}px`).toBeGreaterThan(2);
   expect(Math.abs(gaps.bottom - gaps.top), "the bezel is as thick at the bottom as at the top").toBeLessThan(1);
 });
+
+// On a phone the workspace stacks its panels. A conversation scrolls inside itself, so its panel keeps about a screenful,
+// and nothing under the thread (suggestions, the composer) is drawn over it; the composer's tools stay on one row.
+for (const area of ["chat", "composer"]) {
+  test(`${area}: the conversation keeps its room on a phone @phone`, async ({ page }) => {
+    test.skip(test.info().project.name === "desktop", "the stacked layout is a phone's");
+    await open(page, area);
+    const panel = page.locator(".sf-workspace-panel[data-fill]").first();
+    await expect(panel).toBeVisible();
+    const { panelHeight, window, overlap } = await panel.evaluate((el) => {
+      const thread = el.querySelector(".sf-chat-list, .composer-transcript")!.getBoundingClientRect();
+      const below = [...el.querySelectorAll(".sf-chat-suggestions, .sf-chat-composer, .composer-starters, .composer-ask")].map((e) => e.getBoundingClientRect());
+      return { panelHeight: el.getBoundingClientRect().height, window: innerHeight, overlap: Math.max(0, ...below.map((b) => thread.bottom - b.top)) };
+    });
+    expect(panelHeight, "the panel is most of a screen").toBeGreaterThan(window * 0.6);
+    expect(overlap, "nothing is drawn over the thread").toBeLessThanOrEqual(0);
+  });
+}
+
+test("the chat composer's tools fit one row on a phone @phone", async ({ page }) => {
+  test.skip(test.info().project.name === "desktop", "touch targets are a phone's");
+  await open(page, "chat");
+  const toolbar = page.locator(".sf-chat-toolbar").first();
+  await expect(toolbar).toBeVisible();
+  const { height, send } = await toolbar.evaluate((el) => ({ height: el.getBoundingClientRect().height, send: el.querySelector(".sf-chat-send")!.getBoundingClientRect().height }));
+  expect(height).toBeLessThanOrEqual(send + 1);
+});

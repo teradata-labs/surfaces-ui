@@ -3170,3 +3170,12 @@ main details[open]::details-content {
   flex-wrap: wrap;
   gap: var(--sf-space-2);
 }
+
+/* On a phone the chat's panels are the boxes; the page's card around them would be a box in a box and take their width. */
+@media (max-width: 40rem) {
+  .analytics-chat-page.card {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+}

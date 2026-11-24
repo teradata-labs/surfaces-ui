@@ -14,6 +14,13 @@ const panels = [
 const columnsOf = (container: HTMLElement) => [...container.querySelectorAll(".sf-workspace-column")].map((column) => [...column.querySelectorAll(".sf-workspace-panel-title")].map((t) => t.textContent));
 
 describe("Workspace", () => {
+  it("marks a panel whose content fills it, so a stacked layout gives it a height", () => {
+    const { container } = render(<Workspace label="Chat" panels={[{ ...panels[0]!, fill: true }, panels[1]!]} defaultLayout={{ columns: [["search"], ["map"]] }} />);
+    const [search, map] = [...container.querySelectorAll(".sf-workspace-panel")];
+    expect(search?.hasAttribute("data-fill")).toBe(true);
+    expect(map?.hasAttribute("data-fill")).toBe(false);
+  });
+
   it("draws panels where the layout puts them and leaves hidden ones to the rail", () => {
     const { container } = render(<Workspace label="Catalog" panels={panels} defaultLayout={{ columns: [["search"], ["map"]], hidden: ["notes"] }} />);
     expect(columnsOf(container)).toEqual([["Table search"], ["Relationship map"]]);

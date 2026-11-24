@@ -61,7 +61,7 @@ export function composerPanels(props: {
   onClearHistory(): void;
 }): WorkspacePanel[] {
   return [
-    { id: "agent", title: "Agent", icon: "agent", content: <AgentPanel agent={props.agent} starters={props.starters} opening={props.opening} attached={props.attached} onAttachedChange={props.onAttachedChange} /> },
+    { id: "agent", title: "Agent", icon: "agent", fill: true, content: <AgentPanel agent={props.agent} starters={props.starters} opening={props.opening} attached={props.attached} onAttachedChange={props.onAttachedChange} /> },
     { id: "components", title: "Components", shortTitle: "Parts", icon: "components", content: props.components },
     ...(props.tables ? [{ id: "tables", title: "Tables", icon: "table" as const, content: props.tables }] : []),
     ...(props.files ? [{ id: "files", title: "Files", icon: "folder" as const, content: props.files }] : []),
