@@ -774,6 +774,37 @@ pre {
   font-size: var(--sf-font-size-sm);
 }
 
+/* What the page is still loading: floats over the foot of the page, so nothing moves when it comes and goes. */
+.shell-loading {
+  position: fixed;
+  z-index: 20;
+  inset-block-end: var(--sf-space-4);
+  inset-inline: var(--sf-space-4);
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: var(--sf-space-2) var(--sf-space-4);
+  border: 1px solid var(--sf-glass-edge);
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-glass-regular);
+  -webkit-backdrop-filter: var(--sf-glass-filter);
+  backdrop-filter: var(--sf-glass-filter);
+  box-shadow: var(--sf-glass-shadow);
+  color: var(--sf-color-text);
+  font-size: var(--sf-font-size-sm);
+  text-align: center;
+  pointer-events: none;
+}
+
+.shell-loading:not([data-shown]) {
+  /* Kept in the page for the screen reader, but takes no room and shows nothing. */
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 .shell-backend {
   display: flex;
   gap: var(--sf-space-2);

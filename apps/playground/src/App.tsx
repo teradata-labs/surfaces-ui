@@ -1,5 +1,5 @@
 import { DataSourceProvider, DiscoveryProvider, NavBar, SemanticsProvider } from "@surfaces-ui/components";
-import { type ReactNode, Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { type ReactNode, Suspense, lazy, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import { ComposerPage } from "./areas/ComposerPage.js";
 import { HomePage } from "./areas/HomePage.js";
@@ -23,7 +23,7 @@ import { ThemeGallery } from "./areas/ThemeGallery.js";
 import { ThemePage } from "./areas/ThemePage.js";
 import { Workbench } from "./areas/Workbench.js";
 import { ThemeMenu } from "./ThemeMenu.js";
-import { type ActiveSource, SERVER, chooseSource, engineLabel, isRealSource, sampleSource } from "./source.js";
+import { type ActiveSource, type LoadingStatus, SERVER, chooseSource, engineLabel, isRealSource, sampleSource } from "./source.js";
 
 interface Area {
   id: string;
@@ -116,6 +116,14 @@ const BACKEND: Record<ActiveSource["kind"], { label: string; detail: string }> =
   memory: { label: "Sample in memory", detail: "Rows held in the page; start the dev server for real SQL" },
 };
 
+const NOTHING_LOADING: LoadingStatus = { get: () => undefined, set: () => {}, subscribe: () => () => {} };
+
+/** What the page is still loading, as one sentence, or undefined. */
+function useLoading(status: LoadingStatus | undefined): string | undefined {
+  const store = status ?? NOTHING_LOADING;
+  return useSyncExternalStore(store.subscribe, store.get, store.get);
+}
+
 /** True while the dev server, which answered when the page loaded, does not answer. Checked every 10 seconds and when the tab is shown again. */
 function useServerGone(watching: boolean): boolean {
   const [gone, setGone] = useState(false);
@@ -147,6 +155,9 @@ function useServerGone(watching: boolean): boolean {
   }, [watching]);
   return gone;
 }
+
+// Started as the page's code loads, not after its first draw, so the database's download begins as early as it can.
+const choosing = chooseSource();
 
 export function App() {
   const [source, setSource] = useState<ActiveSource | undefined>();
@@ -182,7 +193,11 @@ export function App() {
   useEffect(() => {
     if (!source || !pickedId) return;
     let current = true;
-    void source.prepare(pickedId).finally(() => current && setReady(pickedId));
+    // A source that cannot load says so where its data is shown; in the browser the page then moves to rows in memory.
+    void source
+      .prepare(pickedId)
+      .catch(() => undefined)
+      .finally(() => current && setReady(pickedId));
     const url = new URL(location.href);
     url.searchParams.set("source", pickedId);
     history.replaceState(null, "", url);
@@ -190,11 +205,16 @@ export function App() {
       current = false;
     };
   }, [source, pickedId]);
-  const preparing = ready !== pickedId;
+  // In the browser every query waits for its own tables, so the page is drawn at once and fills in; a server's sources
+  // are there already.
+  const preparing = ready !== pickedId && source?.kind !== "browser";
+  const loading = useLoading(source?.loading);
 
   useEffect(() => {
-    void chooseSource().then((chosen) => {
+    void choosing.then((chosen) => {
       setSource(chosen);
+      // When DuckDB cannot start in this browser, the page carries on with rows held in memory.
+      void chosen.fallback?.then((memory) => memory && setSource(memory));
       // For tinkering from the browser console in development: `await playground.dataSource.listSources({})`.
       if (import.meta.env.DEV) (window as unknown as { playground: ActiveSource }).playground = chosen;
     });
@@ -279,6 +299,10 @@ export function App() {
           The dev server at {SERVER} stopped answering, so data cannot load. Start it again with <code>pnpm serve</code>; the page carries on when it answers.
         </p>
       )}
+      {/* Always in the page, so a screen reader hears the sentence change and then go. */}
+      <p className="shell-loading" role="status" data-shown={loading ? "" : undefined}>
+        {loading}
+      </p>
       <div className="shell-main">
         {area.id !== HOME.id && area.id !== VIEW.id && area.id !== "docs" && (
           <header className="shell-head">
