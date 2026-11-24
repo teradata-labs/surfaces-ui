@@ -223,7 +223,7 @@ export function AnalysisPage({ source }: { source: ActiveSource }) {
       height="max(34rem, calc(100dvh - 7.5rem - var(--shell-bar, 0px)))"
       defaultLayout={{ columns: [["thread"], ["keep"]], columnWidths: [0.62, 0.38] }}
       panels={[
-        { id: "thread", title: "Conversation", shortTitle: "Thread", icon: "agent", content: conversation },
+        { id: "thread", title: "Conversation", shortTitle: "Thread", icon: "agent", fill: true, content: conversation },
         { id: "keep", title: "Keep", icon: "save", content: keep },
       ]}
     />

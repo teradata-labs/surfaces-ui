@@ -11,6 +11,9 @@ export interface WorkspacePanel {
   shortTitle?: string;
   /** The rail's icon: one of the built-in names, or your own node. Left out, the title's first letter. */
   icon?: WorkspaceIconName | ReactNode;
+  /** The content scrolls inside itself and should fill the panel (a conversation with its composer). Stacked in a narrow
+   * container, where other panels are as tall as their content, such a panel is given about a screenful instead. */
+  fill?: boolean;
   content: ReactNode;
 }
 
@@ -337,7 +340,7 @@ export function Workspace({ label, panels, layout: given, defaultLayout, onLayou
                 return (
                   <div key={id} className="sf-workspace-cell" data-folded={folded || undefined} style={folded ? undefined : { flexGrow: layout.rowHeights[c]?.[r] ?? 1, flexBasis: 0 }}>
                     {canDropHere && zone({ kind: "row", column: c, row: r }, "sf-workspace-drop-row", "Drop here")}
-                    <section className="sf-workspace-panel" aria-label={panel.title} data-dragging={dragging === id || undefined} data-folded={folded || undefined}>
+                    <section className="sf-workspace-panel" aria-label={panel.title} data-fill={panel.fill || undefined} data-dragging={dragging === id || undefined} data-folded={folded || undefined}>
                       <header
                         className="sf-workspace-panel-head"
                         onPointerDown={(event) => startDrag(event, id, panel.title)}

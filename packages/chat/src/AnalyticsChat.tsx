@@ -243,7 +243,7 @@ export function AnalyticsChat(props: AnalyticsChatProps) {
         {conversation}
       </section>
     );
-  const panels: WorkspacePanel[] = [{ id: "chat", title: "Chat", icon: <ChatIcon name="chat" />, content: conversation }, ...panelIds.map((id) => ({ id, ...PANEL_TITLES[id], content: content[id]() }))];
+  const panels: WorkspacePanel[] = [{ id: "chat", title: "Chat", icon: <ChatIcon name="chat" />, fill: true, content: conversation }, ...panelIds.map((id) => ({ id, ...PANEL_TITLES[id], content: content[id]() }))];
   return (
     <div className={["sf-analytics-chat", props.className].filter(Boolean).join(" ")}>
       <Workspace label="Chat panels" panels={panels} layout={layout} onLayoutChange={setLayout} rail="right" height={props.height ?? 640} />

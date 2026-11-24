@@ -3447,6 +3447,25 @@ select.sf-input:disabled {
   gap: var(--sf-space-2);
 }
 
+/* In a narrow place the suggestions are one row that scrolls sideways, so they do not take the thread's room. */
+@container sf (max-width: 40rem) {
+  .sf-chat-suggestions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    /* Room for a button's focus ring inside the scrolling row. */
+    padding: 2px;
+    margin: -2px;
+  }
+
+  .sf-chat-suggestions > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}
+
 /* Buttons the host offers under a reply (ChatActions): one row, or a row for each choice. */
 .sf-chat-actions {
   container: sf-chat-actions / inline-size;
@@ -3676,6 +3695,15 @@ select.sf-input:disabled {
   margin-inline-start: auto;
 }
 
+/* On touch every tool is a 44px target around a small icon, which is space enough between them; without gaps the
+   whole toolbar fits on one row of a phone. */
+@media (pointer: coarse) {
+  .sf-chat-toolbar,
+  .sf-chat-toolbar-end {
+    column-gap: 0;
+  }
+}
+
 .sf-chat-icon {
   flex: none;
   width: 1.15em;
@@ -3746,8 +3774,9 @@ select.sf-input:disabled {
 .sf-chat-send {
   display: inline-grid;
   place-items: center;
-  width: calc(var(--sf-target-min) * 1.34);
-  height: calc(var(--sf-target-min) * 1.34);
+  /* A control's size, and a touch target's where that is larger: Send stays in the toolbar's row on a phone. */
+  width: max(var(--sf-target-min), var(--sf-control-size));
+  height: max(var(--sf-target-min), var(--sf-control-size));
   border: 0;
   border-radius: 50%;
   background: var(--sf-color-accent);
@@ -6302,6 +6331,13 @@ select.sf-input:disabled {
     margin-bottom: var(--sf-space-2);
   }
 
+  /* Content that scrolls inside itself has no height of its own to grow to, so a panel that fills is about a screenful
+     below the host's sticky bar: scrolled to, the whole conversation and its composer are in view. */
+  .sf-workspace-panel[data-fill]:not([data-folded]) {
+    height: max(20rem, calc(100dvh - var(--sf-sticky-top, 0px) - var(--sf-space-4)));
+    max-height: none;
+  }
+
   .sf-workspace-divider {
     display: none;
   }
@@ -8148,13 +8184,11 @@ button > .sf-item-control-icon:only-child {
 }
 
 .sf-analytics-conversation {
+  /* The thread keeps room to read even when suggestions and the composer are tall. The track holds that minimum, not
+     the list alone, so the rows below never draw over the thread; the panel scrolls when there is not room for all. */
+  grid-template-rows: minmax(10rem, 1fr) auto auto auto;
   height: 100%;
   min-height: 0;
-}
-
-/* The thread keeps room to read even when suggestions and the composer are tall. */
-.sf-analytics-conversation .sf-chat-list {
-  min-height: 10rem;
 }
 
 .sf-chat-panel {
