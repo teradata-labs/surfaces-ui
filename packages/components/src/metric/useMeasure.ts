@@ -1,4 +1,5 @@
 import { type DataSource, collect } from "@surfaces-ui/data";
+import { dataNotes } from "../data/DataNotes.js";
 import { useEffect, useState } from "react";
 import { AGGREGATE_FUNCTIONS, type ChartAggregate, type ChartGrain, TIME_GRAINS } from "../chart/Chart.js";
 import { numericValue } from "../data/format.js";
@@ -23,6 +24,8 @@ export interface MeasureState {
   values?: (number | null)[];
   error?: string;
   loading: boolean;
+  /** What the view was not filtered by, for its readers (see `DataNotes`). */
+  notes?: string[];
 }
 
 /** Asks the engine for one summarised number, or one per time bucket. Nothing is worked out in the browser. */
@@ -55,7 +58,7 @@ export function useMeasure(dataSource: DataSource, query: MeasureQuery): Measure
         const column = result.table.getChild("value");
         const field = result.table.schema.fields.find((f) => f.name === "value");
         const values = Array.from({ length: result.table.numRows }, (_, i) => (field ? numericValue(column?.get(i), field.type) : null));
-        setState({ values: series ? values.reverse() : values, loading: false });
+        setState({ values: series ? values.reverse() : values, loading: false, notes: dataNotes(result.header.notices) });
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setState({ error: messageOf(error), loading: false });

@@ -24,7 +24,7 @@ const FILTER_LIST = z
 const FILTERS = z
   .union([FILTER_LIST, dataBinding])
   .describe(
-    "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters.",
+    "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note.",
   );
 /** A field as a pill: an attribute, a metric or a derived metric. */
 const PILL = z.strictObject({

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { type DataSource, collect, memoryDataSource } from "@surfaces-ui/data";
-import { SortDirection } from "@surfaces-ui/proto";
+import { FilterOperator, SortDirection } from "@surfaces-ui/proto";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { BulletGraph, bulletBand } from "./BulletGraph.js";
@@ -74,6 +74,29 @@ describe("BulletGraph", () => {
     await waitFor(() => screen.getByRole("img", { name: "Revenue: 145, good; target 160, not met." }));
     expect(document.querySelectorAll(".sf-bullet-range")).toHaveLength(3);
     expect((document.querySelector(".sf-bullet-bar") as HTMLElement).style.width).toBe("72.5%");
+  });
+});
+
+describe("a page-wide filter on a column a view lacks", () => {
+  const bySite = [{ column: "site", operator: FilterOperator.EQ, values: [{ kind: { case: "stringValue" as const, value: "north" } }] }];
+  const note = "Not filtered by site: its rows have no site column.";
+
+  it("draws the sparkline from all its rows and says what it was not filtered by", async () => {
+    render(<Sparkline dataSource={dataSource} sourceId="memory" sql={sql} x="at" grain="month" column="amount" aggregate="sum" label="Revenue" filters={bySite} />);
+    await waitFor(() => screen.getByRole("img", { name: /Revenue: 100 now/ }));
+    expect(screen.getByRole("note").textContent).toBe(note);
+  });
+
+  it("does the same for a bullet graph, and says nothing when the filter applies", async () => {
+    const ranges = [{ to: 200, label: "Good" }];
+    render(<BulletGraph dataSource={dataSource} sourceId="memory" sql={sql} column="amount" aggregate="sum" label="Revenue" ranges={ranges} filters={bySite} />);
+    await waitFor(() => screen.getByRole("img", { name: /Revenue: 145/ }));
+    expect(screen.getByRole("note").textContent).toBe(note);
+    cleanup();
+    const byAmount = [{ column: "amount", operator: FilterOperator.GTE, values: [{ kind: { case: "intValue" as const, value: 30n } }] }];
+    render(<BulletGraph dataSource={dataSource} sourceId="memory" sql={sql} column="amount" aggregate="sum" label="Revenue" ranges={ranges} filters={byAmount} />);
+    await waitFor(() => screen.getByRole("img", { name: /Revenue: 130/ }));
+    expect(screen.queryByRole("note")).toBeNull();
   });
 });
 

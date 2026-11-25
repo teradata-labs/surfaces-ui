@@ -17,7 +17,7 @@ import {
   type ViewQuery,
   ViewQuerySchema,
 } from "@surfaces-ui/proto";
-import { SqlError, countQuery, initSql, rewriteQuery, trimStatement } from "@surfaces-ui/sql";
+import { SqlError, columnsQuery, countQuery, initSql, rewriteQuery, trimStatement, withoutMissingFilters } from "@surfaces-ui/sql";
 import { DataType, type RecordBatch } from "apache-arrow";
 import { type Held, type StoredResultsOptions, createResultStore, overStored } from "./results.js";
 
@@ -167,14 +167,43 @@ export async function createEngineServices(options: EngineServicesOptions): Prom
     return {};
   };
 
-  /** Runs a view, reading the stored result when there is one. */
+  /**
+   * Runs a view. A filter can name a column the view's own rows lack, such as a
+   * page-wide filter by site over a daily total: when the engine says a column is
+   * unknown, the base query's columns are read (no rows), the filters on missing
+   * columns are dropped with a notice saying so, and the view runs once more.
+   */
   const open = async (
     request: { sourceId: string; query?: ViewQuery; timeTravel?: ExecuteRequest["timeTravel"]; notBefore: string },
     build: typeof rewriteQuery,
     signal?: AbortSignal,
   ) => {
-    const { id, engine } = source(request.sourceId);
     const query = viewQuery(request.query);
+    try {
+      return await openView(request, query, build, signal);
+    } catch (error) {
+      if (!(error instanceof EngineError) || error.code !== "UNKNOWN_COLUMN" || query.filters.length === 0) throw error;
+      const { engine } = source(request.sourceId);
+      const probe = columnsQuery(query, engine.dialect);
+      const probed = await engine.execute(probe.sql, probe.params as Param[], { signal, timeTravel: request.timeTravel }).catch(() => undefined);
+      if (!probed) throw error;
+      const columns = probed.schema.fields.map((field) => field.name);
+      await probed.batches[Symbol.asyncIterator]().return?.();
+      const fewer = withoutMissingFilters(query, columns);
+      if (fewer.notices.length === 0) throw error;
+      const opened = await openView(request, fewer.query, build, signal);
+      return { ...opened, notices: [...fewer.notices, ...opened.notices] };
+    }
+  };
+
+  /** Runs a view as asked, reading the stored result when there is one. */
+  const openView = async (
+    request: { sourceId: string; timeTravel?: ExecuteRequest["timeTravel"]; notBefore: string },
+    query: ViewQuery,
+    build: typeof rewriteQuery,
+    signal?: AbortSignal,
+  ) => {
+    const { id, engine } = source(request.sourceId);
     const live = build(query, engine.dialect);
     let held: Held | undefined = await results?.get(id, engine, query, request.timeTravel, request.notBefore);
     if (held) {

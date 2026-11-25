@@ -11,7 +11,7 @@ import {
   ViewQuerySchema,
 } from "@surfaces-ui/proto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { SqlError, assertReadOnly, countQuery, guardText, hasViewState, initSql, isPlainScan, numberPlaceholders, parses, rewriteQuery } from "./index.js";
+import { SqlError, assertReadOnly, columnsQuery, countQuery, guardText, hasViewState, initSql, isPlainScan, numberPlaceholders, parses, rewriteQuery, withoutMissingFilters } from "./index.js";
 
 const TD = SqlDialect.TERADATA;
 const DUCK = SqlDialect.DUCKDB;
@@ -117,6 +117,36 @@ describe("rewriteQuery", () => {
     expect(r.mode).toBe(RewriteMode.WRAPPED);
     expect(r.notices.map((x) => x.code)).toContain("REWRITE_FALLBACK");
     expect(r.sql.startsWith("SELECT TOP 10 * FROM (SELECT amt (FORMAT")).toBe(true);
+  });
+});
+
+describe("filters on columns a view lacks", () => {
+  const byRegion = { column: "region", operator: FilterOperator.EQ, values: [s("North")] };
+  const byCust = { column: "CUST_ID", operator: FilterOperator.GTE, values: [n(10)] };
+
+  it("drops each filter on a missing column with a notice, and keeps the rest", () => {
+    const query = view("SELECT cust_id, amt FROM orders", { filters: [byRegion, byCust], sorts: sortAmt });
+    const { query: kept, notices } = withoutMissingFilters(query, ["cust_id", "amt"]);
+    expect(kept.filters.map((f) => f.column)).toEqual(["CUST_ID"]);
+    expect(kept.sorts).toEqual(query.sorts);
+    expect(query.filters).toHaveLength(2);
+    expect(notices.map((x) => [x.code, x.message])).toEqual([["FILTER_COLUMN_MISSING", "Not filtered by region: its rows have no region column."]]);
+  });
+
+  it("changes nothing when every column is there", () => {
+    const query = view("SELECT * FROM orders", { filters: [byRegion] });
+    const result = withoutMissingFilters(query, ["Region", "amt"]);
+    expect(result.query).toBe(query);
+    expect(result.notices).toEqual([]);
+  });
+
+  it("asks for the base query's columns with no rows, its parameters bound", () => {
+    const r = columnsQuery(view("SELECT * FROM orders WHERE amt > ? ORDER BY amt", { parameters: [n(5)], filters: [byRegion], page: { limit: 10 } }), DUCK);
+    expect(r.sql).toMatch(/^SELECT \* FROM \(SELECT \* FROM orders WHERE amt > \? ?\) AS "_sf" WHERE 1 = 0$/);
+    expect(r.sql).not.toMatch(/region|LIMIT|ORDER BY/i);
+    expect(r.params).toHaveLength(1);
+    const td = columnsQuery(view("SELECT a FROM t"), TD);
+    expect(td.sql).toBe('SELECT * FROM (SELECT a FROM t) AS "_sf" WHERE 1 = 0');
   });
 });
 

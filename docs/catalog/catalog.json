@@ -7196,7 +7196,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "column": {
           "type": "string"
@@ -8405,7 +8405,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "columns": {
           "type": "object",
@@ -8921,7 +8921,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "type": {
           "type": "string",
@@ -9775,7 +9775,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "rows": {
           "minItems": 1,
@@ -10379,7 +10379,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "sorts": {
           "maxItems": 8,
@@ -11305,7 +11305,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "pageSize": {
           "description": "Rows fetched at a time. Defaults to 20.",
@@ -14147,7 +14147,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "x": {
           "type": "string",
@@ -14715,7 +14715,7 @@
               "description": "A value read from the data model at this path."
             }
           ],
-          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters."
+          "description": "Filters applied by the database. Send the whole list each time; an empty list clears them. Or a binding (`{ \"@path\": \"/filters\" }`) to read a list kept in the surface's data model: give every view on a page the same path, with a FilterBar writing to it, and they all follow one set of filters. A filter on a column a view's rows lack (a total with no region column, under a filter by region) is left out for that view, which is drawn without it and says so in a note."
         },
         "column": {
           "type": "string"

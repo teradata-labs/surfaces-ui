@@ -75,6 +75,42 @@ describe("DuckDB in the browser", () => {
     expect(inBrowser.map((r) => [r.region, Number(r.orders)])).toEqual(onServer.map((r) => [r.region, Number(r.orders)]));
   });
 
+  it("draws a view unfiltered by a column its rows lack, says so, and keeps the filters it can take", async () => {
+    // A page-wide filter by region over a total that has no region column.
+    const total = "SELECT count(*) AS orders FROM orders";
+    const all = await collect(wasm.dataSource.execute({ sourceId: "retail", query: { baseSql: total } }));
+    const filtered = await collect(
+      wasm.dataSource.execute({ sourceId: "retail", query: { baseSql: total, filters: [{ column: "region", operator: FilterOperator.EQ, values: [s("North")] }] } }),
+    );
+    expect(toRows(filtered.table)).toEqual(toRows(all.table));
+    expect(filtered.header.notices.map((n) => [n.code, n.message])).toEqual([["FILTER_COLUMN_MISSING", "Not filtered by region: its rows have no region column."]]);
+    const { rowCount } = await wasm.dataSource.count({ sourceId: "retail", query: { baseSql: total, filters: [{ column: "region", operator: FilterOperator.EQ, values: [s("North")] }] } });
+    expect(rowCount).toBe(1n);
+
+    // A view with region keeps that filter and drops only the one it cannot take.
+    const stores = "SELECT store_id, region FROM stores";
+    const north = await collect(
+      wasm.dataSource.execute({
+        sourceId: "retail",
+        query: {
+          baseSql: stores,
+          filters: [
+            { column: "REGION", operator: FilterOperator.EQ, values: [s("North")] },
+            { column: "channel", operator: FilterOperator.EQ, values: [s("online")] },
+          ],
+        },
+      }),
+    );
+    const rows = toRows(north.table);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.region === "North")).toBe(true);
+    expect(north.header.notices.map((n) => n.code)).toEqual(["FILTER_COLUMN_MISSING"]);
+    expect(north.header.notices[0]!.message).toMatch(/channel/);
+
+    // Any other missing column still fails, with the engine's own words.
+    await expect(collect(wasm.dataSource.execute({ sourceId: "retail", query: { baseSql: "SELECT nope FROM stores", filters: [{ column: "region", operator: FilterOperator.EQ, values: [s("North")] }] } }))).rejects.toThrow(/nope/);
+  });
+
   it("counts, binds text safely and refuses writes", async () => {
     const { rowCount } = await wasm.dataSource.count({ sourceId: "retail", query: { baseSql: "SELECT * FROM stores", filters: [{ column: "region", operator: FilterOperator.EQ, values: [s("x' OR '1'='1")] }] } });
     expect(rowCount).toBe(0n);

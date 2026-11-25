@@ -2,6 +2,7 @@ import { type DataSource, collect } from "@surfaces-ui/data";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { OnContext } from "../controls/context.js";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import { DataNotes, dataNotes } from "../data/DataNotes.js";
 import type { DataMessages } from "../data/messages.js";
 import { plainValue } from "../data/format.js";
 import { type FilterInit, type SortInit, type TimeTravelInit, messageOf } from "../data/useRowWindow.js";
@@ -46,6 +47,8 @@ interface State {
   more: boolean;
   loading: boolean;
   error?: string;
+  /** What the list was not filtered by, for its readers (see `DataNotes`). */
+  notes?: string[];
 }
 
 /**
@@ -83,7 +86,7 @@ export function RowList(props: RowListProps) {
         const fields = result.table.schema.fields;
         const columns = fields.map((_, i) => result.table.getChildAt(i)!);
         const fetched = Array.from({ length: result.table.numRows }, (_, r) => Object.fromEntries(fields.map((f, c) => [f.name, plainValue(columns[c]!.get(r), f.type)])) as PlainRow);
-        setState((previous) => ({ rows: [...(first ? [] : previous.rows), ...fetched.slice(0, limit - 1)], more: fetched.length >= limit, loading: false }));
+        setState((previous) => ({ rows: [...(first ? [] : previous.rows), ...fetched.slice(0, limit - 1)], more: fetched.length >= limit, loading: false, notes: dataNotes(result.header.notices) }));
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setState((previous) => ({ rows: first ? [] : previous.rows, more: false, loading: false, error: messageOf(error) }));
@@ -123,6 +126,7 @@ export function RowList(props: RowListProps) {
                   : ""}
         </p>
       )}
+      <DataNotes notes={state.notes} />
       {state.more && !full && !state.loading && (
         <button type="button" className="sf-button" onClick={showMore}>
           {text("rows.more")}

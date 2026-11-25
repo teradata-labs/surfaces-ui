@@ -1,5 +1,6 @@
 import type { DataSource } from "@surfaces-ui/data";
 import { useDataSource } from "../data/DataSourceProvider.js";
+import { DataNotes } from "../data/DataNotes.js";
 import type { DataMessages } from "../data/messages.js";
 import type { FilterInit } from "../data/useRowWindow.js";
 import { label as text } from "../locale/locale.js";
@@ -91,6 +92,7 @@ export function BulletGraph(props: BulletGraphProps) {
         {target !== undefined && <span>{text("bullet.target", { target: write(target) })}</span>}
         <span>{write(end)}</span>
       </div>
+      <DataNotes notes={state.notes} />
     </div>
   );
 }
