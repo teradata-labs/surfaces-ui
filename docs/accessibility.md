@@ -154,6 +154,7 @@ Everything a pointer can do has a key. A right-click menu opens with the Menu ke
 | | 0 | Fit the whole diagram to view (also "Fit to view"; "100%" resets) |
 | | ← ↑ → ↓ | Pan |
 | | Ctrl/⌘ + wheel, pinch | Zoom about the pointer; a plain wheel or two-finger scroll pans, and drag the background to pan |
+| Chart with a zoom bar, and node graph | Ctrl/⌘ + wheel, pinch | Zoom; a plain wheel or two-finger scroll scrolls the page on past it. A chart also zooms from the bar under it |
 | Pipeline graph (a node) | ← ↑ → ↓ | Move between nodes; the view pans to the focused one |
 | Details panel | Escape | Close |
 | Approval card | Tab, Shift Tab | Move between Allow, Deny, "Edit before allowing" and the reason field |
