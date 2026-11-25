@@ -46,6 +46,8 @@ export interface ThemeContextValue extends ThemeState {
   setMode(mode: Mode): void;
   /** The mode actually showing, with "system" resolved. */
   resolvedMode: "light" | "dark";
+  /** The host's own themes, chosen by name beside the built-in presets (by a page, an agent's surface or `ThemePicker`). */
+  themes: readonly Theme[];
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -68,7 +70,16 @@ export interface ThemeProviderProps {
    * provider's subtree, so several themes can share a page.
    */
   scope?: "root" | "scoped";
+  /**
+   * The host's own themes (a company's brand themes, say), offered by name
+   * beside the built-in presets: a page's or a surface's `theme` request can
+   * choose one, and `ThemePicker` lists them. Pass them through `parseTheme`
+   * first. A provider inside another keeps the outer one's unless given its own.
+   */
+  themes?: readonly Theme[];
 }
+
+const NO_THEMES: readonly Theme[] = [];
 
 function useSystemDark(): boolean {
   const query = "(prefers-color-scheme: dark)";
@@ -90,7 +101,10 @@ export function ThemeProvider({
   storage,
   storageKey = "surfaces.theme",
   scope = "root",
+  themes: given,
 }: ThemeProviderProps) {
+  const outer = useContext(ThemeContext);
+  const themes = given ?? outer?.themes ?? NO_THEMES;
   const resolvedStorage = useMemo(() => (storage === undefined ? browserStorage() : storage), [storage]);
   // A choice made before the saved one has loaded wins: the saved one is older.
   const chosen = useRef(false);
@@ -151,8 +165,9 @@ export function ThemeProvider({
       setTheme: (theme) => update({ theme }),
       setMode: (mode) => update({ mode }),
       resolvedMode: state.mode === "system" ? (systemDark ? "dark" : "light") : state.mode,
+      themes,
     }),
-    [state, update, systemDark],
+    [state, update, systemDark, themes],
   );
 
   return (

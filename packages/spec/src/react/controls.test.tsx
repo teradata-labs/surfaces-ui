@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { DataSourceProvider, ThemeProvider, useTheme } from "@surfaces-ui/components";
 import { memoryDataSource } from "@surfaces-ui/data";
+import { defaultTheme } from "@surfaces-ui/tokens";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { analyticsCatalog } from "../analytics.js";
@@ -67,6 +68,23 @@ describe("an agent sets the controls", () => {
     expect(document.querySelector(`style[data-sf-theme="${scope.getAttribute("data-sf-scope")}"]`)!.textContent).toContain("--sf-radius: 4px;");
   });
 
+  it("styles its own surface in one of the host's themes, by name", () => {
+    const acme = { ...defaultTheme, name: "Acme", radius: 3 };
+    const { container } = render(
+      <ThemeProvider storage={null} themes={[acme]}>
+        <DataSourceProvider dataSource={dataSource}>
+          <SurfaceView surface={surfaceOf(messages({ id: "t", component: "Text", text: "Hello" }, { preset: "acme" }))} catalog={analyticsCatalog} renderers={analyticsRenderers} />
+        </DataSourceProvider>
+      </ThemeProvider>,
+    );
+    expect(screen.queryByRole("note")).toBeNull();
+    const scope = container.querySelector("[data-sf-scope]")!;
+    expect(document.querySelector(`style[data-sf-theme="${scope.getAttribute("data-sf-scope")}"]`)!.textContent).toContain("--sf-radius: 3px;");
+    cleanup();
+    draw(messages({ id: "t", component: "Text", text: "Hello" }, { preset: "Acme" }));
+    expect(screen.getByRole("note").textContent).toContain("There is no theme called Acme.");
+  });
+
   it("changes the whole page's theme with a visible, undoable switch", async () => {
     draw(messages({ id: "look", component: "ThemeSwitch", preset: "Aurora", mode: "dark" }));
     await waitFor(() => expect(screen.getByTestId("theme").textContent).toBe("Aurora|dark"));
@@ -107,6 +125,10 @@ describe("an agent changes a page's layout and look", () => {
     expect(themed.rejected).toHaveLength(1);
     expect(pageSurface(themed.page).theme).toEqual({ preset: "Berry", density: "compact" });
     expect(editPage(themed.page, [{ op: "theme", theme: null }], analyticsCatalog).page.theme).toBeUndefined();
+    // A host's own theme is a name a page may choose, once the host says it has it.
+    const acme = { ...defaultTheme, name: "Acme" };
+    expect(editPage(page, [{ op: "theme", theme: { preset: "Acme" } }], analyticsCatalog).rejected).toHaveLength(1);
+    expect(editPage(page, [{ op: "theme", theme: { preset: "Acme" } }], analyticsCatalog, { themes: [acme] }).page.theme).toEqual({ preset: "Acme" });
     // Any agent that speaks A2UI restyles a page by sending the theme with the surface.
     expect(editsFromMessages(page, [{ version: v, createSurface: { surfaceId: "p", catalogId: analyticsCatalog.id, metadata: { extensions: { surfaces_theme: { mode: "dark" } } } } }])).toEqual([{ op: "theme", theme: { mode: "dark" } }]);
   });

@@ -24,7 +24,7 @@ import { useId } from "react";
 import { useTheme } from "./ThemeProvider.js";
 
 export interface ThemePickerProps {
-  /** Themes offered as one-click choices. Defaults to the built-in presets. */
+  /** Themes offered as one-click choices. Defaults to the built-in presets, then the ThemeProvider's own `themes`. */
   presets?: readonly Theme[];
   /** Hide controls a product does not want to expose. */
   hide?: Array<"mode" | "presets" | "accent" | "charts" | "radius" | "font" | "density">;
@@ -78,8 +78,9 @@ function Segmented<T extends string>({ label, value, options, labels, onChange }
  * neighbours would be confused is flagged before it reaches a chart. Reads and writes the
  * nearest ThemeProvider, so changes apply live and persist through its store.
  */
-export function ThemePicker({ presets = builtInPresets, hide = [], className }: ThemePickerProps) {
-  const { theme, mode, resolvedMode, setTheme, setMode } = useTheme();
+export function ThemePicker({ presets: given, hide = [], className }: ThemePickerProps) {
+  const { theme, mode, resolvedMode, setTheme, setMode, themes } = useTheme();
+  const presets = given ?? [...builtInPresets, ...themes.filter((t) => !builtInPresets.some((p) => p.name.toLowerCase() === t.name.toLowerCase()))];
   const accentId = useId();
   const radiusId = useId();
   const presetName = useId();

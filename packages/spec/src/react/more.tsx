@@ -465,7 +465,7 @@ function ThemeSwitchView({ props }: { props: Record<string, unknown> }) {
     const current = apply.current;
     if (!current) return;
     const { id: _, component: __, ...request } = props;
-    const result = applyThemeRequest(request as ThemeRequest, current.theme);
+    const result = applyThemeRequest(request as ThemeRequest, current.theme, { themes: current.themes });
     setBefore({ theme: current.theme, mode: current.mode });
     current.setTheme(result.theme);
     if (result.mode) current.setMode(result.mode);
