@@ -1,5 +1,11 @@
 # @surfaces-ui/tokens
 
+## 0.3.0
+
+### Minor Changes
+
+- 1999320: A host can add its own named themes beside the built-in presets: `ThemeProvider` takes `themes`, and a page's `theme`, an agent surface's `surfaces_theme` and `ThemePicker` choose them by name. `applyThemeRequest`, `editPage` and `presetByName` take the same list as an option. A built-in name always means the built-in preset.
+
 ## 0.2.0
 
 ### Minor Changes

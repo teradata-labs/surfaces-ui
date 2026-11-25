@@ -1,5 +1,11 @@
 # @surfaces-ui/agent-anthropic
 
+## 0.3.0
+
+### Patch Changes
+
+- @surfaces-ui/agent@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/datasource-duckdb-wasm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A DataSource that runs DuckDB in the browser (WebAssembly): real SQL over Parquet with no server",
   "keywords": [
     "surfaces-ui",

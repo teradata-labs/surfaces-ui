@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/seeds",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Six synthetic industry data models (retail, healthcare, fraud, telco churn, transportation, manufacturing): generator SQL, descriptions, keys, forms, pipelines and starter surfaces",
   "keywords": [
     "surfaces-ui",

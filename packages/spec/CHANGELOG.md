@@ -1,5 +1,27 @@
 # @surfaces-ui/spec
 
+## 0.3.0
+
+### Minor Changes
+
+- 1999320: A host can add its own named themes beside the built-in presets: `ThemeProvider` takes `themes`, and a page's `theme`, an agent surface's `surfaces_theme` and `ThemePicker` choose them by name. `applyThemeRequest`, `editPage` and `presetByName` take the same list as an option. A built-in name always means the built-in preset.
+
+### Patch Changes
+
+- 5f620c2: A view filtered on a column its own rows lack now draws without that filter and says so, instead of failing. A page-wide `FilterBar` by region over a total with no region column used to stop the total drawing ("could not be loaded"). When the engine reports an unknown column, the engine service reads the base query's columns (`columnsQuery`, no rows), drops the filters on missing columns (`withoutMissingFilters`, names compared without regard to case), runs the view again, and adds a `FILTER_COLUMN_MISSING` notice: "Not filtered by region: its rows have no region column." Any other unknown column still fails as before. `memoryDataSource` does the same. `Chart`, `Sparkline`, `BulletGraph`, `Metric`, `PivotTable`, `RowList` and `DataGrid` show the notice under the view in words (`DataNotes`, `role="note"`); `QueryResult` already lists notices with its SQL.
+- Updated dependencies [f5a2c37]
+- Updated dependencies [5f620c2]
+- Updated dependencies [1999320]
+- Updated dependencies [51de362]
+- Updated dependencies [2d99b9f]
+- Updated dependencies [1c60f3a]
+- Updated dependencies [e0d5679]
+  - @surfaces-ui/components@0.3.0
+  - @surfaces-ui/data@0.3.0
+  - @surfaces-ui/tokens@0.3.0
+  - @surfaces-ui/trace@0.3.0
+  - @surfaces-ui/proto@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

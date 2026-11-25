@@ -1,5 +1,26 @@
 # @surfaces-ui/components
 
+## 0.3.0
+
+### Minor Changes
+
+- f5a2c37: `chartAdvice` flags three more shapes, so a Chart says so with no model: bars over more than 24 time points or numbers in order (`bars-over-time`: a line reads the trend; a histogram's bins are left alone), a pie over ordered values (`pie-in-order`), and a legend asked for one series (`one-series-legend`). `ChartShape` gains `binned` and `legend`, and `drawnShape` takes `legend` and `histogram`.
+- 1999320: A host can add its own named themes beside the built-in presets: `ThemeProvider` takes `themes`, and a page's `theme`, an agent surface's `surfaces_theme` and `ThemePicker` choose them by name. `applyThemeRequest`, `editPage` and `presetByName` take the same list as an option. A built-in name always means the built-in preset.
+
+### Patch Changes
+
+- 5f620c2: A view filtered on a column its own rows lack now draws without that filter and says so, instead of failing. A page-wide `FilterBar` by region over a total with no region column used to stop the total drawing ("could not be loaded"). When the engine reports an unknown column, the engine service reads the base query's columns (`columnsQuery`, no rows), drops the filters on missing columns (`withoutMissingFilters`, names compared without regard to case), runs the view again, and adds a `FILTER_COLUMN_MISSING` notice: "Not filtered by region: its rows have no region column." Any other unknown column still fails as before. `memoryDataSource` does the same. `Chart`, `Sparkline`, `BulletGraph`, `Metric`, `PivotTable`, `RowList` and `DataGrid` show the notice under the view in words (`DataNotes`, `role="note"`); `QueryResult` already lists notices with its SQL.
+- 51de362: Every package's README links to the guides on surfaces-ui.com and says to install all Surfaces UI packages at the same version.
+- 2d99b9f: Every SQL statement is highlighted, read-only or not. `QueryResult`'s SQL sent, `ModelDiagram`'s SQL for the model and `AskData`'s proposed SQL are `CodeBlock`s (with Copy) instead of plain text, and the two places a person edits SQL use `SqlEditor`: the query a semantic model is written as (`SemanticModelEditor`) and the SQL in an editable approval (`ApprovalCard`).
+- 1c60f3a: Conversations on a phone. A `Workspace` panel can be marked `fill` for content that scrolls inside itself; stacked in a narrow container it is given about a screenful instead of its content's height, and `AnalyticsChat` marks its conversation so. The analytics conversation no longer draws its suggestions and composer over the thread when space is short, suggestions are one row that scrolls sideways in a narrow place, and the composer's Send is a touch target rather than 1.34 of one, so its tools stay on one row on a phone.
+- e0d5679: A plain mouse wheel or two-finger scroll over a `Chart` with a zoom bar, or over a `NodeGraph`, now scrolls the page instead of zooming. Ctrl/⌘ + wheel or a pinch zooms, as it does on pan-zoom diagrams.
+- Updated dependencies [5f620c2]
+- Updated dependencies [1999320]
+  - @surfaces-ui/data@0.3.0
+  - @surfaces-ui/tokens@0.3.0
+  - @surfaces-ui/trace@0.3.0
+  - @surfaces-ui/proto@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
