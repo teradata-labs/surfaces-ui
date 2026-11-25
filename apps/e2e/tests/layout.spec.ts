@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { open } from "./helpers.js";
 
 // The same components are drawn in a page, a chat reply and a side panel, so none may push the page sideways.
-for (const area of ["home", "showcase", "analysis", "workbench", "chat", "pages", "semantic", "discover", "pipelines", "patterns", "docs"]) {
+for (const area of ["home", "showcase", "analysis", "workbench", "composer", "chat", "pages", "semantic", "discover", "pipelines", "patterns", "docs"]) {
   test(`${area} has no sideways scroll @phone @webkit`, async ({ page }) => {
     await open(page, area);
     await page.waitForLoadState("networkidle");
@@ -10,6 +10,23 @@ for (const area of ["home", "showcase", "analysis", "workbench", "chat", "pages"
     expect(scroll, `the page is ${scroll - view}px wider than the screen`).toBeLessThanOrEqual(view);
   });
 }
+
+// Stacked on a phone, a workspace's panels are as tall as their content and the page alone scrolls: a panel that scrolled
+// inside the page caught the swipe, and a width handle past the edge of a stacked grid made it scroll sideways too.
+test("the playground's panels on a phone scroll with the page, not inside it @phone", async ({ page, isMobile }) => {
+  // Side by side on a wide screen, each panel scrolls inside itself, as it should.
+  test.skip(!isMobile, "panels stack only on a phone");
+  await open(page, "composer");
+  await expect(page.locator(".sf-workspace-panel").first()).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  const scrolling = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>(".sf-workspace-panel:not([data-fill]) .sf-workspace-panel-body")]
+      .filter((body) => body.scrollHeight > body.clientHeight + 1 || body.scrollWidth > body.clientWidth + 1)
+      .filter((body) => /(auto|scroll)/.test(getComputedStyle(body).overflowY + getComputedStyle(body).overflowX))
+      .map((body) => `${body.closest("section")?.getAttribute("aria-label")}: ${body.scrollWidth}×${body.scrollHeight} in ${body.clientWidth}×${body.clientHeight}`),
+  );
+  expect(scrolling).toEqual([]);
+});
 
 // Panels that stick as the page scrolls (a list beside a detail, a settings column, an instruction box) must stay below
 // the sticky bars and end inside the window, so the top and the end of each can be reached.
