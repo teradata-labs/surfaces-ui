@@ -4346,6 +4346,11 @@ select.sf-input:disabled {
   .sf-a2-grid[data-widths] {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  /* One column: a column's width handle has nothing beside it (see the narrow container rules). */
+  .sf-a2-grid > :is(.sf-arrange-frame, .sf-arrange-view) > .sf-resize-handle[data-edge="right"] {
+    display: none;
+  }
 }
 
 /* Page studio */
@@ -5421,6 +5426,13 @@ select.sf-input:disabled {
     flex: 1 1 100% !important;
   }
 
+  /* Nor the handles that set them: with nothing beside a child, its handle would stand past the page's right edge. */
+  .sf-a2-grid > :is(.sf-arrange-frame, .sf-arrange-view) > .sf-resize-handle[data-edge="right"],
+  .sf-a2-row:where(:not([data-wrap="false"])) > :is(.sf-arrange-frame, .sf-arrange-view) > .sf-resize-handle[data-edge="right"],
+  .sf-a2-row:where(:not([data-wrap="false"])) > .sf-a2-row-cell > :is(.sf-arrange-frame, .sf-arrange-view) > .sf-resize-handle[data-edge="right"] {
+    display: none;
+  }
+
   .sf-plan-review-step {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -6326,10 +6338,15 @@ select.sf-input:disabled {
     flex: 0 0 auto !important;
   }
 
-  /* Stacked, a panel is as tall as its content, up to a screenful's worth, and scrolls past that. */
+  /* Stacked, a panel is as tall as its content and the page scrolls past it: a box that scrolls inside a page that
+     scrolls catches a phone's swipe, and its scroll bars took room the content needed. */
   .sf-workspace-panel {
-    max-height: min(var(--sf-workspace-height, 32rem), 36rem);
     margin-bottom: var(--sf-space-2);
+  }
+
+  .sf-workspace-panel:not([data-fill]),
+  .sf-workspace-panel:not([data-fill]) > .sf-workspace-panel-body {
+    overflow: visible;
   }
 
   /* Content that scrolls inside itself has no height of its own to grow to, so a panel that fills is about a screenful
