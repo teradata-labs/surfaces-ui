@@ -138,6 +138,9 @@ export function ThemeProvider({
     (patch: Partial<ThemeState>) => {
       chosen.current = true;
       setState((prev) => {
+        // Asking for what is already set changes nothing, so a host that keeps the mode in step with its own
+        // toggle from an effect does not render again, and again.
+        if (Object.entries(patch).every(([key, value]) => prev[key as keyof ThemeState] === value)) return prev;
         const next = { ...prev, ...patch };
         if (resolvedStorage) void Promise.resolve(resolvedStorage.save(storageKey, JSON.stringify(next))).catch(() => {});
         return next;
@@ -167,15 +170,19 @@ export function ThemeProvider({
     else root.removeAttribute("data-contrast");
   }, [scope, state.theme.contrast]);
 
+  // The same functions on every render, so a host can list them in an effect's dependencies.
+  const setTheme = useCallback((theme: Theme) => update({ theme }), [update]);
+  const setMode = useCallback((mode: Mode) => update({ mode }), [update]);
+
   const value = useMemo<ThemeContextValue>(
     () => ({
       ...state,
-      setTheme: (theme) => update({ theme }),
-      setMode: (mode) => update({ mode }),
+      setTheme,
+      setMode,
       resolvedMode: state.mode === "system" ? (systemDark ? "dark" : "light") : state.mode,
       themes,
     }),
-    [state, update, systemDark, themes],
+    [state, setTheme, setMode, systemDark, themes],
   );
 
   return (

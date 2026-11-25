@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, useEffect } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider, useTheme } from "./ThemeProvider.js";
 
@@ -46,5 +47,36 @@ describe("ThemeProvider rendered on a server", () => {
     logged.mockRestore();
     expect(errors).toEqual([]);
     expect(container.querySelector("[data-testid=mode]")!.textContent).toBe("dark");
+  });
+});
+
+describe("ThemeProvider kept in step by a host", () => {
+  afterEach(cleanup);
+
+  it("does not render again and again when a host sets the mode from an effect", () => {
+    let renders = 0;
+    function FollowHost({ mode }: { mode: "light" | "dark" }) {
+      const { setMode, resolvedMode } = useTheme();
+      renders++;
+      // A host's own toggle, passed on the way a site with next-themes would: setMode in its dependencies.
+      useEffect(() => setMode(mode), [mode, setMode]);
+      return <span data-testid="mode">{resolvedMode}</span>;
+    }
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    const view = render(
+      <ThemeProvider storage={null} scope="scoped">
+        <FollowHost mode="dark" />
+      </ThemeProvider>,
+    );
+    expect(screen.getByTestId("mode").textContent).toBe("dark");
+    const settled = renders;
+    view.rerender(
+      <ThemeProvider storage={null} scope="scoped">
+        <FollowHost mode="dark" />
+      </ThemeProvider>,
+    );
+    expect(renders - settled).toBeLessThanOrEqual(2);
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
   });
 });
