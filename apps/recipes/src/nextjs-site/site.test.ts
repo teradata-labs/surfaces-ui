@@ -46,6 +46,12 @@ describe("a Next.js site from Surfaces pages", () => {
         expect(html).toContain("--sf-color-bg");
       }
       expect(read("essays/one-number")).toContain("<em>comparison</em>");
+      // A page the app writes itself, with Surfaces components as one part of it.
+      const about = read("about");
+      expect(about).toContain("<h1>About these notes</h1>");
+      expect(about).toMatch(/<h2[^>]*>Latest essays<\/h2>/);
+      expect(about).toContain('href="/essays/one-number"');
+      expect(about).toContain("back to the app");
     },
     300_000,
   );

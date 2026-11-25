@@ -115,7 +115,7 @@ interface SiteLayout {
 
 ### 6. Next.js: `@surfaces-ui/next`
 
-**Built, a first slice:** `siteParams`, `siteMetadata`, `SitePage` and `SiteSurface`, over `SiteRoutes` (the `title`, `theme` and `pages` of the site document below, with no layouts), run with a real `next build` and static export in the recipe `apps/recipes/src/nextjs-site`. It needed no server rendering work beyond `ThemeProvider` (which read the system's mode while rendering): every site and basic component already renders to HTML with no browser. A `Link` in the site catalog takes a path on the site. Not yet: layouts as route groups, and the pilot.
+**Built, a first slice:** `siteParams`, `siteMetadata`, `SitePage` and `SiteSurface`, over `SiteRoutes` (the `title`, `theme` and `pages` of the site document below, with no layouts), and `SurfaceSection` for a part of a page the app writes itself, run with a real `next build` and static export in the recipe `apps/recipes/src/nextjs-site`. It needed no server rendering work beyond `ThemeProvider` (which read the system's mode while rendering): every site and basic component already renders to HTML with no browser. A `Link` in the site catalog takes a path on the site. Not yet: layouts as route groups, and the pilot.
 
 A small adapter, so a site runs in an existing Next.js app by installing the library:
 

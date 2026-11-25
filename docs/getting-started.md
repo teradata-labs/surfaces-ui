@@ -380,7 +380,7 @@ Without the widget, `createRecorder()` with `<TraceProvider recorder={recorder}>
 
 - **MCP Apps** (Claude and other MCP hosts): `registerSurfacesApps(server, { dataSource, appHtml })` from `@surfaces-ui/mcp`, or `npx surfaces-mcp install --dir <repo>`.
 - **Static site**: use the DuckDB-wasm data source; nothing needs a server.
-- **A Next.js app**: `@surfaces-ui/next` serves site-catalog pages as the app's routes, rendered to HTML on the server, with static export: `siteParams` for `generateStaticParams`, `siteMetadata` for `generateMetadata` and `<SitePage site={site} params={params} />` in `app/[[...route]]/page.tsx`. See the recipe [Serve a site's pages from Next.js](recipes/nextjs-site.md). To put a data view into a page of your own instead, see [Embed in a Next.js app](recipes/nextjs-embed.md).
+- **A Next.js app**: `@surfaces-ui/next` serves site-catalog pages as the app's routes, rendered to HTML on the server, with static export: `siteParams` for `generateStaticParams`, `siteMetadata` for `generateMetadata` and `<SitePage site={site} params={params} />` in `app/[[...route]]/page.tsx`. To use Surfaces for only part of a page you write yourself, put `<SurfaceSection page={page} />` in it. See the recipe [Serve a site's pages from Next.js](recipes/nextjs-site.md). To put a data view into a page of your own instead, see [Embed in a Next.js app](recipes/nextjs-embed.md).
 - **A plain HTML page with no build step** (an app's web view): `@surfaces-ui/page` is one script and one stylesheet; `surfaces.mountPage(element, page, { theme })` draws a page over its own rows. ECharts is left out, so the page loads its own copy. See [packages/page](../packages/page/README.md).
 
 ## Size

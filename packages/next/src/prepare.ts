@@ -27,11 +27,27 @@ export const ROUTE_DATA_KEY = "@route";
  * cross to the browser.
  */
 export async function preparePage(site: SiteRoutes, match: MatchedRoute, options: { data?: PageData; resolveImage?: ImageResolver } = {}): Promise<PreparedPage> {
-  const page = upgradePage(match.entry.page);
   const given = options.data ? await options.data(match.entry.route, match.values) : undefined;
-  const own = isRecord(page.data) ? page.data : {};
-  const data = { ...own, ...(isRecord(given) ? given : {}), [ROUTE_DATA_KEY]: match.values };
-  const theme = mergeTheme(site.theme, page.theme);
+  return prepareDocument(match.entry.page, {
+    data: { ...(isRecord(given) ? given : {}), [ROUTE_DATA_KEY]: match.values },
+    theme: site.theme,
+    resolveImage: options.resolveImage,
+  });
+}
+
+export interface PrepareOptions {
+  /** Merged over the page's own data. */
+  data?: Record<string, unknown>;
+  /** A theme the page's own `theme` is laid over (the site's). */
+  theme?: ThemeRequest;
+  resolveImage?: ImageResolver;
+}
+
+/** Prepares any page to send to the browser: data merged in, themes merged, image names resolved. */
+export function prepareDocument(given: PageDocument, options: PrepareOptions = {}): PreparedPage {
+  const page = upgradePage(given);
+  const data = { ...(isRecord(page.data) ? page.data : {}), ...options.data };
+  const theme = mergeTheme(options.theme, page.theme);
   const images: Record<string, string> = {};
   if (options.resolveImage) {
     for (const name of mediaNames(page.components)) {

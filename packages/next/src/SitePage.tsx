@@ -1,11 +1,9 @@
-import { analyticsCatalog, basicsCatalog, siteCatalog, validatePage } from "@surfaces-ui/spec";
 import { notFound } from "next/navigation";
+import { assertPage } from "./check.js";
 import { SiteSurface } from "./client.js";
 import { type RouteParams, segmentsOf } from "./params.js";
 import { type ImageResolver, type PageData, preparePage } from "./prepare.js";
 import { type SiteRoutes, matchRoute } from "./routes.js";
-
-const CHECKED = [siteCatalog, basicsCatalog, analyticsCatalog];
 
 export interface SitePageProps {
   site: SiteRoutes;
@@ -31,12 +29,6 @@ export async function SitePage({ site, params, param, data, resolveImage, imageO
   const match = matchRoute(site, await segmentsOf(params, param));
   if (!match) notFound();
   const prepared = await preparePage(site, match, { data, resolveImage });
-  const catalog = CHECKED.find((c) => c.id === prepared.page.catalogId);
-  if (catalog) {
-    const issues = validatePage(prepared.page, catalog);
-    if (issues.length) {
-      throw new Error(`The page on "${match.entry.route}" does not fit the ${catalog.id} catalog: ${issues.map((i) => `${i.path} ${i.message}`).join("; ")}`);
-    }
-  }
+  assertPage(prepared.page, `on "${match.entry.route}"`);
   return <SiteSurface page={prepared.page} images={prepared.images} imageOrigins={imageOrigins} />;
 }
