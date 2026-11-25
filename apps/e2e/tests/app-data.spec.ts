@@ -72,15 +72,19 @@ test.describe("Combobox", () => {
   });
 });
 
+// Each opens its page in a page of its own. Opening the second from the first in one test was aborted in CI
+// (net::ERR_ABORTED) while the first page was still at work.
 test.describe("SelectionBar and Pagination", () => {
-  test("offers every row that matches, and moves a page at a time @phone", async ({ page: p }) => {
+  test("offers every row that matches @phone", async ({ page: p }) => {
     await p.goto(page("SelectionBar"));
     const bar = p.getByRole("group", { name: "With the selected rows" });
     await bar.getByRole("button", { name: "Select all 126 that match" }).click();
     await expect(bar.getByText("126 selected")).toBeVisible();
     await expect(bar.getByRole("button", { name: "Only this page" })).toBeVisible();
     expect(await axeViolations(p)).toEqual([]);
+  });
 
+  test("moves a page at a time @phone", async ({ page: p }) => {
     await p.goto(page("Pagination"));
     const pages = p.getByRole("navigation", { name: "Pages" });
     await expect(pages.getByText("51–100 of 126")).toBeVisible();
