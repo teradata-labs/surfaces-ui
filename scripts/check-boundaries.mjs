@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const UI = ["tokens", "components", "data", "proto", "agent", "chat", "spec", "state", "app", "seeds", "trace", "devtools"];
+const UI = ["tokens", "components", "data", "proto", "agent", "chat", "spec", "state", "app", "seeds", "trace", "devtools", "next"];
 const FORBIDDEN = [
   /^@surfaces-ui\/(sql|engine|engine-.*|datasource-.*|dev-server|client-connect|discovery|pipelines|embedder-.*)$/,
   /^@huggingface\//,

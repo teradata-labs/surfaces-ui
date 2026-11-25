@@ -2,7 +2,7 @@
 
 # Packages
 
-Surfaces UI is 30 packages on npm, released together at one version, so any two of them always work together. Most apps install two to six of them; the rest come along as dependencies, or are parts of the server.
+Surfaces UI is 31 packages on npm, released together at one version, so any two of them always work together. Most apps install two to six of them; the rest come along as dependencies, or are parts of the server.
 
 ## What an app installs
 
@@ -48,11 +48,12 @@ One of these turns a model into an `AgentBackend` for `Chat`, `PageStudio` or th
 
 ## Other places to show it
 
-For an MCP host, a plain HTML page, or SQL in the browser with no server.
+For an MCP host, a Next.js app, a plain HTML page, or SQL in the browser with no server.
 
 | Package | What it is | Brings | Peers |
 |---|---|---|---|
 | [`@surfaces-ui/mcp`](../packages/mcp/README.md) | MCP Apps delivery: registers tools that show grids, charts, pivots, dashboards and agent-drawn surfaces inside an MCP host, and a stdio server over `surfaces.config.ts`. | `agent`, `components`, `data`, `dev-server`, `proto`, `spec`, `tokens`, protobuf-es, MCP SDK, Apache Arrow, react, react-dom, zod | none |
+| [`@surfaces-ui/next`](../packages/next/README.md) | Serve Surfaces UI pages from a Next.js app: routes, metadata and server-rendered pages, with Next.js doing the routing, building and hosting | `components`, `spec`, `tokens` | `next`, `react`, `react-dom` |
 | [`@surfaces-ui/page`](../packages/page/README.md) | Surfaces UI pages as one script and one stylesheet, for a plain HTML page with no build step (an app's web view). | nothing | none |
 | [`@surfaces-ui/datasource-duckdb-wasm`](../packages/datasource-duckdb-wasm/README.md) | A `DataSource` that runs DuckDB in the browser: real SQL over Parquet with no server. | `data`, `engine`, `engine-service`, `proto`, `sql`, Apache Arrow | `@duckdb/duckdb-wasm` |
 

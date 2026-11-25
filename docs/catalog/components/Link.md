@@ -1,6 +1,6 @@
 # Link
 
-A link to a web page. Only http and https addresses are shown as links.
+A link to a web page. Only http and https addresses are shown as links; in a site, a path on the site ("/pricing") is too, and opens in place.
 
 ## Props
 

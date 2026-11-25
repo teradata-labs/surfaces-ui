@@ -377,7 +377,7 @@ A small table of values you already have (at most 100 rows). For query results u
 Example: `{"id":"top","component":"Table","columns":["Region","Revenue"],"rows":[["Europe",1200],["Asia Pacific",950]],"caption":"Top regions"}`
 
 ### Link
-A link to a web page. Only http and https addresses are shown as links.
+A link to a web page. Only http and https addresses are shown as links; in a site, a path on the site ("/pricing") is too, and opens in place.
 - `text`: string | binding | call
 - `url`: string | binding | call
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.

@@ -1,22 +1,15 @@
 import { Callout, DeviceFrame, FeatureGrid, Footer, Hero, Markdown, Media, type MediaRatio, NavBar, PostCard, PostList, PromptReveal, Quote, Section, Showcase } from "@surfaces-ui/components";
 import { type ReactNode, createContext, useContext } from "react";
 import { safeUrl } from "../functions.js";
+import { siteLink } from "../site.js";
+
+export { siteLink };
 import type { ComponentRenderer } from "./Surface.js";
 import { basicsRenderers } from "./renderers.js";
 
 const text = (value: unknown): string => (value == null || typeof value === "object" ? "" : String(value));
 const optional = (value: unknown): string | undefined => text(value) || undefined;
 const level = (value: unknown) => (value === 1 || value === 2 || value === 3 || value === 4 ? value : undefined);
-
-/**
- * A link an agent wrote: an http or https address, or a path on this site ("/pricing", never "//elsewhere").
- * Anything else (a script, a data address) is not a link.
- */
-export function siteLink(value: unknown): string | undefined {
-  if (typeof value !== "string") return undefined;
-  if (/^\/(?!\/)[^\s\\]*$/.test(value)) return value;
-  return safeUrl(value);
-}
 
 /** Where images and videos may come from. The page decides; an agent only names them. */
 export interface MediaPolicy {
@@ -77,7 +70,7 @@ function MediaView({ props }: { props: Record<string, unknown> }) {
   );
 }
 
-/** The renderers of the components a site adds to the basics. */
+/** The renderers of the components a site adds to the basics, and of `Link`, which on a site also takes a path. */
 export const siteComponentRenderers: Record<string, ComponentRenderer> = {
   Hero: ({ props, component, children }) => (
     <Hero
@@ -139,6 +132,20 @@ export const siteComponentRenderers: Record<string, ComponentRenderer> = {
     return <Footer groups={groups} note={optional(props.note)} label={optional(props.label)} onSelect={component.action ? (id) => dispatch(component.action, { id }) : undefined} />;
   },
   Media: ({ props }) => <MediaView props={props} />,
+  // A site's own pages are paths, opened in place; only an address elsewhere opens in a new tab.
+  Link: ({ props }) => {
+    const href = siteLink(props.url);
+    if (!href) return <span>{text(props.text)}</span>;
+    return href.startsWith("/") ? (
+      <a className="sf-a2-link" href={href}>
+        {text(props.text)}
+      </a>
+    ) : (
+      <a className="sf-a2-link" href={href} target="_blank" rel="noreferrer noopener">
+        {text(props.text)}
+      </a>
+    );
+  },
   Quote: ({ props }) => (
     <Quote cite={optional(props.cite)} href={siteLink(props.url)}>
       {text(props.text)}

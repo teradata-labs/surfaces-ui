@@ -1,6 +1,6 @@
 # Sites: a site catalog, layouts, routes and a Next.js adapter
 
-A plan for [#182](https://github.com/teradata-labs/surfaces-ui/issues/182). Nothing here is built yet. Each step can land, and be useful, on its own.
+A plan for [#182](https://github.com/teradata-labs/surfaces-ui/issues/182). Step 1 is built. A first slice of step 6 is built ahead of steps 4 and 5: `@surfaces-ui/next` serves site-catalog pages as routes, rendered on the server, with static export (see below). Each step can land, and be useful, on its own.
 
 ## Why
 
@@ -114,6 +114,8 @@ interface SiteLayout {
 - **Rendering on the server** is new work and has to come before the Next.js adapter. Text, `Hero`, `Section`, `NavBar`, `Footer` and `Media` must render to HTML with no browser, and the theme must reach that HTML as CSS (`themeCss` is already pure). A data component (`Chart`, `DataGrid` and the rest) stays a client component and draws in the browser.
 
 ### 6. Next.js: `@surfaces-ui/next`
+
+**Built, a first slice:** `siteParams`, `siteMetadata`, `SitePage` and `SiteSurface`, over `SiteRoutes` (the `title`, `theme` and `pages` of the site document below, with no layouts), run with a real `next build` and static export in the recipe `apps/recipes/src/nextjs-site`. It needed no server rendering work beyond `ThemeProvider` (which read the system's mode while rendering): every site and basic component already renders to HTML with no browser. A `Link` in the site catalog takes a path on the site. Not yet: layouts as route groups, and the pilot.
 
 A small adapter, so a site runs in an existing Next.js app by installing the library:
 
