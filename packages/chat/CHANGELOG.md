@@ -1,5 +1,25 @@
 # @surfaces-ui/chat
 
+## 0.3.0
+
+### Patch Changes
+
+- 2d99b9f: Every SQL statement is highlighted, read-only or not. `QueryResult`'s SQL sent, `ModelDiagram`'s SQL for the model and `AskData`'s proposed SQL are `CodeBlock`s (with Copy) instead of plain text, and the two places a person edits SQL use `SqlEditor`: the query a semantic model is written as (`SemanticModelEditor`) and the SQL in an editable approval (`ApprovalCard`).
+- 1c60f3a: Conversations on a phone. A `Workspace` panel can be marked `fill` for content that scrolls inside itself; stacked in a narrow container it is given about a screenful instead of its content's height, and `AnalyticsChat` marks its conversation so. The analytics conversation no longer draws its suggestions and composer over the thread when space is short, suggestions are one row that scrolls sideways in a narrow place, and the composer's Send is a touch target rather than 1.34 of one, so its tools stay on one row on a phone.
+- Updated dependencies [f5a2c37]
+- Updated dependencies [5f620c2]
+- Updated dependencies [1999320]
+- Updated dependencies [51de362]
+- Updated dependencies [2d99b9f]
+- Updated dependencies [1c60f3a]
+- Updated dependencies [e0d5679]
+  - @surfaces-ui/components@0.3.0
+  - @surfaces-ui/spec@0.3.0
+  - @surfaces-ui/agent@0.3.0
+  - @surfaces-ui/state@0.3.0
+  - @surfaces-ui/trace@0.3.0
+  - @surfaces-ui/proto@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

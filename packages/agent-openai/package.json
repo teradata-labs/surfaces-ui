@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/agent-openai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An AgentBackend over any OpenAI-compatible chat completions endpoint (OpenAI, Ollama, vLLM, LM Studio), for Surfaces UI chat",
   "keywords": [
     "surfaces-ui",

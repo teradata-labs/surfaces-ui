@@ -1,5 +1,12 @@
 # @surfaces-ui/engine-duckdb
 
+## 0.3.0
+
+### Patch Changes
+
+- @surfaces-ui/engine@0.3.0
+  - @surfaces-ui/proto@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes

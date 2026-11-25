@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/state",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Reusable state services for Surfaces UI: stores, persistence, URL sync, undo, shared view state and query runs",
   "keywords": [
     "surfaces-ui",
