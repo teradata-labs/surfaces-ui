@@ -69,3 +69,23 @@ jobs:
             apps/e2e/playwright-report
             apps/e2e/test-results
           retention-days: 14
+  # A real Next.js app built with `next build` (static export) from the nextjs-site recipe, its HTML read for every
+  # page. It is the one test where a server renders Surfaces and a browser takes the HTML over, which is where the
+  # theme bugs fixed with @surfaces-ui/next showed: a mismatch on hydration, and a render that never ended.
+  nextjs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build what the recipe uses
+        run: pnpm exec turbo run build --filter=@surfaces-ui/recipes^...
+      - name: Next.js site, built and read
+        run: pnpm --filter @surfaces-ui/recipes exec vitest run src/nextjs-site
+        env:
+          SURFACES_TEST_NEXT: "1"
+          NEXT_TELEMETRY_DISABLED: "1"
