@@ -48,7 +48,7 @@ Each page is themed in its own region (`scope="scoped"`, kept in memory), unless
 
 Relative imports in the app's own files are written without `.js`, as Next.js expects; Turbopack does not map `.js` onto a `.ts` file.
 
-The test checks the routes and metadata every time. With `SURFACES_TEST_NEXT=1` it also runs a real `next build` (Next.js 16.4, Turbopack, static export) and reads the HTML written for every page, the about page included. The exported site has also been opened in Chromium: the routes and the about page hydrated with no errors, and links moved between pages without reloading.
+The test checks the routes and metadata every time. With `SURFACES_TEST_NEXT=1` it also runs a real `next build` (Next.js 16.4, Turbopack, static export) and reads the HTML written for every page, the about page included. CI does that on every push and pull request, in a job of its own (`nextjs`). The exported site has also been opened in Chromium: the routes and the about page hydrated with no errors, and links moved between pages without reloading.
 
 {{file: site.test.ts}}
 
