@@ -29,20 +29,60 @@ test.describe("Arranging a dashboard in the pages gallery", () => {
 
   test("dragging a component by its bar to the side of another puts the two side by side", async ({ page }) => {
     const ids = (await frames(page)).filter((id): id is string => !!id && id !== "root");
-    const [target, moved] = [ids[0]!, ids.at(-1)!];
+    // A component in a stack that holds nothing framed, so its own edge is under the pointer, not a child's.
+    const target = (await studio(page).locator(".sf-arrange-frame:not([data-across]):not(:has(.sf-arrange-frame))").first().getAttribute("data-component"))!;
+    const moved = ids.filter((id) => id !== target).at(-1)!;
     const bar = studio(page).locator(`.sf-arrange-frame[data-component="${moved}"] > .sf-arrange-bar`);
     const onto = studio(page).locator(`.sf-arrange-frame[data-component="${target}"]`);
     await bar.scrollIntoViewIfNeeded();
     const from = (await bar.boundingBox())!;
     await page.mouse.move(from.x + 12, from.y + from.height / 2);
     await page.mouse.down();
-    await onto.scrollIntoViewIfNeeded();
+    // Mid-window, clear of the edges where a held drag scrolls the page.
+    await onto.evaluate((element) => element.scrollIntoView({ block: "center" }));
     const box = (await onto.boundingBox())!;
-    // Near the left edge, halfway down: beside it, not above or below.
-    await page.mouse.move(box.x + 8, box.y + box.height / 2, { steps: 12 });
+    // Near its left edge (inside the page's own edge, which puts a column beside the whole page), halfway down:
+    // passing along it is above or below; resting there is beside it.
+    await page.mouse.move(box.x + 36, box.y + box.height / 2, { steps: 12 });
+    await expect(onto.locator(':scope > .sf-arrange-insert[data-side="left"]')).toHaveCount(0);
+    await expect(onto.locator(':scope > .sf-arrange-insert[data-side="left"]')).toHaveCount(1);
     await page.mouse.up();
     await expect(studio(page).locator('.sf-arrange-frame[data-component="side-by-side"]')).toBeVisible();
     expect(await frames(page)).toContain(moved);
+  });
+});
+
+test.describe("Columns down the page", () => {
+  test.beforeEach(async ({ page }) => {
+    await open(page, "pages");
+    await expect(studio(page)).toBeVisible();
+    await side(page).getByRole("button", { name: "Arrange" }).click();
+    await expect(studio(page).locator(".sf-arrange-frame").first()).toBeVisible();
+  });
+
+  test("dragging a component to the page's left or right edge and resting puts it in a column beside everything", async ({ page }) => {
+    const root = studio(page).locator('.sf-arrange-root[data-component="root"]');
+    const ids = (await frames(page)).filter((id): id is string => !!id && id !== "root");
+    for (const [moved, side] of [[ids.at(-1)!, "left"], [ids[0]!, "right"]] as const) {
+      const bar = studio(page).locator(`.sf-arrange-frame[data-component="${moved}"] > .sf-arrange-bar`);
+      // Mid-window, clear of the sticky navigation bar a press at the very top would land on.
+      await bar.evaluate((element) => element.scrollIntoView({ block: "center" }));
+      const from = (await bar.boundingBox())!;
+      await page.mouse.move(from.x + 12, from.y + from.height / 2);
+      await page.mouse.down();
+      // Mid-window, clear of the edges where a held drag scrolls the page.
+      const box = (await root.boundingBox())!;
+      const x = side === "left" ? box.x + 4 : box.x + box.width - 4;
+      const y = Math.max(box.y + 20, Math.min(box.y + box.height - 20, page.viewportSize()!.height / 2));
+      await page.mouse.move(x, y, { steps: 12 });
+      await expect(root.locator(`:scope > .sf-arrange-insert[data-page][data-side="${side}"]`)).toHaveCount(1);
+      await page.mouse.up();
+      await expect(studio(page).locator(".sf-arrange-frame[data-component=page-content]")).toBeVisible();
+    }
+    // The first drop made the page a row; the second added a column to it.
+    const order = await studio(page).locator('.sf-arrange-root[data-component="root"] > .sf-a2-row > * > .sf-arrange-frame').evaluateAll((all) => all.map((f) => f.getAttribute("data-component")));
+    expect(order[0]).toBe(ids.at(-1));
+    expect(order.at(-1)).toBe(ids[0]);
   });
 });
 

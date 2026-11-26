@@ -8480,6 +8480,8 @@ button > .sf-item-control-icon:only-child {
 /* Beside a component in a stack: the two will share a row, so the line is on that edge of it. */
 .sf-arrange-insert[data-side="left"] { left: -1px; }
 .sf-arrange-insert[data-side="right"] { right: -1px; }
+/* Down the whole page's edge: a column beside everything, drawn wider than the line beside one component. */
+.sf-arrange-insert[data-page] { width: var(--sf-space-1); }
 
 .sf-arrange-frame[data-receiving],
 .sf-arrange-root[data-receiving] {
@@ -8617,6 +8619,26 @@ button > .sf-item-control-icon:only-child {
   background: var(--sf-color-accent-soft);
   color: var(--sf-color-text);
 }
+
+/*
+ * A container that holds something draws its strip over its own foot rather than in the page's flow, so the page
+ * never moves under the pointer when a drag starts. Only an empty container's strip takes room: it needs it.
+ */
+.sf-arrange-inside[data-overlay] {
+  position: absolute;
+  inset-inline: var(--sf-space-1);
+  bottom: var(--sf-space-1);
+  z-index: 2;
+  margin: 0;
+  padding: var(--sf-space-1);
+  background: var(--sf-color-surface-raised);
+  font-size: var(--sf-font-size-xs);
+}
+.sf-arrange-root:has(> .sf-arrange-inside[data-overlay]) { position: relative; }
+/* Strips over a foot would cover each other where containers nest, so only the innermost one under the pointer shows
+   its own. Dropping after a container's last child lands in the same place, so nothing is lost where hover is not. */
+.sf-arrange-inside[data-overlay]:not([data-over]) { visibility: hidden; }
+:is(.sf-arrange-frame, .sf-arrange-root):hover:not(:has(:is(.sf-arrange-frame, .sf-arrange-root):hover)) > .sf-arrange-inside[data-overlay] { visibility: visible; }
 
 /* Arrange's handles sit in the gap between two frames of a Grid or Row, not on the frame's own edge. */
 .sf-arrange-frame > .sf-resize-handle[data-edge="right"],

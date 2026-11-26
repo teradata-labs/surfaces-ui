@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { analyticsCatalog } from "./analytics.js";
-import { besideMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, slideShares, spaceDefault, spaceMessages, spaceProps, stepComponentMessages, surfaceOutline } from "./arrange.js";
+import { besideMessages, besidePageMessages, PAGE_COLUMN_WIDTH, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, slideShares, spaceDefault, spaceMessages, spaceProps, stepComponentMessages, surfaceOutline } from "./arrange.js";
 import { type PageDocument, editPage, editsFromMessages, pageSurface } from "./page.js";
 import type { SurfaceMessage } from "./surface.js";
 
@@ -94,5 +94,55 @@ describe("arranging a surface", () => {
   it("refuses what cannot be done and says why", () => {
     expect(moveComponentMessages(surface, "numbers", "numbers", 0)).toMatchObject({ error: expect.stringContaining("inside itself") });
     expect(moveComponentMessages(surface, "root", "numbers", 0)).toMatchObject({ error: expect.stringContaining("root") });
+  });
+
+  it("keeps a row's sizes and shares with its children wherever they move", () => {
+    const rows: PageDocument = {
+      ...page,
+      components: [
+        { id: "root", component: "Column", children: ["top", "bottom", "head"] },
+        { id: "top", component: "Row", sizes: [{ fixed: 160 }, "hug", "fill"], children: ["a", "b", "c"] },
+        { id: "bottom", component: "Row", widths: [2, 1], children: ["d", "e"] },
+        { id: "head", component: "Text", text: "Sales", variant: "h1" },
+        ...["a", "b", "c", "d", "e"].map((id) => ({ id, component: "Text", text: id })),
+      ],
+    };
+    const s = pageSurface(rows);
+    const got = (messages: SurfaceMessage[]) => editPage(rows, editsFromMessages(rows, messages), analyticsCatalog);
+    const of = (p: PageDocument, id: string) => p.components.find((c) => c.id === id)!;
+    // Reordered in its row: the fixed width goes with "a", not with the first place.
+    let next = got(ok(moveComponentMessages(s, "a", "top", 3)));
+    expect(next.rejected).toEqual([]);
+    expect(of(next.page, "top")).toMatchObject({ children: ["b", "c", "a"], sizes: ["hug", "fill", { fixed: 160 }] });
+    // Into another row: it takes its share there (the mean, as it had none), and the row it left keeps one size per child.
+    next = got(ok(moveComponentMessages(s, "a", "bottom", 1)));
+    expect(of(next.page, "top")).toMatchObject({ children: ["b", "c"], sizes: ["hug", "fill"] });
+    expect(of(next.page, "bottom")).toMatchObject({ children: ["d", "a", "e"], widths: [2, 1.5, 1] });
+    // Out to a stack, and from a stack into a row: one entry per child each time, a newcomer filling.
+    next = got(ok(moveComponentMessages(s, "head", "top", 0)));
+    expect(of(next.page, "top")).toMatchObject({ children: ["head", "a", "b", "c"], sizes: ["fill", { fixed: 160 }, "hug", "fill"] });
+    next = got(ok(besideMessages(s, "b", "head", "right")));
+    expect(of(next.page, "top")).toMatchObject({ children: ["a", "c"], sizes: [{ fixed: 160 }, "fill"] });
+  });
+
+  it("puts a component in a column down the left or right of the whole page", () => {
+    const of = (p: PageDocument, id: string) => p.components.find((c) => c.id === id)!;
+    // A stacked root becomes a row: the column at a fixed width, everything else in a column beside it.
+    let next = arranged(ok(besidePageMessages(surface, "chart", "left")));
+    expect(of(next, "root")).toMatchObject({ component: "Row", children: ["chart", "page-content"], sizes: [{ fixed: PAGE_COLUMN_WIDTH }, "fill"], gap: "none" });
+    expect(of(next, "page-content")).toMatchObject({ component: "Column", children: ["head", "numbers"] });
+    // From inside a container, on the right: it leaves that container.
+    next = arranged(ok(besidePageMessages(surface, "orders", "right")));
+    expect(of(next, "root")).toMatchObject({ children: ["page-content", "orders"], sizes: ["fill", { fixed: PAGE_COLUMN_WIDTH }] });
+    expect(children(next, "numbers")).toEqual(["revenue"]);
+    expect(children(next, "page-content")).toEqual(["head", "numbers", "chart"]);
+    // A root that is already a row of columns takes another as its first or last child, sizes kept with their children.
+    const columns = pageSurface(next);
+    const again = editPage(next, editsFromMessages(next, ok(besidePageMessages(columns, "head", "left"))), analyticsCatalog);
+    expect(again.rejected).toEqual([]);
+    expect(of(again.page, "root")).toMatchObject({ children: ["head", "page-content", "orders"], sizes: [{ fixed: PAGE_COLUMN_WIDTH }, "fill", { fixed: PAGE_COLUMN_WIDTH }] });
+    // Already there, nothing; the root itself, refused.
+    expect(ok(besidePageMessages(columns, "orders", "right"))).toEqual([]);
+    expect(besidePageMessages(surface, "root", "left")).toHaveProperty("error");
   });
 });

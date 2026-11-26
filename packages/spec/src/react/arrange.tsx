@@ -1,7 +1,7 @@
 import { CONTROLS_QUIET, ItemControls, ResizeHandle, standardControls } from "@surfaces-ui/components";
 import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, useMemo, useRef, useState } from "react";
 import { analyticsCatalog } from "../analytics.js";
-import { MIN_COLUMN_SHARE, besideMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, setComponentMessages, slideShares, spaceDefault, spaceMessages, spaceProps, stepComponentMessages } from "../arrange.js";
+import { MIN_COLUMN_SHARE, besideMessages, besidePageMessages, gridShares, gridWidthsMessages, heightMessages, heightProp, moveComponentMessages, placeOfComponent, setComponentMessages, slideShares, spaceDefault, spaceMessages, spaceProps, stepComponentMessages } from "../arrange.js";
 import { SPACE_STEPS, type SpaceStep } from "../basics.js";
 import { spaceName, spaceStep, spaceVar } from "../layout.js";
 import type { Catalog } from "../catalog.js";
@@ -57,21 +57,59 @@ export function spaceLabel(step: SpaceStep, element?: Element | null): string {
  */
 export function receivingContainer(surface: Surface | undefined, target: { id: string; side: string } | undefined): string | undefined {
   if (!target) return undefined;
-  return target.side === "inside" ? target.id : placeOfComponent(surface, target.id)?.parent;
+  if (target.side === "inside") return target.id;
+  // Beside something that has no place (the root itself): it is what changes.
+  return placeOfComponent(surface, target.id)?.parent ?? (target.side === "left" || target.side === "right" ? target.id : undefined);
 }
 
 /**
  * Where a dragged component would land for a pointer at (x, y) over a frame.
- * Side by side (in a Row or Grid), the nearer half decides before or after.
- * In a stack, the outer fifth on either side means beside it, and otherwise
- * the nearer half decides above or below.
+ * Side by side (in a Row or Grid, as drawn), the nearer half decides before
+ * or after. In a stack, the outer tenth on either side (48 pixels at most)
+ * means beside it, and otherwise the nearer half decides above or below.
+ * `useArrange` takes beside only once the pointer has rested at the edge
+ * (`BESIDE_HOLD`): a bar is held at its left end, so a drag straight up or
+ * down runs along that edge and must not put things side by side by accident.
  */
+export const BESIDE_EDGE = { share: 0.1, most: 48 };
+/**
+ * How near the left or right edge of the whole surface, in pixels, a dragged component goes into a column of its own
+ * beside everything else (`besidePageMessages`), after the same rest as beside. Nearer the edge than an element's own
+ * beside zone, so both can be reached.
+ */
+export const PAGE_EDGE = 24;
+
+/** Which side of a surface's root a pointer at `x` is near enough to put a column there, if either. */
+export function pageEdge(box: { left: number; width: number }, x: number): "left" | "right" | undefined {
+  const edge = Math.min(PAGE_EDGE, box.width / 10);
+  // A surface not drawn yet has no edge to drop at.
+  if (edge <= 0) return undefined;
+  if (x < box.left + edge) return "left";
+  if (x > box.left + box.width - edge) return "right";
+  return undefined;
+}
+
+/** How long, in milliseconds, a pointer rests at a stacked component's edge before a drop there puts the two side by side. */
+export const BESIDE_HOLD = 350;
 export function landing(box: { left: number; top: number; width: number; height: number }, across: boolean, x: number, y: number): Exclude<Side, "inside"> {
   if (across) return x < box.left + box.width / 2 ? "before" : "after";
-  const edge = Math.min(box.width * 0.2, 96);
+  const edge = Math.min(box.width * BESIDE_EDGE.share, BESIDE_EDGE.most);
   if (x < box.left + edge) return "left";
   if (x > box.left + box.width - edge) return "right";
   return y < box.top + box.height / 2 ? "before" : "after";
+}
+
+/**
+ * Whether a component's container lays it out across as it is drawn now: a Row or Grid does, unless it has stacked
+ * (a narrow container, or a row that wraps), which shows as a neighbour drawn wholly above or below it. A box with
+ * no neighbour drawn goes by the container's kind.
+ */
+export function drawnAcross(kindAcross: boolean, box: { top: number; bottom: number }, neighbours: readonly { top: number; bottom: number }[]): boolean {
+  if (!kindAcross) return false;
+  // Only boxes that are drawn say anything: a hidden neighbour, or one not laid out yet, has no height.
+  const drawn = neighbours.filter((n) => n.bottom > n.top);
+  if (drawn.length === 0 || box.bottom <= box.top) return true;
+  return drawn.some((n) => n.top < box.bottom - 1 && n.bottom > box.top + 1);
 }
 
 /** Tracks a pointer from a press to its release, wherever it goes. Works for a mouse, a pen and a finger alike. */
@@ -133,10 +171,11 @@ export function scrollFor(y: number, top: number, bottom: number): number {
  * control of the same component, so a second arrow press lands where the
  * first did.
  */
-function focusAgain(selector: string) {
+function focusAgain(...selectors: string[]) {
   let ticks = 0;
   const attempt = () => {
-    const element = document.querySelector<HTMLElement>(selector);
+    // The first selector that finds something wins: a list in one querySelector would take whichever comes first in the page.
+    const element = selectors.map((s) => document.querySelector<HTMLElement>(s)).find((e) => e !== null);
     if (element && document.activeElement !== element) element.focus();
     if (++ticks < 10) window.setTimeout(attempt, 80);
   };
@@ -145,6 +184,29 @@ function focusAgain(selector: string) {
 /** One of a frame's own controls (move, remove), by what it does. */
 const inBar = (id: string, control: string) => `.sf-arrange-frame[data-component="${CSS.escape(id)}"] > .sf-arrange-bar [data-control="${control}"]`;
 const inFrame = (id: string, control: string) => `.sf-arrange-frame[data-component="${CSS.escape(id)}"] > ${control}`;
+
+/**
+ * The container a drop "into" `id` lands in: `id` when it holds a list of children; for a container of one child (a
+ * Card), the list inside it when that child holds one; "" when nothing can be dropped into it.
+ */
+export function receiverOf(surface: Surface | undefined, id: string): string {
+  const component = surface?.components[id];
+  if (!component) return "";
+  if (Array.isArray(component.children)) return id;
+  const child = typeof component.child === "string" ? surface?.components[component.child] : undefined;
+  return child && Array.isArray(child.children) ? child.id : "";
+}
+
+/** Where a component's neighbours in its container are drawn now, for whether that container is laid out across. */
+function neighbourBoxes(surface: Surface | undefined, id: string): DOMRect[] {
+  const place = placeOfComponent(surface, id);
+  const siblings = place ? (surface?.components[place.parent]?.children as string[] | undefined) : undefined;
+  if (!place || !siblings) return [];
+  return [siblings[place.index - 1], siblings[place.index + 1]]
+    .filter((s): s is string => typeof s === "string")
+    .map((s) => document.querySelector(`.sf-arrange-frame[data-component="${CSS.escape(s)}"]`)?.getBoundingClientRect())
+    .filter((b): b is DOMRect => !!b);
+}
 
 /**
  * Arranging a surface by hand. Optional for any host: pass `frame` to
@@ -208,8 +270,10 @@ export function useArrange(options: {
   latest.current = options;
   const [arranging, setArranging] = useState(false);
   const [dragId, setDragId] = useState("");
-  const [dropAt, setDropAt] = useState<{ id: string; side: Side }>();
-  const dropRef = useRef<{ id: string; side: Side } | undefined>(undefined);
+  const [dropAt, setDropAt] = useState<{ id: string; side: Side; across?: boolean }>();
+  const dropRef = useRef<{ id: string; side: Side; across?: boolean } | undefined>(undefined);
+  /** Where the pointer has rested at a stacked component's edge, and since when: beside comes after `BESIDE_HOLD`. */
+  const edgeRest = useRef<{ id: string; side: Side; since: number } | undefined>(undefined);
   const [ghost, setGhost] = useState<{ x: number; y: number; title: string }>();
   const [sizing, setSizing] = useState<{ id: string; text: string }>();
   const [preview, setPreview] = useState<Preview>();
@@ -237,24 +301,59 @@ export function useArrange(options: {
     setDropAt(undefined);
     setGhost(undefined);
   };
+  /** A drop that changes nothing says so, rather than leaving the last message standing. */
+  const dropped = (result: Result, title: string) => {
+    if (!("error" in result) && result.messages.length === 0) return latest.current.say({ text: "It is already there." });
+    done(result, title);
+  };
   const drop = (id: string, target: { id: string; side: Side }) => {
     const now = latest.current.surface;
     if (!id || id === target.id) return;
-    if (target.side === "inside") return done(moveComponentMessages(now, id, target.id, Number.MAX_SAFE_INTEGER), `Moved "${id}" into "${target.id}"`);
-    if (target.side === "left" || target.side === "right") return done(besideMessages(now, id, target.id, target.side), `Put "${id}" to the ${target.side} of "${target.id}"`);
+    if (target.side === "inside") {
+      const into = receiverOf(now, target.id);
+      return dropped(moveComponentMessages(now, id, into, Number.MAX_SAFE_INTEGER), `Moved "${id}" into "${target.id}"`);
+    }
+    if ((target.side === "left" || target.side === "right") && target.id === "root") return dropped(besidePageMessages(now, id, target.side), `Put "${id}" in a column on the ${target.side} of the page`);
+    if (target.side === "left" || target.side === "right") return dropped(besideMessages(now, id, target.id, target.side), `Put "${id}" to the ${target.side} of "${target.id}"`);
     const place = placeOfComponent(now, target.id);
-    if (place) done(moveComponentMessages(now, id, place.parent, place.index + (target.side === "after" ? 1 : 0)), `Moved "${id}" ${target.side} "${target.id}"`);
+    if (place) dropped(moveComponentMessages(now, id, place.parent, place.index + (target.side === "after" ? 1 : 0)), `Moved "${id}" ${target.side} "${target.id}"`);
   };
   /** What a pointer at (x, y) is over, for the component being dragged: never that component itself or anything inside it. */
-  const under = (id: string, x: number, y: number): { id: string; side: Side } | undefined => {
+  const under = (id: string, x: number, y: number): { id: string; side: Side; across?: boolean } | undefined => {
     const hit = document.elementFromPoint(x, y);
     const own = document.querySelector(inFrame(id, ".sf-arrange-bar"))?.parentElement;
+    // At the left or right edge of the whole surface: a column of its own beside everything, once the pointer rests there.
+    const rootId = "root";
+    const page = hit?.closest<HTMLElement>(`.sf-arrange-root[data-component="${rootId}"]`);
+    const pageSide = page ? pageEdge(page.getBoundingClientRect(), x) : undefined;
+    if (page && pageSide) {
+      const now = Date.now();
+      const resting = edgeRest.current;
+      if (!resting || resting.id !== rootId || resting.side !== pageSide) edgeRest.current = { id: rootId, side: pageSide, since: now };
+      if (now - edgeRest.current!.since >= BESIDE_HOLD) return { id: rootId, side: pageSide };
+    } else if (edgeRest.current?.id === rootId) edgeRest.current = undefined;
     const strip = hit?.closest<HTMLElement>(".sf-arrange-inside");
     if (strip?.dataset.container && !own?.contains(strip)) return { id: strip.dataset.container, side: "inside" };
     let frame = hit?.closest<HTMLElement>(".sf-arrange-frame") ?? null;
     if (frame && own && (frame === own || own.contains(frame))) return undefined;
     if (!frame?.dataset.component) return undefined;
-    return { id: frame.dataset.component, side: landing(frame.getBoundingClientRect(), frame.hasAttribute("data-across"), x, y) };
+    const target = frame.dataset.component;
+    const box = frame.getBoundingClientRect();
+    const across = drawnAcross(frame.hasAttribute("data-across"), box, neighbourBoxes(latest.current.surface, target));
+    let side = landing(box, across, x, y);
+    // Over the middle of a Card, a drop goes into the list it holds; near its top or bottom, above or below it.
+    const into = receiverOf(latest.current.surface, target);
+    if (into && into !== target && into !== id && (side === "before" || side === "after") && y > box.top + box.height / 4 && y < box.bottom - box.height / 4) return { id: target, side: "inside" };
+    // Beside only once the pointer has rested at the edge; until then the nearer half decides above or below. At the
+    // page's own edge, the rest being timed is the page's, so an element's beside does not take it over.
+    if ((side === "left" || side === "right") && pageSide) side = y < box.top + box.height / 2 ? "before" : "after";
+    else if (side === "left" || side === "right") {
+      const now = Date.now();
+      const resting = edgeRest.current;
+      if (!resting || resting.id !== target || resting.side !== side) edgeRest.current = { id: target, side, since: now };
+      if (now - edgeRest.current!.since < BESIDE_HOLD) side = y < box.top + box.height / 2 ? "before" : "after";
+    } else if (!pageSide) edgeRest.current = undefined;
+    return { id: target, side, across };
   };
   const startDrag = (event: ReactPointerEvent<HTMLElement>, id: string, title: string) => {
     if (event.button !== 0 || (event.target as HTMLElement).closest("button")) return;
@@ -265,10 +364,12 @@ export function useArrange(options: {
     const aim = () => {
       const target = under(id, at.x, at.y);
       dropRef.current = target;
-      setDropAt((now) => (target && now?.id === target.id && now.side === target.side ? now : target));
+      setDropAt((now) => (target && now?.id === target.id && now.side === target.side && now.across === target.across ? now : target));
     };
     const scrolling = window.setInterval(() => {
       if (!moving) return;
+      // A pointer resting at an edge becomes "beside" without moving again.
+      if (edgeRest.current && Date.now() - edgeRest.current.since >= BESIDE_HOLD && dropRef.current?.side !== edgeRest.current.side) aim();
       const box = scroller === document.scrollingElement || scroller === document.documentElement ? { top: 0, bottom: window.innerHeight } : scroller.getBoundingClientRect();
       const by = scrollFor(at.y, box.top, box.bottom);
       if (by === 0) return;
@@ -292,6 +393,7 @@ export function useArrange(options: {
       (_dx, _dy, dropped) => {
         window.clearInterval(scrolling);
         const target = dropRef.current;
+        edgeRest.current = undefined;
         endDrag();
         if (moving && dropped && target) drop(id, target);
       },
@@ -364,6 +466,8 @@ export function useArrange(options: {
   const widthHandle = (component: SurfaceComponent, place: { parent: string; index: number }, viewing: boolean) => {
     const container = surface?.components[place.parent];
     if (!container || (container.component !== "Grid" && container.component !== "Row")) return null;
+    // A Row whose children are sized (hug, fill, fixed) is not shared out by dragging: the drag would wipe the sizes.
+    if (container.component === "Row" && Array.isArray(container.sizes) && Array.isArray(container.children) && container.sizes.length === container.children.length) return null;
     const shares = gridShares(container);
     // In a grid the line sits after a column; in a row, after a child.
     const at = container.component === "Grid" ? place.index % shares.length : place.index;
@@ -525,11 +629,15 @@ export function useArrange(options: {
     const id = component.id;
     const kind = String(component.component);
     const place = placeOfComponent(surface, id);
+    // A container that holds a list takes a drop at its end. (A Card takes one over its middle; what it holds draws its own strip.)
     const holds = Array.isArray(component.children);
-    // A place to drop into a container: at its end, and the only way into an empty one.
+    const empty = holds && (component.children as unknown[]).length === 0;
+    // A place to drop into a container: at its end, and the only way into an empty one. It sits in the page's flow
+    // only for an empty container, which needs the room; otherwise it is drawn over the container's foot, so starting
+    // a drag never moves the page under the pointer.
     const inside = holds && dragId && dragId !== id && (
-      <div className="sf-arrange-inside" data-container={id} data-over={(dropAt?.id === id && dropAt.side === "inside") || undefined}>
-        Drop at the end of {named(kind)} {id}
+      <div className="sf-arrange-inside" data-container={id} data-overlay={empty ? undefined : true} data-over={(dropAt?.id === id && dropAt.side === "inside") || undefined}>
+        Drop at the end of {named(kind)} <code>{id}</code>
       </div>
     );
     if (!place) {
@@ -546,6 +654,8 @@ export function useArrange(options: {
           {drawn}
           {inside}
           {paddingHandle(component, false)}
+          {/* A column about to go down the page's own left or right edge. */}
+          {dragId && dropAt?.id === id && (dropAt.side === "left" || dropAt.side === "right") && <div className="sf-arrange-insert" data-side={dropAt.side} data-page aria-hidden="true" />}
         </div>
       );
     }
@@ -588,14 +698,14 @@ export function useArrange(options: {
                   ? false
                   : () => {
                       step(id, -1);
-                      focusAgain(`${inBar(id, across ? "earlier" : "up")}:not([aria-disabled]), ${inBar(id, across ? "later" : "down")}`);
+                      focusAgain(`${inBar(id, across ? "earlier" : "up")}:not([aria-disabled])`, inBar(id, across ? "later" : "down"));
                     },
               [across ? "later" : "down"]:
                 place.index >= place.count - 1
                   ? false
                   : () => {
                       step(id, 1);
-                      focusAgain(`${inBar(id, across ? "later" : "down")}:not([aria-disabled]), ${inBar(id, across ? "earlier" : "up")}`);
+                      focusAgain(`${inBar(id, across ? "later" : "down")}:not([aria-disabled])`, inBar(id, across ? "earlier" : "up"));
                     },
               // A part the page keeps (`surfaces_locked`) shows the control greyed, so a person can see it stays.
               remove: isLocked(component) ? false : () => latest.current.remove(id),
@@ -609,7 +719,7 @@ export function useArrange(options: {
         {gapHandle(place, false)}
         {paddingHandle(component, false)}
         {/* Where a dragged component will land: a line in the gap on that side, not a mark on this frame. */}
-        {dropAt?.id === id && dropAt.side !== "inside" && dragId && <div className="sf-arrange-insert" data-side={dropAt.side} data-across={across || undefined} aria-hidden="true" />}
+        {dropAt?.id === id && dropAt.side !== "inside" && dragId && <div className="sf-arrange-insert" data-side={dropAt.side} data-across={(dropAt.across ?? across) || undefined} aria-hidden="true" />}
       </div>
     );
   };
@@ -641,6 +751,11 @@ export function useArrange(options: {
     surfaceFrame: arranging ? frame : options.resizeWhileViewing ? viewFrame : undefined,
     shown,
     step,
+    /**
+     * Puts a component in a column of its own down the left or right of the whole surface, as a drop at the page's
+     * edge does: the keyboard and menu form of that drag, for a host to offer (`besidePageMessages`).
+     */
+    toPageSide: (id: string, side: "left" | "right") => done(besidePageMessages(latest.current.surface, id, side), `Put "${id}" in a column on the ${side} of the page`),
     /** What is being dragged, to draw by the pointer (`ArrangeGhost`). */
     ghost,
     /** Props for the element around the surface: one layer of controls at a time, and no text selected while dragging. */
