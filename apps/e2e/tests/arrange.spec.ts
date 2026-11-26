@@ -38,8 +38,10 @@ test.describe("Arranging a dashboard in the pages gallery", () => {
     await page.mouse.down();
     await onto.scrollIntoViewIfNeeded();
     const box = (await onto.boundingBox())!;
-    // Near the left edge, halfway down: beside it, not above or below.
+    // Near the left edge, halfway down: passing along it is above or below; resting there is beside it.
     await page.mouse.move(box.x + 8, box.y + box.height / 2, { steps: 12 });
+    await expect(onto.locator(':scope > .sf-arrange-insert[data-side="left"]')).toHaveCount(0);
+    await expect(onto.locator(':scope > .sf-arrange-insert[data-side="left"]')).toHaveCount(1);
     await page.mouse.up();
     await expect(studio(page).locator('.sf-arrange-frame[data-component="side-by-side"]')).toBeVisible();
     expect(await frames(page)).toContain(moved);

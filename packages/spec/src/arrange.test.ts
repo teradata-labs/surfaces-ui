@@ -95,4 +95,33 @@ describe("arranging a surface", () => {
     expect(moveComponentMessages(surface, "numbers", "numbers", 0)).toMatchObject({ error: expect.stringContaining("inside itself") });
     expect(moveComponentMessages(surface, "root", "numbers", 0)).toMatchObject({ error: expect.stringContaining("root") });
   });
+
+  it("keeps a row's sizes and shares with its children wherever they move", () => {
+    const rows: PageDocument = {
+      ...page,
+      components: [
+        { id: "root", component: "Column", children: ["top", "bottom", "head"] },
+        { id: "top", component: "Row", sizes: [{ fixed: 160 }, "hug", "fill"], children: ["a", "b", "c"] },
+        { id: "bottom", component: "Row", widths: [2, 1], children: ["d", "e"] },
+        { id: "head", component: "Text", text: "Sales", variant: "h1" },
+        ...["a", "b", "c", "d", "e"].map((id) => ({ id, component: "Text", text: id })),
+      ],
+    };
+    const s = pageSurface(rows);
+    const got = (messages: SurfaceMessage[]) => editPage(rows, editsFromMessages(rows, messages), analyticsCatalog);
+    const of = (p: PageDocument, id: string) => p.components.find((c) => c.id === id)!;
+    // Reordered in its row: the fixed width goes with "a", not with the first place.
+    let next = got(ok(moveComponentMessages(s, "a", "top", 3)));
+    expect(next.rejected).toEqual([]);
+    expect(of(next.page, "top")).toMatchObject({ children: ["b", "c", "a"], sizes: ["hug", "fill", { fixed: 160 }] });
+    // Into another row: it takes its share there (the mean, as it had none), and the row it left keeps one size per child.
+    next = got(ok(moveComponentMessages(s, "a", "bottom", 1)));
+    expect(of(next.page, "top")).toMatchObject({ children: ["b", "c"], sizes: ["hug", "fill"] });
+    expect(of(next.page, "bottom")).toMatchObject({ children: ["d", "a", "e"], widths: [2, 1.5, 1] });
+    // Out to a stack, and from a stack into a row: one entry per child each time, a newcomer filling.
+    next = got(ok(moveComponentMessages(s, "head", "top", 0)));
+    expect(of(next.page, "top")).toMatchObject({ children: ["head", "a", "b", "c"], sizes: ["fill", { fixed: 160 }, "hug", "fill"] });
+    next = got(ok(besideMessages(s, "b", "head", "right")));
+    expect(of(next.page, "top")).toMatchObject({ children: ["a", "c"], sizes: [{ fixed: 160 }, "fill"] });
+  });
 });

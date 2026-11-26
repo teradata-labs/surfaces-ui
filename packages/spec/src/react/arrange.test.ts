@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { drawnHeight, landing, scrollFor } from "./arrange.js";
+import { drawnAcross, drawnHeight, landing, receiverOf, scrollFor } from "./arrange.js";
+import { pageSurface } from "../page.js";
 
 const html = (markup: string) => {
   const host = document.createElement("div");
@@ -31,6 +32,13 @@ describe("landing", () => {
     expect(landing(box, false, 110, 200)).toBe("left");
     expect(landing(box, false, 490, 200)).toBe("right");
   });
+  it("keeps beside to a narrow edge, so a drag straight up or down by a bar's left end does not put things side by side", () => {
+    // A full-width element: 40 pixels in from its left edge is above or below, no longer beside.
+    const wide = { left: 0, top: 0, width: 1200, height: 100 };
+    expect(landing(wide, false, 50, 20)).toBe("before");
+    expect(landing(wide, false, 30, 20)).toBe("left");
+    expect(landing(wide, false, 1170, 80)).toBe("right");
+  });
   it("side by side: before or after by the nearer half, whatever the height", () => {
     expect(landing(box, true, 110, 290)).toBe("before");
     expect(landing(box, true, 490, 110)).toBe("after");
@@ -45,5 +53,41 @@ describe("scrollFor", () => {
     expect(Math.abs(scrollFor(101, 100, 900))).toBeGreaterThan(Math.abs(scrollFor(150, 100, 900)));
     // Past the edge it is as fast as it gets, not faster.
     expect(scrollFor(40, 100, 900)).toBe(scrollFor(100, 100, 900));
+  });
+});
+
+describe("drawnAcross", () => {
+  const box = { top: 100, bottom: 200 };
+  it("is across for a row drawn as a row, and not for one that has stacked", () => {
+    expect(drawnAcross(true, box, [{ top: 100, bottom: 180 }])).toBe(true);
+    // A phone-width row: the next child is drawn wholly below.
+    expect(drawnAcross(true, box, [{ top: 216, bottom: 300 }])).toBe(false);
+    expect(drawnAcross(true, box, [{ top: 0, bottom: 84 }, { top: 216, bottom: 300 }])).toBe(false);
+  });
+  it("goes by the container's kind when nothing is drawn to compare with", () => {
+    expect(drawnAcross(true, box, [])).toBe(true);
+    expect(drawnAcross(true, { top: 0, bottom: 0 }, [{ top: 0, bottom: 0 }])).toBe(true);
+    expect(drawnAcross(false, box, [{ top: 100, bottom: 180 }])).toBe(false);
+  });
+});
+
+describe("receiverOf", () => {
+  const surface = pageSurface({
+    id: "p",
+    title: "P",
+    catalogId: "c",
+    components: [
+      { id: "root", component: "Column", children: ["card", "plain"] },
+      { id: "card", component: "Card", child: "inner" },
+      { id: "inner", component: "Column", children: [] },
+      { id: "plain", component: "Card", child: "words" },
+      { id: "words", component: "Text", text: "Hi" },
+    ],
+  });
+  it("takes a drop into a list, or into the list a card holds, and nowhere else", () => {
+    expect(receiverOf(surface, "root")).toBe("root");
+    expect(receiverOf(surface, "card")).toBe("inner");
+    expect(receiverOf(surface, "plain")).toBe("");
+    expect(receiverOf(surface, "words")).toBe("");
   });
 });

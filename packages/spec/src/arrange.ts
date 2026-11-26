@@ -114,11 +114,56 @@ function within(surface: Surface, ancestor: string, id: string, seen = new Set<s
 }
 
 /**
+ * What a Row says about each child, one entry per child: its `sizes` (hug, fill or fixed) and its `widths` (a share).
+ * Only a list with exactly one entry per child counts, as when it is drawn. A Grid's `widths` are its columns', not
+ * its children's, so a Grid has none.
+ */
+function perChild(container: SurfaceComponent): { sizes?: unknown[]; widths?: number[] } {
+  if (container.component !== "Row" || !Array.isArray(container.children)) return {};
+  const count = container.children.length;
+  const sizes = Array.isArray(container.sizes) && container.sizes.length === count ? (container.sizes as unknown[]) : undefined;
+  const widths = Array.isArray(container.widths) && container.widths.length === count ? (container.widths as number[]) : undefined;
+  return { ...(sizes ? { sizes } : {}), ...(widths ? { widths } : {}) };
+}
+
+/** What one child of a Row carries with it when it moves: its size and its share, where the Row gives them. */
+type Carried = { size?: unknown; width?: number };
+function carriedFrom(container: SurfaceComponent, index: number): Carried {
+  const { sizes, widths } = perChild(container);
+  return { ...(sizes ? { size: sizes[index] } : {}), ...(widths ? { width: widths[index] } : {}) };
+}
+
+/**
+ * A container with new children, its per-child lists kept with them: each child that stays keeps its own entry,
+ * one that comes in takes what it carried from where it was, or "fill" and the mean share. A list that was not one
+ * per child is left as it was, since it was not being drawn.
+ */
+function withChildren(container: SurfaceComponent, next: string[], incoming?: { id: string; carried: Carried }): SurfaceComponent {
+  const was = Array.isArray(container.children) ? (container.children as string[]) : [];
+  const { sizes, widths } = perChild(container);
+  const out: SurfaceComponent = { ...container, children: next };
+  if (sizes) {
+    const own = new Map(was.map((id, i) => [id, sizes[i]]));
+    out.sizes = next.map((id) => (own.has(id) ? own.get(id) : id === incoming?.id && incoming.carried.size !== undefined ? incoming.carried.size : "fill"));
+    if (next.length === 0) delete out.sizes;
+  }
+  if (widths) {
+    const own = new Map(was.map((id, i) => [id, widths[i]!]));
+    const mean = widths.length ? widths.reduce((a, b) => a + b, 0) / widths.length : 1;
+    out.widths = next.map((id) => own.get(id) ?? (id === incoming?.id && incoming.carried.width !== undefined ? incoming.carried.width : mean));
+    if (next.length === 0) delete out.widths;
+  }
+  return out;
+}
+
+/**
  * The A2UI messages that move one component: to another place in its
  * container, or into another container, at `index` of that container's
  * children (counted before the move). Only containers that hold a list of
  * children can give or take a component; a component cannot go inside
- * itself. Moving it to where it already is returns no messages.
+ * itself. Moving it to where it already is returns no messages. In a Row,
+ * a child's size (`sizes`) and share (`widths`) go with it, into another Row
+ * too; one that had none takes "fill".
  */
 export function moveComponentMessages(surface: Surface | undefined, id: string, toParent: string, index: number): { messages: SurfaceMessage[] } | { error: string } {
   if (!surface?.components[id]) return { error: `There is no component "${id}" on the surface.` };
@@ -131,15 +176,16 @@ export function moveComponentMessages(surface: Surface | undefined, id: string, 
   const same = from.parent === toParent;
   const at = Math.max(0, Math.min(index, target.children.length));
   if (same && (at === from.index || at === from.index + 1)) return { messages: [] };
-  const without = (source.children as unknown[]).filter((child) => child !== id);
+  const without = (source.children as string[]).filter((child) => child !== id);
   if (same) {
     const next = [...without];
     next.splice(at > from.index ? at - 1 : at, 0, id);
-    return { messages: [{ version: A2UI_VERSION, updateComponents: { surfaceId: surface.surfaceId, components: [{ ...source, children: next }] } }] };
+    return { messages: [{ version: A2UI_VERSION, updateComponents: { surfaceId: surface.surfaceId, components: [withChildren(source, next)] } }] };
   }
-  const next = [...target.children];
+  const next = [...(target.children as string[])];
   next.splice(at, 0, id);
-  return { messages: [{ version: A2UI_VERSION, updateComponents: { surfaceId: surface.surfaceId, components: [{ ...source, children: without }, { ...target, children: next }] } }] };
+  const carried = carriedFrom(source, from.index);
+  return { messages: [{ version: A2UI_VERSION, updateComponents: { surfaceId: surface.surfaceId, components: [withChildren(source, without), withChildren(target, next, { id, carried })] } }] };
 }
 
 /** Moves a component one place earlier (`-1`) or later (`1`) among its container's children. */
@@ -266,8 +312,9 @@ export function besideMessages(surface: Surface | undefined, id: string, target:
   const grid: SurfaceComponent = { id: gridId, component: "Grid", columns: 2, children: side === "left" ? [id, target] : [target, id] };
   const source = surface.components[from.parent]!;
   // The target's container, with the grid where the target was; the moved component leaves its own container.
-  const targetChildren = (parent.children as unknown[]).filter((child) => child !== id).map((child) => (child === target ? gridId : child));
+  const targetChildren = (parent.children as string[]).filter((child) => child !== id).map((child) => (child === target ? gridId : child));
   const changed: SurfaceComponent[] = [grid, { ...parent, children: targetChildren }];
-  if (from.parent !== to.parent) changed.push({ ...source, children: (source.children as unknown[]).filter((child) => child !== id) });
+  // A Row it leaves loses its entry with it.
+  if (from.parent !== to.parent) changed.push(withChildren(source, (source.children as string[]).filter((child) => child !== id)));
   return { messages: [{ version: A2UI_VERSION, updateComponents: { surfaceId: surface.surfaceId, components: changed } }] };
 }
