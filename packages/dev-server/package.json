@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/dev-server",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Local Connect server for Surfaces UI data sources",
   "keywords": [
     "surfaces-ui",

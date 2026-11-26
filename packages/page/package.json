@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/page",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Surfaces UI pages as one script and one stylesheet, for plain HTML pages with no build step",
   "keywords": [
     "surfaces-ui",

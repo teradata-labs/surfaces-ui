@@ -1,5 +1,11 @@
 # @surfaces-ui/agent-openai
 
+## 0.4.0
+
+### Patch Changes
+
+- @surfaces-ui/agent@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

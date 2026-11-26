@@ -1,5 +1,30 @@
 # @surfaces-ui/components
 
+## 0.4.0
+
+### Patch Changes
+
+- 8074076: Arranging by hand, as people found it in an editor:
+  
+  - A move keeps a Row's `sizes` and `widths` with their children, in the Row and into another, instead of leaving a Fixed or Hug width on whatever lands in its place, or a list of the wrong length that is then ignored.
+  - Starting a drag no longer moves the page: the strip for dropping at a container's end is drawn over its foot (`data-overlay`), and takes room only in an empty container. Only the innermost container under the pointer shows its strip.
+  - Beside needs the pointer to rest at a stacked element's edge (`BESIDE_HOLD`, 350 ms), and the edge is the outer tenth (48 px at most, `BESIDE_EDGE`) rather than the outer fifth (96 px). A bar is held at its left end, so dragging straight up or down ran along that edge and made a side-by-side grid by accident.
+  - A Row or Grid that has stacked (a narrow container) drops above and below, with a level line, as it is drawn (`drawnAcross`).
+  - Dropping over the middle of a Card puts the component into the list the card holds (`receiverOf`); near its top or bottom, above or below it.
+  - A drop where the component already is says "It is already there."
+  - After a bar's arrow moves a component, focus goes back to the same arrow, so pressing Enter again moves it again instead of back.
+  - A Row whose children are sized (`sizes`) offers no width handle, which would have replaced the sizes with equal shares.
+  - The id in "Drop at the end of …" is in a `<code>`, as on the bar, so a host can hide it.
+  - A component can go in a column down the left or right of the whole page: resting at the page's own edge (the outer 24 px, `PAGE_EDGE`) shows a wider line down that edge, and the drop makes a stacked root a Row of that column (`PAGE_COLUMN_WIDTH`, 280 px, to start) and a Column of everything else, keeping the root's id and padding; a root that is already a row of columns takes it as its first or last. `besidePageMessages` sends it, and `useArrange` returns `toPageSide(id, side)` for a host's menu or keys.
+- bdbb8d0: New package `@surfaces-ui/next`: serve site-catalog pages as the routes of a Next.js app (15 or later, App Router), with Next.js as a peer dependency. `siteParams` for `generateStaticParams`, `siteMetadata` for `generateMetadata`, and `SitePage`, a server component that matches the address (a 404 otherwise), fills the page from the app's data and the route's values, resolves image names on the server and draws it with `SiteSurface`, which renders to HTML on the server and moves between the site's pages through Next.js's router. `SurfaceSection` draws one page document as a part of a Next.js page the app writes itself, themed in its own region. Static export works.
+  
+  `ThemeProvider`'s `setTheme` and `setMode` are the same functions on every render, and setting what is already set changes nothing, so a host that keeps the mode in step with its own toggle from an effect no longer renders without end. `ThemeProvider` hydrates without a mismatch when the system asks for dark: the server and the first browser render both use light, then the system's choice is read (the CSS already followed it). In the site catalog a `Link` may be a path on the site, opened in place; `siteLink` is now exported from `@surfaces-ui/spec` as well as `@surfaces-ui/spec/react`.
+- 0507c47: Workspace panels stacked in a narrow space (a phone) are as tall as their content, so the page alone scrolls; a panel no longer scrolls inside the page and catches the swipe. A panel that fills (`fill`, a conversation) keeps its screenful. Grid and Row column-width handles are hidden once the children stack, where they stood past the right edge and made the page scroll sideways.
+- @surfaces-ui/data@0.4.0
+  - @surfaces-ui/proto@0.4.0
+  - @surfaces-ui/tokens@0.4.0
+  - @surfaces-ui/trace@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

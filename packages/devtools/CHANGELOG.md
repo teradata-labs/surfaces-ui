@@ -1,5 +1,17 @@
 # @surfaces-ui/devtools
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [8074076]
+- Updated dependencies [bdbb8d0]
+- Updated dependencies [0507c47]
+  - @surfaces-ui/spec@0.4.0
+  - @surfaces-ui/components@0.4.0
+  - @surfaces-ui/data@0.4.0
+  - @surfaces-ui/trace@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

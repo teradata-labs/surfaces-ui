@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/engine-teradata",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Teradata engine adapter for Surfaces UI: Teradata Query Service over HTTP, or a driver connection the consumer supplies",
   "keywords": [
     "surfaces-ui",

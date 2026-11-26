@@ -1,5 +1,11 @@
 # @surfaces-ui/embedder-local
 
+## 0.4.0
+
+### Patch Changes
+
+- @surfaces-ui/discovery@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

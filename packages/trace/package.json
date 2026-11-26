@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/trace",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Tracing for Surfaces UI: a bounded recorder of messages, problems, state, events, agent turns and service calls, with replay for time travel. Never holds row values or credentials",
   "keywords": [
     "surfaces-ui",

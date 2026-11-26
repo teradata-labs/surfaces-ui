@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/client-connect",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Connect client that implements DataSource",
   "keywords": [
     "surfaces-ui",
