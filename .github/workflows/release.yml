@@ -3,7 +3,13 @@ name: Release
 # pull request while changesets are pending; running it again after that pull
 # request is merged publishes, with provenance, once scripts/check-release.mjs
 # passes. Opening the pull request needs the repository setting "Allow GitHub
-# Actions to create and approve pull requests" (Settings, Actions, General).
+# Actions to create and approve pull requests" (Settings, Actions, General);
+# where the organisation turns it off, the run still pushes the
+# changeset-release/main branch, and the pull request is opened from it by hand.
+#
+# main requires verified signatures, so the version commit and the release
+# tags are made through GitHub's API (commitMode: github-api), which signs
+# them; a commit made with git here would be unsigned and could not be merged.
 #
 # npm is reached one of two ways (docs/releasing.md):
 # - the NPM_TOKEN secret: a granular token that may write to @surfaces-ui and
@@ -37,6 +43,7 @@ jobs:
         with:
           version: pnpm version-packages
           publish: pnpm release
+          commitMode: github-api
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
