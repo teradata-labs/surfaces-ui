@@ -318,3 +318,62 @@ export function besideMessages(surface: Surface | undefined, id: string, target:
   if (from.parent !== to.parent) changed.push(withChildren(source, (source.children as string[]).filter((child) => child !== id)));
   return { messages: [{ version: A2UI_VERSION, updateComponents: { surfaceId: surface.surfaceId, components: changed } }] };
 }
+
+/** How wide a column put beside a whole page starts, in pixels; a person makes it hug, fill or another width after. */
+export const PAGE_COLUMN_WIDTH = 280;
+
+/**
+ * The A2UI messages that put one component in a column of its own down the
+ * left or right of the whole surface, beside everything else on it (a side
+ * navigation, a filter panel). A root that lays out across (a Row) takes it as
+ * its first or last child. A root that stacks keeps its id but becomes a Row:
+ * the component on the side given, at `PAGE_COLUMN_WIDTH` pixels, and a
+ * Column holding everything the root held, with the root's gap, filling the
+ * rest. The root keeps its padding, so the page's margin is as it was.
+ */
+export function besidePageMessages(surface: Surface | undefined, id: string, side: "left" | "right"): { messages: SurfaceMessage[] } | { error: string } {
+  const root = surface?.components.root;
+  if (!surface || !root || !Array.isArray(root.children)) return { error: "This surface has no root that holds a list, so nothing can go beside it." };
+  if (!surface.components[id]) return { error: `There is no component "${id}" on the surface.` };
+  if (id === "root") return { error: "The root holds everything else and cannot be moved." };
+  const from = placeOfComponent(surface, id);
+  if (!from) return { error: `"${id}" is held by a container with a fixed place for it, so it cannot be moved on its own.` };
+  const held = root.children as string[];
+  if (root.component === "Row") {
+    // Already a row of columns: the component becomes its first or last column.
+    if (from.parent === "root" && ((side === "left" && from.index === 0) || (side === "right" && from.index === held.length - 1))) return { messages: [] };
+    const moved = moveComponentMessages(surface, id, "root", side === "left" ? 0 : held.length);
+    if ("error" in moved || from.parent === "root") return moved;
+    // Coming in from elsewhere, it is a column of the page: the width a new column starts at, where the row sizes its columns.
+    return {
+      messages: moved.messages.map((message) => {
+        if (!("updateComponents" in message)) return message;
+        const components = message.updateComponents.components.map((c) => {
+          if (c.id !== "root" || !Array.isArray(c.sizes) || !Array.isArray(c.children)) return c;
+          const at = (c.children as string[]).indexOf(id);
+          return { ...c, sizes: (c.sizes as unknown[]).map((size, i) => (i === at ? { fixed: PAGE_COLUMN_WIDTH } : size)) };
+        });
+        return { ...message, updateComponents: { ...message.updateComponents, components } };
+      }),
+    };
+  }
+  const taken = new Set(Object.keys(surface.components));
+  let contentId = "page-content";
+  for (let n = 2; taken.has(contentId); n++) contentId = `page-content-${n}`;
+  const rest = held.filter((child) => child !== id);
+  const { gap, align, justify } = root;
+  const content: SurfaceComponent = { id: contentId, component: "Column", children: rest, ...(gap !== undefined ? { gap } : {}), ...(align !== undefined ? { align } : {}), ...(justify !== undefined ? { justify } : {}) };
+  const { gap: _gap, align: _align, justify: _justify, ...kept } = root;
+  const column = { fixed: PAGE_COLUMN_WIDTH };
+  const row: SurfaceComponent = {
+    ...kept,
+    component: "Row",
+    gap: "none",
+    children: side === "left" ? [id, contentId] : [contentId, id],
+    sizes: side === "left" ? [column, "fill"] : ["fill", column],
+  };
+  const changed: SurfaceComponent[] = [content, row];
+  // A component that came from somewhere else in the page leaves it, its Row's sizes with it.
+  if (from.parent !== "root") changed.push(withChildren(surface.components[from.parent]!, (surface.components[from.parent]!.children as string[]).filter((child) => child !== id)));
+  return { messages: [{ version: A2UI_VERSION, updateComponents: { surfaceId: surface.surfaceId, components: changed } }] };
+}

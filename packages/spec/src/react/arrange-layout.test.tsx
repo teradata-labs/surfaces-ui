@@ -304,4 +304,70 @@ describe("dragging, as people found it", () => {
     arrangeOn();
     expect(frame("one").querySelector(':scope > .sf-resize-handle[data-edge="right"]')).toBeNull();
   });
+
+  it("puts a component in a column down the page's edge once the pointer rests there", () => {
+    vi.useFakeTimers();
+    try {
+      render(<Host steps={[]} />);
+      arrangeOn();
+      const root = document.querySelector<HTMLElement>('.sf-arrange-root[data-component="root"]')!;
+      root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 600, right: 1000, bottom: 600, x: 0, y: 0, toJSON: () => ({}) });
+      const original = document.elementFromPoint;
+      document.elementFromPoint = () => root;
+      try {
+        fireEvent.pointerDown(frame("panel").querySelector<HTMLElement>(".sf-arrange-bar")!, { button: 0, clientX: 500, clientY: 300 });
+        fireEvent.pointerMove(window, { clientX: 8, clientY: 300 });
+        expect(root.querySelector(":scope > .sf-arrange-insert")).toBeNull();
+        act(() => void vi.advanceTimersByTime(BESIDE_HOLD + 50));
+        const line = root.querySelector(":scope > .sf-arrange-insert[data-page]")!;
+        expect(line.getAttribute("data-side")).toBe("left");
+        expect(root.hasAttribute("data-receiving")).toBe(true);
+        fireEvent.pointerUp(window, { clientX: 8, clientY: 300 });
+      } finally {
+        document.elementFromPoint = original;
+      }
+      expect(component("root")).toMatchObject({ component: "Row", children: ["panel", "page-content"] });
+      expect(component("page-content")?.children).toEqual(["title", "stats"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("adds a column at the page's right edge when the page is already a row of columns", () => {
+    vi.useFakeTimers();
+    try {
+      const start: PageDocument = {
+        ...page,
+        components: [
+          { id: "root", component: "Row", sizes: [{ fixed: 280 }, "fill"], children: ["note", "rest"] },
+          { id: "note", component: "Text", text: "A note" },
+          { id: "rest", component: "Column", children: ["title", "panelText"] },
+          { id: "title", component: "Text", text: "Home", variant: "h1" },
+          { id: "panelText", component: "Text", text: "More" },
+        ],
+      };
+      render(<Host steps={[]} start={start} />);
+      arrangeOn();
+      const root = document.querySelector<HTMLElement>('.sf-arrange-root[data-component="root"]')!;
+      root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 600, right: 1000, bottom: 600, x: 0, y: 0, toJSON: () => ({}) });
+      // The pointer is over the last column, itself in the row: before or after it until the rest is up.
+      const rest = frame("rest");
+      rest.getBoundingClientRect = () => ({ left: 300, top: 0, width: 700, height: 600, right: 1000, bottom: 600, x: 300, y: 0, toJSON: () => ({}) });
+      const original = document.elementFromPoint;
+      document.elementFromPoint = () => rest;
+      try {
+        fireEvent.pointerDown(frame("title").querySelector<HTMLElement>(".sf-arrange-bar")!, { button: 0, clientX: 500, clientY: 300 });
+        fireEvent.pointerMove(window, { clientX: 995, clientY: 300 });
+        fireEvent.pointerMove(window, { clientX: 994, clientY: 300 });
+        act(() => void vi.advanceTimersByTime(BESIDE_HOLD + 50));
+        expect(root.querySelector(':scope > .sf-arrange-insert[data-page][data-side="right"]')).not.toBeNull();
+        fireEvent.pointerUp(window, { clientX: 994, clientY: 300 });
+      } finally {
+        document.elementFromPoint = original;
+      }
+      expect(component("root")).toMatchObject({ children: ["note", "rest", "title"], sizes: [{ fixed: 280 }, "fill", { fixed: 280 }] });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { drawnAcross, drawnHeight, landing, receiverOf, scrollFor } from "./arrange.js";
+import { PAGE_EDGE, drawnAcross, drawnHeight, landing, pageEdge, receiverOf, scrollFor } from "./arrange.js";
 import { pageSurface } from "../page.js";
 
 const html = (markup: string) => {
@@ -89,5 +89,16 @@ describe("receiverOf", () => {
     expect(receiverOf(surface, "card")).toBe("inner");
     expect(receiverOf(surface, "plain")).toBe("");
     expect(receiverOf(surface, "words")).toBe("");
+  });
+});
+
+describe("pageEdge", () => {
+  it("is the outer strip of the whole surface on either side, and nothing in between", () => {
+    const page = { left: 100, width: 1000 };
+    expect(pageEdge(page, 100 + PAGE_EDGE - 4)).toBe("left");
+    expect(pageEdge(page, 1100 - PAGE_EDGE + 4)).toBe("right");
+    expect(pageEdge(page, 100 + PAGE_EDGE + 4)).toBeUndefined();
+    // A narrow surface keeps most of its width for dropping above, below and beside.
+    expect(pageEdge({ left: 0, width: 100 }, 12)).toBeUndefined();
   });
 });

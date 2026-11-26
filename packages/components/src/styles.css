@@ -8480,6 +8480,8 @@ button > .sf-item-control-icon:only-child {
 /* Beside a component in a stack: the two will share a row, so the line is on that edge of it. */
 .sf-arrange-insert[data-side="left"] { left: -1px; }
 .sf-arrange-insert[data-side="right"] { right: -1px; }
+/* Down the whole page's edge: a column beside everything, drawn wider than the line beside one component. */
+.sf-arrange-insert[data-page] { width: var(--sf-space-1); }
 
 .sf-arrange-frame[data-receiving],
 .sf-arrange-root[data-receiving] {

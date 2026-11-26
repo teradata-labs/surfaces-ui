@@ -14,3 +14,4 @@ Arranging by hand, as people found it in an editor:
 - After a bar's arrow moves a component, focus goes back to the same arrow, so pressing Enter again moves it again instead of back.
 - A Row whose children are sized (`sizes`) offers no width handle, which would have replaced the sizes with equal shares.
 - The id in "Drop at the end of …" is in a `<code>`, as on the bar, so a host can hide it.
+- A component can go in a column down the left or right of the whole page: resting at the page's own edge (the outer 24 px, `PAGE_EDGE`) shows a wider line down that edge, and the drop makes a stacked root a Row of that column (`PAGE_COLUMN_WIDTH`, 280 px, to start) and a Column of everything else, keeping the root's id and padding; a root that is already a row of columns takes it as its first or last. `besidePageMessages` sends it, and `useArrange` returns `toPageSide(id, side)` for a host's menu or keys.
