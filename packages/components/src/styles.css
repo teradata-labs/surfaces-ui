@@ -6576,7 +6576,8 @@ select.sf-input:disabled {
 /* Folded away, the panel waits off the left edge of its stage and slides in when the menu button is pressed: a drawer
    beside a dimmed page where there is room, the whole stage where there is not. The stage is the window, or the part
    on screen of the region the navigation is drawn in (measured when it opens, since a fixed box cannot be told its
-   container in CSS), and it clips the drawer, so nothing outside that region is covered even while it slides. Hover
+   container in CSS; the offsets are counted from the stage's own containing block, which a contained or
+   transformed holder is, so they are not always the window's), and it clips the drawer, so nothing outside that region is covered even while it slides. Hover
    and focus do not open it: a drawer that opened under a passing pointer would cover the page by surprise. */
 .sf-sidenav[data-pinned="false"] .sf-sidenav-stage {
   display: block;

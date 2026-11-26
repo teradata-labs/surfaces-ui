@@ -65,6 +65,31 @@ export function drawerBox(holder: NavBox | undefined, viewport: { width: number;
   return { top, left, width, height };
 }
 
+/**
+ * Where the drawer's stage is put, in the px its `top` and `left` are counted in. A fixed box is placed from the window
+ * unless something around it is its containing block: a `.sf-container` in a browser where a container query brings
+ * layout containment (Chrome 156 does not), or anything a host has contained, transformed or filtered. `origin` is where that block starts on screen, measured
+ * from the stage itself, and the box is counted from there. With the window as the block nothing changes, and no box
+ * stays no box (the stylesheet's own window). Inside another block "the whole window" has to be worked out too.
+ */
+export function stageBox(box: NavBox | undefined, origin: { top: number; left: number }, viewport: { width: number; height: number }): NavBox | undefined {
+  if (!origin.top && !origin.left) return box;
+  const target = box ?? { top: 0, left: 0, width: viewport.width, height: viewport.height };
+  return { top: target.top - origin.top, left: target.left - origin.left, width: target.width, height: target.height };
+}
+
+/** Where on screen a fixed element's containing block starts: where the element is, less the offsets it was given. */
+function fixedOrigin(element: HTMLElement | null): { top: number; left: number } {
+  if (!element) return { top: 0, left: 0 };
+  const rect = element.getBoundingClientRect();
+  const style = getComputedStyle(element);
+  // A fixed box's computed `top` and `left` are the used px. Anything else (not laid out, no stylesheet) says nothing.
+  const top = rect.top - Number.parseFloat(style.top);
+  const left = rect.left - Number.parseFloat(style.left);
+  // Under half a px is rounding, not a containing block.
+  return { top: Math.abs(top) >= 0.5 ? top : 0, left: Math.abs(left) >= 0.5 ? left : 0 };
+}
+
 /** What holds the navigation when it is drawn inside a region that answers to its own size (a surface, a result). */
 const holderOf = (element: Element | null) => element?.closest(".sf-container") ?? undefined;
 
@@ -120,6 +145,7 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
   const pinned = (given ?? kept) && !narrow;
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
   const opener = () => document.getElementById(`${id}-open`);
   const close = () => {
     setOpen(false);
@@ -133,13 +159,15 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
     if (!next) requestAnimationFrame(() => opener()?.focus());
   };
   const taking = !pinned && open;
-  // Where the drawer goes while it is open: the part of its holder on screen, kept current as that moves.
+  // Where the drawer goes while it is open: the part of its holder on screen, kept current as that moves, and counted
+  // from whatever the stage is really placed against (the window, or a holder that contains fixed boxes).
   const [box, setBox] = useState<NavBox | undefined>(undefined);
   useLayoutEffect(() => {
     if (!taking) return;
     const place = () => {
       const rect = holderOf(root.current)?.getBoundingClientRect();
-      const next = drawerBox(rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : undefined, { width: window.innerWidth, height: window.innerHeight });
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const next = stageBox(drawerBox(rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : undefined, viewport), fixedOrigin(stage.current), viewport);
       setBox((before) => (before && next && before.top === next.top && before.left === next.left && before.width === next.width && before.height === next.height ? before : next));
     };
     place();
@@ -192,7 +220,7 @@ export function SideNav({ label, groups, current, onSelect, pinned: given, defau
         </button>
       )}
       {/* Folded, the drawer and the dimmed page behind it live in a stage laid over the holder, which clips the drawer as it slides. */}
-      <div className="sf-sidenav-stage">
+      <div ref={stage} className="sf-sidenav-stage">
       {/* The page behind a drawer is dimmed, and a press on it closes the drawer; Escape and the close button do the same. */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: a pointer's shortcut; the keyboard closes it with Escape or the close button. */}
       {taking && <div className="sf-sidenav-backdrop" aria-hidden="true" onClick={close} />}
