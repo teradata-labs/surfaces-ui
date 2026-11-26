@@ -1,5 +1,23 @@
 # @surfaces-ui/dev-server
 
+## 0.4.0
+
+### Patch Changes
+
+- @surfaces-ui/seeds@0.4.0
+  - @surfaces-ui/agent@0.4.0
+  - @surfaces-ui/data@0.4.0
+  - @surfaces-ui/discovery@0.4.0
+  - @surfaces-ui/engine@0.4.0
+  - @surfaces-ui/engine-datafusion@0.4.0
+  - @surfaces-ui/engine-duckdb@0.4.0
+  - @surfaces-ui/engine-service@0.4.0
+  - @surfaces-ui/engine-teradata@0.4.0
+  - @surfaces-ui/pipelines@0.4.0
+  - @surfaces-ui/pipelines-dbt@0.4.0
+  - @surfaces-ui/proto@0.4.0
+  - @surfaces-ui/sql@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

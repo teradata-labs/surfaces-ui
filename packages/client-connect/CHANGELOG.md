@@ -1,5 +1,12 @@
 # @surfaces-ui/client-connect
 
+## 0.4.0
+
+### Patch Changes
+
+- @surfaces-ui/data@0.4.0
+  - @surfaces-ui/proto@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

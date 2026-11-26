@@ -1,6 +1,6 @@
 {
   "name": "@surfaces-ui/next",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Serve Surfaces UI pages from a Next.js app: routes, metadata and server-rendered pages, with Next.js doing the routing, building and hosting",
   "keywords": [
     "surfaces-ui",

@@ -1,5 +1,14 @@
 # @surfaces-ui/seeds
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [8074076]
+- Updated dependencies [bdbb8d0]
+  - @surfaces-ui/spec@0.4.0
+  - @surfaces-ui/data@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes
