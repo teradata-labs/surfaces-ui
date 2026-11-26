@@ -45,6 +45,19 @@ function exampleSurface(name: string): SurfaceComponent[] {
 }
 
 describe("the site catalog", () => {
+  it("draws a path on the site as a link opened in place, and an address elsewhere in a new tab", () => {
+    draw([
+      { id: "root", component: "Column", children: ["here", "there", "bad"] },
+      { id: "here", component: "Link", text: "Pricing", url: "/pricing" },
+      { id: "there", component: "Link", text: "Source", url: "https://example.com" },
+      { id: "bad", component: "Link", text: "Elsewhere", url: "//example.com" },
+    ]);
+    expect(screen.getByRole("link", { name: "Pricing" }).getAttribute("href")).toBe("/pricing");
+    expect(screen.getByRole("link", { name: "Pricing" }).hasAttribute("target")).toBe(false);
+    expect(screen.getByRole("link", { name: "Source" }).getAttribute("target")).toBe("_blank");
+    expect(screen.queryByRole("link", { name: "Elsewhere" })).toBeNull();
+  });
+
   it("is the basics and the site's own components, each with a valid example", () => {
     expect(siteCatalog.names).toEqual([...basicsCatalog.names, ...SITE_COMPONENT_NAMES]);
     for (const name of siteCatalog.names) expect(siteCatalog.validateComponent(siteCatalog.components[name]!.example), name).toEqual([]);

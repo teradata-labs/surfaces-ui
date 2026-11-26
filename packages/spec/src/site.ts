@@ -2,6 +2,17 @@ import { z } from "zod";
 import { basicsCatalog } from "./basics.js";
 import { type ComponentDefinition, extendCatalog } from "./catalog.js";
 import { action, childId, childList, dynamicString } from "./dynamic.js";
+import { safeUrl } from "./functions.js";
+
+/**
+ * A link an agent wrote: an http or https address, or a path on this site ("/pricing", never "//elsewhere").
+ * Anything else (a script, a data address) is not a link.
+ */
+export function siteLink(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  if (/^\/(?!\/)[^\s\\]*$/.test(value)) return value;
+  return safeUrl(value);
+}
 
 const str = (about: string) => z.string().describe(about);
 const ID = z.string().min(1).max(80);

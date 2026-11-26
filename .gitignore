@@ -13,3 +13,6 @@ coverage
 
 # Recording workspace for the walkthrough videos (recorders, voice clips, takes); the published videos are in docs/media/
 walkthrough/
+
+# Where the Next.js site recipe is built by its test (SURFACES_TEST_NEXT=1)
+apps/recipes/.next-build/

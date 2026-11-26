@@ -16,6 +16,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { type StateStorage, browserStorage } from "@surfaces-ui/data";
 
@@ -81,17 +82,24 @@ export interface ThemeProviderProps {
 
 const NO_THEMES: readonly Theme[] = [];
 
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+function subscribeSystemDark(onChange: () => void): () => void {
+  const media = globalThis.matchMedia?.(DARK_QUERY);
+  if (!media) return () => {};
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+const systemDarkNow = () => globalThis.matchMedia?.(DARK_QUERY).matches ?? false;
+
+/**
+ * Whether the system asks for dark. A server cannot know, so it renders light, and the page hydrates as light
+ * before it reads the system's choice: the HTML a server wrote and the first render in the browser always agree.
+ * The theme's CSS already follows `prefers-color-scheme` on its own, so the page is never shown in the wrong mode.
+ */
 function useSystemDark(): boolean {
-  const query = "(prefers-color-scheme: dark)";
-  const [dark, setDark] = useState(() => globalThis.matchMedia?.(query).matches ?? false);
-  useEffect(() => {
-    const media = globalThis.matchMedia?.(query);
-    if (!media) return;
-    const onChange = () => setDark(media.matches);
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, []);
-  return dark;
+  return useSyncExternalStore(subscribeSystemDark, systemDarkNow, () => false);
 }
 
 export function ThemeProvider({
@@ -130,6 +138,9 @@ export function ThemeProvider({
     (patch: Partial<ThemeState>) => {
       chosen.current = true;
       setState((prev) => {
+        // Asking for what is already set changes nothing, so a host that keeps the mode in step with its own
+        // toggle from an effect does not render again, and again.
+        if (Object.entries(patch).every(([key, value]) => prev[key as keyof ThemeState] === value)) return prev;
         const next = { ...prev, ...patch };
         if (resolvedStorage) void Promise.resolve(resolvedStorage.save(storageKey, JSON.stringify(next))).catch(() => {});
         return next;
@@ -159,15 +170,19 @@ export function ThemeProvider({
     else root.removeAttribute("data-contrast");
   }, [scope, state.theme.contrast]);
 
+  // The same functions on every render, so a host can list them in an effect's dependencies.
+  const setTheme = useCallback((theme: Theme) => update({ theme }), [update]);
+  const setMode = useCallback((mode: Mode) => update({ mode }), [update]);
+
   const value = useMemo<ThemeContextValue>(
     () => ({
       ...state,
-      setTheme: (theme) => update({ theme }),
-      setMode: (mode) => update({ mode }),
+      setTheme,
+      setMode,
       resolvedMode: state.mode === "system" ? (systemDark ? "dark" : "light") : state.mode,
       themes,
     }),
-    [state, update, systemDark, themes],
+    [state, setTheme, setMode, systemDark, themes],
   );
 
   return (

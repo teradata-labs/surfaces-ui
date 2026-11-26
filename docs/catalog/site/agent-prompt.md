@@ -211,7 +211,7 @@ Formatted text: headings, lists, tables, links and code. Use it for explanations
 Example: `{"id":"notes","component":"Markdown","text":"Revenue is **up 5%**.\n\n- Europe leads\n- Returns are flat"}`
 
 ### Link
-A link to a web page. Only http and https addresses are shown as links.
+A link to a web page. Only http and https addresses are shown as links; in a site, a path on the site ("/pricing") is too, and opens in place.
 - `text`: string | binding | call
 - `url`: string | binding | call
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.

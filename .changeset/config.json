@@ -23,6 +23,7 @@
       "@surfaces-ui/engine-service",
       "@surfaces-ui/engine-teradata",
       "@surfaces-ui/mcp",
+      "@surfaces-ui/next",
       "@surfaces-ui/page",
       "@surfaces-ui/pipelines",
       "@surfaces-ui/pipelines-dbt",

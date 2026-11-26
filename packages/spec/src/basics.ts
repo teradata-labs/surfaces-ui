@@ -282,7 +282,7 @@ const definitions = {
       example: { id: "notes", component: "Markdown", text: "Revenue is **up 5%**.\n\n- Europe leads\n- Returns are flat" },
     },
     Link: {
-      description: "A link to a web page. Only http and https addresses are shown as links.",
+      description: 'A link to a web page. Only http and https addresses are shown as links; in a site, a path on the site ("/pricing") is too, and opens in place.',
       props: { text: dynamicString, url: dynamicString },
       example: { id: "docs", component: "Link", text: "Metric definitions", url: "https://example.com/metrics" },
     },

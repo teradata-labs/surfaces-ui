@@ -180,8 +180,8 @@ const GROUPS = [
   },
   {
     title: "Other places to show it",
-    intro: "For an MCP host, a plain HTML page, or SQL in the browser with no server.",
-    packages: ["@surfaces-ui/mcp", "@surfaces-ui/page", "@surfaces-ui/datasource-duckdb-wasm"],
+    intro: "For an MCP host, a Next.js app, a plain HTML page, or SQL in the browser with no server.",
+    packages: ["@surfaces-ui/mcp", "@surfaces-ui/next", "@surfaces-ui/page", "@surfaces-ui/datasource-duckdb-wasm"],
   },
   {
     title: "Inside the server",

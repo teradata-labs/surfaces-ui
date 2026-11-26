@@ -23,6 +23,7 @@
     "@surfaces-ui/data": "workspace:*",
     "@surfaces-ui/dev-server": "workspace:*",
     "@surfaces-ui/mcp": "workspace:*",
+    "@surfaces-ui/next": "workspace:*",
     "@surfaces-ui/proto": "workspace:*",
     "@surfaces-ui/spec": "workspace:*",
     "@surfaces-ui/state": "workspace:*",
@@ -36,6 +37,7 @@
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "jsdom": "^31.0.0"
+    "jsdom": "^31.0.0",
+    "next": "16.4.6"
   }
 }
