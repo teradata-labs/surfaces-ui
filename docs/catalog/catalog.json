@@ -10914,6 +10914,508 @@
       ],
       "additionalProperties": false
     },
+    "Conversation": {
+      "description": "A whole chat in one component: the turns so far, replies to pick, and a box to write in. Sending adds the person's turn to the thread at once and sends `send` with what they wrote. Give `messages` the turns, oldest first, or a data path holding them. Keep the thread there: answer `send` by adding the person's turn and yours to the list, and each is drawn once. For a prototype with no agent, `replies` answer in order, one for each turn the person sends. For one turn on its own, or a thread laid out by hand among other components, use Message.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique within the surface. The top component must be \"root\"."
+        },
+        "component": {
+          "type": "string",
+          "const": "Conversation"
+        },
+        "@catalogId": {
+          "description": "The component's catalog. This renderer draws one catalog per surface.",
+          "type": "string",
+          "const": "urn:surfaces:catalog:analytics:v1"
+        },
+        "@accessibility": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "live": {
+              "type": "string",
+              "enum": [
+                "off",
+                "polite",
+                "assertive"
+              ]
+            },
+            "hidden": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "@metadata": {
+          "description": "Extensions by name. Never drawn, resolved or run.",
+          "type": "object",
+          "properties": {
+            "extensions": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[\\p{XID_Start}_][\\p{XID_Continue}]*$"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "What the conversation is, for assistive technology: \"Support chat\"."
+        },
+        "messages": {
+          "anyOf": [
+            {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "speaker": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "side": {
+                    "description": "\"end\" for the person's own turns.",
+                    "type": "string",
+                    "enum": [
+                      "start",
+                      "end"
+                    ]
+                  },
+                  "time": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "speaker",
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            }
+          ],
+          "description": "The turns so far, oldest first, or a data path holding them. An empty list starts with only the box."
+        },
+        "you": {
+          "description": "Who the person is on their own turns. Defaults to \"You\".",
+          "type": "string",
+          "maxLength": 80
+        },
+        "suggestions": {
+          "description": "Replies offered under the thread until the person sends something; a press sends one.",
+          "maxItems": 6,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "replies": {
+          "description": "Scripted answers for a prototype with no agent: the first answers the person's first turn, and so on. Leave it out when an agent answers.",
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "speaker": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "speaker",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "placeholder": {
+          "description": "What the box says while it is empty. Defaults to \"Write a message\".",
+          "type": "string",
+          "maxLength": 120
+        },
+        "action": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "event": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "userMessage": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "@path": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "@path"
+                          ],
+                          "additionalProperties": false,
+                          "description": "A value read from the data model at this path."
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "@call": {
+                              "type": "string"
+                            },
+                            "args": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            },
+                            "catalogId": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "@call"
+                          ],
+                          "additionalProperties": false,
+                          "description": "A call to one of the catalog's functions."
+                        }
+                      ]
+                    },
+                    "context": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "array",
+                            "items": {}
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "@path": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "@path"
+                            ],
+                            "additionalProperties": false,
+                            "description": "A value read from the data model at this path."
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "@call": {
+                                "type": "string"
+                              },
+                              "args": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {}
+                              },
+                              "catalogId": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "@call"
+                            ],
+                            "additionalProperties": false,
+                            "description": "A call to one of the catalog's functions."
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "event"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "functionCall": {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              },
+              "required": [
+                "functionCall"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "minHeight": {
+          "description": "The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.",
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 1600
+        }
+      },
+      "required": [
+        "id",
+        "component",
+        "label",
+        "messages"
+      ],
+      "additionalProperties": false,
+      "x-events": {
+        "send": {
+          "description": "When a person sends a turn, typed or picked from the suggestions. It is already in the thread.",
+          "context": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "what they wrote"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "additionalProperties": {}
+          }
+        }
+      }
+    },
     "RowList": {
       "description": "One component drawn once for each row of a SQL query: a feed of posts, a list of cards, rows that each carry their own buttons. `child` is the component drawn per row, usually a Card. Inside it, and in everything it holds, a relative path reads the row's column of that name (`{ \"@path\": \"author\" }`; `formatString` with `${author}` too), and a Button's event carries the row's key the same way (`\"context\": { \"post_id\": { \"@path\": \"post_id\" } }`), so you learn which row was acted on. Absolute paths still read the surface's data model. The database sorts, filters and pages; a person asks for more rows, up to 200. An input inside a row must bind an absolute path. For plain rows in columns use DataGrid.",
       "type": "object",
@@ -28407,6 +28909,9 @@
         },
         {
           "$ref": "#/components/Message"
+        },
+        {
+          "$ref": "#/components/Conversation"
         },
         {
           "$ref": "#/components/RowList"
