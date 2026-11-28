@@ -198,7 +198,7 @@ The UI depends on one interface, `DataSource`, and never imports an engine, driv
 
 ## Status
 
-This is early, pre-release software. What is built, and what has and has not been run against real systems, is listed under "Status" in [AGENTS.md](AGENTS.md). In brief, these have not been run yet:
+This is early, pre-release software. What is built, and what has and has not been run against real systems, is listed in [docs/status.md](docs/status.md). In brief, these have not been run yet:
 
 - reading from real S3, GCS or Azure storage
 - the Teradata Query Service transport
@@ -215,7 +215,7 @@ pnpm check:boundaries   # the UI must not import the data layer
 pnpm docs:gen           # regenerates docs/catalog and docs/recipes
 ```
 
-Read [AGENTS.md](AGENTS.md) before changing anything; it holds the rules (contracts first, SQL never in the browser, tokens only, accessibility to WCAG 2.2 AA). [docs/plan.md](docs/plan.md) has the architecture, and [docs/accessibility.md](docs/accessibility.md) maps each WCAG criterion to how it is met. Releases use Changesets (`pnpm changeset`); [docs/releasing.md](docs/releasing.md) says how to cut one.
+Read [AGENTS.md](AGENTS.md) before changing anything; it holds the rules (contracts first, SQL never in the browser, tokens only, accessibility to WCAG 2.2 AA), and each package and component folder has an `AGENTS.md` of its own with what is specific to it. [docs/plan.md](docs/plan.md) has the architecture, and [docs/accessibility.md](docs/accessibility.md) maps each WCAG criterion to how it is met. Releases use Changesets (`pnpm changeset`); [docs/releasing.md](docs/releasing.md) says how to cut one.
 
 ## License
 

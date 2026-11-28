@@ -25,7 +25,7 @@ Connecting is a human-in-the-loop flow: the agent plans, the person approves and
 - **A database address never contains the password.**
 - **A table that cannot be reached is reported, not fatal.** Say which and why; carry on with the rest.
 - **Data values are withheld by default.** Only names, types and counts are profiled until a source is listed in `allowSampleValues`. Say so when a person asks for samples.
-- **Say what is not verified.** See AGENTS.md "Status" for what has run against real services.
+- **Say what is not verified.** See docs/status.md for what has run against real services.
 
 ## Config shapes
 

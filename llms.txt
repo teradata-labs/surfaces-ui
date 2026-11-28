@@ -26,7 +26,8 @@
 - [semantic.proto](proto/surfaces/v1/semantic.proto): SemanticService, SemanticModel (a query with dimensions, measures and metrics, versioned)
 
 ## For working in this repository
-- [AGENTS.md](AGENTS.md): what exists, the rules, commands
+- [AGENTS.md](AGENTS.md): the rules, commands, and where each package's and component's own notes are
+- [docs/status.md](docs/status.md): what is built and what has run against real systems
 
 - `AnalyticsChat` (`@surfaces-ui/chat`): a chat for data people with optional saved conversations (`SessionList`, `librarySessions`), file and table attachments, a Model menu (grouped by provider when the host passes `providers`, every model in the Agent setup panel) and one Agent setup menu holding the agent, its skills and its connectors (from `DescribeAgents`), voice (`SpeechAdapter`, `browserSpeech`) and an arrow-up Send; small lists are composer menus, big lists are panels on a right rail.
 - `FileBrowser` (`@surfaces-ui/components`): folders and files in a source's storage (`DataSource.listFiles`, optional) and folders opened from the person's computer; names only, handed to a chat as `DataRef`s of kind `file`.
