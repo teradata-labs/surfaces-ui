@@ -7,7 +7,7 @@ import { createDuckDbEngine } from "@surfaces-ui/engine-duckdb";
 import { AggregateFunction, FilterOperator, SortDirection } from "@surfaces-ui/proto";
 import { seedById } from "@surfaces-ui/seeds";
 import { beforeAll, describe, expect, it } from "vitest";
-import { type DuckDbWasmDataSource, createDuckDbWasmDataSource, fileFormatOf, loadSeed, tableNameOf } from "./index.js";
+import { type DuckDbWasmBindings, type DuckDbWasmDataSource, createDuckDbWasmDataSource, dropDuckDbFile, fileFormatOf, loadSeed, registerDuckDbFile, tableNameOf } from "./index.js";
 
 const require = createRequire(import.meta.url);
 const dist = path.dirname(require.resolve("@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm"));
@@ -16,9 +16,10 @@ const retail = seedById("retail")!;
 const fraud = seedById("fraud")!;
 
 let wasm: DuckDbWasmDataSource;
+let node: Awaited<ReturnType<typeof createDuckDB>>;
 
 beforeAll(async () => {
-  const db = await createDuckDB(
+  node = await createDuckDB(
     {
       mvp: { mainModule: path.join(dist, "duckdb-mvp.wasm"), mainWorker: path.join(dist, "duckdb-node-mvp.worker.cjs") },
       eh: { mainModule: path.join(dist, "duckdb-eh.wasm"), mainWorker: path.join(dist, "duckdb-node-eh.worker.cjs") },
@@ -26,6 +27,7 @@ beforeAll(async () => {
     new VoidLogger(),
     NODE_RUNTIME,
   );
+  const db = node;
   await db.instantiate();
   db.open({});
   wasm = await createDuckDbWasmDataSource({
@@ -147,3 +149,78 @@ describe("DuckDB in the browser", () => {
     expect(plan.planText.length).toBeGreaterThan(0);
   });
 });
+
+describe("a file from disk", () => {
+  const csv = "id,name\n1,Ada\n2,Grace\n";
+
+  it("registers bytes under a name, reads them, and drops them again", async () => {
+    const engine = wasm.engine("fraud");
+    await engine.registerFile("people", new TextEncoder().encode(csv), "csv");
+    const page = await collect(wasm.dataSource.execute({ sourceId: "fraud", query: { baseSql: "SELECT name FROM people ORDER BY id" } }));
+    expect(toRows(page.table).map((row) => row.name)).toEqual(["Ada", "Grace"]);
+    await engine.dropFile("people");
+    await expect(collect(wasm.dataSource.execute({ sourceId: "fraud", query: { baseSql: "SELECT * FROM people" } }))).rejects.toThrow(/people/);
+    // A second drop of what is already gone is not an error.
+    await engine.dropFile("people");
+  });
+
+  it("registers a File through the browser file reader, and falls back to reading it when the bindings lack one", async () => {
+    const file = new File([csv], "people.csv", { type: "text/csv" });
+    const calls: string[] = [];
+    const handle = { ...fakeBindings(calls), registerFileHandle: (name: string, given: unknown, protocol: number, directIO: boolean) => calls.push(`handle ${name} ${given === file} ${protocol} ${directIO}`) };
+    await registerDuckDbFile(handle, "people.csv", file);
+    expect(calls).toEqual(["handle people.csv true 2 true"]);
+    calls.length = 0;
+    await registerDuckDbFile(fakeBindings(calls), "people.csv", file);
+    expect(calls).toEqual([`buffer people.csv ${csv.length}`]);
+    calls.length = 0;
+    await registerDuckDbFile(fakeBindings(calls), "bytes.csv", new Uint8Array([1, 2]));
+    expect(calls).toEqual(["buffer bytes.csv 2"]);
+    await dropDuckDbFile({ ...fakeBindings(calls), dropFile: (name: string) => calls.push(`drop ${name}`) }, "people.csv");
+    await dropDuckDbFile(fakeBindings(calls), "people.csv");
+    expect(calls.at(-1)).toBe("drop people.csv");
+  });
+
+  it("reads a File into the database when the bindings have no browser file reader, and lets go of it with its table", async () => {
+    // Node's DuckDB cannot open a browser File by handle (that needs a browser), so these bindings lack the call and the File is read whole.
+    const bindings: DuckDbWasmBindings = {
+      runQuery: (c, t) => node.runQuery(c, t),
+      createPrepared: (c, t) => node.createPrepared(c, t),
+      runPrepared: (c, p, v) => node.runPrepared(c, p, v),
+      closePrepared: (c, p) => node.closePrepared(c, p),
+      cancelPendingQuery: (c) => node.cancelPendingQuery(c),
+      registerFileBuffer: (n, b) => node.registerFileBuffer(n, b),
+      dropFile: (n) => node.dropFile(n),
+      getVersion: () => node.getVersion(),
+    };
+    const source = await createDuckDbWasmDataSource({ bindings, connect: () => node.connect().useUnsafe((_c, id) => id), sources: [{ id: "from_disk" }] });
+    const engine = source.engine("from_disk");
+    await engine.registerFile("people", new File([csv], "people.csv"), "csv", { comment: "From disk" });
+    const page = await collect(source.dataSource.execute({ sourceId: "from_disk", query: { baseSql: "SELECT COUNT(*) AS n FROM people" } }));
+    expect(Number(toRows(page.table)[0]!.n)).toBe(2);
+    await engine.dropFile("people");
+    await expect(collect(source.dataSource.execute({ sourceId: "from_disk", query: { baseSql: "SELECT * FROM people" } }))).rejects.toThrow(/people/);
+  });
+
+  it("says a file cannot be read, and does not leave it registered", async () => {
+    await expect(wasm.engine("fraud").registerFile("broken", new File(["\u0000\u0001not parquet"], "broken.parquet"), "parquet")).rejects.toThrow();
+    expect((await wasm.dataSource.listTables({ sourceId: "fraud" })).tables.map((t) => t.ref?.table)).not.toContain("broken");
+  });
+});
+
+function fakeBindings(calls: string[]): DuckDbWasmBindings {
+  const never = () => {
+    throw new Error("not used");
+  };
+  return {
+    runQuery: never,
+    createPrepared: never,
+    runPrepared: never,
+    closePrepared: never,
+    cancelPendingQuery: never,
+    getVersion: () => "test",
+    registerFileBuffer: (name, buffer) => {
+      calls.push(`buffer ${name} ${buffer.length}`);
+    },
+  };
+}
