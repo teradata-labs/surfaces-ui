@@ -241,6 +241,44 @@ export async function loadConfig(file: string): Promise<{ config: SurfacesConfig
   return { config, dir: path.dirname(absolute) };
 }
 
+/** Splits a command line into the program and its arguments, keeping what is inside quotes together. */
+function words(line: string): string[] {
+  return [...line.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((match) => match[1] ?? match[2] ?? match[3]!);
+}
+
+/**
+ * A config made from the environment, for where there is no project folder
+ * to keep a config file in (a plugin in a desktop app, whose settings screen
+ * fills these in). One source, a database reached through its own MCP server:
+ *
+ * - `SURFACES_SOURCE_DIALECT`: `postgres`, `mysql`, `duckdb` or `teradata`.
+ * - `SURFACES_SOURCE_SERVER`: the command that starts the database's MCP
+ *   server (`uvx teradata-mcp-server`), or the address of one (`https://…`).
+ * - `SURFACES_SOURCE_SECRET`: the connection string a local server reads, or
+ *   the token a remote one takes. It is handed to a local server under the
+ *   name in `SURFACES_SOURCE_SECRET_NAME` (`DATABASE_URI` unless said), and is
+ *   never written anywhere or shown.
+ * - `SURFACES_SOURCE_NAME`, `SURFACES_SOURCE_DATABASE`: a display name, and
+ *   Teradata's default database.
+ *
+ * Nothing set gives `undefined`; a dialect or a server without the other is an error that says which is missing.
+ */
+export function configFromEnv(env: Record<string, string | undefined> = process.env): SurfacesConfig | undefined {
+  const dialect = env.SURFACES_SOURCE_DIALECT?.trim().toLowerCase();
+  const server = env.SURFACES_SOURCE_SERVER?.trim();
+  if (!dialect && !server) return undefined;
+  if (!dialect || !server) throw new Error(`A data source needs both its database type and its MCP server; ${dialect ? "the server" : "the database type"} is missing.`);
+  if (dialect !== "postgres" && dialect !== "mysql" && dialect !== "duckdb" && dialect !== "teradata") throw new Error(`The database type must be postgres, mysql, duckdb or teradata, not "${dialect}".`);
+  const common = { id: "data", displayName: env.SURFACES_SOURCE_NAME?.trim() || undefined, engine: "mcp" as const, dialect: dialect as McpSourceConfig["dialect"], database: env.SURFACES_SOURCE_DATABASE?.trim() || undefined };
+  if (/^https?:\/\//i.test(server)) return { sources: [{ ...common, server: { url: server, secret: env.SURFACES_SOURCE_SECRET ? "SURFACES_SOURCE_SECRET" : undefined } }] };
+  const [command, ...args] = words(server);
+  if (!command) throw new Error("The MCP server's command is empty.");
+  const name = env.SURFACES_SOURCE_SECRET_NAME?.trim() || "DATABASE_URI";
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new Error("The name the connection string is handed over under must be a plain environment variable name.");
+  if (env.SURFACES_SOURCE_SECRET) env[name] = env.SURFACES_SOURCE_SECRET;
+  return { sources: [{ ...common, server: { command, args, env: [name] } }] };
+}
+
 /** Opens the engines a config describes. */
 export async function openSources(
   config: SurfacesConfig,
@@ -260,7 +298,8 @@ export async function openSources(
     if (source.engine === "mcp") {
       const server = source.server;
       const secret = "url" in server ? server.secret : undefined;
-      const token = secret ? (await resolveSecret(secret))?.token : undefined;
+      // A source made from the environment (`configFromEnv`) keeps its token under this one name.
+      const token = secret === "SURFACES_SOURCE_SECRET" ? process.env.SURFACES_SOURCE_SECRET : secret ? (await resolveSecret(secret))?.token : undefined;
       const engine = await createMcpEngine({
         dialect: source.dialect,
         transport: "url" in server ? httpServer(server.url, { token: () => token }) : stdioServer(server.command, server.args, { env: server.env }),
