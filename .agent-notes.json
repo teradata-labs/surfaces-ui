@@ -1,0 +1,6 @@
+{
+  "require": ["packages/*", "apps/*", "packages/components/src/*", "plugins", "proto", "fixtures/lake"],
+  "also": ["docs/status.md"],
+  "rootLimit": 2500,
+  "noteLimit": 4000
+}

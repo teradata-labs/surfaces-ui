@@ -1,12 +1,19 @@
 {
   "name": "surfaces-ui",
   "owner": { "name": "Surfaces UI" },
-  "metadata": { "description": "Plugins for agentic data and analytics work with Surfaces UI." },
+  "description": "Plugins for data and analytics work with Surfaces UI, and for keeping a repository's agent notes.",
   "plugins": [
     {
       "name": "surfaces-analytics",
       "source": "./plugins/surfaces-analytics",
-      "description": "Chart and dashboard standards, human-in-the-loop patterns, connecting, cleaning, personal data, transformations, and accessible, responsive UI."
+      "description": "Chart and dashboard standards, human-in-the-loop patterns, connecting, cleaning, personal data, transformations and accessible, responsive UI, with the Surfaces MCP server.",
+      "category": "data"
+    },
+    {
+      "name": "agent-notes",
+      "source": "./plugins/agent-notes",
+      "description": "Agent notes kept as a wiki beside the code: a note per folder, a hook that will not let one be skipped, and a check for CI.",
+      "category": "productivity"
     }
   ]
 }

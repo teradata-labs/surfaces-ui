@@ -12,7 +12,7 @@ What is built, and what has and has not been run against real systems: [docs/sta
 
 This file holds what is true everywhere: the commands, the rules and the conventions. Everything about one package or one component is in an `AGENTS.md` beside its code, with a `CLAUDE.md` that imports it. A new package or component folder gets a note and a line here (`pnpm check:notes` fails without them).
 
-**The notes are not optional reading.** Before you change a file, or use a component or package from somewhere else, the notes that cover it must be in your context: the `AGENTS.md` of its folder and of every folder above it, up to this file. Never skip one. If a note is already in your context, do not read it again; after your context has been compacted or cleared it is gone, so read it again then. Claude Code loads a folder's notes when you read, write or edit a file there, and a hook (`.claude/hooks/notes.mjs`) refuses a write to a folder whose notes are not in context and names them; in any other tool, read them yourself. Searching a folder loads nothing. When you learn something about a folder, write it into that folder's note, not into this file.
+**The notes are not optional reading.** Before you change a file, or use a component or package from somewhere else, the notes that cover it must be in your context: the `AGENTS.md` of its folder and of every folder above it, up to this file. Never skip one. If a note is already in your context, do not read it again; after your context has been compacted or cleared it is gone, so read it again then. Claude Code loads a folder's notes when you read, write or edit a file there, and a hook (`notes-guard.mjs` in `plugins/agent-notes`, wired in `.claude/settings.json`) refuses a write to a folder whose notes are not in context and names them; in any other tool, read them yourself. Searching a folder loads nothing. When you learn something about a folder, write it into that folder's note, not into this file.
 
 **Contracts**
 
@@ -72,11 +72,11 @@ This file holds what is true everywhere: the commands, the rules and the convent
 | [`packages/page`](packages/page/AGENTS.md) | Surfaces UI pages as one script and one stylesheet, for plain HTML pages with no build step |
 | [`packages/next`](packages/next/AGENTS.md) | Serve Surfaces UI pages from a Next.js app: routes, metadata and server-rendered pages, with Next.js doing the routing, building and hosting |
 
-**Agent skills (plugin)**
+**Plugins**
 
 | Notes | What it is |
 |---|---|
-| [`plugins/surfaces-analytics`](plugins/surfaces-analytics/AGENTS.md) | A Claude Code plugin of skills for data and analytics agents. |
+| [`plugins`](plugins/AGENTS.md) | The plugins people install into Claude Code and other agents: `surfaces-analytics` (skills and the MCP server) and `agent-notes` (the notes kept beside the code). |
 
 **Apps**
 
@@ -105,6 +105,7 @@ pnpm serve       # data dev server on http://localhost:5220 (reads surfaces.conf
 pnpm dev         # docs playground on http://localhost:5210
 pnpm check:boundaries   # UI packages (trace and devtools among them) must not import the data layer
 pnpm check:notes        # every package, app and component folder has its AGENTS.md and CLAUDE.md, listed and linked
+pnpm check:plugins      # the plugins pass what a Claude directory submission is refused for, and the MCP pin is current
 pnpm e2e         # browser tests (apps/e2e, Playwright): the playground in Chromium at desktop and phone size,
                  # against DuckDB in the page; axe WCAG 2.2 AA checks included. First run:
                  # pnpm --filter @surfaces-ui/e2e e2e:install

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "surfaces": {
+      "command": "npx",
+      "args": ["-y", "@surfaces-ui/mcp@0.4.0"]
+    }
+  }
+}

@@ -15,10 +15,11 @@
     "dev": "pnpm --filter @surfaces-ui/playground dev",
     "serve": "pnpm --filter @surfaces-ui/dev-server... --filter @surfaces-ui/mcp build && node packages/dev-server/dist/cli.js",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "check:notes": "node scripts/check-notes.mjs",
+    "check:notes": "node plugins/agent-notes/skills/notes-upkeep/scripts/check-notes.mjs",
+    "check:plugins": "node scripts/check-plugins.mjs",
     "docs:gen": "pnpm --filter @surfaces-ui/spec... --filter @surfaces-ui/chat... --filter @surfaces-ui/devtools... build && node scripts/generate-docs.mjs",
     "changeset": "changeset",
-    "version-packages": "changeset version && pnpm install --lockfile-only",
+    "version-packages": "changeset version && node scripts/check-plugins.mjs --write && pnpm install --lockfile-only",
     "release": "pnpm build && pnpm test && node scripts/check-release.mjs && changeset publish",
     "check:release": "node scripts/check-release.mjs"
   },
