@@ -56,7 +56,7 @@ This file holds what is true everywhere: the commands, the rules and the convent
 | [`packages/discovery`](packages/discovery/AGENTS.md) | Reference discovery backend: search, profiles, relations and context packs over any DataSource. Also: discovery rules and agent context. |
 | [`packages/embedder-local`](packages/embedder-local/AGENTS.md) | Local embedding model for semantic search; the model is downloaded on first use to a cache outside the repo |
 | [`packages/seeds`](packages/seeds/AGENTS.md) | Six synthetic industry data models (retail, healthcare, fraud, telco churn, transportation, manufacturing): generator SQL, descriptions, keys, forms, pipelines and starter surfaces |
-| [`fixtures/lake`](fixtures/lake/AGENTS.md) | Sample Parquet, Delta and Iceberg tables. |
+| [`fixtures/lake`](fixtures/AGENTS.md) | Sample Parquet, Delta and Iceberg tables. |
 
 **Pipelines (optional; the one part of the library that changes data)**
 
