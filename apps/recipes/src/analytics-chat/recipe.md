@@ -3,7 +3,7 @@
 `AnalyticsChat` is a chat for people who work with data. The conversation is always there; everything else appears only when you pass its prop:
 
 - `sessions`: saved conversations, listed in a Conversations panel to search, filter, sort and group, and each conversation saved as it goes.
-- `attachFiles`: a `+` button, and files dropped or pasted on the box. Any file is offered; your function says which became data (a `DataRef`) and why the others did not.
+- `attachFiles`: a `+` button, and files dropped or pasted on the box. Any file is offered (`accept` narrows the picker); your function says which became data (a `DataRef`), which is a picture to show as a thumbnail (`attachment`), which it handled itself (`taken`) and why the others did not.
 - `browse`: an "Add data" button and a Data panel with tables (`ObjectBrowser`) and files (`FileBrowser`). Names go to the agent, never values.
 - `agents`: a Model menu, and one Agent setup menu whose sections (Agent, Skills, Connectors) open in place, filled from `DescribeAgents`. Short lists are menus in the composer; each ends in "View all…" or "Manage…", which opens its panel on the rail to the right.
 - `speech`: a microphone that dictates, and a Talk button for a spoken conversation that sends after a pause, reads the reply and listens again. It stops when a reply needs a decision.
