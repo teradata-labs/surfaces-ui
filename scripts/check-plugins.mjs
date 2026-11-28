@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Checks the plugins under plugins/ against what a Claude plugin directory submission is refused or held for
 // (https://claude.com/docs/plugins/pre-submission-checklist), and keeps the MCP server the analytics plugin
-// starts pinned to the version this repository publishes. `--write` sets that pin and the plugin's version
-// (run by `pnpm version-packages`); without it, a difference is a failure.
+// starts pinned to the version this repository publishes. `--write` sets that pin and raises the plugin's
+// version (run by `pnpm version-packages`); without it, a difference is a failure.
 import fs from "node:fs";
 import path from "node:path";
 
@@ -23,14 +23,16 @@ const analytics = "plugins/surfaces-analytics";
   const args = mcp.mcpServers.surfaces.args;
   const at = args.findIndex((arg) => arg.startsWith("@surfaces-ui/mcp"));
   const manifest = json(`${analytics}/.claude-plugin/plugin.json`);
-  if (args[at] !== `@surfaces-ui/mcp@${released}` || manifest.version !== released) {
+  if (args[at] !== `@surfaces-ui/mcp@${released}`) {
     if (write) {
       args[at] = `@surfaces-ui/mcp@${released}`;
-      manifest.version = released;
+      // An installed plugin is updated only when its version changes, so a new pin is a new version of the plugin.
+      const [major, minor] = manifest.version.split(".").map(Number);
+      manifest.version = `${major}.${minor + 1}.0`;
       fs.writeFileSync(file, `${JSON.stringify(mcp, null, 2)}\n`);
       fs.writeFileSync(`${analytics}/.claude-plugin/plugin.json`, `${JSON.stringify(manifest, null, 2)}\n`);
-      console.log(`surfaces-analytics now starts @surfaces-ui/mcp@${released}.`);
-    } else problems.push(`${analytics}: must be version ${released} and start @surfaces-ui/mcp@${released}. Run node scripts/check-plugins.mjs --write.`);
+      console.log(`surfaces-analytics ${manifest.version} now starts @surfaces-ui/mcp@${released}.`);
+    } else problems.push(`${analytics}: must start @surfaces-ui/mcp@${released}. Run node scripts/check-plugins.mjs --write.`);
   }
 }
 

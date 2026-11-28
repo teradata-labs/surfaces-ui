@@ -1,6 +1,6 @@
 {
   "name": "surfaces-analytics",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Data and analytics work with Surfaces UI: skills for chart and dashboard standards after Tufte and Few, human-in-the-loop patterns, connecting and onboarding, cleaning, personal data, transformations and responsive, accessible UI, with the Surfaces MCP server that draws live tables, charts and dashboards over your own data.",
   "author": { "name": "Josh Schoen", "url": "https://github.com/teradata-labs/surfaces-ui" },
   "homepage": "https://surfaces-ui.com",

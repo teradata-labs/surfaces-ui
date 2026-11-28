@@ -18,7 +18,7 @@ CI runs `pnpm check:release` on every pull request, before and after a trial `ch
 2. Review and merge that pull request.
 3. Run **Release** on `main` again. It builds, tests, runs `scripts/check-release.mjs` and publishes every package whose version is not on npm yet, with provenance.
 
-`pnpm version-packages` also sets the `surfaces-analytics` plugin's version and the version of `@surfaces-ui/mcp` it starts (`scripts/check-plugins.mjs --write`), so the plugin follows the release; Claude's directory picks the new commit up from `main`, and until the packages are published that pinned version is not on npm yet, so publish straight after merging.
+`pnpm version-packages` also sets the version of `@surfaces-ui/mcp` the `surfaces-analytics` plugin starts and raises the plugin's own version (`scripts/check-plugins.mjs --write`), so the plugin follows the release; Claude's directory picks the new commit up from `main`, and until the packages are published that pinned version is not on npm yet, so publish straight after merging.
 
 By hand, the same is `pnpm version-packages`, then `pnpm release` (provenance needs CI, so publish from the workflow).
 
