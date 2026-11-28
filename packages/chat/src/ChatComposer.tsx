@@ -352,7 +352,7 @@ export function ChatComposer(props: ComposerProps) {
       ref={form}
       className="sf-chat-composer"
       data-compact={compact || undefined}
-      data-rich={attachFiles || canBrowse || chooses || voice.supported || undefined}
+      data-rich={!!attachFiles || canBrowse || chooses || voice.supported || undefined}
       data-over={over || undefined}
       onSubmit={submit}
       onDragOver={(event) => firstSight(event) && onDragOver(event)}
