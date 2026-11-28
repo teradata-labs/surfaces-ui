@@ -41,9 +41,35 @@ export function typeOfValues(values: unknown[]): string {
 const quoted = (name: string) => `"${name.replace(/"/g, '""')}"`;
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 
+/**
+ * A statement without the `LIMIT n` and `OFFSET n` the rewriter ends a page
+ * with, and whether it had a limit. Found by looking for the words from the
+ * end, not with a pattern: the statement holds a person's own query, and a
+ * pattern that can backtrack over it is a way to stall the server.
+ */
+export function paging(query: string): { base: string; limited: boolean } {
+  let base = query.trimEnd();
+  let limited = false;
+  for (const word of [" OFFSET ", " LIMIT "]) {
+    const at = base.toUpperCase().lastIndexOf(word);
+    if (at === -1) continue;
+    const count = base.slice(at + word.length).trim();
+    if (count === "" || [...count].some((c) => c < "0" || c > "9")) continue;
+    base = base.slice(0, at).trimEnd();
+    if (word === " LIMIT ") limited = true;
+  }
+  return { base, limited };
+}
+
 /** A database's type name as one the Arrow builder knows. Anything else arrives as text. */
 export function standardType(native: string): string {
-  const text = native.trim().toUpperCase().replace(/\s+(UNSIGNED|ZEROFILL)\b/g, "");
+  // Words are told apart by splitting, not by a pattern: a type name comes from another server, and a pattern that can backtrack over it is a way to stall this one.
+  const text = native
+    .trim()
+    .toUpperCase()
+    .split(" ")
+    .filter((word) => word !== "" && word !== "UNSIGNED" && word !== "ZEROFILL")
+    .join(" ");
   const base = text.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").trim();
   if (base === "BOOLEAN" || base === "BOOL" || base === "TINYINT") return "BYTEINT";
   if (base === "INT2") return "SMALLINT";
@@ -131,7 +157,7 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
    */
   const described = new Map<string, SqlColumn[]>();
   const describe = async (query: string, names?: string[]): Promise<SqlColumn[]> => {
-    const key = query.replace(/\s+(LIMIT\s+\d+)?(\s+OFFSET\s+\d+)?\s*$/i, "");
+    const key = paging(query).base;
     const known = described.get(key);
     if (known) return known;
     const never = `FROM (SELECT 1) AS o LEFT JOIN (${query}) AS q ON false`;
@@ -150,7 +176,7 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
    * from the values (`typeOfValues`).
    */
   const namesOf = async (query: string): Promise<string[]> => {
-    const key = query.replace(/\s+(LIMIT\s+\d+)?(\s+OFFSET\s+\d+)?\s*$/i, "");
+    const key = paging(query).base;
     const known = described.get(key);
     if (known) return known.map((c) => c.name);
     const probe = complete(await sql.query(`SELECT q.* FROM (SELECT 1 AS \`__one\`) AS o LEFT JOIN (${query}) AS q ON 1 = 0`));
@@ -169,7 +195,7 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
   const mysqlRows = async (query: string, signal?: AbortSignal): Promise<{ columns: SqlColumn[]; rows: unknown[][] }> => {
     const names = await namesOf(query);
     if (names.length === 0) return complete(await sql.query(query, { signal }));
-    const limited = /\bLIMIT\s+\d+(\s+OFFSET\s+\d+)?\s*$/i.test(query) ? query : `${query} LIMIT 18446744073709551615`;
+    const limited = paging(query).limited ? query : `${query} LIMIT 18446744073709551615`;
     const answer = complete(await sql.query(`SELECT JSON_OBJECT(${names.map((name) => `${text(name)}, q.${named(name)}`).join(", ")}) AS r FROM (${limited}) AS q`, { signal }));
     const rows = answer.rows.map((row) => {
       const parsed: unknown = typeof row[0] === "string" ? JSON.parse(row[0]) : row[0];

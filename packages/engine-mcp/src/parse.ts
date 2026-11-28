@@ -59,11 +59,25 @@ function fromValue(value: unknown): SqlRows | undefined {
   return undefined;
 }
 
+/**
+ * What lies between an opening tag that begins with `open` and the last
+ * closing tag that begins with `close`. Found by position, not with a
+ * pattern: the text is another server's, and a pattern that can backtrack
+ * over it is a way to stall this one.
+ */
+function between(text: string, open: string, close: string): string | undefined {
+  const start = text.indexOf(open);
+  if (start === -1) return undefined;
+  const from = text.indexOf(">", start);
+  const to = text.lastIndexOf(close);
+  return from === -1 || to <= from ? undefined : text.slice(from + 1, to).trim();
+}
+
 function fromText(text: string): SqlRows | undefined {
   const trimmed = text.trim();
   if (trimmed === "" || trimmed === "No results") return { columns: [], rows: [], truncated: false };
-  const fenced = /<untrusted-data-[^>]*>\s*([\s\S]*?)\s*<\/untrusted-data-[^>]*>/.exec(trimmed);
-  for (const candidate of fenced ? [trimmed, fenced[1]!] : [trimmed]) {
+  const fenced = between(trimmed, "<untrusted-data-", "</untrusted-data-");
+  for (const candidate of fenced === undefined ? [trimmed] : [trimmed, fenced]) {
     if (/^[[{]/.test(candidate)) {
       try {
         const found = fromValue(JSON.parse(candidate));

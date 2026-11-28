@@ -124,13 +124,17 @@ export function databaseError(message: string): EngineError {
     .replace(/^\([\w.]+\)\s*/, "")
     .replace(/^(Error|Binder Error|Catalog Error|Parser Error|Conversion Error):\s*/i, "")
     .trim();
-  const code = /timed? ?out/i.test(message)
+  // The message is another server's text, so it is searched for plain words, never matched with a pattern that can backtrack over it.
+  const text = message.toLowerCase();
+  const has = (...words: string[]) => words.some((word) => text.includes(word));
+  const missing = has("does not exist", "not found", "doesn't exist");
+  const code = has("timed out", "timeout", "time out")
     ? "TIMEOUT"
-    : /syntax error|parser error|parse error|\b3706\b/i.test(message)
+    : has("syntax error", "parser error", "parse error", "[error 3706]")
       ? "SYNTAX"
-      : /column .* (does not exist|not found)|unknown column|referenced column|\b3810\b/i.test(message)
+      : has("unknown column", "referenced column", "[error 3810]") || (has("column") && missing)
         ? "UNKNOWN_COLUMN"
-        : /(relation|table|object) .* (does not exist|not found)|table with name .* does not exist|doesn't exist|\b3807\b/i.test(message)
+        : has("[error 3807]") || ((has("relation", "table", "object") || has("doesn't exist")) && missing)
           ? "UNKNOWN_TABLE"
           : "ENGINE";
   return new EngineError(code, clean || "The data server reported an error.");

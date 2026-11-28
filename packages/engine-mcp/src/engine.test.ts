@@ -4,6 +4,8 @@ import { initSql } from "@surfaces-ui/sql";
 import { Table } from "apache-arrow";
 import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
+import { databaseError } from "./client.js";
+import { paging } from "./engine.js";
 import { createMcpEngine, findQueryTool, inlineParams, literal, pythonLiteral, readRows, standardType, toolError, typeOfValues } from "./index.js";
 
 const text = (value: string) => ({ content: [{ type: "text" as const, text: value }] });
@@ -100,6 +102,40 @@ describe("findQueryTool", () => {
     expect(findQueryTool([tool("a", "x"), tool("named", "text")], { tool: "named", argument: "text" })).toEqual({ tool: "named", argument: "text" });
     expect(() => findQueryTool([tool("read_records", "entity")])).toThrow(/no tool that takes SQL/);
     expect(() => findQueryTool([tool("query", "sql")], { tool: "missing" })).toThrow(/no tool named missing/);
+  });
+});
+
+describe("text from elsewhere is read without patterns that can stall", () => {
+  it("takes the page off the end of a statement, and says whether it had a limit", () => {
+    expect(paging("SELECT a FROM t ORDER BY a LIMIT 25 OFFSET 50")).toEqual({ base: "SELECT a FROM t ORDER BY a", limited: true });
+    expect(paging("SELECT a FROM t limit 10  ")).toEqual({ base: "SELECT a FROM t", limited: true });
+    expect(paging("SELECT a FROM t OFFSET 5")).toEqual({ base: "SELECT a FROM t", limited: false });
+    expect(paging("SELECT ' LIMIT 5' AS x FROM t")).toEqual({ base: "SELECT ' LIMIT 5' AS x FROM t", limited: false });
+    expect(paging("SELECT a FROM t LIMIT 5 FOR UPDATE")).toEqual({ base: "SELECT a FROM t LIMIT 5 FOR UPDATE", limited: false });
+  });
+
+  it("names a database's error by its words, in the forms each database uses", () => {
+    expect(databaseError('column "nope" does not exist').code).toBe("UNKNOWN_COLUMN");
+    expect(databaseError("Unknown column 'nope' in 'SELECT'").code).toBe("UNKNOWN_COLUMN");
+    expect(databaseError('Binder Error: Referenced column "nope" not found in FROM clause!').code).toBe("UNKNOWN_COLUMN");
+    expect(databaseError("[Error 3810] Column/Parameter 'nope' does not exist.").code).toBe("UNKNOWN_COLUMN");
+    expect(databaseError('relation "sales.nope" does not exist').code).toBe("UNKNOWN_TABLE");
+    expect(databaseError("Table 'sales.nope' doesn't exist").code).toBe("UNKNOWN_TABLE");
+    expect(databaseError("Catalog Error: Table with name nope does not exist!").code).toBe("UNKNOWN_TABLE");
+    expect(databaseError("[Error 3807] Object 'x' does not exist.").code).toBe("UNKNOWN_TABLE");
+    expect(databaseError('syntax error at or near "FORM"').code).toBe("SYNTAX");
+    expect(databaseError("Request timed out").code).toBe("TIMEOUT");
+    expect(databaseError("permission denied for table orders").code).toBe("ENGINE");
+  });
+
+  it("stays quick on text built to make a pattern backtrack", () => {
+    const started = Date.now();
+    const long = " ".repeat(200_000);
+    paging(`SELECT 1${long}LIMIT${long}x`);
+    standardType(`BIGINT${long}UNSIGNEDX`);
+    databaseError(`column ${"a ".repeat(100_000)}`);
+    expect(() => readRows({ content: [{ type: "text", text: `<untrusted-data-${"<untrusted-data-".repeat(20_000)}` }] })).toThrow(/not rows/);
+    expect(Date.now() - started).toBeLessThan(2000);
   });
 });
 

@@ -262,6 +262,12 @@ export async function loadConfig(file: string): Promise<{ config: SurfacesConfig
   return { config, dir: path.dirname(absolute) };
 }
 
+/** An address up to its query or fragment, which can hold a key. Cut by position, since a pattern that can backtrack over a long address is a way to stall the server. */
+function withoutQuery(url: string): string {
+  const cut = [url.indexOf("?"), url.indexOf("#")].filter((at) => at !== -1);
+  return cut.length === 0 ? url : url.slice(0, Math.min(...cut));
+}
+
 /** Splits a command line into the program and its arguments, keeping what is inside quotes together. */
 function words(line: string): string[] {
   return [...line.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((match) => match[1] ?? match[2] ?? match[3]!);
@@ -331,7 +337,7 @@ export async function openSources(
         dialect: source.dialect,
         transport: "url" in server ? httpServer(server.url, { token: () => token }) : stdioServer(server.command, server.args, { env: server.env }),
         // A command line can hold a connection string, so only the program is shown; an address is shown without its query.
-        address: "url" in server ? server.url.replace(/[?#].*$/, "") : server.command,
+        address: "url" in server ? withoutQuery(server.url) : server.command,
         tool: source.tool,
         argument: source.argument,
         arguments: source.arguments,
