@@ -1,7 +1,7 @@
 {
   "name": "@surfaces-ui/engine-mcp",
   "version": "0.4.0",
-  "description": "A database's own MCP server as a Surfaces UI engine: sorts, filters and pages run as SQL through that server's query tool (Teradata, Postgres, DuckDB)",
+  "description": "A database's own MCP server as a Surfaces UI engine: sorts, filters and pages run as SQL through that server's query tool (Teradata, Postgres, MySQL, DuckDB)",
   "keywords": [
     "surfaces-ui",
     "analytics",

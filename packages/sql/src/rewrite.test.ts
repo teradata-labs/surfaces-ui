@@ -415,3 +415,61 @@ describe("DataFusion and Postgres", () => {
     expect(parses(binned.sql, DF)).toBe(true);
   });
 });
+
+describe("MySQL", () => {
+  const MY = SqlDialect.MYSQL;
+
+  it("writes names in backticks, wherever they came from, and leaves text and comments alone", async () => {
+    const { mysqlNames } = await import("./index.js");
+    expect(mysqlNames(`SELECT "a", 'it''s "not" a name', \`b"c\` FROM "t" -- "x"`)).toBe("SELECT `a`, 'it''s \"not\" a name', `b\"c` FROM `t` -- \"x\"");
+    // A backslash escapes the quote after it in MySQL, so the string runs on to the next one.
+    expect(mysqlNames(`SELECT 'a\\' "still text"', "n""m", "tick\`" # "c"`)).toBe("SELECT 'a\\' \"still text\"', `n\"m`, `tick```` # \"c\"".replace("````", "```"));
+    expect(mysqlNames("SELECT 1")).toBe("SELECT 1");
+  });
+
+  it("sorts, filters and pages with LIMIT, in backticks, with nulls placed by a first sort", () => {
+    const r = rewriteQuery(
+      view('SELECT * FROM "sales"."orders"', {
+        filters: [{ column: "status", operator: FilterOperator.CONTAINS, values: [s("ship")] }, ...filterCust],
+        sorts: [{ column: "amt", direction: SortDirection.DESC, nulls: NullOrder.LAST }, { column: "id" }],
+        page: { limit: 25, offset: 50n },
+      }),
+      MY,
+    );
+    expect(r.sql).toBe(
+      "SELECT * FROM (SELECT * FROM `sales`.`orders`) AS `_sf` WHERE LOWER(`status`) LIKE LOWER(?) ESCAPE '\\\\' AND `cust_id` >= ? ORDER BY `amt` IS NULL, `amt` DESC, `id` ASC LIMIT 25 OFFSET 50",
+    );
+    expect(r.params).toEqual(["%ship%", 10n]);
+    expect(parses(r.sql, MY)).toBe(true);
+  });
+
+  it("groups by a month without DATE_TRUNC, and divides as floats", () => {
+    const r = rewriteQuery(
+      view("SELECT * FROM orders", {
+        buckets: [{ column: "ordered_at", by: { case: "grain", value: TimeGrain.MONTH } }],
+        aggregates: [{ function: AggregateFunction.SUM, column: "amt", alias: "revenue" }, { function: AggregateFunction.COUNT, alias: "n" }, { function: AggregateFunction.APPROX_COUNT_DISTINCT, column: "cust_id", alias: "buyers" }],
+        derived: [{ alias: "each", expression: "revenue / n" }],
+        sorts: [{ column: "ordered_at" }],
+      }),
+      MY,
+    );
+    expect(r.sql).toContain("CAST(DATE_FORMAT(`ordered_at`, '%Y-%m-01') AS DATETIME) AS `ordered_at`");
+    expect(r.sql).toContain("COUNT(DISTINCT `cust_id`) AS `buyers`");
+    expect(r.sql).toContain("(CAST((SUM(`amt`)) AS DOUBLE) / NULLIF((COUNT(*)), 0)) AS `each`");
+    expect(r.sql).not.toContain('"');
+    expect(parses(r.sql, MY)).toBe(true);
+    for (const grain of [TimeGrain.MINUTE, TimeGrain.HOUR, TimeGrain.DAY, TimeGrain.WEEK, TimeGrain.QUARTER, TimeGrain.YEAR]) {
+      const bucketed = rewriteQuery(view("SELECT * FROM orders", { buckets: [{ column: "ordered_at", by: { case: "grain", value: grain } }], aggregates: [{ function: AggregateFunction.COUNT, alias: "n" }] }), MY);
+      expect(parses(bucketed.sql, MY)).toBe(true);
+    }
+  });
+
+  it("samples with RAND, counts, and says plainly that it has no median or percentile", () => {
+    expect(rewriteQuery(view("SELECT * FROM orders", { sample: { rows: 200 } }), MY).sql).toBe("SELECT * FROM (SELECT * FROM (SELECT * FROM orders) AS `_sf` ORDER BY RAND() LIMIT 200) AS `_sf`");
+    expect(countQuery(view("SELECT * FROM orders", { filters: filterCust }), MY).sql).not.toContain('"');
+    expect(() => rewriteQuery(view("SELECT * FROM orders", { aggregates: [{ function: AggregateFunction.MEDIAN, column: "amt", alias: "mid" }] }), MY)).toThrow(/no median/);
+    expect(() => rewriteQuery(view("SELECT * FROM orders", { aggregates: [{ function: AggregateFunction.PERCENTILE, column: "amt", alias: "p", percentile: 0.9 }] }), MY)).toThrow(/no percentile/);
+    expect(() => assertReadOnly("DELETE FROM orders", MY)).toThrow(SqlError);
+    expect(() => assertReadOnly('SELECT "a" FROM orders', MY)).not.toThrow();
+  });
+});

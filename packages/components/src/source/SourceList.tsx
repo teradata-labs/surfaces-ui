@@ -16,6 +16,7 @@ const ENGINE_LABEL: Partial<Record<Engine, string>> = {
   [Engine.DATAFUSION]: "DataFusion",
   [Engine.TERADATA]: "Teradata",
   [Engine.POSTGRES]: "Postgres",
+  [Engine.MYSQL]: "MySQL",
 };
 
 export const CONNECTION_LABEL: Partial<Record<ConnectionKind, string>> = {

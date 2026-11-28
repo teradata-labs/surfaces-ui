@@ -8,7 +8,7 @@ import type { SqlColumn, SqlRows } from "./parse.js";
 
 export interface McpEngineOptions extends McpSqlOptions {
   /** The database behind the server, which decides the SQL that is written for it. */
-  dialect: "postgres" | "duckdb" | "teradata";
+  dialect: "postgres" | "mysql" | "duckdb" | "teradata";
   /** Shown as where this source connects, such as the server's address. Never a credential. */
   address?: string;
   /** Teradata: the default database, and the databases a listing covers when none is named. */
@@ -19,16 +19,37 @@ export interface McpEngineOptions extends McpSqlOptions {
 }
 
 const SYSTEM_SCHEMAS = "('information_schema', 'pg_catalog', 'pg_toast')";
+const MYSQL_SYSTEM_SCHEMAS = "('information_schema', 'mysql', 'performance_schema', 'sys')";
+const DATE_TEXT = /^\d{4}-\d\d-\d\d$/;
+const TIME_TEXT = /^\d{4}-\d\d-\d\d[ T]\d\d:\d\d(:\d\d(\.\d+)?)?$/;
+
+/**
+ * A column's type from its values, for a database that will not say (MySQL).
+ * The values have come through the database's own JSON, so a number is a
+ * number and text is text; only whole numbers, dates and times are told
+ * apart here. A column with no values on this page is text.
+ */
+export function typeOfValues(values: unknown[]): string {
+  const present = values.filter((value) => value !== null && value !== undefined);
+  if (present.length === 0) return "VARCHAR";
+  if (present.every((value) => typeof value === "number" || typeof value === "bigint")) return present.every((value) => typeof value === "bigint" || Number.isInteger(value)) ? "BIGINT" : "FLOAT";
+  if (present.every((value) => typeof value === "boolean")) return "BYTEINT";
+  if (present.every((value) => typeof value === "string" && DATE_TEXT.test(value))) return "DATE";
+  if (present.every((value) => typeof value === "string" && TIME_TEXT.test(value))) return "TIMESTAMP";
+  return "VARCHAR";
+}
 const quoted = (name: string) => `"${name.replace(/"/g, '""')}"`;
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** A database's type name as one the Arrow builder knows. Anything else arrives as text. */
 export function standardType(native: string): string {
-  const text = native.trim().toUpperCase();
+  const text = native.trim().toUpperCase().replace(/\s+(UNSIGNED|ZEROFILL)\b/g, "");
   const base = text.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").trim();
   if (base === "BOOLEAN" || base === "BOOL" || base === "TINYINT") return "BYTEINT";
   if (base === "INT2") return "SMALLINT";
-  if (base === "INT4" || base === "USMALLINT") return "INTEGER";
+  if (base === "INT4" || base === "USMALLINT" || base === "MEDIUMINT") return "INTEGER";
+  // MySQL writes a display width after a whole number's type, which is not a precision.
+  if (base === "SMALLINT" || base === "INT" || base === "INTEGER" || base === "BIGINT") return base;
   if (base === "INT8" || base === "UINTEGER") return "BIGINT";
   if (base === "HUGEINT" || base === "UBIGINT" || base === "UHUGEINT") return "DECIMAL(38,0)";
   if (base === "TIMESTAMP WITHOUT TIME ZONE" || base === "DATETIME" || /^TIMESTAMP_(S|MS|NS)$/.test(base)) return "TIMESTAMP";
@@ -79,7 +100,10 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
     return createTeradataEngine({ client: teradataMcpClient(sql), database: options.database, databases: options.databases, address: options.address });
   }
   const postgres = options.dialect === "postgres";
-  const dialect = postgres ? SqlDialect.POSTGRES : SqlDialect.DUCKDB;
+  const mysql = options.dialect === "mysql";
+  const dialect = postgres ? SqlDialect.POSTGRES : mysql ? SqlDialect.MYSQL : SqlDialect.DUCKDB;
+  const system = mysql ? MYSQL_SYSTEM_SCHEMAS : SYSTEM_SCHEMAS;
+  const named = (name: string) => (mysql ? `\`${name.replace(/`/g, "``")}\`` : quoted(name));
   const sql = mcpSql(options);
   const batchRows = Math.max(1, Math.floor(options.batchRows ?? 4096));
   const text = (value: string) => literal(value, dialect);
@@ -120,8 +144,44 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
     return columns;
   };
 
+  /**
+   * MySQL: the column names of a result, by the same join that is never
+   * true. MySQL has no function that names a value's type, so the types come
+   * from the values (`typeOfValues`).
+   */
+  const namesOf = async (query: string): Promise<string[]> => {
+    const key = query.replace(/\s+(LIMIT\s+\d+)?(\s+OFFSET\s+\d+)?\s*$/i, "");
+    const known = described.get(key);
+    if (known) return known.map((c) => c.name);
+    const probe = complete(await sql.query(`SELECT q.* FROM (SELECT 1 AS \`__one\`) AS o LEFT JOIN (${query}) AS q ON 1 = 0`));
+    if (described.size > 200) described.clear();
+    described.set(key, probe.columns);
+    return probe.columns.map((c) => c.name);
+  };
+
+  /**
+   * MySQL: each row as one JSON object the database builds, so a decimal is
+   * a number and a time is the text the database holds, whatever the server's
+   * driver would have made of them (one sends decimals as text and moves
+   * times into its own zone). A derived table's order is kept only when it
+   * has a limit, so one is added when the query has none.
+   */
+  const mysqlRows = async (query: string, signal?: AbortSignal): Promise<{ columns: SqlColumn[]; rows: unknown[][] }> => {
+    const names = await namesOf(query);
+    if (names.length === 0) return complete(await sql.query(query, { signal }));
+    const limited = /\bLIMIT\s+\d+(\s+OFFSET\s+\d+)?\s*$/i.test(query) ? query : `${query} LIMIT 18446744073709551615`;
+    const answer = complete(await sql.query(`SELECT JSON_OBJECT(${names.map((name) => `${text(name)}, q.${named(name)}`).join(", ")}) AS r FROM (${limited}) AS q`, { signal }));
+    const rows = answer.rows.map((row) => {
+      const parsed: unknown = typeof row[0] === "string" ? JSON.parse(row[0]) : row[0];
+      if (!isRecord(parsed)) throw new EngineError("ENGINE", "The data server answered in a form that is not rows.");
+      return names.map((name) => parsed[name] ?? null);
+    });
+    return { columns: names.map((name, i) => ({ name, type: typeOfValues(rows.map((row) => row[i])) })), rows };
+  };
+
   /** Runs a statement and gives its rows with each column's type. */
   const run = async (query: string, signal?: AbortSignal): Promise<{ columns: SqlColumn[]; rows: unknown[][] }> => {
+    if (mysql) return mysqlRows(query, signal);
     if (!postgres) return complete(await sql.query(query, { signal }));
     const objects = await jsonRows(query, signal);
     const columns = await describe(query, objects[0] ? Object.keys(objects[0]) : undefined);
@@ -132,18 +192,18 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
     return rows.map((row) => Object.fromEntries(columns.map((c, i) => [c.name.toLowerCase(), row[i]])));
   };
 
-  const schemaFilter = (schema: string) => (schema ? `table_schema = ${text(schema)}` : `table_schema NOT IN ${SYSTEM_SCHEMAS}`);
+  const schemaFilter = (schema: string) => (schema ? `table_schema = ${text(schema)}` : `table_schema NOT IN ${system}`);
   const find = async (ref: TableRef | undefined) => {
     const table = ref?.table ?? "";
     const rows = await objectsOf(
-      `SELECT table_schema, table_name, table_type FROM information_schema.tables WHERE lower(table_name) = lower(${text(table)}) AND ${schemaFilter(ref?.schema ?? "")} ORDER BY table_schema`,
+      `SELECT table_schema AS table_schema, table_name AS table_name, table_type AS table_type${mysql ? ", table_comment AS table_comment" : ""} FROM information_schema.tables WHERE lower(table_name) = lower(${text(table)}) AND ${schemaFilter(ref?.schema ?? "")} ORDER BY table_schema`,
     );
     if (!rows[0]) throw new EngineError("UNKNOWN_TABLE", `Table not found: ${table}`);
-    return { schema: String(rows[0].table_schema), table: String(rows[0].table_name), view: /VIEW/i.test(String(rows[0].table_type)) };
+    return { schema: String(rows[0].table_schema), table: String(rows[0].table_name), view: /VIEW/i.test(String(rows[0].table_type)), comment: rows[0].table_comment ? String(rows[0].table_comment) : "" };
   };
 
   return {
-    kind: postgres ? EngineKind.POSTGRES : EngineKind.DUCKDB,
+    kind: postgres ? EngineKind.POSTGRES : mysql ? EngineKind.MYSQL : EngineKind.DUCKDB,
     dialect,
     capabilities: { cancel: false, explain: true, explainJson: false, timeTravel: false, keysetPaging: false, exactCount: true, columnStats: false },
     connections: [{ name: options.dialect, kind: ConnectionKind.HTTP, scope: options.address ?? "" }],
@@ -175,19 +235,19 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
     },
 
     async listCatalogs() {
-      const rows = await objectsOf("SELECT current_database() AS name");
+      const rows = await objectsOf(mysql ? "SELECT DATABASE() AS name" : "SELECT current_database() AS name");
       return [{ name: String(rows[0]?.name ?? options.dialect) }];
     },
 
     async listSchemas(catalog) {
-      const rows = await objectsOf(`SELECT DISTINCT table_schema AS name FROM information_schema.tables WHERE table_schema NOT IN ${SYSTEM_SCHEMAS} ORDER BY 1`);
+      const rows = await objectsOf(`SELECT DISTINCT table_schema AS name FROM information_schema.tables WHERE table_schema NOT IN ${system} ORDER BY 1`);
       return rows.map((row) => ({ catalog, name: String(row.name) }));
     },
 
     async listTables({ schema, search }) {
-      const like = search ? ` AND lower(table_name) LIKE ${text(`%${search.toLowerCase().replace(/[\\%_]/g, "\\$&")}%`)} ESCAPE ${text("\\")}` : "";
+      const like = search ? ` AND lower(table_name) LIKE ${text(`%${search.toLowerCase().replace(/[\\%_]/g, "\\$&")}%`)} ${mysql ? "" : `ESCAPE ${text("\\")}`}` : "";
       const rows = await objectsOf(
-        `SELECT table_schema, table_name, table_type FROM information_schema.tables WHERE ${schemaFilter(schema)}${like} ORDER BY table_schema, table_name LIMIT 1000`,
+        `SELECT table_schema AS table_schema, table_name AS table_name, table_type AS table_type FROM information_schema.tables WHERE ${schemaFilter(schema)}${like} ORDER BY table_schema, table_name LIMIT 1000`,
       );
       return rows.map((row) => ({ ref: { catalog: "", schema: String(row.table_schema), table: String(row.table_name) }, kind: /VIEW/i.test(String(row.table_type)) ? TableKind.VIEW : TableKind.TABLE }));
     },
@@ -195,11 +255,15 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
     async describeTable(ref, includeStats) {
       const found = await find(ref);
       const at = `table_schema = ${text(found.schema)} AND table_name = ${text(found.table)}`;
-      const columns = await objectsOf(`SELECT column_name, data_type, is_nullable, ordinal_position FROM information_schema.columns WHERE ${at} ORDER BY ordinal_position`);
+      const columns = await objectsOf(
+        `SELECT column_name AS column_name, ${mysql ? "column_type" : "data_type"} AS data_type, is_nullable AS is_nullable, ordinal_position AS ordinal_position${mysql ? ", column_comment AS column_comment" : ""} FROM information_schema.columns WHERE ${at} ORDER BY ordinal_position`,
+      );
       // Keys and comments are extras: a database or a login that will not give them leaves them out, it does not fail the description.
       const optional = async (query: string) => objectsOf(query).catch(() => []);
       const keys = await optional(
-        postgres
+        mysql
+          ? `SELECT column_name AS column_name FROM information_schema.key_column_usage WHERE constraint_name = 'PRIMARY' AND ${at}`
+          : postgres
           ? // pg_catalog, because information_schema shows a table's constraints only to a role that owns it or may write to it.
             `SELECT a.attname AS column_name FROM pg_constraint con JOIN pg_class c ON c.oid = con.conrelid JOIN pg_namespace n ON n.oid = c.relnamespace JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = ANY (con.conkey) WHERE con.contype = 'p' AND n.nspname = ${text(found.schema)} AND c.relname = ${text(found.table)}`
           : `SELECT kcu.column_name FROM information_schema.table_constraints tc JOIN information_schema.key_column_usage kcu ON kcu.constraint_name = tc.constraint_name AND kcu.table_schema = tc.table_schema AND kcu.table_name = tc.table_name WHERE tc.constraint_type = 'PRIMARY KEY' AND tc.table_schema = ${text(found.schema)} AND tc.table_name = ${text(found.table)}`,
@@ -210,12 +274,16 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
             `SELECT a.attname AS column_name, col_description(c.oid, a.attnum) AS comment, obj_description(c.oid) AS table_comment FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped WHERE n.nspname = ${text(found.schema)} AND c.relname = ${text(found.table)}`,
           )
         : [];
-      const comment = new Map(comments.map((row) => [String(row.column_name), row.comment ? String(row.comment) : ""]));
+      const comment = new Map((mysql ? columns.map((row) => ({ column_name: row.column_name, comment: row.column_comment })) : comments).map((row) => [String(row.column_name), row.comment ? String(row.comment) : ""]));
       const references = postgres
         ? await optional(
             `SELECT con.conname AS name, a.attname AS column_name, fn.nspname AS ref_schema, fc.relname AS ref_table, fa.attname AS ref_column, k.ord FROM pg_constraint con JOIN pg_class c ON c.oid = con.conrelid JOIN pg_namespace n ON n.oid = c.relnamespace JOIN pg_class fc ON fc.oid = con.confrelid JOIN pg_namespace fn ON fn.oid = fc.relnamespace CROSS JOIN LATERAL unnest(con.conkey, con.confkey) WITH ORDINALITY AS k(col, fcol, ord) JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = k.col JOIN pg_attribute fa ON fa.attrelid = fc.oid AND fa.attnum = k.fcol WHERE con.contype = 'f' AND n.nspname = ${text(found.schema)} AND c.relname = ${text(found.table)} ORDER BY con.conname, k.ord`,
           )
-        : [];
+        : mysql
+          ? await optional(
+              `SELECT constraint_name AS name, column_name AS column_name, referenced_table_schema AS ref_schema, referenced_table_name AS ref_table, referenced_column_name AS ref_column FROM information_schema.key_column_usage WHERE referenced_table_name IS NOT NULL AND ${at} ORDER BY constraint_name, ordinal_position`,
+            )
+          : [];
       const foreign = new Map<string, { columns: string[]; references: { catalog: string; schema: string; table: string }; referencedColumns: string[] }>();
       for (const row of references) {
         const key = foreign.get(String(row.name)) ?? { columns: [], references: { catalog: "", schema: String(row.ref_schema), table: String(row.ref_table) }, referencedColumns: [] };
@@ -223,9 +291,9 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
         key.referencedColumns.push(String(row.ref_column));
         foreign.set(String(row.name), key);
       }
-      const counted = includeStats ? (await objectsOf(`SELECT COUNT(*) AS n FROM ${quoted(found.schema)}.${quoted(found.table)}`))[0]?.n : undefined;
+      const counted = includeStats ? (await objectsOf(`SELECT COUNT(*) AS n FROM ${named(found.schema)}.${named(found.table)}`))[0]?.n : undefined;
       return {
-        summary: { ref: { catalog: "", schema: found.schema, table: found.table }, kind: found.view ? TableKind.VIEW : TableKind.TABLE, comment: comments[0]?.table_comment ? String(comments[0].table_comment) : "" },
+        summary: { ref: { catalog: "", schema: found.schema, table: found.table }, kind: found.view ? TableKind.VIEW : TableKind.TABLE, comment: found.comment || (comments[0]?.table_comment ? String(comments[0].table_comment) : "") },
         columns: columns.map((row, i) => {
           const native = String(row.data_type);
           return { name: String(row.column_name), nativeType: native, arrowType: String(columnType(standardType(native)).arrow), nullable: String(row.is_nullable).toUpperCase() !== "NO", ordinal: Number(row.ordinal_position ?? i + 1), primaryKey: primary.has(String(row.column_name)), comment: comment.get(String(row.column_name)) ?? "" };
@@ -237,9 +305,9 @@ export async function createMcpEngine(options: McpEngineOptions): Promise<Engine
 
     listSnapshots: async () => [],
     async version() {
-      const rows = await objectsOf(postgres ? "SELECT current_setting('server_version') AS v" : "SELECT version() AS v");
+      const rows = await objectsOf(postgres ? "SELECT current_setting('server_version') AS v" : "SELECT VERSION() AS v");
       const { server } = await sql.describe();
-      return `${postgres ? "PostgreSQL" : "DuckDB"} ${String(rows[0]?.v ?? "")}${server ? ` through ${server}` : ""}`.trim();
+      return `${postgres ? "PostgreSQL" : mysql ? "MySQL" : "DuckDB"} ${String(rows[0]?.v ?? "")}${server ? ` through ${server}` : ""}`.trim();
     },
     close: () => sql.close(),
   };

@@ -21,7 +21,7 @@ import {
   ViewQuerySchema,
 } from "@surfaces-ui/proto";
 import { SqlError } from "./errors.js";
-import { blankLiterals, guardText, trimStatement } from "./guard.js";
+import { blankLiterals, guardText, mysqlNames, trimStatement } from "./guard.js";
 
 /** A value bound to a `?` placeholder. */
 export type Param = string | number | bigint | boolean;
@@ -40,6 +40,7 @@ const DIALECT_NAME: Partial<Record<SqlDialect, string>> = {
   [SqlDialect.DATAFUSION]: "datafusion",
   [SqlDialect.TERADATA]: "teradata",
   [SqlDialect.POSTGRES]: "postgresql",
+  [SqlDialect.MYSQL]: "mysql",
 };
 
 const QUERY_KINDS = new Set(["select", "union", "intersect", "except"]);
@@ -137,7 +138,7 @@ function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
 
-function predicate(filter: Filter, params: Param[]): string {
+function predicate(filter: Filter, params: Param[], dialect: SqlDialect): string {
   const col = quote(filter.column);
   const values = filter.values;
   const need = (n: number) => {
@@ -153,7 +154,8 @@ function predicate(filter: Filter, params: Param[]): string {
   const like = (wrap: (text: string) => string) => {
     need(1);
     params.push(wrap(escapeLike(String(param(values[0])))));
-    return `LOWER(${col}) LIKE LOWER(?) ESCAPE '\\'`;
+    // MySQL reads a backslash inside a string as an escape, so the one-character escape is written doubled there.
+    return `LOWER(${col}) LIKE LOWER(?) ESCAPE '${dialect === SqlDialect.MYSQL ? "\\\\" : "\\"}'`;
   };
   switch (filter.operator) {
     case FilterOperator.EQ:
@@ -194,12 +196,14 @@ function predicate(filter: Filter, params: Param[]): string {
   }
 }
 
-function orderBy(sorts: Sort[]): string {
+function orderBy(sorts: Sort[], dialect: SqlDialect): string {
   return sorts
     .map((sort) => {
       const direction = sort.direction === SortDirection.DESC ? "DESC" : "ASC";
       const nulls =
         sort.nulls === NullOrder.FIRST ? " NULLS FIRST" : sort.nulls === NullOrder.LAST ? " NULLS LAST" : "";
+      // MySQL has no NULLS FIRST or LAST: sort on whether the value is null, then on the value.
+      if (dialect === SqlDialect.MYSQL && nulls) return `${quote(sort.column)} IS ${sort.nulls === NullOrder.FIRST ? "NOT " : ""}NULL, ${quote(sort.column)} ${direction}`;
       return `${quote(sort.column)} ${direction}${nulls}`;
     })
     .join(", ");
@@ -226,6 +230,7 @@ function aggregateSql(item: Aggregate, column: string, dialect: SqlDialect): str
     case AggregateFunction.MAX:
       return `MAX(${column})`;
     case AggregateFunction.MEDIAN:
+      if (dialect === SqlDialect.MYSQL) throw new SqlError("INVALID_VIEW", "MySQL has no median, so this source cannot work one out. Use an average, or write the percentile in the query.");
       return dialect === SqlDialect.POSTGRES ? within(0.5, column) : `MEDIAN(${column})`;
     case AggregateFunction.STDDEV:
       return `STDDEV_SAMP(${column})`;
@@ -236,6 +241,7 @@ function aggregateSql(item: Aggregate, column: string, dialect: SqlDialect): str
       if (!(fraction >= 0 && fraction <= 1)) {
         throw new SqlError("INVALID_VIEW", `The percentile for ${item.alias} must be between 0 and 1.`);
       }
+      if (dialect === SqlDialect.MYSQL) throw new SqlError("INVALID_VIEW", "MySQL has no percentile function, so this source cannot work one out.");
       if (dialect === SqlDialect.DUCKDB) return `QUANTILE_CONT(${column}, ${fraction})`;
       if (dialect === SqlDialect.DATAFUSION) return `APPROX_PERCENTILE_CONT(${column}, ${fraction})`;
       return within(fraction, column);
@@ -311,6 +317,17 @@ const TERADATA_GRAIN: Partial<Record<TimeGrain, (column: string) => string>> = {
   [TimeGrain.YEAR]: (c) => `TRUNC(CAST(${c} AS DATE), 'YYYY')`,
 };
 
+/** MySQL has no DATE_TRUNC: a time is rebuilt from its formatted text, a date from its year and quarter. */
+const MYSQL_GRAIN: Partial<Record<TimeGrain, (column: string) => string>> = {
+  [TimeGrain.MINUTE]: (c) => `CAST(DATE_FORMAT(${c}, '%Y-%m-%d %H:%i:00') AS DATETIME)`,
+  [TimeGrain.HOUR]: (c) => `CAST(DATE_FORMAT(${c}, '%Y-%m-%d %H:00:00') AS DATETIME)`,
+  [TimeGrain.DAY]: (c) => `CAST(DATE(${c}) AS DATETIME)`,
+  [TimeGrain.WEEK]: (c) => `CAST(DATE_SUB(DATE(${c}), INTERVAL WEEKDAY(${c}) DAY) AS DATETIME)`,
+  [TimeGrain.MONTH]: (c) => `CAST(DATE_FORMAT(${c}, '%Y-%m-01') AS DATETIME)`,
+  [TimeGrain.QUARTER]: (c) => `CAST(MAKEDATE(YEAR(${c}), 1) + INTERVAL (QUARTER(${c}) - 1) QUARTER AS DATETIME)`,
+  [TimeGrain.YEAR]: (c) => `CAST(MAKEDATE(YEAR(${c}), 1) AS DATETIME)`,
+};
+
 /** The grouping expression for a bucket, and the name of its output column. */
 function bucket(item: Bucket, dialect: SqlDialect): { expression: string; alias: string } {
   const column = quote(item.column);
@@ -319,6 +336,7 @@ function bucket(item: Bucket, dialect: SqlDialect): { expression: string; alias:
     const name = GRAIN_NAME[item.by.value];
     const teradata = TERADATA_GRAIN[item.by.value];
     if (!name || !teradata) throw new SqlError("INVALID_VIEW", `The bucket on ${item.column} has no time grain.`);
+    if (dialect === SqlDialect.MYSQL) return { expression: MYSQL_GRAIN[item.by.value]!(column), alias };
     return { expression: dialect === SqlDialect.TERADATA ? teradata(column) : `DATE_TRUNC('${name}', ${column})`, alias };
   }
   if (item.by.case === "binWidth") {
@@ -328,7 +346,7 @@ function bucket(item: Bucket, dialect: SqlDialect): { expression: string; alias:
     }
     // Integer division would round towards zero and misplace negative values.
     const value =
-      dialect === SqlDialect.DUCKDB ? column : `CAST(${column} AS ${dialect === SqlDialect.TERADATA ? "FLOAT" : "DOUBLE PRECISION"})`;
+      dialect === SqlDialect.DUCKDB ? column : `CAST(${column} AS ${dialect === SqlDialect.TERADATA ? "FLOAT" : dialect === SqlDialect.MYSQL ? "DOUBLE" : "DOUBLE PRECISION"})`;
     return { expression: `FLOOR(${value} / ${width}) * ${width}`, alias };
   }
   throw new SqlError("INVALID_VIEW", `The bucket on ${item.column} needs a time grain or a bin width.`);
@@ -350,9 +368,10 @@ function isGrouped(query: ViewQuery): boolean {
 
 function wrap(query: ViewQuery, kind: SqlDialect): Wrapped {
   const dialect = dialectName(kind);
-  const parts = split(query.baseSql, dialect);
+  // For MySQL the names in the base query go into backticks before it is parsed, or the parser reads them as text.
+  const parts = split(kind === SqlDialect.MYSQL ? mysqlNames(query.baseSql) : query.baseSql, dialect);
   const params: Param[] = query.parameters.map(param);
-  const where = query.filters.map((f) => predicate(f, params)).join(" AND ");
+  const where = query.filters.map((f) => predicate(f, params, kind)).join(" AND ");
   const notices: Notice[] = [];
   if (!parts.parsed) {
     notices.push(
@@ -379,7 +398,7 @@ function wrap(query: ViewQuery, kind: SqlDialect): Wrapped {
       // table. The fixed seed keeps a chart the same between two loads.
       from = ` FROM (SELECT *${from}) AS ${ALIAS} USING SAMPLE reservoir(${rows} ROWS) REPEATABLE (1)`;
     } else {
-      from = ` FROM (SELECT *${from} ORDER BY RANDOM() LIMIT ${rows}) AS ${ALIAS}`;
+      from = ` FROM (SELECT *${from} ORDER BY ${kind === SqlDialect.MYSQL ? "RAND()" : "RANDOM()"} LIMIT ${rows}) AS ${ALIAS}`;
     }
   }
   if (query.derived.length > 0 && query.aggregates.length === 0) {
@@ -435,7 +454,7 @@ export function rewriteQuery(query: ViewQuery, dialect: SqlDialect): Rewritten {
     return placeholders({ sql: trimStatement(query.baseSql), params, mode: RewriteMode.NONE, notices: [] }, dialect);
   }
 
-  const order = orderBy(query.sorts);
+  const order = orderBy(query.sorts, dialect);
   const sampled = (query.sample?.rows ?? 0) > 0;
   if ((limit > 0 || offset > 0) && !order && !sampled) {
     notices.push(
@@ -523,7 +542,7 @@ export function numberPlaceholders(sql: string): string {
 }
 
 const placeholders = (rewritten: Rewritten, dialect: SqlDialect): Rewritten =>
-  NUMBERED.has(dialect) ? { ...rewritten, sql: numberPlaceholders(rewritten.sql) } : rewritten;
+  NUMBERED.has(dialect) ? { ...rewritten, sql: numberPlaceholders(rewritten.sql) } : dialect === SqlDialect.MYSQL ? { ...rewritten, sql: mysqlNames(rewritten.sql) } : rewritten;
 
 function withoutSample(query: ViewQuery): ViewQuery {
   const copy = clone(ViewQuerySchema, query);
@@ -549,7 +568,7 @@ export function countQuery(query: ViewQuery, dialect: SqlDialect): Rewritten {
 /** Checks that SQL is a single read-only query without rewriting it. Throws SqlError if not. */
 export function assertReadOnly(sql: string, dialect: SqlDialect): void {
   if (!ready) throw new Error("call initSql() before assertReadOnly()");
-  split(sql, dialectName(dialect));
+  split(dialect === SqlDialect.MYSQL ? mysqlNames(sql) : sql, dialectName(dialect));
 }
 
 /** Validates the rewritten SQL parses in its dialect. For tests and diagnostics. */

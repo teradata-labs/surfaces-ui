@@ -29,6 +29,8 @@ enum SourceKind {
   SOURCE_KIND_DUCKDB = 4;
   SOURCE_KIND_TERADATA = 5;
   SOURCE_KIND_POSTGRES = 6;
+  // MySQL or MariaDB.
+  SOURCE_KIND_MYSQL = 7;
 }
 
 // ConnectionKind is where a source's data or catalog lives.
@@ -69,6 +71,8 @@ enum Engine {
   ENGINE_DATAFUSION = 2;
   ENGINE_TERADATA = 3;
   ENGINE_POSTGRES = 4;
+  // MySQL or MariaDB.
+  ENGINE_MYSQL = 5;
 }
 
 // SqlDialect tells the SQL rewriter which syntax to produce.
@@ -78,6 +82,8 @@ enum SqlDialect {
   SQL_DIALECT_DATAFUSION = 2;
   SQL_DIALECT_TERADATA = 3;
   SQL_DIALECT_POSTGRES = 4;
+  // MySQL and MariaDB. Names are written in backticks; a name in double quotes is read as a name, as the standard has it.
+  SQL_DIALECT_MYSQL = 5;
 }
 
 // Capabilities says what a source's engine can do, so the UI can hide what

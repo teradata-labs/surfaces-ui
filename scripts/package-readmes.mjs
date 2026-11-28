@@ -124,7 +124,7 @@ const agent = anthropicAgent({ client: new Anthropic(), system: "You help people
   "@surfaces-ui/engine-duckdb": { about: "DuckDB as an engine (Node, ADBC): Parquet, CSV and JSON files, Delta and Iceberg tables, time travel, and file access locked to the registered tables." },
   "@surfaces-ui/engine-teradata": { about: "Teradata as an engine, through Teradata Query Service or a driver connection you supply. This package never installs a Teradata driver." },
   "@surfaces-ui/engine-datafusion": { about: "Apache DataFusion as an engine, over a server's HTTP SQL endpoint (ROAPI), reading Arrow." },
-  "@surfaces-ui/engine-mcp": { about: "A database's own MCP server as an engine: the Teradata MCP server, or a Postgres or DuckDB one. Sorts, filters and pages run as SQL through that server's query tool, so rows never pass through a model." },
+  "@surfaces-ui/engine-mcp": { about: "A database's own MCP server as an engine: the Teradata MCP server, or a Postgres, MySQL or DuckDB one. Sorts, filters and pages run as SQL through that server's query tool, so rows never pass through a model." },
   "@surfaces-ui/datasource-duckdb-wasm": { about: "A `DataSource` that runs DuckDB in the browser: real SQL over Parquet with no server." },
   "@surfaces-ui/discovery": { about: "The reference discovery backend: keyword and semantic search over tables and columns, profiles, inferred joins and context packs for agents, on any `DataSource`. Data values are withheld unless a source allows them." },
   "@surfaces-ui/embedder-local": { about: "A small embedding model run on your machine for semantic search. The model downloads on first use to a cache outside your project." },

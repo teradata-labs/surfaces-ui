@@ -2,9 +2,9 @@
 
 # @surfaces-ui/engine-mcp
 
-A database's own MCP server as a Surfaces UI engine: sorts, filters and pages run as SQL through that server's query tool (Teradata, Postgres, DuckDB).
+A database's own MCP server as a Surfaces UI engine: sorts, filters and pages run as SQL through that server's query tool (Teradata, Postgres, MySQL, DuckDB).
 
-A database's own MCP server as an engine: the Teradata MCP server, or a Postgres or DuckDB one. Sorts, filters and pages run as SQL through that server's query tool, so rows never pass through a model.
+A database's own MCP server as an engine: the Teradata MCP server, or a Postgres, MySQL or DuckDB one. Sorts, filters and pages run as SQL through that server's query tool, so rows never pass through a model.
 
 ## Install
 

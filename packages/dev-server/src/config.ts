@@ -111,7 +111,7 @@ export interface McpSourceConfig {
   displayName?: string;
   engine: "mcp";
   /** The database behind the server, which decides the SQL written for it. */
-  dialect: "postgres" | "duckdb" | "teradata";
+  dialect: "postgres" | "mysql" | "duckdb" | "teradata";
   server: { command: string; args?: string[]; env?: string[] } | { url: string; secret?: string };
   /** The server's tool that runs a query, and its SQL argument. Found from the server's tool list when left out. */
   tool?: string;
@@ -272,7 +272,7 @@ export async function openSources(
         database: source.database,
         databases: source.databases,
       });
-      const kind = source.dialect === "teradata" ? SourceKind.TERADATA : source.dialect === "postgres" ? SourceKind.POSTGRES : SourceKind.DUCKDB;
+      const kind = source.dialect === "teradata" ? SourceKind.TERADATA : source.dialect === "postgres" ? SourceKind.POSTGRES : source.dialect === "mysql" ? SourceKind.MYSQL : SourceKind.DUCKDB;
       sources.push({ id: source.id, displayName: source.displayName, kind, engine });
       continue;
     }

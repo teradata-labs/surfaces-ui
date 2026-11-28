@@ -13,16 +13,18 @@ import { type SurfacesServer, createSurfacesServer } from "./server.js";
  * its arguments:
  *
  *   SURFACES_TEST_MCP_POSTGRES='["npx","-y","@modelcontextprotocol/server-postgres","postgresql://reader:…@127.0.0.1:54329/shop"]'
+ *   SURFACES_TEST_MCP_MYSQL='["npx","-y","@benborla29/mcp-server-mysql"]'   (with MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS and MYSQL_DB named in SURFACES_TEST_MCP_ENV)
  *   SURFACES_TEST_MCP_DUCKDB='["uvx","mcp-server-motherduck","--db-path","/path/to/shop.duckdb"]'
  *   SURFACES_TEST_MCP_ENV='HTTPS_PROXY,UV_CACHE_DIR'   (optional: environment variables the server may see)
  *
  * The database must hold the `sales` schema of scripts/seed-postgres.sql
- * (for DuckDB, the same `regions`, `customers` and `orders` tables). Every
+ * (for DuckDB, and for MySQL or MariaDB in a database named `sales`, the same `regions`, `customers` and `orders` tables). Every
  * expected number below is worked out here from the rule that script
  * generates its rows by, never read back from the database under test.
  */
 const servers = {
   postgres: process.env.SURFACES_TEST_MCP_POSTGRES,
+  mysql: process.env.SURFACES_TEST_MCP_MYSQL,
   duckdb: process.env.SURFACES_TEST_MCP_DUCKDB,
 } as const;
 const s = (value: string) => ({ kind: { case: "stringValue" as const, value } });
@@ -35,7 +37,7 @@ const orders = Array.from({ length: 20000 }, (_, i) => {
 });
 const total = (rows: typeof orders) => Math.round(rows.reduce((sum, r) => sum + r.amount * 100, 0)) / 100;
 
-for (const dialect of ["postgres", "duckdb"] as const) {
+for (const dialect of ["postgres", "mysql", "duckdb"] as const) {
   const command = servers[dialect];
   describe.skipIf(!command)(`${dialect} through its MCP server`, () => {
     let server: SurfacesServer;
@@ -52,7 +54,7 @@ for (const dialect of ["postgres", "duckdb"] as const) {
 
     it("lists the source and what is in it, without showing how it connects", async () => {
       const [source] = (await data.listSources({})).sources;
-      expect(source!.kind).toBe(dialect === "postgres" ? SourceKind.POSTGRES : SourceKind.DUCKDB);
+      expect(source!.kind).toBe({ postgres: SourceKind.POSTGRES, mysql: SourceKind.MYSQL, duckdb: SourceKind.DUCKDB }[dialect]);
       // The command line can hold a connection string; only the program is shown.
       expect(JSON.stringify(source!.connections)).not.toMatch(/reader|postgresql:|shop\.duckdb/);
       expect((await data.testSource!({ target: { case: "id", value: "shop" } })).checks).toEqual([expect.objectContaining({ ok: true })]);
@@ -71,7 +73,7 @@ for (const dialect of ["postgres", "duckdb"] as const) {
       expect(arrow.order_id).toBe("Int64");
       expect(arrow.status).toBe("Utf8");
       expect(arrow.ordered_at).toMatch(/^Timestamp/);
-      if (dialect === "postgres") {
+      if (dialect !== "duckdb") {
         expect(table.columns.find((c) => c.name === "order_id")?.primaryKey).toBe(true);
         expect(table.summary?.comment).toBe("One row per order");
         expect(table.foreignKeys).toEqual([expect.objectContaining({ columns: ["customer_id"], referencedColumns: ["customer_id"] })]);
@@ -122,15 +124,23 @@ for (const dialect of ["postgres", "duckdb"] as const) {
       const since = await data.count({ sourceId: "shop", query: { baseSql: base, filters: [{ column: "ordered_at", operator: FilterOperator.GTE, values: [s("2026-06-01")] }] } });
       expect(since.rowCount).toBe(BigInt(orders.filter((r) => r.ordered_at >= Date.UTC(2026, 5, 1)).length));
 
-      const stats = await collect(
-        data.execute({
-          sourceId: "shop",
-          query: { baseSql: base, aggregates: [{ function: AggregateFunction.MEDIAN, column: "quantity", alias: "mid" }, { function: AggregateFunction.PERCENTILE, column: "quantity", alias: "p90", percentile: 0.9 }, { function: AggregateFunction.MAX, column: "amount", alias: "top" }] },
-        }),
-      );
-      const [row] = toRows(stats.table);
-      expect(Number(row!.mid)).toBe(5);
-      expect(Number(row!.p90)).toBe(9);
+      const statistics = () =>
+        collect(
+          data.execute({
+            sourceId: "shop",
+            query: { baseSql: base, aggregates: [{ function: AggregateFunction.MEDIAN, column: "quantity", alias: "mid" }, { function: AggregateFunction.PERCENTILE, column: "quantity", alias: "p90", percentile: 0.9 }, { function: AggregateFunction.MAX, column: "amount", alias: "top" }] },
+          }),
+        );
+      if (dialect === "mysql") {
+        // MySQL has neither function; the view says so and nothing is sent.
+        await expect(statistics()).rejects.toThrow(/no median/);
+        const spread = toRows((await collect(data.execute({ sourceId: "shop", query: { baseSql: base, aggregates: [{ function: AggregateFunction.MAX, column: "amount", alias: "top" }, { function: AggregateFunction.COUNT_DISTINCT, column: "customer_id", alias: "buyers" }] } }))).table)[0]!;
+        expect([Number(spread.top), Number(spread.buyers)]).toEqual([Math.max(...orders.map((r) => r.amount)), 500]);
+      } else {
+        const [row] = toRows((await statistics()).table);
+        expect(Number(row!.mid)).toBe(5);
+        expect(Number(row!.p90)).toBe(9);
+      }
       const sample = await collect(data.execute({ sourceId: "shop", query: { baseSql: base, columns: ["order_id"], sample: { rows: 200 } } }));
       expect(sample.table.numRows).toBe(200);
     });
@@ -147,7 +157,8 @@ for (const dialect of ["postgres", "duckdb"] as const) {
       const empty = await collect(data.execute({ sourceId: "shop", query: { baseSql: base, filters: [{ column: "status", operator: FilterOperator.EQ, values: [s("nothing")] }], page: { limit: 10 } } }));
       expect(empty.table.numRows).toBe(0);
       expect(empty.table.schema.fields.map((f) => f.name)).toEqual(["order_id", "customer_id", "status", "amount", "quantity", "ordered_at", "note"]);
-      expect(String(empty.table.schema.fields[0]!.type)).toBe("Int64");
+      // MySQL will not say a column's type, so with no values to go by its columns are text.
+      expect(String(empty.table.schema.fields[0]!.type)).toBe(dialect === "mysql" ? "Utf8" : "Int64");
     });
 
     it("reads a join across tables, and says which column or table is unknown", async () => {

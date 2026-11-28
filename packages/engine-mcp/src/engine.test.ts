@@ -4,7 +4,7 @@ import { initSql } from "@surfaces-ui/sql";
 import { Table } from "apache-arrow";
 import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createMcpEngine, findQueryTool, inlineParams, literal, pythonLiteral, readRows, standardType, toolError } from "./index.js";
+import { createMcpEngine, findQueryTool, inlineParams, literal, pythonLiteral, readRows, standardType, toolError, typeOfValues } from "./index.js";
 
 const text = (value: string) => ({ content: [{ type: "text" as const, text: value }] });
 
@@ -71,6 +71,8 @@ describe("values written into a statement", () => {
     expect(literal(hostile, SqlDialect.POSTGRES)).toBe(`$v$${hostile}$v$`);
     // A value that holds the tag gets a longer one, so it still cannot close the quote.
     expect(literal("a $v$ b $vv$", SqlDialect.POSTGRES)).toBe("$vvv$a $v$ b $vv$$vvv$");
+    // MySQL reads a backslash as an escape, so its text is sent as hexadecimal and decoded by the database.
+    expect(literal("a'\\", SqlDialect.MYSQL)).toBe("CONVERT(X'61275c' USING utf8mb4)");
     expect(literal(12.5, SqlDialect.POSTGRES)).toBe("12.5");
     expect(literal(10n, SqlDialect.DUCKDB)).toBe("10");
     expect(literal(true, SqlDialect.TERADATA)).toBe("1");
@@ -81,6 +83,8 @@ describe("values written into a statement", () => {
   it("go where the placeholders are, and nowhere else", () => {
     expect(inlineParams("SELECT '?' AS q, a FROM t WHERE a = ? AND b > ? -- ?", ["x", 3], SqlDialect.DUCKDB)).toBe("SELECT '?' AS q, a FROM t WHERE a = 'x' AND b > 3 -- ?");
     expect(inlineParams("SELECT '$1' FROM t WHERE a = $2 AND b = $1", ["x", 3], SqlDialect.POSTGRES)).toBe("SELECT '$1' FROM t WHERE a = 3 AND b = $v$x$v$");
+    // In MySQL a backslash keeps the string open, so the question mark after it is still text.
+    expect(inlineParams("SELECT 'a\\' ?' AS q, `b?` FROM t WHERE a = ? # ?", [3], SqlDialect.MYSQL)).toBe("SELECT 'a\\' ?' AS q, `b?` FROM t WHERE a = 3 # ?");
     expect(() => inlineParams("SELECT ? , ?", ["x"], SqlDialect.DUCKDB)).toThrow(/not given/);
     expect(() => inlineParams("SELECT ?", ["x", "y"], SqlDialect.DUCKDB)).toThrow(/more values/);
   });
@@ -99,9 +103,15 @@ describe("findQueryTool", () => {
   });
 });
 
+describe("typeOfValues", () => {
+  it("tells whole numbers, decimals, dates and times apart, and reads anything else as text", () => {
+    expect([[1, 2, null], [1, 2.5], ["2026-01-02", null], ["2026-01-02 03:04:05", "2026-01-02T03:04:05.123"], ["02139", "10001"], [null], ["2026-01-02", "soon"]].map(typeOfValues)).toEqual(["BIGINT", "FLOAT", "DATE", "TIMESTAMP", "VARCHAR", "VARCHAR", "VARCHAR"]);
+  });
+});
+
 describe("standardType", () => {
   it("names a database's types as the Arrow builder knows them", () => {
-    expect(["boolean", "timestamp without time zone", "numeric", "DECIMAL(12,2)", "HUGEINT", "character varying"].map(standardType)).toEqual(["BYTEINT", "TIMESTAMP", "FLOAT", "DECIMAL(12,2)", "DECIMAL(38,0)", "CHARACTER VARYING"]);
+    expect(["boolean", "timestamp without time zone", "numeric", "DECIMAL(12,2)", "HUGEINT", "character varying", "bigint(20) unsigned", "datetime", "smallint(6)"].map(standardType)).toEqual(["BYTEINT", "TIMESTAMP", "FLOAT", "DECIMAL(12,2)", "DECIMAL(38,0)", "CHARACTER VARYING", "BIGINT", "TIMESTAMP", "SMALLINT"]);
   });
 });
 

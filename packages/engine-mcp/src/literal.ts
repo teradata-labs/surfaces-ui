@@ -12,6 +12,10 @@ import { blankLiterals } from "@surfaces-ui/sql";
  *   dollar-quoted string has no escapes at all, whatever the server's
  *   `standard_conforming_strings`, and is an untyped literal, so it compares
  *   with a date or a number column as a bound value would.
+ * - MySQL text is written as hexadecimal and decoded by the database, since
+ *   MySQL reads a backslash in a string as an escape and a session setting
+ *   can change that; hexadecimal digits have no such reading. MySQL compares
+ *   text with a date or a number column without being told to.
  * - DuckDB and Teradata text is single-quoted with quotes doubled. Neither
  *   reads a backslash as an escape in a plain string, so a doubled quote is
  *   the only thing with meaning inside one.
@@ -29,6 +33,7 @@ export function literal(value: Param, dialect: SqlDialect): string {
     while (value.includes(`$${tag}$`)) tag += "v";
     return `$${tag}$${value}$${tag}$`;
   }
+  if (dialect === SqlDialect.MYSQL) return `CONVERT(X'${Array.from(new TextEncoder().encode(value), (byte) => byte.toString(16).padStart(2, "0")).join("")}' USING utf8mb4)`;
   if (dialect === SqlDialect.DUCKDB || dialect === SqlDialect.TERADATA) return `'${value.replace(/'/g, "''")}'`;
   throw new EngineError("UNSUPPORTED", "This SQL dialect cannot be sent to a data server yet.");
 }
@@ -40,7 +45,7 @@ export function literal(value: Param, dialect: SqlDialect): string {
  */
 export function inlineParams(sql: string, params: Param[], dialect: SqlDialect): string {
   if (params.length === 0) return sql;
-  const bare = blankLiterals(sql);
+  const bare = blankLiterals(sql, dialect === SqlDialect.MYSQL);
   const numbered = dialect === SqlDialect.POSTGRES;
   let out = "";
   let at = 0;

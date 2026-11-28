@@ -2,7 +2,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import type { Transport } from "@modelcontextprotocol/client";
 
 export { type McpSql, type McpSqlOptions, databaseError, findQueryTool, mcpSql } from "./client.js";
-export { type McpEngineOptions, createMcpEngine, standardType, teradataMcpClient } from "./engine.js";
+export { type McpEngineOptions, createMcpEngine, standardType, teradataMcpClient, typeOfValues } from "./engine.js";
 export { inlineParams, literal } from "./literal.js";
 export { type SqlColumn, type SqlRows, type ToolAnswer, readRows, toolError } from "./parse.js";
 export { pythonLiteral } from "./python.js";
