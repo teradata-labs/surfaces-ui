@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { configFromEnv } from "./config.js";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { configFromEnv, findConfig } from "./config.js";
 
 describe("configFromEnv", () => {
   it("is nothing when nothing is set, so the sample data is served", () => {
@@ -21,6 +24,25 @@ describe("configFromEnv", () => {
     const config = configFromEnv({ SURFACES_SOURCE_DIALECT: "postgres", SURFACES_SOURCE_SERVER: "https://data.example.com/mcp", SURFACES_SOURCE_SECRET: "tok" })!;
     expect(config.sources![0]).toMatchObject({ engine: "mcp", dialect: "postgres", server: { url: "https://data.example.com/mcp", secret: "SURFACES_SOURCE_SECRET" } });
     expect(JSON.stringify(config)).not.toContain("tok\"");
+  });
+
+  it("reads a setting left unfilled as not set, whatever a settings screen leaves in it", () => {
+    for (const blank of ["", "  ", "sample data", "None", "${user_config.data_dialect}"]) {
+      expect(configFromEnv({ SURFACES_SOURCE_DIALECT: blank, SURFACES_SOURCE_SERVER: blank, SURFACES_SOURCE_SECRET: blank })).toBeUndefined();
+    }
+    const env: Record<string, string | undefined> = { SURFACES_SOURCE_DIALECT: "duckdb", SURFACES_SOURCE_SERVER: "uvx mcp-server-motherduck", SURFACES_SOURCE_SECRET: "${user_config.data_secret}", SURFACES_SOURCE_SECRET_NAME: "" };
+    expect(configFromEnv(env)!.sources![0]).toMatchObject({ server: { env: ["DATABASE_URI"] } });
+    expect(env.DATABASE_URI).toBeUndefined();
+  });
+
+  it("finds a config in the working directory first, then in the person's own folder", () => {
+    const project = fs.mkdtempSync(path.join(os.tmpdir(), "sf-project-"));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sf-home-"));
+    expect(findConfig(project, { SURFACES_HOME: home })).toBeUndefined();
+    fs.writeFileSync(path.join(home, "surfaces.config.mjs"), "export default { seeds: true };");
+    expect(findConfig(project, { SURFACES_HOME: home })).toBe(path.join(home, "surfaces.config.mjs"));
+    fs.writeFileSync(path.join(project, "surfaces.config.ts"), "export default { seeds: true };");
+    expect(findConfig(project, { SURFACES_HOME: home })).toBe(path.join(project, "surfaces.config.ts"));
   });
 
   it("says what is missing or wrong", () => {

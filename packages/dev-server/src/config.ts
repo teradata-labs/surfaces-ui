@@ -1,6 +1,8 @@
 import type { AgentBackend } from "@surfaces-ui/agent";
 import type { DataSource, ModelSettings } from "@surfaces-ui/data";
 import { createRequire } from "node:module";
+import { existsSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Embedder } from "@surfaces-ui/discovery";
@@ -230,6 +232,25 @@ export function defineConfig(config: SurfacesConfig): SurfacesConfig {
 
 export const CONFIG_FILES = ["surfaces.config.ts", "surfaces.config.mjs", "surfaces.config.js"];
 
+/**
+ * Where a person keeps a config that belongs to no project: `SURFACES_HOME`,
+ * or `.surfaces` in their home directory. A server started by a desktop app
+ * has no project folder, so it looks here after its working directory. The
+ * git-ignored `.env.local` beside the config holds its secrets, as anywhere.
+ */
+export function configHome(env: Record<string, string | undefined> = process.env): string {
+  return env.SURFACES_HOME?.trim() || path.join(os.homedir(), ".surfaces");
+}
+
+/** The config file to use: in the working directory, else in `configHome()`. */
+export function findConfig(cwd: string = process.cwd(), env: Record<string, string | undefined> = process.env): string | undefined {
+  for (const dir of [cwd, configHome(env)]) {
+    const name = CONFIG_FILES.find((file) => existsSync(path.join(dir, file)));
+    if (name) return path.join(dir, name);
+  }
+  return undefined;
+}
+
 /** Loads a config file and resolves its relative paths. */
 export async function loadConfig(file: string): Promise<{ config: SurfacesConfig; dir: string }> {
   const absolute = path.resolve(file);
@@ -264,18 +285,24 @@ function words(line: string): string[] {
  * Nothing set gives `undefined`; a dialect or a server without the other is an error that says which is missing.
  */
 export function configFromEnv(env: Record<string, string | undefined> = process.env): SurfacesConfig | undefined {
-  const dialect = env.SURFACES_SOURCE_DIALECT?.trim().toLowerCase();
-  const server = env.SURFACES_SOURCE_SERVER?.trim();
+  // A host that fills these in from a settings screen can leave one as an empty value, a "none" choice, or its own unfilled placeholder.
+  const set = (value: string | undefined) => {
+    const text = value?.trim() ?? "";
+    return text === "" || text.startsWith("${") || /^(none|sample data)$/i.test(text) ? undefined : text;
+  };
+  const dialect = set(env.SURFACES_SOURCE_DIALECT)?.toLowerCase();
+  const server = set(env.SURFACES_SOURCE_SERVER);
   if (!dialect && !server) return undefined;
   if (!dialect || !server) throw new Error(`A data source needs both its database type and its MCP server; ${dialect ? "the server" : "the database type"} is missing.`);
   if (dialect !== "postgres" && dialect !== "mysql" && dialect !== "duckdb" && dialect !== "teradata") throw new Error(`The database type must be postgres, mysql, duckdb or teradata, not "${dialect}".`);
-  const common = { id: "data", displayName: env.SURFACES_SOURCE_NAME?.trim() || undefined, engine: "mcp" as const, dialect: dialect as McpSourceConfig["dialect"], database: env.SURFACES_SOURCE_DATABASE?.trim() || undefined };
-  if (/^https?:\/\//i.test(server)) return { sources: [{ ...common, server: { url: server, secret: env.SURFACES_SOURCE_SECRET ? "SURFACES_SOURCE_SECRET" : undefined } }] };
+  const common = { id: "data", displayName: set(env.SURFACES_SOURCE_NAME), engine: "mcp" as const, dialect: dialect as McpSourceConfig["dialect"], database: set(env.SURFACES_SOURCE_DATABASE) };
+  if (/^https?:\/\//i.test(server)) return { sources: [{ ...common, server: { url: server, secret: set(env.SURFACES_SOURCE_SECRET) ? "SURFACES_SOURCE_SECRET" : undefined } }] };
   const [command, ...args] = words(server);
   if (!command) throw new Error("The MCP server's command is empty.");
-  const name = env.SURFACES_SOURCE_SECRET_NAME?.trim() || "DATABASE_URI";
+  const name = set(env.SURFACES_SOURCE_SECRET_NAME) ?? "DATABASE_URI";
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new Error("The name the connection string is handed over under must be a plain environment variable name.");
-  if (env.SURFACES_SOURCE_SECRET) env[name] = env.SURFACES_SOURCE_SECRET;
+  const secret = set(env.SURFACES_SOURCE_SECRET);
+  if (secret) env[name] = secret;
   return { sources: [{ ...common, server: { command, args, env: [name] } }] };
 }
 

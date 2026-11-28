@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { McpServer } from "@modelcontextprotocol/server";
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
-import { CONFIG_FILES, configFromEnv, createSurfacesServer, loadConfig, loadEnvFile, openSources, serverOptions } from "@surfaces-ui/dev-server";
+import { CONFIG_FILES, configFromEnv, findConfig, createSurfacesServer, loadConfig, loadEnvFile, openSources, serverOptions } from "@surfaces-ui/dev-server";
 import { installMcpServer, readAppHtml } from "./node.js";
 import { registerSurfacesApps } from "./server.js";
 
@@ -23,7 +23,8 @@ try {
     say(`${replaced ? "Updated" : "Added"} the Surfaces server in ${file}.`);
     if (!config) say(`No config found in ${dir}. Create ${CONFIG_FILES[0]} with your data sources before starting the server.`);
   } else {
-    const file = flag("--config") ?? CONFIG_FILES.find((f) => fs.existsSync(path.resolve(f)));
+    // A project's config in the working directory, or a person's own in ~/.surfaces, for a host with no project folder.
+    const file = flag("--config") ?? findConfig();
     // Secrets (a warehouse's host and password, a model key) come from the git-ignored .env.local beside the config, as on the dev server.
     const secrets = loadEnvFile(path.dirname(path.resolve(file ?? CONFIG_FILES[0]!)));
     if (secrets.names.length > 0) say(`Read ${secrets.names.join(", ")} from ${secrets.file}.`);

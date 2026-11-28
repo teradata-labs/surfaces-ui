@@ -2,7 +2,16 @@
   "mcpServers": {
     "surfaces": {
       "command": "npx",
-      "args": ["-y", "@surfaces-ui/mcp@0.4.0"]
+      "args": [
+        "-y",
+        "@surfaces-ui/mcp@0.4.0"
+      ],
+      "env": {
+        "SURFACES_SOURCE_DIALECT": "${user_config.data_dialect}",
+        "SURFACES_SOURCE_SERVER": "${user_config.data_server}",
+        "SURFACES_SOURCE_SECRET": "${user_config.data_secret}",
+        "SURFACES_SOURCE_SECRET_NAME": "${user_config.data_secret_name}"
+      }
     }
   }
 }
