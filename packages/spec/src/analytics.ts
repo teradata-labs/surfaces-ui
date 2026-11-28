@@ -122,6 +122,14 @@ const str = (about: string) => z.string().describe(about);
  * What a data component says to the people using the page when its query answers with no rows or fails,
  * written by whoever designs the page. Spread into each data component's props.
  */
+/** One turn of a Conversation: who spoke, what they said (Markdown), which side, and when. */
+const CONVERSATION_TURN = z.strictObject({
+  speaker: z.string().max(80),
+  text: z.string().max(4000),
+  side: z.enum(["start", "end"]).optional().describe("\"end\" for the person's own turns."),
+  time: z.string().max(40).optional(),
+});
+
 const MESSAGES = {
   emptyMessage: dynamicString
     .optional()
@@ -137,6 +145,7 @@ const OPENED_NOTE =
 const openedBinding = dataBinding.optional().describe("Where the opened table's name is written in this surface's data model.");
 const joinShape = z.object({ left: z.string(), right: z.string(), keys: z.array(z.object({ leftColumn: z.string(), rightColumn: z.string() })), inferred: z.boolean().optional(), declared: z.boolean().optional() });
 const EVENTS: Record<string, Record<string, EventDefinition>> = {
+  Conversation: { send: { description: "When a person sends a turn, typed or picked from the suggestions. It is already in the thread.", context: { text: str("what they wrote") } } },
   Chips: { choose: { description: "When a chip is pressed.", context: { value: str("the chip's value: its text, unless the item sets a value") } } },
   DecisionCard: { choose: { description: "When an option is chosen.", context: { choice: str("the option's id"), label: str("the option's label") } } },
   SqlProposal: { run: { description: "When a person presses Run.", context: { sql: str("the SQL as run") } } },
@@ -483,6 +492,40 @@ export const analyticsCatalog = defineCatalog({
         time: dynamicString.optional().describe("When, as it should read: \"10:42\" or \"Yesterday\"."),
       },
       example: { id: "turn-1", component: "Message", speaker: "Assistant", text: "Which table holds the articles?", time: "10:42" },
+    },
+    Conversation: {
+      description:
+        "A whole chat in one component: the turns so far, replies to pick, and a box to write in. Sending adds the person's turn to the thread at once and sends `send` with what they wrote. " +
+        "Give `messages` the turns, oldest first, or a data path holding them. Keep the thread there: answer `send` by adding the person's turn and yours to the list, and each is drawn once. " +
+        "For a prototype with no agent, `replies` answer in order, one for each turn the person sends. For one turn on its own, or a thread laid out by hand among other components, use Message.",
+      props: {
+        label: z.string().max(80).describe("What the conversation is, for assistive technology: \"Support chat\"."),
+        messages: z
+          .union([z.array(CONVERSATION_TURN).max(200), dataBinding])
+          .describe("The turns so far, oldest first, or a data path holding them. An empty list starts with only the box."),
+        you: z.string().max(80).optional().describe("Who the person is on their own turns. Defaults to \"You\"."),
+        suggestions: z.array(z.string().max(120)).max(6).optional().describe("Replies offered under the thread until the person sends something; a press sends one."),
+        replies: z
+          .array(z.strictObject({ speaker: z.string().max(80), text: z.string().max(4000) }))
+          .max(20)
+          .optional()
+          .describe("Scripted answers for a prototype with no agent: the first answers the person's first turn, and so on. Leave it out when an agent answers."),
+        placeholder: z.string().max(120).optional().describe("What the box says while it is empty. Defaults to \"Write a message\"."),
+        action: action.optional(),
+      },
+      example: {
+        id: "support",
+        component: "Conversation",
+        label: "Support chat",
+        messages: [
+          { speaker: "Assistant", text: "Hi! What can I help you with today?", time: "10:41" },
+          { speaker: "You", text: "My last order hasn't arrived.", side: "end", time: "10:42" },
+          { speaker: "Assistant", text: "Sorry about that. Which order is it?", time: "10:42" },
+        ],
+        suggestions: ["The one from Monday", "Show my orders"],
+        replies: [{ speaker: "Assistant", text: "Thanks. It left the warehouse yesterday and arrives **tomorrow**." }],
+        action: { event: { name: "send" } },
+      },
     },
     RowList: {
       description:

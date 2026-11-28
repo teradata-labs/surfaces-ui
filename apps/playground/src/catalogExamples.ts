@@ -6,7 +6,7 @@ import { type ActiveSource, firstTable } from "./source.js";
 
 /** How the sidebar groups the catalog. A component missing here is listed under "Other", so nothing is hidden. */
 export const GROUPS: [string, string[]][] = [
-  ["Layout and text", ["Text", "Row", "Column", "Grid", "Card", "Tabs", "Divider", "Badge", "KeyValue", "Stat", "Progress", "Link", "Markdown", "Image", "Message", "CodeBlock", "Table"]],
+  ["Layout and text", ["Text", "Row", "Column", "Grid", "Card", "Tabs", "Divider", "Badge", "KeyValue", "Stat", "Progress", "Link", "Markdown", "Image", "Message", "Conversation", "CodeBlock", "Table"]],
   ["Reports and exploring", ["ReportBuilder", "Explorer", "FilterBar"]],
   ["Data views", ["DataGrid", "RowList", "Chart", "PivotTable", "QueryResult", "Metric", "Sparkline", "BulletGraph", "QueryPlan", "SqlEditor"]],
   ["Discovery and modelling", ["DataSearch", "ObjectBrowser", "ObjectDetail", "RelationshipGraph", "NodeGraph", "ModelDiagram", "AskData", "ContextBuilder", "SourceList", "FileBrowser", "SemanticModelEditor"]],

@@ -83,6 +83,7 @@ import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useSta
 import { safeUrl } from "../functions.js";
 import type { ComponentRenderer, RenderProps } from "./Surface.js";
 import { withFilters } from "./renderers.js";
+import { ConversationView } from "./conversation.js";
 import { spaceAttributes } from "./layout.js";
 
 const text = (value: unknown): string => (value == null ? "" : typeof value === "object" ? "" : String(value));
@@ -554,6 +555,7 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
       </div>
     </div>
   ),
+  Conversation: (renderProps) => <ConversationView {...renderProps} />,
   RowList: ({ props, component, rows, reportContext }) =>
     withFilters(props.filters, (filters) => (
       <RowList
