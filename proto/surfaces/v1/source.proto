@@ -31,6 +31,12 @@ enum SourceKind {
   SOURCE_KIND_POSTGRES = 6;
   // MySQL or MariaDB.
   SOURCE_KIND_MYSQL = 7;
+  SOURCE_KIND_SQLSERVER = 8;
+  SOURCE_KIND_SNOWFLAKE = 9;
+  SOURCE_KIND_BIGQUERY = 10;
+  // Databricks SQL, or Spark SQL.
+  SOURCE_KIND_DATABRICKS = 11;
+  SOURCE_KIND_ORACLE = 12;
 }
 
 // ConnectionKind is where a source's data or catalog lives.
@@ -73,6 +79,12 @@ enum Engine {
   ENGINE_POSTGRES = 4;
   // MySQL or MariaDB.
   ENGINE_MYSQL = 5;
+  ENGINE_SQLSERVER = 6;
+  ENGINE_SNOWFLAKE = 7;
+  ENGINE_BIGQUERY = 8;
+  // Databricks SQL, or Spark SQL.
+  ENGINE_DATABRICKS = 9;
+  ENGINE_ORACLE = 10;
 }
 
 // SqlDialect tells the SQL rewriter which syntax to produce.
@@ -84,6 +96,14 @@ enum SqlDialect {
   SQL_DIALECT_POSTGRES = 4;
   // MySQL and MariaDB. Names are written in backticks; a name in double quotes is read as a name, as the standard has it.
   SQL_DIALECT_MYSQL = 5;
+  // Microsoft SQL Server and Azure SQL (T-SQL).
+  SQL_DIALECT_SQLSERVER = 6;
+  SQL_DIALECT_SNOWFLAKE = 7;
+  // GoogleSQL. Names are written in backticks, as for MySQL.
+  SQL_DIALECT_BIGQUERY = 8;
+  // Databricks SQL and Spark SQL. Names are written in backticks, as for MySQL.
+  SQL_DIALECT_DATABRICKS = 9;
+  SQL_DIALECT_ORACLE = 10;
 }
 
 // Capabilities says what a source's engine can do, so the UI can hide what

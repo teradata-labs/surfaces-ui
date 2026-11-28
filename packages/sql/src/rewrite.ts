@@ -41,10 +41,22 @@ const DIALECT_NAME: Partial<Record<SqlDialect, string>> = {
   [SqlDialect.TERADATA]: "teradata",
   [SqlDialect.POSTGRES]: "postgresql",
   [SqlDialect.MYSQL]: "mysql",
+  [SqlDialect.SQLSERVER]: "tsql",
+  [SqlDialect.SNOWFLAKE]: "snowflake",
+  [SqlDialect.BIGQUERY]: "bigquery",
+  [SqlDialect.DATABRICKS]: "databricks",
+  [SqlDialect.ORACLE]: "oracle",
 };
 
 const QUERY_KINDS = new Set(["select", "union", "intersect", "except"]);
 const ALIAS = '"_sf"';
+/** Dialects that read a name in double quotes as text, so names go in backticks (`mysqlNames`). */
+const BACKTICKS = new Set<SqlDialect>([SqlDialect.MYSQL, SqlDialect.BIGQUERY, SqlDialect.DATABRICKS]);
+/** Dialects whose strings read a backslash as an escape, so a lone backslash is written doubled. */
+const BACKSLASHES = new Set<SqlDialect>([SqlDialect.MYSQL, SqlDialect.DATABRICKS, SqlDialect.SNOWFLAKE]);
+const backticked = (sql: string, dialect: SqlDialect) => (BACKTICKS.has(dialect) ? mysqlNames(sql, dialect !== SqlDialect.DATABRICKS) : sql);
+/** A derived table's alias. Oracle takes no AS before one. */
+const named = (alias: string, dialect: SqlDialect) => (dialect === SqlDialect.ORACLE ? alias : `AS ${alias}`);
 const GROUPED = '"_ag"';
 
 type Ast = Record<string, Record<string, unknown>>;
@@ -154,8 +166,10 @@ function predicate(filter: Filter, params: Param[], dialect: SqlDialect): string
   const like = (wrap: (text: string) => string) => {
     need(1);
     params.push(wrap(escapeLike(String(param(values[0])))));
-    // MySQL reads a backslash inside a string as an escape, so the one-character escape is written doubled there.
-    return `LOWER(${col}) LIKE LOWER(?) ESCAPE '${dialect === SqlDialect.MYSQL ? "\\\\" : "\\"}'`;
+    // Where a backslash inside a string is an escape, the one-character escape is written doubled.
+    // BigQuery has no ESCAPE: a backslash in the pattern is always its escape.
+    if (dialect === SqlDialect.BIGQUERY) return `LOWER(${col}) LIKE LOWER(?)`;
+    return `LOWER(${col}) LIKE LOWER(?) ESCAPE '${BACKSLASHES.has(dialect) ? "\\\\" : "\\"}'`;
   };
   switch (filter.operator) {
     case FilterOperator.EQ:
@@ -204,6 +218,8 @@ function orderBy(sorts: Sort[], dialect: SqlDialect): string {
         sort.nulls === NullOrder.FIRST ? " NULLS FIRST" : sort.nulls === NullOrder.LAST ? " NULLS LAST" : "";
       // MySQL has no NULLS FIRST or LAST: sort on whether the value is null, then on the value.
       if (dialect === SqlDialect.MYSQL && nulls) return `${quote(sort.column)} IS ${sort.nulls === NullOrder.FIRST ? "NOT " : ""}NULL, ${quote(sort.column)} ${direction}`;
+      // Nor has SQL Server, and it has no boolean to sort on either.
+      if (dialect === SqlDialect.SQLSERVER && nulls) return `CASE WHEN ${quote(sort.column)} IS NULL THEN ${sort.nulls === NullOrder.FIRST ? 0 : 1} ELSE ${sort.nulls === NullOrder.FIRST ? 1 : 0} END, ${quote(sort.column)} ${direction}`;
       return `${quote(sort.column)} ${direction}${nulls}`;
     })
     .join(", ");
@@ -212,6 +228,29 @@ function orderBy(sorts: Sort[], dialect: SqlDialect): string {
 function notice(severity: NoticeSeverity, code: string, message: string): Notice {
   return create(NoticeSchema, { severity, code, message });
 }
+
+/**
+ * A median or percentile where the dialect has no exact aggregate for one.
+ * SQL Server's exact form is a window function, and BigQuery's too, so both
+ * use the database's own approximate aggregate; Databricks has an exact one
+ * under another name.
+ */
+const QUANTILE: Partial<Record<SqlDialect, (column: string, fraction: number) => string>> = {
+  [SqlDialect.SQLSERVER]: (column, fraction) => `APPROX_PERCENTILE_CONT(${fraction}) WITHIN GROUP (ORDER BY ${column})`,
+  [SqlDialect.BIGQUERY]: (column, fraction) => `APPROX_QUANTILES(${column}, 1000)[OFFSET(${Math.round(fraction * 1000)})]`,
+  [SqlDialect.DATABRICKS]: (column, fraction) => `PERCENTILE(${column}, ${fraction})`,
+};
+const APPROX_DISTINCT = new Set<SqlDialect>([SqlDialect.SQLSERVER, SqlDialect.SNOWFLAKE, SqlDialect.BIGQUERY, SqlDialect.DATABRICKS, SqlDialect.ORACLE]);
+/** The type a value is cast to so that a division is not done in whole numbers. */
+const FLOAT: Partial<Record<SqlDialect, string>> = {
+  [SqlDialect.TERADATA]: "FLOAT",
+  [SqlDialect.SQLSERVER]: "FLOAT",
+  [SqlDialect.BIGQUERY]: "FLOAT64",
+  [SqlDialect.ORACLE]: "BINARY_DOUBLE",
+  [SqlDialect.MYSQL]: "DOUBLE",
+  [SqlDialect.DATABRICKS]: "DOUBLE",
+  [SqlDialect.SNOWFLAKE]: "DOUBLE",
+};
 
 const within = (fraction: number, column: string) => `PERCENTILE_CONT(${fraction}) WITHIN GROUP (ORDER BY ${column})`;
 
@@ -231,23 +270,25 @@ function aggregateSql(item: Aggregate, column: string, dialect: SqlDialect): str
       return `MAX(${column})`;
     case AggregateFunction.MEDIAN:
       if (dialect === SqlDialect.MYSQL) throw new SqlError("INVALID_VIEW", "MySQL has no median, so this source cannot work one out. Use an average, or write the percentile in the query.");
+      if (QUANTILE[dialect]) return QUANTILE[dialect]!(column, 0.5);
       return dialect === SqlDialect.POSTGRES ? within(0.5, column) : `MEDIAN(${column})`;
     case AggregateFunction.STDDEV:
-      return `STDDEV_SAMP(${column})`;
+      return dialect === SqlDialect.SQLSERVER ? `STDEV(${column})` : `STDDEV_SAMP(${column})`;
     case AggregateFunction.VARIANCE:
-      return `VAR_SAMP(${column})`;
+      return dialect === SqlDialect.SQLSERVER ? `VAR(${column})` : `VAR_SAMP(${column})`;
     case AggregateFunction.PERCENTILE: {
       const fraction = item.percentile;
       if (!(fraction >= 0 && fraction <= 1)) {
         throw new SqlError("INVALID_VIEW", `The percentile for ${item.alias} must be between 0 and 1.`);
       }
       if (dialect === SqlDialect.MYSQL) throw new SqlError("INVALID_VIEW", "MySQL has no percentile function, so this source cannot work one out.");
+      if (QUANTILE[dialect]) return QUANTILE[dialect]!(column, fraction);
       if (dialect === SqlDialect.DUCKDB) return `QUANTILE_CONT(${column}, ${fraction})`;
       if (dialect === SqlDialect.DATAFUSION) return `APPROX_PERCENTILE_CONT(${column}, ${fraction})`;
       return within(fraction, column);
     }
     case AggregateFunction.APPROX_COUNT_DISTINCT:
-      if (dialect === SqlDialect.DUCKDB) return `APPROX_COUNT_DISTINCT(${column})`;
+      if (dialect === SqlDialect.DUCKDB || APPROX_DISTINCT.has(dialect)) return `APPROX_COUNT_DISTINCT(${column})`;
       // Teradata and Postgres have no built-in estimate, and DataFusion's does not
       // accept every column type (floats and timestamps fail), so they count exactly.
       return `COUNT(DISTINCT ${column})`;
@@ -288,7 +329,7 @@ function derivedMeasure(item: { alias: string; expression: string }, aggregates:
   const byAlias = new Map(aggregates.map((a) => [a.alias, a]));
   const unknown = measureNames(tree).filter((name) => !byAlias.has(name));
   if (unknown.length > 0) throw new SqlError("INVALID_VIEW", `The calculation for ${item.alias} uses ${unknown.map((n) => `"${n}"`).join(", ")}, which ${unknown.length === 1 ? "is not an aggregate" : "are not aggregates"} of this query.`);
-  const float = dialect === SqlDialect.TERADATA ? "FLOAT" : "DOUBLE";
+  const float = FLOAT[dialect] ?? "DOUBLE";
   const sql = writeMeasure(tree, {
     name: (name) => `(${aggregateExpression(byAlias.get(name)!, dialect)})`,
     divide: (left, right) => `(CAST(${left} AS ${float}) / NULLIF(${right}, 0))`,
@@ -328,6 +369,37 @@ const MYSQL_GRAIN: Partial<Record<TimeGrain, (column: string) => string>> = {
   [TimeGrain.YEAR]: (c) => `CAST(MAKEDATE(YEAR(${c}), 1) AS DATETIME)`,
 };
 
+/** SQL Server before 2022 has no DATETRUNC: a time is counted in whole units from a fixed day and added back. Day 0 is a Monday, which is what makes the week form land on one. */
+const SQLSERVER_GRAIN: Partial<Record<TimeGrain, (column: string) => string>> = {
+  [TimeGrain.MINUTE]: (c) => `DATEADD(minute, DATEDIFF(minute, 0, ${c}), 0)`,
+  [TimeGrain.HOUR]: (c) => `DATEADD(hour, DATEDIFF(hour, 0, ${c}), 0)`,
+  [TimeGrain.DAY]: (c) => `DATEADD(day, DATEDIFF(day, 0, ${c}), 0)`,
+  [TimeGrain.WEEK]: (c) => `DATEADD(day, DATEDIFF(day, 0, ${c}) / 7 * 7, 0)`,
+  [TimeGrain.MONTH]: (c) => `DATEADD(month, DATEDIFF(month, 0, ${c}), 0)`,
+  [TimeGrain.QUARTER]: (c) => `DATEADD(quarter, DATEDIFF(quarter, 0, ${c}), 0)`,
+  [TimeGrain.YEAR]: (c) => `DATEADD(year, DATEDIFF(year, 0, ${c}), 0)`,
+};
+/** BigQuery truncates each kind of time with its own function; cast to a timestamp, one does for all of them. */
+const BIGQUERY_PART: Partial<Record<TimeGrain, string>> = {
+  [TimeGrain.MINUTE]: "MINUTE",
+  [TimeGrain.HOUR]: "HOUR",
+  [TimeGrain.DAY]: "DAY",
+  [TimeGrain.WEEK]: "ISOWEEK",
+  [TimeGrain.MONTH]: "MONTH",
+  [TimeGrain.QUARTER]: "QUARTER",
+  [TimeGrain.YEAR]: "YEAR",
+};
+/** Oracle truncates a date with TRUNC and a format; a timestamp is a date first. */
+const ORACLE_FORMAT: Partial<Record<TimeGrain, string>> = {
+  [TimeGrain.MINUTE]: "MI",
+  [TimeGrain.HOUR]: "HH24",
+  [TimeGrain.DAY]: "DD",
+  [TimeGrain.WEEK]: "IW",
+  [TimeGrain.MONTH]: "MM",
+  [TimeGrain.QUARTER]: "Q",
+  [TimeGrain.YEAR]: "YYYY",
+};
+
 /** The grouping expression for a bucket, and the name of its output column. */
 function bucket(item: Bucket, dialect: SqlDialect): { expression: string; alias: string } {
   const column = quote(item.column);
@@ -337,6 +409,9 @@ function bucket(item: Bucket, dialect: SqlDialect): { expression: string; alias:
     const teradata = TERADATA_GRAIN[item.by.value];
     if (!name || !teradata) throw new SqlError("INVALID_VIEW", `The bucket on ${item.column} has no time grain.`);
     if (dialect === SqlDialect.MYSQL) return { expression: MYSQL_GRAIN[item.by.value]!(column), alias };
+    if (dialect === SqlDialect.SQLSERVER) return { expression: SQLSERVER_GRAIN[item.by.value]!(column), alias };
+    if (dialect === SqlDialect.BIGQUERY) return { expression: `TIMESTAMP_TRUNC(CAST(${column} AS TIMESTAMP), ${BIGQUERY_PART[item.by.value]})`, alias };
+    if (dialect === SqlDialect.ORACLE) return { expression: `TRUNC(CAST(${column} AS DATE), '${ORACLE_FORMAT[item.by.value]}')`, alias };
     return { expression: dialect === SqlDialect.TERADATA ? teradata(column) : `DATE_TRUNC('${name}', ${column})`, alias };
   }
   if (item.by.case === "binWidth") {
@@ -346,7 +421,7 @@ function bucket(item: Bucket, dialect: SqlDialect): { expression: string; alias:
     }
     // Integer division would round towards zero and misplace negative values.
     const value =
-      dialect === SqlDialect.DUCKDB ? column : `CAST(${column} AS ${dialect === SqlDialect.TERADATA ? "FLOAT" : dialect === SqlDialect.MYSQL ? "DOUBLE" : "DOUBLE PRECISION"})`;
+      dialect === SqlDialect.DUCKDB ? column : `CAST(${column} AS ${FLOAT[dialect] ?? "DOUBLE PRECISION"})`;
     return { expression: `FLOOR(${value} / ${width}) * ${width}`, alias };
   }
   throw new SqlError("INVALID_VIEW", `The bucket on ${item.column} needs a time grain or a bin width.`);
@@ -368,8 +443,8 @@ function isGrouped(query: ViewQuery): boolean {
 
 function wrap(query: ViewQuery, kind: SqlDialect): Wrapped {
   const dialect = dialectName(kind);
-  // For MySQL the names in the base query go into backticks before it is parsed, or the parser reads them as text.
-  const parts = split(kind === SqlDialect.MYSQL ? mysqlNames(query.baseSql) : query.baseSql, dialect);
+  // Where names go in backticks, those in the base query are rewritten before it is parsed, or the parser reads them as text.
+  const parts = split(backticked(query.baseSql, kind), dialect);
   const params: Param[] = query.parameters.map(param);
   const where = query.filters.map((f) => predicate(f, params, kind)).join(" AND ");
   const notices: Notice[] = [];
@@ -382,7 +457,7 @@ function wrap(query: ViewQuery, kind: SqlDialect): Wrapped {
       ),
     );
   }
-  let from = ` FROM (${parts.inner}) AS ${ALIAS}${where ? ` WHERE ${where}` : ""}`;
+  let from = ` FROM (${parts.inner}) ${named(ALIAS, kind)}${where ? ` WHERE ${where}` : ""}`;
   let trailingSample = 0;
   const sampleRows = query.sample?.rows ?? 0;
   if (sampleRows > 0) {
@@ -398,7 +473,13 @@ function wrap(query: ViewQuery, kind: SqlDialect): Wrapped {
       // table. The fixed seed keeps a chart the same between two loads.
       from = ` FROM (SELECT *${from}) AS ${ALIAS} USING SAMPLE reservoir(${rows} ROWS) REPEATABLE (1)`;
     } else {
-      from = ` FROM (SELECT *${from} ORDER BY ${kind === SqlDialect.MYSQL ? "RAND()" : "RANDOM()"} LIMIT ${rows}) AS ${ALIAS}`;
+      const random = kind === SqlDialect.MYSQL || kind === SqlDialect.BIGQUERY || kind === SqlDialect.DATABRICKS ? "RAND()" : "RANDOM()";
+      from =
+        kind === SqlDialect.SQLSERVER
+          ? ` FROM (SELECT TOP ${rows} *${from} ORDER BY NEWID()) AS ${ALIAS}`
+          : kind === SqlDialect.ORACLE
+            ? ` FROM (SELECT *${from} ORDER BY DBMS_RANDOM.VALUE FETCH FIRST ${rows} ROWS ONLY) ${ALIAS}`
+            : ` FROM (SELECT *${from} ORDER BY ${random} LIMIT ${rows}) AS ${ALIAS}`;
     }
   }
   if (query.derived.length > 0 && query.aggregates.length === 0) {
@@ -422,7 +503,7 @@ function wrap(query: ViewQuery, kind: SqlDialect): Wrapped {
       throw new SqlError("INVALID_VIEW", "Grouped and aggregated columns must have different names.");
     }
     const groupBy = groups.length > 0 ? ` GROUP BY ${groups.join(", ")}` : "";
-    from = ` FROM (SELECT ${outputs.join(", ")}${from}${groupBy}) AS ${GROUPED}`;
+    from = ` FROM (SELECT ${outputs.join(", ")}${from}${groupBy}) ${named(GROUPED, kind)}`;
   }
   return { parts, from, params, notices, trailingSample };
 }
@@ -482,6 +563,12 @@ export function rewriteQuery(query: ViewQuery, dialect: SqlDialect): Rewritten {
       const last = limit > 0 ? ` BETWEEN ${offset + 1} AND ${offset + limit}` : ` > ${offset}`;
       sql = `${head}SELECT ${columns}${from} QUALIFY ROW_NUMBER() OVER (ORDER BY ${order || "1"})${last}${order ? ` ORDER BY ${order}` : ""}`;
     }
+  } else if (dialect === SqlDialect.SQLSERVER || dialect === SqlDialect.ORACLE) {
+    // No LIMIT in either: a page is OFFSET and FETCH, which SQL Server allows only after an ORDER BY.
+    const paged = (limit > 0 && !sampled) || offset > 0;
+    const ordered = order || (paged && dialect === SqlDialect.SQLSERVER ? "(SELECT NULL)" : "");
+    sql = `${head}SELECT ${columns}${from}${ordered ? ` ORDER BY ${ordered}` : ""}`;
+    if (paged) sql += ` OFFSET ${offset} ROWS${limit > 0 && !sampled ? ` FETCH NEXT ${limit} ROWS ONLY` : ""}`;
   } else {
     sql = `${head}SELECT ${columns}${from}${order ? ` ORDER BY ${order}` : ""}`;
     if (limit > 0 && !sampled) sql += ` LIMIT ${limit}`;
@@ -542,7 +629,7 @@ export function numberPlaceholders(sql: string): string {
 }
 
 const placeholders = (rewritten: Rewritten, dialect: SqlDialect): Rewritten =>
-  NUMBERED.has(dialect) ? { ...rewritten, sql: numberPlaceholders(rewritten.sql) } : dialect === SqlDialect.MYSQL ? { ...rewritten, sql: mysqlNames(rewritten.sql) } : rewritten;
+  NUMBERED.has(dialect) ? { ...rewritten, sql: numberPlaceholders(rewritten.sql) } : BACKTICKS.has(dialect) ? { ...rewritten, sql: backticked(rewritten.sql, dialect) } : rewritten;
 
 function withoutSample(query: ViewQuery): ViewQuery {
   const copy = clone(ViewQuerySchema, query);
@@ -568,7 +655,7 @@ export function countQuery(query: ViewQuery, dialect: SqlDialect): Rewritten {
 /** Checks that SQL is a single read-only query without rewriting it. Throws SqlError if not. */
 export function assertReadOnly(sql: string, dialect: SqlDialect): void {
   if (!ready) throw new Error("call initSql() before assertReadOnly()");
-  split(dialect === SqlDialect.MYSQL ? mysqlNames(sql) : sql, dialectName(dialect));
+  split(backticked(sql, dialect), dialectName(dialect));
 }
 
 /** Validates the rewritten SQL parses in its dialect. For tests and diagnostics. */

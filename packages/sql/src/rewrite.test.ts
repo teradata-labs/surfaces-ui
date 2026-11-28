@@ -473,3 +473,72 @@ describe("MySQL", () => {
     expect(() => assertReadOnly('SELECT "a" FROM orders', MY)).not.toThrow();
   });
 });
+
+describe("SQL Server, Snowflake, BigQuery, Databricks and Oracle", () => {
+  const all = [SqlDialect.SQLSERVER, SqlDialect.SNOWFLAKE, SqlDialect.BIGQUERY, SqlDialect.DATABRICKS, SqlDialect.ORACLE] as const;
+  const paged = (dialect: SqlDialect) =>
+    rewriteQuery(view('SELECT * FROM "sales"."orders"', { filters: [{ column: "status", operator: FilterOperator.CONTAINS, values: [s("ship")] }, ...filterCust], sorts: [{ column: "amt", direction: SortDirection.DESC, nulls: NullOrder.LAST }], page: { limit: 25, offset: 50n } }), dialect).sql;
+
+  it("pages each in its own way", () => {
+    expect(paged(SqlDialect.SQLSERVER)).toBe(
+      // The parser writes the base query's names back in SQL Server's own brackets; both forms are names there.
+      `SELECT * FROM (SELECT * FROM [sales].[orders]) AS "_sf" WHERE LOWER("status") LIKE LOWER(?) ESCAPE '\\' AND "cust_id" >= ? ORDER BY CASE WHEN "amt" IS NULL THEN 1 ELSE 0 END, "amt" DESC OFFSET 50 ROWS FETCH NEXT 25 ROWS ONLY`,
+    );
+    expect(paged(SqlDialect.ORACLE)).toBe(`SELECT * FROM (SELECT * FROM "sales"."orders") "_sf" WHERE LOWER("status") LIKE LOWER(?) ESCAPE '\\' AND "cust_id" >= ? ORDER BY "amt" DESC NULLS LAST OFFSET 50 ROWS FETCH NEXT 25 ROWS ONLY`);
+    expect(paged(SqlDialect.SNOWFLAKE)).toBe(`SELECT * FROM (SELECT * FROM "sales"."orders") AS "_sf" WHERE LOWER("status") LIKE LOWER(?) ESCAPE '\\\\' AND "cust_id" >= ? ORDER BY "amt" DESC NULLS LAST LIMIT 25 OFFSET 50`);
+    expect(paged(SqlDialect.BIGQUERY)).toBe("SELECT * FROM (SELECT * FROM `sales`.`orders`) AS `_sf` WHERE LOWER(`status`) LIKE LOWER(?) AND `cust_id` >= ? ORDER BY `amt` DESC NULLS LAST LIMIT 25 OFFSET 50");
+    expect(paged(SqlDialect.DATABRICKS)).toBe("SELECT * FROM (SELECT * FROM `sales`.`orders`) AS `_sf` WHERE LOWER(`status`) LIKE LOWER(?) ESCAPE '\\\\' AND `cust_id` >= ? ORDER BY `amt` DESC NULLS LAST LIMIT 25 OFFSET 50");
+    // SQL Server pages only after an ORDER BY, so a page with no sort is given one that orders by nothing.
+    expect(rewriteQuery(view("SELECT * FROM orders", { page: { limit: 10 } }), SqlDialect.SQLSERVER).sql).toBe('SELECT * FROM (SELECT * FROM orders) AS "_sf" ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY');
+    expect(rewriteQuery(view("SELECT * FROM orders", { page: { limit: 10 } }), SqlDialect.ORACLE).sql).toBe('SELECT * FROM (SELECT * FROM orders) "_sf" OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY');
+  });
+
+  it("buckets a time, divides as floats and works out a percentile in each dialect's own words", () => {
+    const grouped = (dialect: SqlDialect) =>
+      rewriteQuery(
+        view("SELECT * FROM orders", {
+          buckets: [{ column: "ordered_at", by: { case: "grain", value: TimeGrain.MONTH } }],
+          aggregates: [{ function: AggregateFunction.SUM, column: "amt", alias: "revenue" }, { function: AggregateFunction.COUNT, alias: "n" }, { function: AggregateFunction.MEDIAN, column: "amt", alias: "mid" }, { function: AggregateFunction.PERCENTILE, column: "amt", alias: "p90", percentile: 0.9 }, { function: AggregateFunction.STDDEV, column: "amt", alias: "sd" }],
+          derived: [{ alias: "each", expression: "revenue / n" }],
+          sorts: [{ column: "ordered_at" }],
+        }),
+        dialect,
+      ).sql;
+    expect(grouped(SqlDialect.SQLSERVER)).toContain('DATEADD(month, DATEDIFF(month, 0, "ordered_at"), 0) AS "ordered_at"');
+    expect(grouped(SqlDialect.SQLSERVER)).toContain('APPROX_PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY "amt") AS "p90"');
+    expect(grouped(SqlDialect.SQLSERVER)).toContain('STDEV("amt") AS "sd"');
+    expect(grouped(SqlDialect.SQLSERVER)).toContain('CAST((SUM("amt")) AS FLOAT)');
+    expect(grouped(SqlDialect.SNOWFLAKE)).toContain(`DATE_TRUNC('month', "ordered_at")`);
+    expect(grouped(SqlDialect.SNOWFLAKE)).toContain('MEDIAN("amt") AS "mid"');
+    expect(grouped(SqlDialect.BIGQUERY)).toContain("TIMESTAMP_TRUNC(CAST(`ordered_at` AS TIMESTAMP), MONTH) AS `ordered_at`");
+    expect(grouped(SqlDialect.BIGQUERY)).toContain("APPROX_QUANTILES(`amt`, 1000)[OFFSET(900)] AS `p90`");
+    expect(grouped(SqlDialect.BIGQUERY)).toContain("AS FLOAT64)");
+    expect(grouped(SqlDialect.DATABRICKS)).toContain("PERCENTILE(`amt`, 0.5) AS `mid`");
+    expect(grouped(SqlDialect.DATABRICKS)).toContain("DATE_TRUNC('month', `ordered_at`)");
+    expect(grouped(SqlDialect.ORACLE)).toContain(`TRUNC(CAST("ordered_at" AS DATE), 'MM') AS "ordered_at"`);
+    expect(grouped(SqlDialect.ORACLE)).toContain('AS BINARY_DOUBLE)');
+    expect(grouped(SqlDialect.ORACLE)).toMatch(/\) "_ag" ORDER BY "ordered_at" ASC$/);
+    // The week must start on a Monday everywhere; SQL Server's own week count turns over on a Sunday.
+    expect(rewriteQuery(view("SELECT * FROM orders", { buckets: [{ column: "d", by: { case: "grain", value: TimeGrain.WEEK } }], aggregates: [{ function: AggregateFunction.COUNT, alias: "n" }] }), SqlDialect.SQLSERVER).sql).toContain('DATEADD(day, DATEDIFF(day, 0, "d") / 7 * 7, 0)');
+  });
+
+  it("samples and counts, and every statement it writes parses in its dialect", () => {
+    expect(rewriteQuery(view("SELECT * FROM orders", { sample: { rows: 200 } }), SqlDialect.SQLSERVER).sql).toBe('SELECT * FROM (SELECT TOP 200 * FROM (SELECT * FROM orders) AS "_sf" ORDER BY NEWID()) AS "_sf"');
+    expect(rewriteQuery(view("SELECT * FROM orders", { sample: { rows: 200 } }), SqlDialect.ORACLE).sql).toBe('SELECT * FROM (SELECT * FROM (SELECT * FROM orders) "_sf" ORDER BY DBMS_RANDOM.VALUE FETCH FIRST 200 ROWS ONLY) "_sf"');
+    expect(rewriteQuery(view("SELECT * FROM orders", { sample: { rows: 200 } }), SqlDialect.BIGQUERY).sql).toContain("ORDER BY RAND() LIMIT 200");
+    const unparsed: string[] = [];
+    for (const dialect of all) {
+      const statements = [
+        paged(dialect),
+        rewriteQuery(view("SELECT * FROM orders", { sample: { rows: 50 } }), dialect).sql,
+        countQuery(view("SELECT * FROM orders", { filters: filterCust }), dialect).sql,
+        columnsQuery(view("WITH x AS (SELECT 1 AS a) SELECT * FROM x"), dialect).sql,
+        rewriteQuery(view("SELECT * FROM orders", { groupBy: ["status"], aggregates: [{ function: AggregateFunction.AVG, column: "amt", alias: "mean" }, { function: AggregateFunction.APPROX_COUNT_DISTINCT, column: "cust_id", alias: "buyers" }], sorts: [{ column: "mean", direction: SortDirection.DESC }], page: { limit: 10 } }), dialect).sql,
+        ...[TimeGrain.MINUTE, TimeGrain.HOUR, TimeGrain.DAY, TimeGrain.WEEK, TimeGrain.MONTH, TimeGrain.QUARTER, TimeGrain.YEAR].map((grain) => rewriteQuery(view("SELECT * FROM orders", { buckets: [{ column: "ordered_at", by: { case: "grain", value: grain } }], aggregates: [{ function: AggregateFunction.COUNT, alias: "n" }] }), dialect).sql),
+      ];
+      for (const sql of statements) if (!parses(sql, dialect)) unparsed.push(`${SqlDialect[dialect]}: ${sql}`);
+      expect(() => assertReadOnly("DELETE FROM orders", dialect)).toThrow(SqlError);
+    }
+    expect(unparsed).toEqual([]);
+  });
+});

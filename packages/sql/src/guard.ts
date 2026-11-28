@@ -10,7 +10,7 @@ const STARTS = /^(SELECT|SEL|WITH|LOCKING|LOCK|VALUES|TABLE|FROM)\b/i;
  * Replaces string literals, quoted identifiers and comments with spaces so
  * keyword checks cannot be fooled by text inside them. Length is preserved.
  */
-export function blankLiterals(sql: string, mysql = false): string {
+export function blankLiterals(sql: string, mysql = false, hash = mysql): string {
   let out = "";
   let i = 0;
   const blank = (end: number) => {
@@ -26,7 +26,7 @@ export function blankLiterals(sql: string, mysql = false): string {
     } else if (c === "/" && next === "*") {
       const end = sql.indexOf("*/", i + 2);
       blank(end === -1 ? sql.length : end + 2);
-    } else if (mysql && c === "#") {
+    } else if (hash && c === "#") {
       const end = sql.indexOf("\n", i);
       blank(end === -1 ? sql.length : end);
     } else if (c === "'" || c === '"' || (mysql && c === "`")) {
@@ -55,9 +55,11 @@ export function blankLiterals(sql: string, mysql = false): string {
  * so for MySQL each one is rewritten in backticks. Strings in single quotes,
  * names already in backticks and comments are left as they are. It follows
  * that on a MySQL source text is written in single quotes, never double.
+ * BigQuery and Databricks read double quotes the same way and are written
+ * the same way; `hash` is off for Databricks, where `#` begins no comment.
  */
-export function mysqlNames(sql: string): string {
-  const bare = blankLiterals(sql, true);
+export function mysqlNames(sql: string, hash = true): string {
+  const bare = blankLiterals(sql, true, hash);
   let out = "";
   let at = 0;
   let i = 0;
