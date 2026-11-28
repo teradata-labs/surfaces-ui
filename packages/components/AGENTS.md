@@ -20,6 +20,24 @@ Agent notes for this folder. The rules that hold everywhere are in the root [AGE
 - **A component an app places itself is described once.** One that is not a catalog entry (it hosts the catalog, or is placed by the app rather than drawn by an agent) gets an entry in its package's `appComponents.ts` through `describeAppComponent`, and a demo in the playground's `appDemos.tsx`; `pnpm docs:gen` writes its page to `docs/components`, and the playground's Components area draws it under App components.
 - jsdom has no layout: give `height` and `rowHeight` in tests, and test chart logic through `buildChartOption`.
 
+## How components work together
+
+Rules that span more than one component live in the note of the folder that owns them. Read that note before wiring the components together.
+
+| When you are | The rule is in |
+|---|---|
+| Filtering every view on a page from one list (`FilterBar`, `QueryFilters`, a `Chart` with `select`), or keeping a date relative | [`src/filter`](src/filter/AGENTS.md) |
+| Cross-filtering: a click on one chart filtering the other views | [`src/chart`](src/chart/AGENTS.md) |
+| Handing tables, columns and files from a browser to a chat or another component (`DataRef`) | [`src/schema`](src/schema/AGENTS.md), [`src/files`](src/files/AGENTS.md) |
+| Showing several views of one run of a query (`notBefore`), telling the agent what a person did (`onContext`), or making a control an agent can set | this note, above |
+| Building a list of an app's own rows: `DataTable` with `SelectionBar`, `Pagination`, `useConfirm`, `ActionReceipt`, `StatusBadge` | [`src/table`](src/table/AGENTS.md) |
+| Giving an item its change, move, resize and remove controls, with one layer on screen | [`src/controls`](src/controls/AGENTS.md) |
+| Putting pills, shelves, tiles and a semantic model together (`Explorer`, `ReportBuilder`, `SemanticModelEditor`, `ModelDiagram`, `ModelLineage`) | [`src/explore`](src/explore/AGENTS.md), [`src/model`](src/model/AGENTS.md) |
+| Drawing a diagram that pans and zooms | [`src/panzoom`](src/panzoom/AGENTS.md) |
+| Letting a catalog surface navigate on its own (`DataSearch`, `ObjectBrowser`, `ObjectDetail`, `RelationshipGraph`) | [`src/discovery`](src/discovery/AGENTS.md) |
+| Arranging panels beside each other, or a chat beside a browser | [`src/workspace`](src/workspace/AGENTS.md), [packages/chat](../chat/AGENTS.md) |
+| Composing components into a surface or page an agent draws, and binding one component's value to another's | [packages/spec](../spec/AGENTS.md) |
+
 ## Components, by folder
 
 Each folder under `src/` has its own `AGENTS.md` with its components and their rules.
