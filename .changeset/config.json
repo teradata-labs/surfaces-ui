@@ -20,6 +20,7 @@
       "@surfaces-ui/engine",
       "@surfaces-ui/engine-datafusion",
       "@surfaces-ui/engine-duckdb",
+      "@surfaces-ui/engine-mcp",
       "@surfaces-ui/engine-service",
       "@surfaces-ui/engine-teradata",
       "@surfaces-ui/mcp",

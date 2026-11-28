@@ -6,6 +6,8 @@ import { pathToFileURL } from "node:url";
 import type { Embedder } from "@surfaces-ui/discovery";
 import { type DuckDbCatalog, type DuckDbConnection, type DuckDbSecretValues, type DuckDbTable, createDuckDbEngine, isRemotePath } from "@surfaces-ui/engine-duckdb";
 import { createDataFusionEngine } from "@surfaces-ui/engine-datafusion";
+import { createMcpEngine, httpServer } from "@surfaces-ui/engine-mcp";
+import { stdioServer } from "@surfaces-ui/engine-mcp/node";
 import { type DriverConnection, createTeradataEngine, driverClient } from "@surfaces-ui/engine-teradata";
 import type { PipelineDefinition } from "@surfaces-ui/pipelines";
 import { type DbtNode, type DbtPipelinesOptions, dbtPipelines as dbtPipelinesOf, defaultRelation, readArtifacts, semanticModelsFromDbt } from "@surfaces-ui/pipelines-dbt";
@@ -92,7 +94,36 @@ export interface TeradataDriverSourceConfig {
   databases?: string[];
 }
 
-export type SourceConfig = DuckDbSourceConfig | DataFusionSourceConfig | TeradataSourceConfig | TeradataDriverSourceConfig;
+/**
+ * A database reached through its own MCP server (the Teradata MCP server, a
+ * Postgres or DuckDB one). The SQL for every sort, filter and page goes
+ * through that server's query tool, so its rows never pass through a model.
+ * Read-only: no kept results, no pipelines and no time travel.
+ *
+ * A local server is started from `command`; only the environment variables
+ * named in `env` are passed to it, so a connection string stays in the
+ * environment (or the git-ignored `.env.local`) and out of this file. A
+ * remote one is called at `url`, with the bearer token read from
+ * `<SECRET>_TOKEN`.
+ */
+export interface McpSourceConfig {
+  id: string;
+  displayName?: string;
+  engine: "mcp";
+  /** The database behind the server, which decides the SQL written for it. */
+  dialect: "postgres" | "duckdb" | "teradata";
+  server: { command: string; args?: string[]; env?: string[] } | { url: string; secret?: string };
+  /** The server's tool that runs a query, and its SQL argument. Found from the server's tool list when left out. */
+  tool?: string;
+  argument?: string;
+  /** Other arguments sent with every query, such as a project id. Never a credential. */
+  arguments?: Record<string, unknown>;
+  /** Teradata: the default database, and the databases listings cover when none is named. */
+  database?: string;
+  databases?: string[];
+}
+
+export type SourceConfig = DuckDbSourceConfig | DataFusionSourceConfig | TeradataSourceConfig | TeradataDriverSourceConfig | McpSourceConfig;
 
 export interface DiscoveryConfig {
   /**
@@ -224,6 +255,25 @@ export async function openSources(
     ids.add(source.id);
     if (source.engine === "datafusion") {
       sources.push({ id: source.id, displayName: source.displayName, kind: SourceKind.FILES, engine: await createDataFusionEngine({ baseUrl: source.baseUrl }) });
+      continue;
+    }
+    if (source.engine === "mcp") {
+      const server = source.server;
+      const secret = "url" in server ? server.secret : undefined;
+      const token = secret ? (await resolveSecret(secret))?.token : undefined;
+      const engine = await createMcpEngine({
+        dialect: source.dialect,
+        transport: "url" in server ? httpServer(server.url, { token: () => token }) : stdioServer(server.command, server.args, { env: server.env }),
+        // A command line can hold a connection string, so only the program is shown; an address is shown without its query.
+        address: "url" in server ? server.url.replace(/[?#].*$/, "") : server.command,
+        tool: source.tool,
+        argument: source.argument,
+        arguments: source.arguments,
+        database: source.database,
+        databases: source.databases,
+      });
+      const kind = source.dialect === "teradata" ? SourceKind.TERADATA : source.dialect === "postgres" ? SourceKind.POSTGRES : SourceKind.DUCKDB;
+      sources.push({ id: source.id, displayName: source.displayName, kind, engine });
       continue;
     }
     if (source.engine === "teradata" && source.transport === "driver") {

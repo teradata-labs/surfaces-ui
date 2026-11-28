@@ -48,6 +48,7 @@ This file holds what is true everywhere: the commands, the rules and the convent
 | [`packages/engine-duckdb`](packages/engine-duckdb/AGENTS.md) | DuckDB engine adapter (Node, ADBC). Also: connections. |
 | [`packages/engine-teradata`](packages/engine-teradata/AGENTS.md) | Teradata engine adapter for Surfaces UI: Teradata Query Service over HTTP, or a driver connection the consumer supplies |
 | [`packages/engine-datafusion`](packages/engine-datafusion/AGENTS.md) | DataFusion engine adapter for Surfaces UI: talks to a DataFusion server over HTTP and reads Arrow |
+| [`packages/engine-mcp`](packages/engine-mcp/AGENTS.md) | A database's own MCP server as a Surfaces UI engine: sorts, filters and pages run as SQL through that server's query tool (Teradata, Postgres, DuckDB) |
 | [`packages/engine-service`](packages/engine-service/AGENTS.md) | QueryService, CatalogService and SourceService over engine adapters, in Node or a browser |
 | [`packages/dev-server`](packages/dev-server/AGENTS.md) | Local Connect server for Surfaces UI data sources |
 | [`packages/client-connect`](packages/client-connect/AGENTS.md) | Connect client that implements DataSource |

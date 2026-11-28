@@ -527,6 +527,9 @@ importers:
       '@surfaces-ui/engine-duckdb':
         specifier: workspace:*
         version: link:../engine-duckdb
+      '@surfaces-ui/engine-mcp':
+        specifier: workspace:*
+        version: link:../engine-mcp
       '@surfaces-ui/engine-service':
         specifier: workspace:*
         version: link:../engine-service
@@ -685,6 +688,40 @@ importers:
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
+
+  packages/engine-mcp:
+    dependencies:
+      '@bufbuild/protobuf':
+        specifier: ^2.17.0
+        version: 2.17.0
+      '@modelcontextprotocol/client':
+        specifier: ^2.4.0
+        version: 2.4.0
+      '@surfaces-ui/engine':
+        specifier: workspace:*
+        version: link:../engine
+      '@surfaces-ui/engine-teradata':
+        specifier: workspace:*
+        version: link:../engine-teradata
+      '@surfaces-ui/proto':
+        specifier: workspace:*
+        version: link:../proto
+      '@surfaces-ui/sql':
+        specifier: workspace:*
+        version: link:../sql
+      apache-arrow:
+        specifier: ^21.2.0
+        version: 21.2.0
+    devDependencies:
+      '@modelcontextprotocol/server':
+        specifier: ^2.4.0
+        version: 2.4.0
+      '@types/node':
+        specifier: ^26.6.6
+        version: 26.6.6
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
 
   packages/engine-service:
     dependencies:
