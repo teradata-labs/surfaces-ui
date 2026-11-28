@@ -15,6 +15,7 @@
     "dev": "pnpm --filter @surfaces-ui/playground dev",
     "serve": "pnpm --filter @surfaces-ui/dev-server... --filter @surfaces-ui/mcp build && node packages/dev-server/dist/cli.js",
     "check:boundaries": "node scripts/check-boundaries.mjs",
+    "check:notes": "node scripts/check-notes.mjs",
     "docs:gen": "pnpm --filter @surfaces-ui/spec... --filter @surfaces-ui/chat... --filter @surfaces-ui/devtools... build && node scripts/generate-docs.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version && pnpm install --lockfile-only",

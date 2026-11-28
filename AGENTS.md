@@ -10,7 +10,9 @@ What is built, and what has and has not been run against real systems: [docs/sta
 
 ## Where things are
 
-This file holds what is true everywhere: the commands, the rules and the conventions. Everything about one package or one component is in an `AGENTS.md` beside its code, with a `CLAUDE.md` that imports it. **Read the note for a folder before changing anything in it, and write what you learn about that folder into its note, not into this file.** A new package or component folder gets a note and a line here.
+This file holds what is true everywhere: the commands, the rules and the conventions. Everything about one package or one component is in an `AGENTS.md` beside its code, with a `CLAUDE.md` that imports it. A new package or component folder gets a note and a line here (`pnpm check:notes` fails without them).
+
+**The notes are not optional reading.** Before you change a file, or use a component or package from somewhere else, the notes that cover it must be in your context: the `AGENTS.md` of its folder and of every folder above it, up to this file. Never skip one. If a note is already in your context, do not read it again; after your context has been compacted or cleared it is gone, so read it again then. Claude Code loads a folder's notes when you read, write or edit a file there, and a hook (`.claude/hooks/notes.mjs`) refuses a write to a folder whose notes are not in context and names them; in any other tool, read them yourself. Searching a folder loads nothing. When you learn something about a folder, write it into that folder's note, not into this file.
 
 **Contracts**
 
@@ -30,6 +32,7 @@ This file holds what is true everywhere: the commands, the rules and the convent
 | [`packages/chat`](packages/chat/AGENTS.md) | Chat thread components for Surfaces UI: streaming replies, tool steps, approvals and inline agent-drawn components. Also: chat in a thread. |
 | [`packages/agent`](packages/agent/AGENTS.md) | AgentBackend interface, event helpers and stream adapters for Surfaces UI chat |
 | [`packages/agent-anthropic`](packages/agent-anthropic/AGENTS.md) | An AgentBackend over Claude through the Anthropic SDK, for Surfaces UI chat |
+| [`packages/agent-loom`](packages/agent-loom/AGENTS.md) | Loom adapter for Surfaces UI chat: talks to a Loom server over its HTTP gateway |
 | [`packages/agent-openai`](packages/agent-openai/AGENTS.md) | An AgentBackend over any OpenAI-compatible chat completions endpoint (OpenAI, Ollama, vLLM, LM Studio), for Surfaces UI chat |
 | [`packages/state`](packages/state/AGENTS.md) | Reusable state services for Surfaces UI: stores, persistence, URL sync, undo, shared view state and query runs |
 | [`packages/trace`](packages/trace/AGENTS.md) | Tracing for Surfaces UI: a bounded recorder of messages, problems, state, events, agent turns and service calls, with replay for time travel. Never holds row values or credentials |
@@ -66,6 +69,7 @@ This file holds what is true everywhere: the commands, the rules and the convent
 | Notes | What it is |
 |---|---|
 | [`packages/mcp`](packages/mcp/AGENTS.md) | MCP Apps delivery for Surfaces UI: tools, ui:// resources and a stdio server. Also: MCP Apps. |
+| [`packages/page`](packages/page/AGENTS.md) | Surfaces UI pages as one script and one stylesheet, for plain HTML pages with no build step |
 | [`packages/next`](packages/next/AGENTS.md) | Serve Surfaces UI pages from a Next.js app: routes, metadata and server-rendered pages, with Next.js doing the routing, building and hosting |
 
 **Agent skills (plugin)**
@@ -100,6 +104,7 @@ pnpm serve       # data dev server on http://localhost:5220 (reads surfaces.conf
                  # Models page change the test Loom's model)
 pnpm dev         # docs playground on http://localhost:5210
 pnpm check:boundaries   # UI packages (trace and devtools among them) must not import the data layer
+pnpm check:notes        # every package, app and component folder has its AGENTS.md and CLAUDE.md, listed and linked
 pnpm e2e         # browser tests (apps/e2e, Playwright): the playground in Chromium at desktop and phone size,
                  # against DuckDB in the page; axe WCAG 2.2 AA checks included. First run:
                  # pnpm --filter @surfaces-ui/e2e e2e:install

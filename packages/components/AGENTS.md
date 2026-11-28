@@ -32,10 +32,12 @@ Each folder under `src/` has its own `AGENTS.md` with its components and their r
 | [`src/discovery`](src/discovery/AGENTS.md) | `DiscoveryProvider` / `useDiscovery`, `DataSearch`, `ObjectDetail` / `ColumnProfile`, `CertificationBadge`, `RelationshipGraph`, `ContextBuilder`, `AskData` |
 | [`src/editor`](src/editor/AGENTS.md) | `SqlEditor` / `useSqlSchema` |
 | [`src/explore`](src/explore/AGENTS.md) | `Explorer`, `ReportBuilder`, `SemanticsProvider` / `useSemanticModel` / `SemanticModelEditor`, `ModelLineage`, `ExploreView` |
+| [`src/form`](src/form/AGENTS.md) | `Form` |
 | [`src/files`](src/files/AGENTS.md) | `FileBrowser` |
 | [`src/filter`](src/filter/AGENTS.md) | `FilterBar`, `QueryFilters` |
 | [`src/graph`](src/graph/AGENTS.md) | `NodeGraph` |
 | [`src/grid`](src/grid/AGENTS.md) | `DataGrid` |
+| [`src/locale`](src/locale/AGENTS.md) | `SurfacesText` |
 | [`src/menu`](src/menu/AGENTS.md) | `useContextMenu` |
 | [`src/metric`](src/metric/AGENTS.md) | `Metric` |
 | [`src/model`](src/model/AGENTS.md) | `ModelDiagram` |
