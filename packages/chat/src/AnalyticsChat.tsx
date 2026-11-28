@@ -4,8 +4,8 @@ import type { AgentInfo, ToolConnector } from "@surfaces-ui/proto";
 import { type Catalog, analyticsCatalog } from "@surfaces-ui/spec";
 import { type ComponentRenderer, type SurfaceNote, lazyAnalyticsRenderers } from "@surfaces-ui/spec/react";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MessageList, Suggestions, UsageGauge } from "./Chat.js";
-import { type AttachResult, ChatComposer, type SpeechConsent } from "./ChatComposer.js";
+import { MessageList, type MessageListProps, Suggestions, UsageGauge } from "./Chat.js";
+import { type AttachResult, ChatComposer, type ComposerProps, type SpeechConsent } from "./ChatComposer.js";
 import { AgentSetupPanel, choosesModel } from "./ChatPanels.js";
 import { DataPanel, type DataPanelProps } from "./DataPanel.js";
 import { SessionList, type SessionListState } from "./SessionList.js";
@@ -36,6 +36,16 @@ export interface AnalyticsChatProps {
   sessions?: ChatSessions;
   /** Files from the person's computer, turned into data by the host. */
   attachFiles?(files: File[]): Promise<AttachResult[]>;
+  /** What the file picker offers; see `ComposerProps.accept`. */
+  accept?: string;
+  /** Replaces the line under "Upload files…"; see `ComposerProps.uploadDetail`. */
+  uploadDetail?: ReactNode;
+  /** Widens where files can be dropped beyond the composer; see `ComposerProps.dropTarget`. */
+  dropTarget?: ComposerProps["dropTarget"];
+  /** Hands files in from outside the composer; see `ComposerProps.handleRef`. */
+  composerRef?: ComposerProps["handleRef"];
+  /** How an image an agent named is drawn in a reply; see `MessageListProps.resolveImage`. */
+  resolveImage?: MessageListProps["resolveImage"];
   /** A Data panel of tables and files to attach. `sourceId` defaults to the settings' source. */
   browse?: Omit<DataPanelProps, "onAttach">;
   /** Agents with their models, skills and connectors (`DescribeAgents`). */
@@ -293,16 +303,20 @@ function Conversation(props: ConversationProps) {
   const onContext = props.onContext;
   return (
     <section className="sf-chat sf-analytics-conversation" aria-label="Conversation">
-      <MessageList thread={thread} catalog={catalog} renderers={renderers} onAction={chat.act} onAnswer={chat.answer} onReport={chat.report} onProblem={chat.problem} onContext={onContext} empty={props.empty} />
+      <MessageList thread={thread} catalog={catalog} renderers={renderers} onAction={chat.act} onAnswer={chat.answer} onReport={chat.report} onProblem={chat.problem} onContext={onContext} empty={props.empty} resolveImage={props.resolveImage} />
       <Suggestions items={suggestions} onPick={(text) => chat.send(text, props.references)} />
       <ChatComposer
-        onSend={(text, refs) => chat.send(text, refs)}
+        onSend={(text, refs, attachments) => chat.send(text, refs, attachments)}
         onStop={chat.stop}
         streaming={thread.status === "streaming"}
         placeholder={thread.status === "waiting" ? "Answer above, or type to say something else" : props.placeholder}
         references={props.references}
         onReferencesChange={props.onReferencesChange}
         attachFiles={props.attachFiles}
+        accept={props.accept}
+        uploadDetail={props.uploadDetail}
+        dropTarget={props.dropTarget}
+        handleRef={props.composerRef}
         browse={props.panels.includes("data") ? undefined : props.browse}
         agents={props.agents}
         settings={settings}

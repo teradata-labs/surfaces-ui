@@ -4,7 +4,7 @@ export * from "./Chat.js";
 export * from "./PageStudio.js";
 export * from "./Approval.js";
 export * from "./conversation.js";
-export { ChatComposer, Composer, type ComposerProps, type AttachResult, type SpeechConsent, type ComposerContext, type ComposerToggle } from "./ChatComposer.js";
+export { ChatComposer, Composer, type ComposerProps, type AttachResult, type ComposerHandle, type SpeechConsent, type ComposerContext, type ComposerToggle } from "./ChatComposer.js";
 export * from "./DataPanel.js";
 export * from "./Menu.js";
 export * from "./icons.js";
