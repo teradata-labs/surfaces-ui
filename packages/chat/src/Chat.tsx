@@ -1,12 +1,12 @@
 import type { AgentBackend } from "@surfaces-ui/agent";
 import type { AgentInfo } from "@surfaces-ui/proto";
-import { type DataRef, Markdown, addDataRefs, dataRefLabel, hasDataRefs, readDataRefs, sameDataRef } from "@surfaces-ui/components";
+import { type DataRef, type ImageResolver, ImageResolverProvider, Markdown, addDataRefs, dataRefLabel, hasDataRefs, readDataRefs, safeImageAddress, sameDataRef } from "@surfaces-ui/components";
 import { type Catalog, type SurfaceAction, analyticsCatalog } from "@surfaces-ui/spec";
 import { type ComponentRenderer, type SurfaceNote, SurfaceView, lazyAnalyticsRenderers } from "@surfaces-ui/spec/react";
-import { type DragEvent, type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { type DragEvent, type FormEvent, type KeyboardEvent, type Ref, useEffect, useId, useRef, useState } from "react";
 import { ApprovalCard } from "./Approval.js";
-import { Composer } from "./ChatComposer.js";
-import type { ChatActions, ChatActor, ChatButton, ChatMessage, ChatStep, ChatThread, ChatUsage } from "./thread.js";
+import { type AttachResult, Composer, type ComposerHandle, type ComposerProps } from "./ChatComposer.js";
+import type { ChatActions, ChatActor, ChatAttachment, ChatButton, ChatMessage, ChatStep, ChatThread, ChatUsage } from "./thread.js";
 import type { ChatProvider } from "./selectors.js";
 import { type ChatSettings, type UseChat, type UseChatOptions, useChat } from "./useChat.js";
 
@@ -139,6 +139,30 @@ export interface MessageListProps {
   onPartAction?(partId: string, actionId: string, choiceId?: string): void;
   /** Shown when the thread is empty. */
   empty?: string;
+  /**
+   * How an image an agent named is drawn, in its replies' Markdown and in any `Image` it draws: turns the name or address
+   * it wrote into the address to load, or nothing (the description is shown). Without it, or a resolver given above
+   * (`ImageResolverProvider`), no image an agent wrote is loaded. Not used for a person's own attachments (`ChatAttachment.preview`).
+   */
+  resolveImage?: ImageResolver;
+}
+
+/** Pictures and files a person attached to their message, as chips with a thumbnail where there is one. */
+function AttachedChips({ attachments }: { attachments: ChatAttachment[] }) {
+  return (
+    <ul className="sf-chat-references sf-chat-attachments" aria-label="Attached files">
+      {attachments.map((one) => {
+        // The preview is the host's own (a blob it made from the file), never an address a model wrote.
+        const picture = one.mediaType.startsWith("image/") ? safeImageAddress(one.preview) : undefined;
+        return (
+          <li key={one.id ?? one.name} className="sf-chat-reference" data-kind="attachment" data-thumbnail={picture ? true : undefined}>
+            {picture ? <img className="sf-chat-thumbnail" src={picture} alt="" loading="lazy" decoding="async" /> : null}
+            <span>{one.name}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 function MessageView({ message, thread, catalog, renderers, onAction, onAnswer, onReport, onProblem, onContext, onPartAction }: MessageListProps & { message: ChatMessage }) {
@@ -157,6 +181,9 @@ function MessageView({ message, thread, catalog, renderers, onAction, onAnswer, 
                 </li>
               ))}
             </ul>
+          ) : p.kind === "attachments" ? (
+            // biome-ignore lint/suspicious/noArrayIndexKey: a message's parts do not move.
+            <AttachedChips key={i} attachments={p.attachments} />
           ) : null,
         )}
       </article>
@@ -198,6 +225,7 @@ function MessageView({ message, thread, catalog, renderers, onAction, onAnswer, 
           case "actions":
             return <ActionsCard key={index} actions={part.actions} onPress={(actionId, choiceId) => onPartAction?.(part.actions.id, actionId, choiceId)} />;
           case "references":
+          case "attachments":
             // Attachments belong to what a person sent; a reply has none.
             return null;
           default:
@@ -227,7 +255,7 @@ export function MessageList(props: MessageListProps) {
     const element = list.current;
     if (element && pinned.current) element.scrollTop = element.scrollHeight;
   }, [thread]);
-  return (
+  const list_ = (
     <div
       ref={list}
       className="sf-chat-list"
@@ -246,6 +274,7 @@ export function MessageList(props: MessageListProps) {
       ))}
     </div>
   );
+  return props.resolveImage ? <ImageResolverProvider resolve={props.resolveImage}>{list_}</ImageResolverProvider> : list_;
 }
 
 export interface SuggestionsProps {
@@ -313,6 +342,16 @@ export interface ChatProps {
   /** Offered before the first message. */
   starters?: string[];
   placeholder?: string;
+  /** How an image an agent named is drawn; see `MessageListProps.resolveImage`. */
+  resolveImage?: ImageResolver;
+  /** Turns files a person drops, pastes or picks into data or attachments; see `ComposerProps.attachFiles`. Without it there is no upload. */
+  attachFiles?(files: File[]): Promise<AttachResult[]>;
+  /** What the file picker offers; see `ComposerProps.accept`. */
+  accept?: string;
+  /** Widens the drop target beyond the composer; see `ComposerProps.dropTarget`. */
+  dropTarget?: ComposerProps["dropTarget"];
+  /** Hands files in from outside; see `ComposerProps.handleRef`. */
+  composerRef?: Ref<ComposerHandle>;
   /** The agent, model, skills and connectors a person chose, sent with each turn; with `onSettingsChange` the composer offers them. */
   settings?: ChatSettings;
   onSettingsChange?(settings: ChatSettings): void;
@@ -346,7 +385,7 @@ export function Chat(props: ChatProps) {
   const suggestions = thread.messages.length === 0 ? (props.starters ?? []) : thread.status === "idle" ? thread.suggestions : [];
   return (
     <section className={["sf-chat", props.className].filter(Boolean).join(" ")} style={{ height: props.height ?? 640 }} aria-label="Chat">
-      <MessageList thread={thread} catalog={catalog} renderers={renderers} onAction={chat.act} onAnswer={chat.answer} onReport={chat.report} onProblem={chat.problem} onContext={props.onContext} empty={props.empty} />
+      <MessageList thread={thread} catalog={catalog} renderers={renderers} onAction={chat.act} onAnswer={chat.answer} onReport={chat.report} onProblem={chat.problem} onContext={props.onContext} empty={props.empty} resolveImage={props.resolveImage} />
       <Suggestions items={suggestions} onPick={(text) => chat.send(text)} />
       <Composer
         agents={props.agents}
@@ -356,6 +395,10 @@ export function Chat(props: ChatProps) {
         onManageProviders={props.onManageProviders}
         references={props.references}
         onReferencesChange={props.onReferencesChange}
+        attachFiles={props.attachFiles}
+        accept={props.accept}
+        dropTarget={props.dropTarget}
+        handleRef={props.composerRef}
         onSend={chat.send} onStop={chat.stop} streaming={thread.status === "streaming"} placeholder={thread.status === "waiting" ? "Answer above, or type to say something else" : props.placeholder} />
       <UsageGauge usage={thread.usage} />
     </section>

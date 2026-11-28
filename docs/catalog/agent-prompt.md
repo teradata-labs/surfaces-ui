@@ -375,6 +375,17 @@ Formatted text: headings, lists, tables, links and code. Use it for explanations
 - `minHeight` (optional): integer — The least height of this component's box, in pixels. It is as tall as what it holds, or this, whichever is more.
 Example: `{"id":"notes","component":"Markdown","text":"Revenue is **up 5%**.\n\n- Europe leads\n- Returns are flat"}`
 
+### Image
+A picture. `src` is a name the page knows (for example one it gave you), never a web address you choose: the page decides whether and where it loads, and when it does not know the name the `alt` text is shown in its place. Always describe what it shows in `alt`, which is required (an empty string only for decoration). Give `caption` for a line beneath it. `fit` and `maxHeight` keep it from taking over a layout.
+- `src`: string | binding | call — The name of the image, as the page gave it to you. Not loaded as written.
+- `alt`: string | binding | call — What the image shows, for anyone who cannot see it.
+- `caption` (optional): string | binding | call
+- `width` (optional): integer — The most it is wide, in pixels. It never grows past its container.
+- `height` (optional): integer — A fixed height in pixels; the image then fills that box by `fit`.
+- `fit` (optional): "contain" | "cover" — How a fixed height is filled: the whole image ("contain", the default) or edge to edge, cropped ("cover").
+- `maxHeight` (optional): integer — The most it is tall, in pixels.
+Example: `{"id":"photo","component":"Image","src":"attachment-1","alt":"A bar chart of monthly revenue, rising through the year","caption":"Revenue by month","fit":"contain","maxHeight":320}`
+
 ### CodeBlock
 Code with a copy button. For SQL a person should be able to run, use SqlProposal instead.
 - `code`: string | binding | call

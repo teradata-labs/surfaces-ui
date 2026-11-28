@@ -26,6 +26,7 @@ export * from "./graph/model.js";
 export * from "./discovery/AskData.js";
 export * from "./model/ModelDiagram.js";
 export * from "./text/Markdown.js";
+export * from "./text/Image.js";
 export * from "./source/SourceList.js";
 export * from "./source/ConnectionBuilder.js";
 export * from "./metric/Metric.js";

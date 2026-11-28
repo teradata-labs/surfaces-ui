@@ -107,11 +107,35 @@ export interface ChatActions {
   outcome?: string;
 }
 
+/**
+ * Something a person attached to a message that is not a table or a file of data: a picture, usually. The host
+ * keeps the bytes; the thread keeps this description, which is what the message list shows.
+ */
+export interface ChatAttachment {
+  /** Tells it apart, and lets the host find what it kept. Default: the name. */
+  id?: string;
+  /** The file's name, shown under or beside the thumbnail. */
+  name: string;
+  /** Its media type, such as "image/png". A thumbnail is drawn only for an `image/*` type. */
+  mediaType: string;
+  /** Its size in bytes, when known. */
+  size?: number;
+  /**
+   * An address a small picture of it can be drawn from (a `blob:` URL the host made, a raster `data:image/` URL, an
+   * http(s) or same-origin address). It comes from the host, never from a model: nothing an agent wrote is put here, and
+   * an address that is not one of those kinds is ignored. A blob URL does not outlive the page, so a thread kept
+   * across reloads shows the name alone until the host supplies a preview again.
+   */
+  preview?: string;
+}
+
 /** One piece of a reply, in the order it arrived. */
 export type ChatPart =
   | { kind: "text"; text: string }
   /** Tables and columns a person attached to their message, by name. */
   | { kind: "references"; references: DataRef[] }
+  /** Pictures and other files a person attached to their message that are not data (`ChatAttachment`). */
+  | { kind: "attachments"; attachments: ChatAttachment[] }
   | { kind: "steps"; steps: ChatStep[] }
   /** A component the agent drew. `surfaceId` is the key into `ChatThread.surfaces`. */
   | { kind: "surface"; surfaceId: string }
@@ -150,7 +174,7 @@ export interface ChatThread {
 }
 
 export type ChatAction =
-  | { type: "user"; text: string; references?: DataRef[] }
+  | { type: "user"; text: string; references?: DataRef[]; attachments?: ChatAttachment[] }
   /** A turn has started; the reply is added to the latest assistant message when `resume` is set. */
   | { type: "begin"; resume?: boolean }
   | { type: "event"; event: AgentEvent }
@@ -235,7 +259,11 @@ export function reduceThread(thread: ChatThread, action: ChatAction, catalog: Ca
         suggestions: [],
         messages: [
           ...thread.messages,
-          { id: nextId, role: "user", parts: [{ kind: "text", text: action.text }, ...(action.references?.length ? [{ kind: "references" as const, references: action.references }] : [])], generatedBy: "", streaming: false },
+          { id: nextId, role: "user", parts: [
+              { kind: "text", text: action.text },
+              ...(action.references?.length ? [{ kind: "references" as const, references: action.references }] : []),
+              ...(action.attachments?.length ? [{ kind: "attachments" as const, attachments: action.attachments }] : []),
+            ], generatedBy: "", streaming: false },
         ],
       };
     case "begin": {
@@ -348,7 +376,7 @@ export function reduceThread(thread: ChatThread, action: ChatAction, catalog: Ca
   }
 }
 
-const PART_KINDS = new Set(["text", "references", "steps", "surface", "approval", "actions", "error"]);
+const PART_KINDS = new Set(["text", "references", "attachments", "steps", "surface", "approval", "actions", "error"]);
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
 
 /**

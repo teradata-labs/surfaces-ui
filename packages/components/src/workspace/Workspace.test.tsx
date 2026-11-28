@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SideNav, drawerBox, navigationName } from "./SideNav.js";
+import { SideNav, drawerBox, navigationName, stageBox } from "./SideNav.js";
 import { Workspace } from "./Workspace.js";
 
 afterEach(cleanup);
@@ -310,6 +310,62 @@ describe("SideNav", () => {
     expect(drawerBox({ top: 0, left: 0, width: 200, height: 600 }, viewport)).toBeUndefined();
     expect(drawerBox({ top: 0, left: 0, width: 0, height: 0 }, viewport)).toBeUndefined();
     expect(drawerBox(undefined, viewport)).toBeUndefined();
+  });
+
+  it("counts the drawer's place from what the stage is placed against, the window or a holder that contains it", () => {
+    const viewport = { width: 1200, height: 800 };
+    const window0 = { top: 0, left: 0 };
+    // Placed against the window: the box as measured, and no box stays no box (the stylesheet's window).
+    expect(stageBox({ top: 56, left: 240, width: 900, height: 744 }, window0, viewport)).toEqual({ top: 56, left: 240, width: 900, height: 744 });
+    expect(stageBox(undefined, window0, viewport)).toBeUndefined();
+    // Placed against its holder, all of it on screen: the holder's own top left, not its place in the window twice.
+    expect(stageBox({ top: 49, left: 400, width: 390, height: 700 }, { top: 49, left: 400 }, viewport)).toEqual({ top: 0, left: 0, width: 390, height: 700 });
+    // The holder scrolled 300px off the top: the stage starts 300px down it, where the screen does.
+    expect(stageBox(drawerBox({ top: -300, left: 600, width: 900, height: 700 }, viewport), { top: -300, left: 600 }, viewport)).toEqual({ top: 300, left: 0, width: 600, height: 400 });
+    // A holder with a border, or a block that is not the holder: counted from where that block starts.
+    expect(stageBox({ top: 100, left: 300, width: 500, height: 600 }, { top: 90, left: 280 }, viewport)).toEqual({ top: 10, left: 20, width: 500, height: 600 });
+    // Too little of the holder showing: the window, reached from inside the holder.
+    expect(stageBox(drawerBox({ top: 700, left: 100, width: 900, height: 600 }, viewport), { top: 700, left: 100 }, viewport)).toEqual({ top: -700, left: -100, width: 1200, height: 800 });
+  });
+
+  it("places an open drawer from its holder when the holder contains fixed boxes", () => {
+    const realObserver = globalThis.ResizeObserver;
+    const realRect = Element.prototype.getBoundingClientRect;
+    const realStyle = window.getComputedStyle;
+    globalThis.ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+    const at = (top: number, left: number, width: number, height: number) => ({ top, left, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON() {} }) as DOMRect;
+    // As a browser lays it out: the holder 49px down and 400px in, and the unplaced stage at the holder's top left.
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      if (this.classList.contains("sf-container")) return at(49, 400, 390, 700);
+      if (this.classList.contains("sf-sidenav-stage")) return at(49, 400, 390, 700);
+      return realRect.call(this);
+    };
+    window.getComputedStyle = ((element: Element, pseudo?: string | null) => {
+      const style = realStyle.call(window, element, pseudo);
+      if (!element.classList.contains("sf-sidenav-stage")) return style;
+      return new Proxy(style, { get: (target, key) => (key === "top" || key === "left" ? "0px" : Reflect.get(target, key)) });
+    }) as typeof window.getComputedStyle;
+    try {
+      const { container } = render(
+        <div className="sf-container">
+          <SideNav label="Site" groups={groups} pinned />
+        </div>,
+      );
+      const root = container.querySelector<HTMLElement>(".sf-sidenav")!;
+      fireEvent.click(screen.getByRole("button", { name: "Show Site navigation" }));
+      expect(root.style.getPropertyValue("--sf-sidenav-top")).toBe("0px");
+      expect(root.style.getPropertyValue("--sf-sidenav-left")).toBe("0px");
+      expect(root.style.getPropertyValue("--sf-sidenav-width")).toBe("390px");
+      expect(root.style.getPropertyValue("--sf-sidenav-height")).toBe("700px");
+    } finally {
+      globalThis.ResizeObserver = realObserver;
+      Element.prototype.getBoundingClientRect = realRect;
+      window.getComputedStyle = realStyle;
+    }
   });
 
   it("folds for a narrow region it is drawn in, whatever the window, and opens over that region", () => {

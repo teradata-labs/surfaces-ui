@@ -1,7 +1,7 @@
 import { Component, type ReactNode, createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { INSPECT_COMPONENT, INSPECT_MARK, INSPECT_POINTED, type Recorder, type TraceScope, diffJson, newHolder, newSpanId, newTraceId, plain, recordMessage } from "@surfaces-ui/trace";
 import { TraceScopeProvider, useRecorder } from "@surfaces-ui/trace/react";
-import { ThemeProvider, useOptionalTheme } from "@surfaces-ui/components";
+import { type ImageResolver, ImageResolverProvider, ThemeProvider, useOptionalTheme } from "@surfaces-ui/components";
 import { type ThemeRequest, applyThemeRequest, defaultTheme } from "@surfaces-ui/tokens";
 import { type Catalog, type ValidationIssue, contractSchema, eventContextSchema, isComponentIssue } from "../catalog.js";
 import { A2UI_VERSION, type Action, type ChildList, type FunctionImpl, absolutePath, conditionHolds, getPath, resolve, setPath } from "../dynamic.js";
@@ -104,6 +104,13 @@ export interface SurfaceViewProps {
    * are the same with or without it.
    */
   frame?(component: SurfaceComponent, drawn: ReactNode): ReactNode;
+  /**
+   * The one way a host says how an image is drawn in this surface: turns the name an agent used (`Image`'s `src`, or
+   * `![alt](src)` in a `Markdown`) into the address to load, or returns nothing, and the description is shown instead.
+   * Nothing an agent wrote is ever loaded as written. Left out, a resolver given above (`ImageResolverProvider`) is used,
+   * and without one every image shows its description.
+   */
+  resolveImage?: ImageResolver;
   className?: string;
 }
 
@@ -300,7 +307,7 @@ function InspectMark({ recorder, surfaceKey, componentId }: { recorder: Recorder
  * malformed is shown as a small notice instead of being rendered, so agent
  * output can never introduce markup or behaviour the catalog does not define.
  */
-export function SurfaceView({ surface: given, catalog, renderers, onAction, onProblem, onDataChange, onControlsChange, onContext, frame, className }: SurfaceViewProps) {
+export function SurfaceView({ surface: given, catalog, renderers, onAction, onProblem, onDataChange, onControlsChange, onContext, frame, resolveImage, className }: SurfaceViewProps) {
   // A surface kept before the move to A2UI v1.0 is read in its current form; a current one is used as it is.
   const surface = useMemo(() => upgradeSurface(given), [given]);
   // Dev tools: with a recorder above, what this view does is recorded. Without one, none of this runs.
@@ -567,7 +574,8 @@ export function SurfaceView({ surface: given, catalog, renderers, onAction, onPr
       <Inputs.Provider value={inputs}>{Object.hasOwn(surface.components, "root") ? node("root", "/", []) : null}</Inputs.Provider>
     </div>
   );
-  return surface.theme ? <SurfaceTheme request={surface.theme as ThemeRequest}>{body}</SurfaceTheme> : body;
+  const themed = surface.theme ? <SurfaceTheme request={surface.theme as ThemeRequest}>{body}</SurfaceTheme> : body;
+  return resolveImage ? <ImageResolverProvider resolve={resolveImage}>{themed}</ImageResolverProvider> : themed;
 }
 
 /**

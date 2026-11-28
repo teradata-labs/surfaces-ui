@@ -7,6 +7,7 @@ import {
   type Expectation,
   ExpectationsPanel,
   type IngestDraft,
+  Image,
   IngestWizard,
   Markdown,
   Metric,
@@ -574,6 +575,18 @@ export const moreRenderers: Record<string, ComponentRenderer> = {
       />
     )),
   Markdown: ({ props }) => <Markdown text={text(props.text)} />,
+  // Drawn only through the host's resolver (`SurfaceView`'s `resolveImage`); without one, or when it knows nothing of `src`, the `alt` shows.
+  Image: ({ props }) => (
+    <Image
+      src={text(props.src)}
+      alt={text(props.alt)}
+      caption={text(props.caption) || undefined}
+      width={typeof props.width === "number" ? props.width : undefined}
+      height={typeof props.height === "number" ? props.height : undefined}
+      fit={props.fit === "cover" ? "cover" : "contain"}
+      maxHeight={typeof props.maxHeight === "number" ? props.maxHeight : undefined}
+    />
+  ),
   CodeBlock: ({ props }) => <CodeBlock code={text(props.code)} language={text(props.language) || undefined} />,
   Table: ({ props }) => {
     const columns = (props.columns as string[]) ?? [];

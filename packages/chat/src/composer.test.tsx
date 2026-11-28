@@ -68,6 +68,20 @@ describe("ChatComposer", () => {
     expect(onStop).toHaveBeenCalled();
   });
 
+  it("marks itself rich when files can be attached, and says nothing wrong to React about it", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const { container, unmount } = render(<ChatComposer onSend={() => {}} attachFiles={async () => []} />);
+      expect(container.querySelector("form")!.getAttribute("data-rich")).toBe("true");
+      expect(errors.mock.calls.filter((call) => String(call[0]).includes("data-rich"))).toEqual([]);
+      unmount();
+      const plain = render(<ChatComposer onSend={() => {}} />);
+      expect(plain.container.querySelector("form")!.hasAttribute("data-rich")).toBe(false);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
   it("uploads any file through the host, attaching what became data and naming what did not", async () => {
     const onSend = vi.fn();
     const ref: DataRef = { sourceId: "local", kind: "table", table: "orders" };

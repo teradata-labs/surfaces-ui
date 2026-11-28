@@ -50,7 +50,7 @@ export const analyticsChatDoc = describeAppComponent<AnalyticsChatProps>()({
     { prop: "browse", label: "Data panel", description: "Tables and files to attach to a message, over the source in `settings`.", on: true },
     { prop: "agents", label: "Agent setup", description: "What the backend offers (`DescribeAgents`): agents with their models, skills and connectors, in the Setup menu and panel." },
     { prop: "providers", label: "Model providers", description: "Where models run, each with its models: the Model menu groups them and a pick sets `provider` and `model`. A model's `level` ({ value, of, label }) is drawn as rising bars beside its word." },
-    { prop: "attachFiles", label: "Attach files", description: "The + menu, drop and paste. The host decides what a file becomes; the agent is told a table or a file by name, never its contents." },
+    { prop: "attachFiles", label: "Attach files", description: "The + menu, drop and paste. The host decides what a file becomes: data (`ref`), a picture shown as a chip with a thumbnail (`attachment`), or something it handled itself (`taken`); the agent is told a table or a file by name, never its contents. `accept`, `uploadDetail`, `dropTarget` and `composerRef` shape the picker, its menu text and where files can be dropped from." },
     { prop: "speech", label: "Voice", description: "Dictation and a spoken conversation, asked for once with `speechConsent` (Chrome sends audio to Google)." },
   ],
   callbacks: [
