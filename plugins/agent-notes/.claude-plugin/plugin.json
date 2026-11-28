@@ -1,0 +1,10 @@
+{
+  "name": "agent-notes",
+  "version": "0.1.0",
+  "description": "Keeps a repository's agent notes as a wiki beside the code: an AGENTS.md in each folder, a short root file with a map, a hook that refuses a change to a folder whose notes are not in context, and a check for CI.",
+  "author": { "name": "Josh Schoen", "url": "https://github.com/teradata-labs/surfaces-ui" },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui/tree/main/plugins/agent-notes",
+  "repository": "https://github.com/teradata-labs/surfaces-ui",
+  "license": "Apache-2.0",
+  "keywords": ["agents-md", "claude-md", "context", "documentation", "monorepo", "hooks"]
+}

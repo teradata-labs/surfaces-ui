@@ -1,6 +1,57 @@
 {
   "name": "surfaces-analytics",
-  "version": "0.1.0",
-  "description": "Skills for agentic data and analytics work with Surfaces UI: chart and dashboard standards after Tufte and Few, human-in-the-loop patterns, connecting and onboarding, cleaning, personal data, transformations, and responsive, accessible UI.",
-  "keywords": ["analytics", "data", "charts", "dashboards", "a2ui", "accessibility", "pii"]
+  "version": "0.7.0",
+  "description": "Data and analytics work with Surfaces UI: skills for chart and dashboard standards after Tufte and Few, human-in-the-loop patterns, connecting and onboarding, cleaning, personal data, transformations and responsive, accessible UI, with the Surfaces MCP server that draws live tables, charts and dashboards over your own data.",
+  "author": {
+    "name": "Josh Schoen",
+    "url": "https://github.com/teradata-labs/surfaces-ui"
+  },
+  "homepage": "https://surfaces-ui.com",
+  "repository": "https://github.com/teradata-labs/surfaces-ui",
+  "license": "Apache-2.0",
+  "keywords": [
+    "analytics",
+    "data",
+    "charts",
+    "dashboards",
+    "sql",
+    "mcp",
+    "a2ui",
+    "accessibility",
+    "pii"
+  ],
+  "userConfig": {
+    "data_dialect": {
+      "type": "string",
+      "title": "Database type",
+      "description": "The database your own data is in, when it is reached through that database's MCP server. Leave as sample data to try the plugin with the built-in sample datasets.",
+      "options": [
+        "sample data",
+        "teradata",
+        "postgres",
+        "mysql",
+        "duckdb"
+      ],
+      "default": "sample data"
+    },
+    "data_server": {
+      "type": "string",
+      "title": "The database's MCP server",
+      "description": "How that server is started on this computer, for example: uvx teradata-mcp-server. Or its address, starting with https://. Leave empty for sample data.",
+      "default": ""
+    },
+    "data_secret": {
+      "type": "string",
+      "title": "Connection string or token",
+      "description": "What the database's MCP server needs to sign in: its connection string for a server started here, or the token for one at an address. Kept in this computer's credential store and handed only to that server.",
+      "sensitive": true,
+      "default": ""
+    },
+    "data_secret_name": {
+      "type": "string",
+      "title": "Name the connection string is passed under",
+      "description": "The environment variable the database's MCP server reads its connection string from. DATABASE_URI for the Teradata MCP server; change it only if your server reads another name.",
+      "default": "DATABASE_URI"
+    }
+  }
 }

@@ -48,6 +48,7 @@
     "@surfaces-ui/discovery": "workspace:*",
     "@surfaces-ui/engine": "workspace:*",
     "@surfaces-ui/engine-datafusion": "workspace:*",
+    "@surfaces-ui/engine-mcp": "workspace:*",
     "@surfaces-ui/engine-duckdb": "workspace:*",
     "@surfaces-ui/engine-service": "workspace:*",
     "@surfaces-ui/engine-teradata": "workspace:*",

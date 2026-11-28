@@ -1,0 +1,7 @@
+# `apps/e2e`
+
+Agent notes for this folder. The rules that hold everywhere are in the root [AGENTS.md](../../AGENTS.md). What you learn about this folder goes here.
+
+| Path | What it is |
+|---|---|
+| `apps/e2e` | Browser tests with Playwright (`pnpm e2e`, and the CI job `browser`): the playground started on a port of its own and pointed at no server, so every test runs against DuckDB in the page and the sample data. Covers resizing a dashboard's columns while viewing it (keyboard, pointer, undo) and `ResizeHandle` on its Components page, the SQL workbench (keyboard run, an error marked in the editor, a windowed grid of 12,000 rows scrolled to its end, sorting), the Explorer (pills by key and by a real pointer drag, the table behind the chart), the analytics chat (a suggestion drawing a live chart, Send, panels moved from their menu and kept across a reload), the dev tools (a message, a service call and a problem in the drawer, a step back to the surface as it stood, a chat turn recorded with no wiring, the shortcut), no sideways scroll at phone width, and axe's WCAG 2.2 A and AA checks on eight areas at desktop and phone size. Chromium, and the layout tests tagged `@webkit` in WebKit too, on an iPhone 13 (the `iphone` project; layout Safari reads differently only shows there, such as the home page's phone frame, #205; tests that wait for the sample data time out in Playwright's WebKit on Linux, cause not yet known, so they run in Chromium only); a new interaction in the playground gets a spec here. |

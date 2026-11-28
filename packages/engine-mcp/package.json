@@ -1,0 +1,64 @@
+{
+  "name": "@surfaces-ui/engine-mcp",
+  "version": "0.4.0",
+  "description": "A database's own MCP server as a Surfaces UI engine: sorts, filters and pages run as SQL through that server's query tool (Teradata, Postgres, MySQL, DuckDB)",
+  "keywords": [
+    "surfaces-ui",
+    "analytics",
+    "data",
+    "mcp",
+    "sql",
+    "teradata",
+    "postgres"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teradata-labs/surfaces-ui.git",
+    "directory": "packages/engine-mcp"
+  },
+  "homepage": "https://github.com/teradata-labs/surfaces-ui#readme",
+  "bugs": {
+    "url": "https://github.com/teradata-labs/surfaces-ui/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
+    }
+  },
+  "files": [
+    "dist",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.17.0",
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@surfaces-ui/engine": "workspace:*",
+    "@surfaces-ui/engine-teradata": "workspace:*",
+    "@surfaces-ui/proto": "workspace:*",
+    "@surfaces-ui/sql": "workspace:*",
+    "apache-arrow": "^21.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/server": "^2.4.0",
+    "@types/node": "^26.6.6",
+    "zod": "^4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

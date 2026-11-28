@@ -1,11 +1,15 @@
 import type { AgentBackend } from "@surfaces-ui/agent";
 import type { DataSource, ModelSettings } from "@surfaces-ui/data";
 import { createRequire } from "node:module";
+import { existsSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Embedder } from "@surfaces-ui/discovery";
 import { type DuckDbCatalog, type DuckDbConnection, type DuckDbSecretValues, type DuckDbTable, createDuckDbEngine, isRemotePath } from "@surfaces-ui/engine-duckdb";
 import { createDataFusionEngine } from "@surfaces-ui/engine-datafusion";
+import { createMcpEngine, httpServer } from "@surfaces-ui/engine-mcp";
+import { stdioServer } from "@surfaces-ui/engine-mcp/node";
 import { type DriverConnection, createTeradataEngine, driverClient } from "@surfaces-ui/engine-teradata";
 import type { PipelineDefinition } from "@surfaces-ui/pipelines";
 import { type DbtNode, type DbtPipelinesOptions, dbtPipelines as dbtPipelinesOf, defaultRelation, readArtifacts, semanticModelsFromDbt } from "@surfaces-ui/pipelines-dbt";
@@ -92,7 +96,36 @@ export interface TeradataDriverSourceConfig {
   databases?: string[];
 }
 
-export type SourceConfig = DuckDbSourceConfig | DataFusionSourceConfig | TeradataSourceConfig | TeradataDriverSourceConfig;
+/**
+ * A database reached through its own MCP server (the Teradata MCP server, a
+ * Postgres or DuckDB one). The SQL for every sort, filter and page goes
+ * through that server's query tool, so its rows never pass through a model.
+ * Read-only: no kept results, no pipelines and no time travel.
+ *
+ * A local server is started from `command`; only the environment variables
+ * named in `env` are passed to it, so a connection string stays in the
+ * environment (or the git-ignored `.env.local`) and out of this file. A
+ * remote one is called at `url`, with the bearer token read from
+ * `<SECRET>_TOKEN`.
+ */
+export interface McpSourceConfig {
+  id: string;
+  displayName?: string;
+  engine: "mcp";
+  /** The database behind the server, which decides the SQL written for it. */
+  dialect: "postgres" | "mysql" | "duckdb" | "teradata";
+  server: { command: string; args?: string[]; env?: string[] } | { url: string; secret?: string };
+  /** The server's tool that runs a query, and its SQL argument. Found from the server's tool list when left out. */
+  tool?: string;
+  argument?: string;
+  /** Other arguments sent with every query, such as a project id. Never a credential. */
+  arguments?: Record<string, unknown>;
+  /** Teradata: the default database, and the databases listings cover when none is named. */
+  database?: string;
+  databases?: string[];
+}
+
+export type SourceConfig = DuckDbSourceConfig | DataFusionSourceConfig | TeradataSourceConfig | TeradataDriverSourceConfig | McpSourceConfig;
 
 export interface DiscoveryConfig {
   /**
@@ -199,6 +232,25 @@ export function defineConfig(config: SurfacesConfig): SurfacesConfig {
 
 export const CONFIG_FILES = ["surfaces.config.ts", "surfaces.config.mjs", "surfaces.config.js"];
 
+/**
+ * Where a person keeps a config that belongs to no project: `SURFACES_HOME`,
+ * or `.surfaces` in their home directory. A server started by a desktop app
+ * has no project folder, so it looks here after its working directory. The
+ * git-ignored `.env.local` beside the config holds its secrets, as anywhere.
+ */
+export function configHome(env: Record<string, string | undefined> = process.env): string {
+  return env.SURFACES_HOME?.trim() || path.join(os.homedir(), ".surfaces");
+}
+
+/** The config file to use: in the working directory, else in `configHome()`. */
+export function findConfig(cwd: string = process.cwd(), env: Record<string, string | undefined> = process.env): string | undefined {
+  for (const dir of [cwd, configHome(env)]) {
+    const name = CONFIG_FILES.find((file) => existsSync(path.join(dir, file)));
+    if (name) return path.join(dir, name);
+  }
+  return undefined;
+}
+
 /** Loads a config file and resolves its relative paths. */
 export async function loadConfig(file: string): Promise<{ config: SurfacesConfig; dir: string }> {
   const absolute = path.resolve(file);
@@ -208,6 +260,50 @@ export async function loadConfig(file: string): Promise<{ config: SurfacesConfig
     throw new Error(`${file} must default-export defineConfig({ sources: [...] }) or defineConfig({ seeds: true })`);
   }
   return { config, dir: path.dirname(absolute) };
+}
+
+/** Splits a command line into the program and its arguments, keeping what is inside quotes together. */
+function words(line: string): string[] {
+  return [...line.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((match) => match[1] ?? match[2] ?? match[3]!);
+}
+
+/**
+ * A config made from the environment, for where there is no project folder
+ * to keep a config file in (a plugin in a desktop app, whose settings screen
+ * fills these in). One source, a database reached through its own MCP server:
+ *
+ * - `SURFACES_SOURCE_DIALECT`: `postgres`, `mysql`, `duckdb` or `teradata`.
+ * - `SURFACES_SOURCE_SERVER`: the command that starts the database's MCP
+ *   server (`uvx teradata-mcp-server`), or the address of one (`https://…`).
+ * - `SURFACES_SOURCE_SECRET`: the connection string a local server reads, or
+ *   the token a remote one takes. It is handed to a local server under the
+ *   name in `SURFACES_SOURCE_SECRET_NAME` (`DATABASE_URI` unless said), and is
+ *   never written anywhere or shown.
+ * - `SURFACES_SOURCE_NAME`, `SURFACES_SOURCE_DATABASE`: a display name, and
+ *   Teradata's default database.
+ *
+ * Nothing set gives `undefined`; a dialect or a server without the other is an error that says which is missing.
+ */
+export function configFromEnv(env: Record<string, string | undefined> = process.env): SurfacesConfig | undefined {
+  // A host that fills these in from a settings screen can leave one as an empty value, a "none" choice, or its own unfilled placeholder.
+  const set = (value: string | undefined) => {
+    const text = value?.trim() ?? "";
+    return text === "" || text.startsWith("${") || /^(none|sample data)$/i.test(text) ? undefined : text;
+  };
+  const dialect = set(env.SURFACES_SOURCE_DIALECT)?.toLowerCase();
+  const server = set(env.SURFACES_SOURCE_SERVER);
+  if (!dialect && !server) return undefined;
+  if (!dialect || !server) throw new Error(`A data source needs both its database type and its MCP server; ${dialect ? "the server" : "the database type"} is missing.`);
+  if (dialect !== "postgres" && dialect !== "mysql" && dialect !== "duckdb" && dialect !== "teradata") throw new Error(`The database type must be postgres, mysql, duckdb or teradata, not "${dialect}".`);
+  const common = { id: "data", displayName: set(env.SURFACES_SOURCE_NAME), engine: "mcp" as const, dialect: dialect as McpSourceConfig["dialect"], database: set(env.SURFACES_SOURCE_DATABASE) };
+  if (/^https?:\/\//i.test(server)) return { sources: [{ ...common, server: { url: server, secret: set(env.SURFACES_SOURCE_SECRET) ? "SURFACES_SOURCE_SECRET" : undefined } }] };
+  const [command, ...args] = words(server);
+  if (!command) throw new Error("The MCP server's command is empty.");
+  const name = set(env.SURFACES_SOURCE_SECRET_NAME) ?? "DATABASE_URI";
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new Error("The name the connection string is handed over under must be a plain environment variable name.");
+  const secret = set(env.SURFACES_SOURCE_SECRET);
+  if (secret) env[name] = secret;
+  return { sources: [{ ...common, server: { command, args, env: [name] } }] };
 }
 
 /** Opens the engines a config describes. */
@@ -224,6 +320,26 @@ export async function openSources(
     ids.add(source.id);
     if (source.engine === "datafusion") {
       sources.push({ id: source.id, displayName: source.displayName, kind: SourceKind.FILES, engine: await createDataFusionEngine({ baseUrl: source.baseUrl }) });
+      continue;
+    }
+    if (source.engine === "mcp") {
+      const server = source.server;
+      const secret = "url" in server ? server.secret : undefined;
+      // A source made from the environment (`configFromEnv`) keeps its token under this one name.
+      const token = secret === "SURFACES_SOURCE_SECRET" ? process.env.SURFACES_SOURCE_SECRET : secret ? (await resolveSecret(secret))?.token : undefined;
+      const engine = await createMcpEngine({
+        dialect: source.dialect,
+        transport: "url" in server ? httpServer(server.url, { token: () => token }) : stdioServer(server.command, server.args, { env: server.env }),
+        // A command line can hold a connection string, so only the program is shown; an address is shown without its query.
+        address: "url" in server ? server.url.replace(/[?#].*$/, "") : server.command,
+        tool: source.tool,
+        argument: source.argument,
+        arguments: source.arguments,
+        database: source.database,
+        databases: source.databases,
+      });
+      const kind = source.dialect === "teradata" ? SourceKind.TERADATA : source.dialect === "postgres" ? SourceKind.POSTGRES : source.dialect === "mysql" ? SourceKind.MYSQL : SourceKind.DUCKDB;
+      sources.push({ id: source.id, displayName: source.displayName, kind, engine });
       continue;
     }
     if (source.engine === "teradata" && source.transport === "driver") {

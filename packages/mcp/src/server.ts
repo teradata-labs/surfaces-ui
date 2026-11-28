@@ -33,6 +33,9 @@ export interface SurfacesAppsOptions {
   maxRowsPerRequest?: number;
 }
 
+/** A tool that only reads says so both ways: a host decides what to ask a person about from these, and a directory review asks for each one. */
+const READ_ONLY = { readOnlyHint: true, destructiveHint: false } as const;
+
 const ui = { ui: { resourceUri: APP_RESOURCE_URI } };
 const text = (value: string) => ({ content: [{ type: "text" as const, text: value }] });
 const failure = (value: string) => ({ ...text(value), isError: true });
@@ -87,7 +90,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
       title: "Show a table",
       description: "Shows the rows of a SQL query in an interactive table the person can scroll and sort. Use for looking at records.",
       inputSchema: { sql: sqlArg, sourceId: sourceArg, title: z.string().optional() },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ sql, sourceId, title }) =>
@@ -125,7 +128,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
         sourceId: sourceArg,
         title: z.string().optional(),
       },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ sql, type, x, xGrain, xBins, y, splitBy, stacked, legend, sourceId, title }) =>
@@ -153,7 +156,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
         sourceId: sourceArg,
         title: z.string().optional(),
       },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ sql, rows, columns, measures, sourceId, title }) =>
@@ -167,7 +170,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
       title: "Explore a query",
       description: "Shows a query the person can explore themselves: filters, a table and a chart of the same result, and the SQL that ran.",
       inputSchema: { sql: sqlArg, sourceId: sourceArg, title: z.string().optional() },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ sql, sourceId, title }) =>
@@ -181,7 +184,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
       title: "Open the SQL editor",
       description: "Opens a SQL editor with autocomplete for the source's tables, where the person can write and run queries.",
       inputSchema: { sql: z.string().optional().describe("SQL to start with."), sourceId: sourceArg },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ sql, sourceId }) => show({ view: "editor", sourceId: await sourceOf(sourceId), sql: sql ?? "" }, "Opened the SQL editor."),
@@ -194,7 +197,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
       title: "Browse tables",
       description: "Shows a searchable tree of the source's tables and their columns.",
       inputSchema: { sourceId: sourceArg },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ sourceId }) => show({ view: "schema", sourceId: await sourceOf(sourceId) }, "Showing the tables in this source."),
@@ -213,7 +216,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
       title: "Show a custom view",
       description: `Shows a custom layout (a dashboard, a summary) described as A2UI messages using catalog ${catalog.id}. Call get_component_docs first to learn the components.`,
       inputSchema: { messages: z.array(z.record(z.string(), z.unknown())).min(1).describe("A2UI messages: createSurface, then updateComponents, then optionally updateDataModel.") },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ messages }) => render(messages),
@@ -232,7 +235,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
           state: z.record(z.string(), z.unknown()).optional(),
         }),
       },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ spec }) => render(fromJsonRender(spec as JsonRenderSpec, catalog)),
@@ -244,7 +247,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
       title: "Component documentation",
       description: "Explains how to build a custom view: the message format and every component with its props and an example. Pass a component name for just that one.",
       inputSchema: { component: z.string().optional() },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
     },
     async ({ component }) => {
       if (!component) return text(catalogPrompt(catalog));
@@ -269,7 +272,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
         database: z.string().optional().describe("A database or schema to list. Omit for the ones the source covers by default."),
         search: z.string().optional().describe("Part of a table name."),
       },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
     },
     async ({ sourceId, database, search }) => {
       try {
@@ -302,7 +305,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
         table: z.string().describe("The table's name, as list_tables gave it (database.table where it has a database)."),
         sourceId: sourceArg,
       },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
     },
     async ({ table, sourceId }) => {
       try {
@@ -332,7 +335,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
         title: "Search the catalog",
         description: "Finds tables and columns by words or meaning, across the databases the catalog covers. Returns names, types and descriptions, never data values.",
         inputSchema: { query: z.string().min(1).describe("What to look for, e.g. customer revenue."), sourceId: z.string().optional().describe("Search one source. Omit to search all.") },
-        annotations: { readOnlyHint: true },
+        annotations: READ_ONLY,
       },
       async ({ query, sourceId }) => {
         try {
@@ -361,7 +364,7 @@ export function registerSurfacesApps(server: McpServer, options: SurfacesAppsOpt
       title: "Surfaces data channel",
       description: "Used by the Surfaces app page to fetch data. Not for direct use.",
       inputSchema: { method: z.string(), request: z.record(z.string(), z.unknown()) },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: { ui: { resourceUri: APP_RESOURCE_URI, visibility: ["app"] } },
     },
     async ({ method, request }) => {
@@ -403,10 +406,10 @@ function registerPipelineTools(server: McpServer, pipelines: Pipelines, show: (v
   const pipelineId = z.string().describe("The pipeline's id, from list_pipelines.");
   const select = z.array(z.string()).optional().describe("Datasets to build: name alone, name+ with what reads it, +name with what it reads. Omit for all.");
   const describe = (name: string) => tools.get(name)!.description;
-  server.registerTool("list_pipelines", { title: "List pipelines", description: describe("list_pipelines"), inputSchema: {}, annotations: { readOnlyHint: true } }, call("list_pipelines"));
-  server.registerTool("describe_pipeline", { title: "Describe a pipeline", description: describe("describe_pipeline"), inputSchema: { pipelineId }, annotations: { readOnlyHint: true } }, call("describe_pipeline"));
-  server.registerTool("check_pipeline", { title: "Check a pipeline", description: describe("check_pipeline"), inputSchema: { pipelineId, select }, annotations: { readOnlyHint: true } }, call("check_pipeline"));
-  server.registerTool("get_run", { title: "A pipeline run", description: describe("get_run"), inputSchema: { pipelineId, runId: z.string() }, annotations: { readOnlyHint: true } }, call("get_run"));
+  server.registerTool("list_pipelines", { title: "List pipelines", description: describe("list_pipelines"), inputSchema: {}, annotations: READ_ONLY }, call("list_pipelines"));
+  server.registerTool("describe_pipeline", { title: "Describe a pipeline", description: describe("describe_pipeline"), inputSchema: { pipelineId }, annotations: READ_ONLY }, call("describe_pipeline"));
+  server.registerTool("check_pipeline", { title: "Check a pipeline", description: describe("check_pipeline"), inputSchema: { pipelineId, select }, annotations: READ_ONLY }, call("check_pipeline"));
+  server.registerTool("get_run", { title: "A pipeline run", description: describe("get_run"), inputSchema: { pipelineId, runId: z.string() }, annotations: READ_ONLY }, call("get_run"));
 
   registerAppTool(
     server,
@@ -416,7 +419,7 @@ function registerPipelineTools(server: McpServer, pipelines: Pipelines, show: (v
       description:
         "Shows a pipeline live to the person: its datasets and how they feed one another, its runs, and each dataset's query, grain, key, columns and check results. The person can run it, check it, rebuild one dataset or cancel from there.",
       inputSchema: { pipelineId },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async ({ pipelineId: id }) => {
@@ -470,7 +473,7 @@ function registerPipelineTools(server: McpServer, pipelines: Pipelines, show: (v
           )
           .optional(),
       },
-      annotations: { readOnlyHint: true },
+      annotations: READ_ONLY,
       _meta: ui,
     },
     async (input) => {

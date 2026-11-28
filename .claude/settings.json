@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/plugins/agent-notes/skills/notes-upkeep/scripts/notes-guard.mjs\" guard", "timeout": 10 }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/plugins/agent-notes/skills/notes-upkeep/scripts/notes-guard.mjs\" loaded", "timeout": 10 }]
+      }
+    ],
+    "InstructionsLoaded": [
+      {
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/plugins/agent-notes/skills/notes-upkeep/scripts/notes-guard.mjs\" loaded", "timeout": 10 }]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact|clear",
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/plugins/agent-notes/skills/notes-upkeep/scripts/notes-guard.mjs\" reset", "timeout": 10 }]
+      }
+    ]
+  }
+}

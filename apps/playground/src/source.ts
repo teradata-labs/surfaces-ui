@@ -123,6 +123,8 @@ function engineStart(engine: Engine): Pick<SourceOption, "engine" | "table" | "s
       return { engine: "DataFusion", table: "orders" };
     case Engine.POSTGRES:
       return { engine: "Postgres", table: "orders" };
+    case Engine.MYSQL:
+      return { engine: "MySQL", table: "orders" };
     default:
       return { engine: "DuckDB", table: "orders" };
   }

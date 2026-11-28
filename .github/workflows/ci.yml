@@ -20,6 +20,10 @@ jobs:
         run: pnpm gen && git diff --exit-code -- packages/proto/src/gen
       - name: UI packages do not depend on the data layer
         run: pnpm check:boundaries
+      - name: Agent notes are in place
+        run: pnpm check:notes
+      - name: Plugins are ready to submit
+        run: pnpm check:plugins
       - run: pnpm build
       - name: Generated catalog docs are current
         run: node scripts/generate-docs.mjs && git diff --exit-code -- docs/catalog docs/recipes && test -z "$(git status --porcelain -- docs/catalog docs/recipes)"

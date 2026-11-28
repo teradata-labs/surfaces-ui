@@ -1,6 +1,6 @@
 ---
 name: data-cleaning
-description: Use when asked to clean, fix, tidy, deduplicate, standardise or check the quality of a table with Surfaces UI. Profile first with the database, propose each fix as a reviewable step, keep the original, and report before and after. Triggers on "clean", "dedupe", "duplicates", "missing values", "nulls", "outliers", "standardise", "data quality", "fix this column".
+description: Use when asked to clean, fix, tidy, deduplicate, standardise or check the quality of a table or dataset, with or without Surfaces UI. Profile first with the database, propose each fix as a reviewable step, keep the original, and report before and after. Triggers on "clean", "dedupe", "duplicates", "missing values", "nulls", "outliers", "standardise", "data quality", "fix this column".
 ---
 
 # Data cleaning

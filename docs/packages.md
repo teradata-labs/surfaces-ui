@@ -2,7 +2,7 @@
 
 # Packages
 
-Surfaces UI is 31 packages on npm, released together at one version, so any two of them always work together. Most apps install two to six of them; the rest come along as dependencies, or are parts of the server.
+Surfaces UI is 32 packages on npm, released together at one version, so any two of them always work together. Most apps install two to six of them; the rest come along as dependencies, or are parts of the server.
 
 ## What an app installs
 
@@ -32,7 +32,7 @@ What an app installs itself. Each brings the foundations it needs.
 | [`@surfaces-ui/state`](../packages/state/README.md) | State services with no React or DOM dependency: stores, derived values, undo, persistence to any `StateStorage`, URL sync, the shared view state behind cross-filtering, and query runs. | `data`, `proto`, protobuf-es | `react` (optional) |
 | [`@surfaces-ui/devtools`](../packages/devtools/README.md) | Developer tools for agent-generated UI: one component around your app records messages, components, problems, state, events, agent turns and service calls, with time travel. | `components`, `data`, `spec`, `trace` | `react`, `react-dom` |
 | [`@surfaces-ui/client-connect`](../packages/client-connect/README.md) | The client side of the dev server's services over Connect: `connectDataSource`, `connectDiscovery`, `connectAgent` and the rest, each implementing the matching interface from `@surfaces-ui/data` or `@surfaces-ui/agent`. | `data`, `proto`, Connect | none |
-| [`@surfaces-ui/dev-server`](../packages/dev-server/README.md) | A Connect server for your data: DuckDB (files, Delta, Iceberg, object stores, Postgres), Teradata and DataFusion behind one set of read-only services, with search, pipelines and an agent. | `agent`, `data`, `discovery`, `engine`, `engine-datafusion`, `engine-duckdb`, `engine-service`, `engine-teradata`, `pipelines`, `pipelines-dbt`, `proto`, `seeds`, `sql`, protobuf-es, Connect, Apache Arrow | none |
+| [`@surfaces-ui/dev-server`](../packages/dev-server/README.md) | A Connect server for your data: DuckDB (files, Delta, Iceberg, object stores, Postgres), Teradata and DataFusion behind one set of read-only services, with search, pipelines and an agent. | `agent`, `data`, `discovery`, `engine`, `engine-datafusion`, `engine-mcp`, `engine-duckdb`, `engine-service`, `engine-teradata`, `pipelines`, `pipelines-dbt`, `proto`, `seeds`, `sql`, protobuf-es, Connect, Apache Arrow | none |
 | [`create-surfaces`](../packages/create-surfaces/README.md) | Starts a new app: a dashboard page, a chat that draws live components, and a data server with six sample datasets. | nothing | none |
 
 ## Agent backends
@@ -68,6 +68,7 @@ For an MCP host, a Next.js app, a plain HTML page, or SQL in the browser with no
 | [`@surfaces-ui/engine-duckdb`](../packages/engine-duckdb/README.md) | DuckDB as an engine (Node, ADBC): Parquet, CSV and JSON files, Delta and Iceberg tables, time travel, and file access locked to the registered tables. | `engine`, `proto`, DuckDB (native, through ADBC), protobuf-es, Apache Arrow | none |
 | [`@surfaces-ui/engine-teradata`](../packages/engine-teradata/README.md) | Teradata as an engine, through Teradata Query Service or a driver connection you supply. | `engine`, `proto`, `sql`, protobuf-es, Apache Arrow | none |
 | [`@surfaces-ui/engine-datafusion`](../packages/engine-datafusion/README.md) | Apache DataFusion as an engine, over a server's HTTP SQL endpoint (ROAPI), reading Arrow. | `engine`, `proto`, `sql`, protobuf-es, Apache Arrow | none |
+| [`@surfaces-ui/engine-mcp`](../packages/engine-mcp/README.md) | A database's own MCP server as an engine: the Teradata MCP server, or a Postgres, MySQL or DuckDB one. | `engine`, `engine-teradata`, `proto`, `sql`, protobuf-es, MCP SDK, Apache Arrow | none |
 | [`@surfaces-ui/sql`](../packages/sql/README.md) | Turns a view (sort, filter, page, group, aggregate, bucket) into SQL for each engine's dialect, with every value bound as a parameter, plus read-only checks. | `data`, `proto`, protobuf-es, @polyglot-sql/sdk | none |
 | [`@surfaces-ui/discovery`](../packages/discovery/README.md) | The reference discovery backend: keyword and semantic search over tables and columns, profiles, inferred joins and context packs for agents, on any `DataSource`. | `data`, `proto`, protobuf-es, Apache Arrow | none |
 | [`@surfaces-ui/embedder-local`](../packages/embedder-local/README.md) | A small embedding model run on your machine for semantic search. | `discovery`, Transformers.js | none |

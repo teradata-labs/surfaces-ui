@@ -1,6 +1,6 @@
 ---
 name: dashboard-design
-description: Use when composing, editing or reviewing a dashboard, page or view made of several Surfaces UI components (a PageDocument or an A2UI surface). Applies Stephen Few's dashboard principles: one screen, the most important thing first, dense but quiet. Triggers on "dashboard", "build a page", "overview page", "KPI page", "lay out", "review this dashboard".
+description: Use when composing, editing or reviewing a dashboard, report, page or view of several charts, numbers and tables, in any tool; with Surfaces UI it is a PageDocument or an A2UI surface made of its components. Applies Stephen Few's dashboard principles: one screen, the most important thing first, dense but quiet. Triggers on "dashboard", "build a page", "overview page", "KPI page", "lay out", "review this dashboard".
 ---
 
 # Dashboard design (after Few)
