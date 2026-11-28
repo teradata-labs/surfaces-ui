@@ -1,6 +1,6 @@
 ---
 name: personal-data
-description: Use before a table is shared, exported, charted for a wider audience, joined to another source, or has its values sent to a model - and whenever columns look like they hold personal or sensitive data (names, emails, phones, addresses, IDs, card numbers, birth dates, IPs, health). Gives the review pattern and treatments for Surfaces UI. Triggers on "PII", "personal data", "sensitive", "mask", "anonymise", "redact", "GDPR", "HIPAA", "can I share this".
+description: Use before a table is shared, exported, charted for a wider audience, joined to another source, or has its values sent to a model - and whenever columns look like they hold personal or sensitive data (names, emails, phones, addresses, IDs, card numbers, birth dates, IPs, health). Gives the review pattern and the treatments, in any tool, drawn with Surfaces UI where it is available. Triggers on "PII", "personal data", "sensitive", "mask", "anonymise", "redact", "GDPR", "HIPAA", "can I share this".
 ---
 
 # Personal data

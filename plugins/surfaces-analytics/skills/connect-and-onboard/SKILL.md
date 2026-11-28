@@ -1,6 +1,6 @@
 ---
 name: connect-and-onboard
-description: Use when a person wants to connect data (Parquet, Delta or Iceberg on S3, GCS, Azure or disk; an Iceberg REST catalog; Postgres; DataFusion) to Surfaces UI, or is new to a source and needs a guided start. Covers the connection plan, credentials by secret name, testing, and a first tour. Triggers on "connect", "add a source", "connector", "onboard", "get started with this data", "set up the lake", "add Postgres".
+description: Use when a person wants to connect data (Parquet, Delta or Iceberg on S3, GCS, Azure or disk; an Iceberg REST catalog; Postgres; DataFusion) to Surfaces UI or its MCP server, or is new to a source and needs a guided start. Covers the connection plan, credentials by secret name, testing, and a first tour. Triggers on "connect", "add a source", "connector", "onboard", "get started with this data", "set up the lake", "add Postgres".
 ---
 
 # Connect a source and onboard a person

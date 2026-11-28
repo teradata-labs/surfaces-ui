@@ -1,6 +1,6 @@
 ---
 name: data-transformations
-description: Use when designing or changing datasets with Surfaces UI - joins, aggregate tables, reshaped or derived views, pipeline datasets and their data quality rules. Design at a stated grain, review as a plan, build through a pipeline, verify with counts. Triggers on "transform", "join these", "build a table", "aggregate", "pipeline", "derived dataset", "model the data", "materialize", "dbt-style".
+description: Use when designing, changing or reviewing datasets, in SQL, dbt or Surfaces UI pipelines - joins, aggregate tables, reshaped or derived views, pipeline datasets and their data quality rules. Design at a stated grain, review as a plan, build through a pipeline, verify with counts. Triggers on "transform", "join these", "build a table", "aggregate", "pipeline", "derived dataset", "model the data", "materialize", "dbt-style".
 ---
 
 # Data transformations

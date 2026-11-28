@@ -1,6 +1,6 @@
 ---
 name: chart-standards
-description: Use before drawing, choosing or reviewing any chart, sparkline, table of figures or headline number with Surfaces UI. Applies the working rules of Edward Tufte and Stephen Few so a chart shows the data honestly and can be read at a glance. Triggers on "chart", "graph", "plot", "visualize", "which chart", "review this chart", "sparkline", "bullet graph", "small multiples".
+description: Use before drawing, choosing or reviewing any chart, sparkline, table of figures or headline number, in any tool; with Surfaces UI or its MCP server it is drawn with those components. Applies the working rules of Edward Tufte and Stephen Few so a chart shows the data honestly and can be read at a glance. Triggers on "chart", "graph", "plot", "visualize", "which chart", "review this chart", "sparkline", "bullet graph", "small multiples".
 ---
 
 # Chart standards (Tufte and Few)

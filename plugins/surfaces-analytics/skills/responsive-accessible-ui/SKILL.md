@@ -1,6 +1,6 @@
 ---
 name: responsive-accessible-ui
-description: Use when building, changing or reviewing any Surfaces UI component, page, theme or agent-drawn surface, to keep it responsive and meeting WCAG 2.2 level AA. Covers container-based layout, target size, focus, contrast, motion, charts and tables for assistive technology, and the tests that enforce them. Triggers on "responsive", "mobile", "narrow", "accessibility", "a11y", "WCAG", "keyboard", "screen reader", "contrast", "focus", "touch target".
+description: Use when building, changing or reviewing any page, dashboard, component, theme or agent-drawn surface, built with Surfaces UI or not, to keep it responsive and meeting WCAG 2.2 level AA. Covers container-based layout, target size, focus, contrast, motion, charts and tables for assistive technology, and the tests that enforce them. Triggers on "responsive", "mobile", "narrow", "accessibility", "a11y", "WCAG", "keyboard", "screen reader", "contrast", "focus", "touch target".
 ---
 
 # Responsive and accessible UI
