@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode, useMemo, useState } from "react";
 import { highlight } from "./highlight.js";
+import { resolveImageAddress, useImageResolver } from "./Image.js";
 
 /** Only http(s) and mailto links are rendered as links; anything else stays text. */
 function safeHref(value: string): string | undefined {
@@ -36,7 +37,7 @@ function inline(text: string, links: Links = {}): ReactNode[] {
       // so text from a model cannot load an image from anywhere it likes.
       const split = token.indexOf("](");
       const alt = token.slice(2, split);
-      const src = links.image ? safeHref(links.image(token.slice(split + 2, -1)) ?? "") : undefined;
+      const src = resolveImageAddress(links.image, token.slice(split + 2, -1));
       out.push(src ? <img key={key++} className="sf-markdown-image" src={src} alt={alt} loading="lazy" decoding="async" /> : alt);
     } else {
       const split = token.indexOf("](");
@@ -233,7 +234,11 @@ export interface MarkdownProps {
   headingStart?: number;
   /** Turns a link the text gives (such as a relative path) into a full http(s) address, or undefined to leave it as text. */
   resolveLink?(href: string): string | undefined;
-  /** Turns an image the text gives (`![alt](src)`) into a full http(s) address. Without it, or when it returns undefined, the image's description is shown instead. */
+  /**
+   * Turns an image the text gives (`![alt](src)`) into the address to draw (http(s), a `blob:`, a raster `data:image/` or a
+   * path on the same origin). Without it, or when it returns undefined, the image's description is shown instead. Left out,
+   * the resolver given to `ImageResolverProvider` (or `SurfaceView`'s `resolveImage`) above is used.
+   */
   resolveImage?(src: string): string | undefined;
   /** Called on a plain click on a link, with its full address; return true to handle it in the app, so it does not open a new tab. */
   openLink?(href: string): boolean;
@@ -246,7 +251,8 @@ export interface MarkdownProps {
  * inserted as HTML, so model output cannot add markup or scripts.
  */
 export function Markdown({ text, onRunSql, inline: oneLine, headingStart = 3, resolveLink, resolveImage, openLink, className }: MarkdownProps) {
-  const links: Links = { resolve: resolveLink, image: resolveImage, open: openLink };
+  const provided = useImageResolver();
+  const links: Links = { resolve: resolveLink, image: resolveImage ?? provided, open: openLink };
   const line = (value: string) => inline(value, links);
   if (oneLine) return <span className={["sf-markdown-inline", className].filter(Boolean).join(" ")}>{line(text)}</span>;
   return (

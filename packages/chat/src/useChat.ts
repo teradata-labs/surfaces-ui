@@ -38,7 +38,7 @@ const objectRef = (ref: DataRef) => ({
   column: ref.column ?? "",
   path: ref.path ?? "",
 });
-import { type ChatAction, type ChatActor, type ChatApprovalAnswer, type ChatThread, agentSurfaceId, emptyThread, parseThread, reduceThread } from "./thread.js";
+import { type ChatAction, type ChatActor, type ChatAttachment, type ChatApprovalAnswer, type ChatThread, agentSurfaceId, emptyThread, parseThread, reduceThread } from "./thread.js";
 
 export interface UseChatOptions {
   /** The catalog agent-drawn components are checked against. */
@@ -122,7 +122,11 @@ export interface ApprovalReply {
 export interface UseChat {
   thread: ChatThread;
   /** Sends what the person typed, with any tables and columns they attached. */
-  send(text: string, references?: DataRef[]): void;
+  /**
+   * Adds the person's message and starts a turn. `attachments` (pictures and other files that are not data) are shown with
+   * the message and kept in the thread; they are not sent to the agent, which takes text and data references only.
+   */
+  send(text: string, references?: DataRef[], attachments?: ChatAttachment[]): void;
   /** Answers an approval the agent is waiting on, recording who, when and why, and the digest of what was approved. */
   answer(id: string, reply: ApprovalReply): void;
   /** Sends an event from a control on an agent-drawn component. */
@@ -264,10 +268,10 @@ export function useChat(given: AgentBackend, options: UseChatOptions): UseChat {
   useEffect(() => () => controller.current?.abort(), []);
 
   const send = useCallback(
-    (text: string, references: DataRef[] = []) => {
+    (text: string, references: DataRef[] = [], attachments: ChatAttachment[] = []) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-      dispatch({ type: "user", text: trimmed, references });
+      dispatch({ type: "user", text: trimmed, references, attachments });
       run({ case: "text", value: trimmed }, false, references);
     },
     [run, dispatch],

@@ -281,6 +281,21 @@ const definitions = {
       props: { text: dynamicString },
       example: { id: "notes", component: "Markdown", text: "Revenue is **up 5%**.\n\n- Europe leads\n- Returns are flat" },
     },
+    Image: {
+      description:
+        "A picture. `src` is a name the page knows (for example one it gave you), never a web address you choose: the page decides whether and where it loads, and when it does not know the name the `alt` text is shown in its place. " +
+        "Always describe what it shows in `alt`, which is required (an empty string only for decoration). Give `caption` for a line beneath it. `fit` and `maxHeight` keep it from taking over a layout.",
+      props: {
+        src: dynamicString.describe("The name of the image, as the page gave it to you. Not loaded as written."),
+        alt: dynamicString.describe("What the image shows, for anyone who cannot see it."),
+        caption: dynamicString.optional(),
+        width: z.number().int().min(24).max(1600).optional().describe("The most it is wide, in pixels. It never grows past its container."),
+        height: z.number().int().min(24).max(1600).optional().describe("A fixed height in pixels; the image then fills that box by `fit`."),
+        fit: z.enum(["contain", "cover"]).optional().describe("How a fixed height is filled: the whole image (\"contain\", the default) or edge to edge, cropped (\"cover\")."),
+        maxHeight: z.number().int().min(24).max(1600).optional().describe("The most it is tall, in pixels."),
+      },
+      example: { id: "photo", component: "Image", src: "attachment-1", alt: "A bar chart of monthly revenue, rising through the year", caption: "Revenue by month", fit: "contain", maxHeight: 320 },
+    },
     Link: {
       description: 'A link to a web page. Only http and https addresses are shown as links; in a site, a path on the site ("/pricing") is too, and opens in place.',
       props: { text: dynamicString, url: dynamicString },

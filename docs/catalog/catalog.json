@@ -11698,6 +11698,383 @@
       ],
       "additionalProperties": false
     },
+    "Image": {
+      "description": "A picture. `src` is a name the page knows (for example one it gave you), never a web address you choose: the page decides whether and where it loads, and when it does not know the name the `alt` text is shown in its place. Always describe what it shows in `alt`, which is required (an empty string only for decoration). Give `caption` for a line beneath it. `fit` and `maxHeight` keep it from taking over a layout.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique within the surface. The top component must be \"root\"."
+        },
+        "component": {
+          "type": "string",
+          "const": "Image"
+        },
+        "@catalogId": {
+          "description": "The component's catalog. This renderer draws one catalog per surface.",
+          "type": "string",
+          "const": "urn:surfaces:catalog:analytics:v1"
+        },
+        "@accessibility": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            },
+            "live": {
+              "type": "string",
+              "enum": [
+                "off",
+                "polite",
+                "assertive"
+              ]
+            },
+            "hidden": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@path"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A value read from the data model at this path."
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "@call": {
+                      "type": "string"
+                    },
+                    "args": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "catalogId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@call"
+                  ],
+                  "additionalProperties": false,
+                  "description": "A call to one of the catalog's functions."
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "@metadata": {
+          "description": "Extensions by name. Never drawn, resolved or run.",
+          "type": "object",
+          "properties": {
+            "extensions": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[\\p{XID_Start}_][\\p{XID_Continue}]*$"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "additionalProperties": false
+        },
+        "visibleWhen": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "A place in the data model, as a binding's path is written."
+            },
+            "equals": {
+              "description": "Shown only while the value there is this.",
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "in": {
+              "description": "Shown only while the value there is one of these.",
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "description": "Shows the component only while a value in the data model is what this says: a field for a table name only once \"Table\" is chosen."
+        },
+        "src": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ],
+          "description": "The name of the image, as the page gave it to you. Not loaded as written."
+        },
+        "alt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ],
+          "description": "What the image shows, for anyone who cannot see it."
+        },
+        "caption": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@path"
+              ],
+              "additionalProperties": false,
+              "description": "A value read from the data model at this path."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@call": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "catalogId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@call"
+              ],
+              "additionalProperties": false,
+              "description": "A call to one of the catalog's functions."
+            }
+          ]
+        },
+        "width": {
+          "description": "The most it is wide, in pixels. It never grows past its container.",
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 1600
+        },
+        "height": {
+          "description": "A fixed height in pixels; the image then fills that box by `fit`.",
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 1600
+        },
+        "fit": {
+          "description": "How a fixed height is filled: the whole image (\"contain\", the default) or edge to edge, cropped (\"cover\").",
+          "type": "string",
+          "enum": [
+            "contain",
+            "cover"
+          ]
+        },
+        "maxHeight": {
+          "description": "The most it is tall, in pixels.",
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 1600
+        }
+      },
+      "required": [
+        "id",
+        "component",
+        "src",
+        "alt"
+      ],
+      "additionalProperties": false
+    },
     "CodeBlock": {
       "description": "Code with a copy button. For SQL a person should be able to run, use SqlProposal instead.",
       "type": "object",
@@ -28413,6 +28790,9 @@
         },
         {
           "$ref": "#/components/Markdown"
+        },
+        {
+          "$ref": "#/components/Image"
         },
         {
           "$ref": "#/components/CodeBlock"

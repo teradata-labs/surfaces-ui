@@ -158,6 +158,8 @@ import { createDuckDbWasmDataSource, openBrowserDuckDb } from "@surfaces-ui/data
 // 4. Your own backend: implement DataSource (execute, count, listTables, describeTable, explain, ...).
 ```
 
+In the browser, `engine.registerFile(name, file, "csv")` takes a `File` from a picker or a drop and has DuckDB read it from disk a piece at a time, so a large file need not fit in memory; `engine.dropFile(name)` removes the table and the file behind it. For a file read by your own SQL (`read_csv('name')`), `registerDuckDbFile(bindings, name, fileOrBytes)` and `dropDuckDbFile(bindings, name)` do the same without a table.
+
 To run the reference server, put a `surfaces.config.ts` beside your app and run `npx surfaces-dev`. With no config, it serves six sample datasets: retail, healthcare, fraud, telco, transportation and manufacturing. Credentials are named, never written in config: `secret: "LAKE"` reads `LAKE_KEY_ID` and `LAKE_SECRET` from the server's environment.
 
 ## A first view
@@ -302,6 +304,34 @@ const reply: ChatPart = {
   context={selected ? [{ label: `About ${selected}`, onClear: () => select(undefined), clearLabel: "Whole page instead" }] : []}
   toggles={[{ id: "ways", label: "Try three ways", checked: ways, onChange: setWays }]}
 />
+```
+
+#### Pictures and files in the composer
+
+`attachFiles` answers for each file, and a result can be one of four things: `ref` (a table or file of data, as above), `attachment` (a picture or other file that is not data: a chip with a small thumbnail, given to `onSend` as its third argument and kept on the person's message as an `attachments` part), `taken: true` (the host handled it elsewhere: no chip, no error), or `error`. A result with none of them still reads as failed. A picture's `preview` is an address the host made (a `blob:` URL); it is drawn only if it is http(s), `blob:`, a raster `data:image/` or a path on the same origin, and it never comes from a model. An agent turn takes text and data references only, so a host that wants the model to see a picture sends it by its own means.
+
+```tsx
+const composer = useRef<ComposerHandle>(null);
+const panel = useRef<HTMLDivElement>(null);
+
+<div ref={panel}>
+  <ChatComposer
+    onSend={(text, refs, attachments) => send(text, refs, attachments)}
+    attachFiles={async (files) => files.map((file) => (file.type.startsWith("image/") ? { file, attachment: { name: file.name, mediaType: file.type, preview: URL.createObjectURL(file) } } : { file, taken: true }))}
+    accept="image/*,.csv"
+    uploadDetail="Pictures, or CSV files to read as tables"
+    dropTarget={panel}      // files dropped anywhere on the panel get the composer's "Reading…" chips
+    handleRef={composer}    // composer.current.attach(files) hands files in from your own drop handling
+  />
+</div>
+```
+
+#### Images an agent names
+
+The catalog's `Image` (`src`, required `alt`, `caption`, `width`, `height`, `fit`, `maxHeight`) and a Markdown `![alt](src)` never load the address an agent wrote. They draw only what the host's resolver returns for it, and show the `alt` text when there is no resolver or it knows nothing of `src`. Give the resolver once: `resolveImage` on `SurfaceView`, `MessageList`, `Chat` or `AnalyticsChat`, or an `ImageResolverProvider` above them. It may return http(s), a `blob:`, a raster `data:image/` or a same-origin path.
+
+```tsx
+<AnalyticsChat agent={agent} resolveImage={(src) => attachments.get(src)?.url} />
 ```
 
 `agent` is any `AgentBackend`:

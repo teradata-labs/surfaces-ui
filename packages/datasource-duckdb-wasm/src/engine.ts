@@ -16,7 +16,47 @@ export interface DuckDbWasmBindings {
   closePrepared(conn: number, statement: number): unknown;
   cancelPendingQuery(conn: number): boolean | Promise<boolean>;
   registerFileBuffer(name: string, buffer: Uint8Array): unknown;
+  /** Registers a file the browser holds (`File`) to be read a piece at a time. Optional: without it a `File` is read into memory first. */
+  registerFileHandle?(name: string, handle: unknown, protocol: number, directIO: boolean): unknown;
+  /** Forgets a registered file. Optional: without it a file stays registered until the database is closed. */
+  dropFile?(name: string): unknown;
   getVersion(): string | Promise<string>;
+}
+
+/** DuckDB-wasm's `DuckDBDataProtocol.BROWSER_FILEREADER`: a `File` the browser reads from disk a piece at a time. */
+const BROWSER_FILEREADER = 2;
+
+/** Bytes, or a file from the person's disk (a `File` from a picker or a drop) that is read a piece at a time and never held whole in memory. */
+export type FileSource = Uint8Array | Blob;
+
+const isBlob = (source: FileSource): source is Blob => typeof Blob !== "undefined" && source instanceof Blob;
+
+/**
+ * Makes a file readable by DuckDB under `name` (a path used in SQL: `read_csv('name')`). A `File` is registered with
+ * DuckDB's browser file reader, which reads it from disk as the query needs it, so a file larger than the memory a
+ * browser can spare still works; bindings without that (the blocking Node ones) read it into memory first. Bytes are
+ * registered as they are. Registering a name again replaces it.
+ */
+export async function registerDuckDbFile(bindings: DuckDbWasmBindings, name: string, source: FileSource): Promise<void> {
+  if (!isBlob(source)) {
+    await bindings.registerFileBuffer(name, source);
+    return;
+  }
+  if (bindings.registerFileHandle) {
+    // DuckDB refuses a handle for a name already registered; say it replaces.
+    await dropDuckDbFile(bindings, name);
+    await bindings.registerFileHandle(name, source, BROWSER_FILEREADER, true);
+  }
+  else await bindings.registerFileBuffer(name, new Uint8Array(await source.arrayBuffer()));
+}
+
+/** Forgets a file made readable with `registerDuckDbFile`, freeing what DuckDB held for it. Nothing is deleted from disk. Safe to call for a name that is not registered. */
+export async function dropDuckDbFile(bindings: DuckDbWasmBindings, name: string): Promise<void> {
+  try {
+    await bindings.dropFile?.(name);
+  } catch {
+    // A name that was never registered, or already dropped.
+  }
 }
 
 const CATALOG = "memory";
@@ -92,9 +132,15 @@ export interface DuckDbWasmEngine extends Engine {
   /** The DuckDB schema this source's tables live in. */
   readonly schema: string;
   /** Adds a Parquet file (bytes) as a table of this source. */
-  registerParquet(name: string, bytes: Uint8Array, about?: TableAbout): Promise<void>;
-  /** Adds a file a person brought (Parquet, CSV or JSON bytes) as a table of this source. The bytes stay in this browser. */
-  registerFile(name: string, bytes: Uint8Array, format: FileFormat, about?: TableAbout): Promise<void>;
+  registerParquet(name: string, bytes: FileSource, about?: TableAbout): Promise<void>;
+  /**
+   * Adds a file a person brought (Parquet, CSV or JSON) as a table of this source. The bytes stay in this browser. Give a
+   * `File` from a picker or a drop to have it read from disk a piece at a time instead of loaded whole (see `registerDuckDbFile`);
+   * the table reads it for as long as it exists, so call `dropFile` when it is no longer wanted.
+   */
+  registerFile(name: string, bytes: FileSource, format: FileFormat, about?: TableAbout): Promise<void>;
+  /** Removes a table made with `registerFile` or `registerParquet`, and forgets the file behind it. Nothing is deleted from disk. */
+  dropFile(name: string): Promise<void>;
   /** Records a table's description, keys and column notes, for tables made by `runStatements`. */
   describeAs(name: string, about: TableAbout): Promise<void>;
   /**
@@ -129,18 +175,19 @@ export async function createDuckDbWasmEngine(options: DuckDbWasmEngineOptions): 
   };
   const raw = async (sql: string) => tableFromIPC(await db.runQuery(conn, sql));
   const READERS: Record<FileFormat, string> = { parquet: "read_parquet", csv: "read_csv_auto", json: "read_json_auto" };
-  const register = (name: string, bytes: Uint8Array, format: FileFormat, about: TableAbout) =>
+  const register = (name: string, bytes: FileSource, format: FileFormat, about: TableAbout) =>
     serial(async () => {
       if (!NAME.test(name)) throw new EngineError("UNSUPPORTED", `Table names use letters, digits and underscores: ${name}`);
       if (!(format in READERS)) throw new EngineError("UNSUPPORTED", `Files are read as Parquet, CSV or JSON, not ${format}.`);
       const file = `${schema}__${name}.${format}`;
-      await db.registerFileBuffer(file, bytes);
+      await registerDuckDbFile(db, file, bytes);
       try {
         await raw(`CREATE OR REPLACE VIEW ${ident(name)} AS SELECT * FROM ${READERS[format]}(${text(file)})`);
         // Reading one row now reports a file that cannot be read here, not at the first query.
         await raw(`SELECT * FROM ${ident(name)} LIMIT 1`);
       } catch (error) {
         await raw(`DROP VIEW IF EXISTS ${ident(name)}`).catch(() => undefined);
+        await dropDuckDbFile(db, file);
         throw engineError(error);
       }
       if (about.comment) await raw(`COMMENT ON VIEW ${ident(name)} IS ${text(about.comment)}`);
@@ -289,6 +336,16 @@ export async function createDuckDbWasmEngine(options: DuckDbWasmEngineOptions): 
 
     registerParquet: (name, bytes, about = {}) => register(name, bytes, "parquet", about),
     registerFile: (name, bytes, format, about = {}) => register(name, bytes, format, about),
+
+    dropFile: (name) =>
+      serial(async () => {
+        const known = info.get(name.toLowerCase());
+        await raw(`DROP VIEW IF EXISTS ${ident(name)}`).catch((error) => {
+          throw engineError(error);
+        });
+        if (known?.location) await dropDuckDbFile(db, known.location);
+        info.delete(name.toLowerCase());
+      }),
 
     describeAs: (name, about) =>
       serial(async () => {
