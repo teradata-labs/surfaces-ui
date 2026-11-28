@@ -505,6 +505,7 @@ export const analyticsCatalog = defineCatalog({
       example: { id: "feed", component: "RowList", sourceId: "lake", sql: "SELECT * FROM orders", child: "order-card", label: "Orders", sorts: [{ column: "ordered_at", desc: true }], rowKey: "order_id", pageSize: 10 },
     },
     Markdown: basicComponents.Markdown,
+    Image: basicComponents.Image,
     CodeBlock: {
       description: "Code with a copy button. For SQL a person should be able to run, use SqlProposal instead.",
       props: { code: dynamicString, language: z.string().optional() },
